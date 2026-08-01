@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>diBadge | Select Portal</title>
+  <title>diBadge | Under Construction</title>
   <style>
-    /* Reset & Base Styling */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -22,6 +21,66 @@
       justify-content: center;
       align-items: center;
       position: relative;
+    }
+
+    /* Maintenance Gate Modal */
+    #gateModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .gate-card {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .gate-card h2 {
+      margin-bottom: 8px;
+    }
+
+    .gate-card p {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .gate-card input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .gate-card button {
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .gate-card button:hover {
+      background: #1d4ed8;
     }
 
     /* Main Center Container */
@@ -61,7 +120,7 @@
       font-size: 0.95rem;
     }
 
-    /* Footer Links (Fixed Bottom Left & Right) */
+    /* Footer Links */
     .footer-link {
       position: absolute;
       bottom: 24px;
@@ -76,15 +135,10 @@
       text-decoration: underline;
     }
 
-    .bottom-left {
-      left: 32px;
-    }
+    .bottom-left { left: 32px; }
+    .bottom-right { right: 32px; }
 
-    .bottom-right {
-      right: 32px;
-    }
-
-    /* Modal Styling for QR Code */
+    /* Modal Styling for Personal QR Code */
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -110,12 +164,6 @@
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
-    .modal-card img {
-      width: 200px;
-      height: 200px;
-      margin: 20px 0;
-    }
-
     .close-btn {
       position: absolute;
       top: 16px;
@@ -127,62 +175,119 @@
       color: #94a3b8;
     }
 
-    /* Mobile Responsive */
+    /* Dummy Home Screen View (for Organization Direct Access) */
+    #homeScreen {
+      display: none;
+      text-align: center;
+      background: #ffffff;
+      padding: 60px 40px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    }
+
+    #homeScreen h1 {
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+
+    #homeScreen p {
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    #homeScreen button {
+      padding: 10px 20px;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
     @media (max-width: 600px) {
-      .portal-container {
-        flex-direction: column;
-      }
-      .bottom-left, .bottom-right {
-        position: static;
-        margin-top: 24px;
-      }
-      body {
-        justify-content: space-between;
-        padding: 40px 0 24px 0;
-      }
+      .portal-container { flex-direction: column; }
+      .bottom-left, .bottom-right { position: static; margin-top: 24px; }
+      body { justify-content: space-between; padding: 40px 0 24px 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Center Portal Options -->
-  <main class="portal-container">
+  <!-- 1. Password Protection Gate (Public Lock) -->
+  <div id="gateModal">
+    <div class="gate-card">
+      <h2>diBadge Site Lock</h2>
+      <p>This site is currently under construction. Please enter access key.</p>
+      <input type="password" id="passInput" placeholder="Enter Access Passcode" />
+      <button onclick="checkPasscode()">Unlock Site</button>
+    </div>
+  </div>
+
+  <!-- 2. Portal Options View -->
+  <main class="portal-container" id="portalView">
     <div class="portal-card" onclick="openQrModal('Personal')">
       <h2>Personal</h2>
       <p>Scan QR to log in to your account</p>
     </div>
 
-    <div class="portal-card" onclick="openQrModal('Organization')">
+    <!-- Organization Bypass: Calls direct Home Page load -->
+    <div class="portal-card" onclick="openOrganizationHome()">
       <h2>Organization</h2>
-      <p>Scan QR for enterprise portal</p>
+      <p>Click to access enterprise home</p>
     </div>
   </main>
 
-  <!-- Bottom Links -->
-  <a href="/privacy-policy" class="footer-link bottom-left">Privacy Policy</a>
-  <a href="/org-signup" class="footer-link bottom-right">Sign up for Organization account</a>
+  <!-- 3. Organization Home Page View (Bypassed View) -->
+  <div id="homeScreen">
+    <h1>Organization Home Page</h1>
+    <p>Welcome! You bypassed the QR login. Build your organization dashboard here.</p>
+    <button onclick="location.reload()">Return to Portal</button>
+  </div>
 
-  <!-- QR Code Modal Popup -->
+  <!-- Footer Links -->
+  <a href="#" class="footer-link bottom-left" id="linkPrivacy">Privacy Policy</a>
+  <a href="#" class="footer-link bottom-right" id="linkSignup">Sign up for Organization account</a>
+
+  <!-- QR Code Modal (For Personal Only) -->
   <div class="modal-overlay" id="qrModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeQrModal()">&times;</button>
-      <h3 id="modalTitle">Scan to Login</h3>
-      <p id="modalSubtitle" style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">Use your mobile app to scan</p>
-      
-      <!-- Placeholder QR Code - Replace with your dynamic QR endpoint -->
-      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-login-placeholder" alt="Login QR Code" />
-
+      <h3 id="modalTitle">Personal Login</h3>
+      <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">Use your mobile app to scan</p>
+      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-personal-login" alt="Login QR Code" style="width:200px; height:200px; margin:20px 0;" />
       <p style="font-size: 0.8rem; color: #94a3b8;">QR Code expires in 5 minutes</p>
     </div>
   </div>
 
   <script>
+    // DEFINE YOUR PRIVATE PASSCODE HERE
+    const SECRET_PASSCODE = "177994"; 
+
+    // Auto-unlock if developer already entered password previously
+    if (localStorage.getItem("dibadge_access") === "granted") {
+      document.getElementById("gateModal").style.display = "none";
+    }
+
+    function checkPasscode() {
+      const input = document.getElementById("passInput").value;
+      if (input === SECRET_PASSCODE) {
+        localStorage.setItem("dibadge_access", "granted");
+        document.getElementById("gateModal").style.display = "none";
+      } else {
+        alert("Incorrect access passcode.");
+      }
+    }
+
+    // Bypass QR: Directly opens Organization Home View
+    function openOrganizationHome() {
+      document.getElementById("portalView").style.display = "none";
+      document.getElementById("linkPrivacy").style.display = "none";
+      document.getElementById("linkSignup").style.display = "none";
+      document.getElementById("homeScreen").style.display = "block";
+    }
+
     function openQrModal(type) {
-      document.getElementById('modalTitle').innerText = type + ' Login';
-      // You can customize the QR code data URL based on 'Personal' or 'Organization'
-      const qrData = encodeURIComponent('https://dibadge.com/auth?type=' + type.toLowerCase());
-      document.getElementById('qrImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + qrData;
-      
       document.getElementById('qrModal').style.display = 'flex';
     }
 
@@ -190,12 +295,9 @@
       document.getElementById('qrModal').style.display = 'none';
     }
 
-    // Close modal when clicking outside content box
     window.onclick = function(event) {
       const modal = document.getElementById('qrModal');
-      if (event.target === modal) {
-        closeQrModal();
-      }
+      if (event.target === modal) closeQrModal();
     }
   </script>
 </body>
