@@ -16,6 +16,7 @@
       background-color: #f1f5f9;
       color: #0f172a;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* ---------------- 1. SITE LOCK MODAL ---------------- */
@@ -111,11 +112,12 @@
     .bottom-left { left: 32px; }
     .bottom-right { right: 32px; }
 
-    /* ---------------- 3. TILE DASHBOARD LAYOUT ---------------- */
+    /* ---------------- 3. DASHBOARD MAIN SPLIT LAYOUT ---------------- */
     #dashboardLayout {
       display: none;
       flex-direction: column;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .dashboard-header {
@@ -125,12 +127,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      height: 64px;
+      z-index: 10;
     }
 
-    .dashboard-header h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-    }
+    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; }
 
     .back-portal-btn {
       background: #1e293b;
@@ -143,36 +144,45 @@
       transition: background 0.2s;
     }
 
-    .back-portal-btn:hover {
-      background: #334155;
-      color: white;
+    .back-portal-btn:hover { background: #334155; color: white; }
+
+    /* Main Split Area (Tiles View + Notifications Panel) */
+    .dashboard-body-split {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 64px);
+      overflow: hidden;
+      position: relative;
     }
 
-    /* Centered Dashboard Grid Workspace */
+    /* Left Workspace (Centered Tiles Grid) */
     .tiles-wrapper {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 40px 20px;
+      padding: 40px 24px;
+      overflow-y: auto;
     }
 
+    /* Strict 6-Columns Grid Layout */
     .tiles-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
       gap: 16px;
-      max-width: 900px;
+      max-width: 1100px;
       width: 100%;
+      justify-items: center;
     }
 
     /* Metro Tile Base Design */
     .tile {
       position: relative;
-      width: 170px;
-      height: 170px;
+      width: 100%;
+      max-width: 150px;
+      aspect-ratio: 1 / 1;
       border-radius: 6px;
-      padding: 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -185,15 +195,14 @@
     }
 
     .tile:hover {
-      transform: scale(1.03);
+      transform: scale(1.04);
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
     }
 
-    /* Standard SVG Icon Styling */
     .tile-icon-wrapper {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 12px;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -210,21 +219,22 @@
     }
 
     .tile-title {
-      font-size: 1rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
+      word-break: break-word;
     }
 
     /* Edit Pencil Button - Hover Vector SVG */
     .tile-edit-btn {
       position: absolute;
-      bottom: 8px;
-      right: 8px;
+      bottom: 6px;
+      right: 6px;
       background: rgba(0, 0, 0, 0.35);
       color: #ffffff;
       border: none;
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 4px;
       display: flex;
       justify-content: center;
@@ -232,12 +242,12 @@
       cursor: pointer;
       opacity: 0;
       transition: opacity 0.2s ease, background 0.2s ease;
-      padding: 5px;
+      padding: 4px;
     }
 
     .tile-edit-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       stroke: #ffffff;
       stroke-width: 2;
       fill: none;
@@ -256,13 +266,74 @@
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
+    /* ---------------- RIGHT NOTIFICATION PANEL (MAX 25% WIDTH) ---------------- */
+    .notifications-panel {
+      width: 25%; /* Max 1/4 of screen */
+      min-width: 260px;
+      max-width: 320px;
+      background: #ffffff;
+      border-left: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03);
+      transition: transform 0.3s ease;
+    }
+
+    .notifications-header {
+      padding: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+
+    .notifications-header h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notifications-list {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .notification-item {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+    }
+
+    .notification-item .title {
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .notification-item .time {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
     /* Floating Action Button (FAB) */
     .fab-add {
       position: fixed;
       bottom: 32px;
-      right: 32px;
-      width: 56px;
-      height: 56px;
+      left: 32px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: #0284c7;
       color: white;
@@ -282,8 +353,8 @@
     }
 
     .fab-add svg {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       stroke: white;
       stroke-width: 2.5;
       fill: none;
@@ -312,10 +383,7 @@
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
     }
 
-    .modal-card h3 {
-      margin-bottom: 16px;
-      color: #0f172a;
-    }
+    .modal-card h3 { margin-bottom: 16px; color: #0f172a; }
 
     .modal-label {
       display: block;
@@ -367,7 +435,7 @@
 
     /* Expandable Icon Picker Grid */
     .icon-picker-grid {
-      display: none; /* Hidden by default */
+      display: none;
       grid-template-columns: repeat(5, 1fr);
       gap: 8px;
       margin-top: 10px;
@@ -403,19 +471,10 @@
     }
 
     .icon-option:hover { background: #e2e8f0; }
-
-    .icon-option.selected {
-      background: #e0f2fe;
-      border-color: #0284c7;
-    }
-
+    .icon-option.selected { background: #e0f2fe; border-color: #0284c7; }
     .icon-option.selected svg { stroke: #0284c7; }
 
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 24px;
-    }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
 
     .modal-btn {
       flex: 1;
@@ -440,11 +499,17 @@
       font-size: 1.2rem; cursor: pointer; color: #94a3b8;
     }
 
+    /* Responsive Adjustments */
+    @media (max-width: 1024px) {
+      .tiles-grid { grid-template-columns: repeat(3, 1fr); }
+      .notifications-panel { display: none; } /* Hidden on smaller mobile view */
+    }
+
     @media (max-width: 600px) {
+      .tiles-grid { grid-template-columns: repeat(2, 1fr); }
       .portal-container { flex-direction: column; }
       .bottom-left, .bottom-right { position: static; margin-top: 24px; }
       .portal-wrapper { justify-content: space-between; padding: 40px 0 24px 0; }
-      .tile { width: 140px; height: 140px; }
     }
   </style>
 </head>
@@ -496,60 +561,45 @@
     <a href="#" class="footer-link bottom-right">Sign up for Organization account</a>
   </div>
 
-  <!-- 3. Organization Tiles Dashboard -->
+  <!-- 3. Organization Dashboard Split View Layout -->
   <div id="dashboardLayout">
     <header class="dashboard-header">
       <h1>Organization Dashboard</h1>
       <button class="back-portal-btn" onclick="returnToPortal()">← Back to Portal</button>
     </header>
 
-    <!-- Centered Tiles View Workspace -->
-    <div class="tiles-wrapper">
-      <div class="tiles-grid" id="tilesGrid">
-
-        <!-- Protected Tile: Groups -->
-        <div class="tile tile-blue" id="tile-groups" onclick="openModule('Groups')">
-          <div class="tile-icon-wrapper" id="icon-groups">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          </div>
-          <div class="tile-title" id="title-groups">Groups</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'groups', false)" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
+    <div class="dashboard-body-split">
+      <!-- Centered 6-Tile Row Workspace -->
+      <div class="tiles-wrapper">
+        <div class="tiles-grid" id="tilesGrid">
+          <!-- Dynamically populated from localStorage -->
         </div>
-
-        <!-- Default Tiles -->
-        <div class="tile tile-green" id="tile-members" onclick="openModule('Members')">
-          <div class="tile-icon-wrapper" id="icon-members">
-            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-          </div>
-          <div class="tile-title" id="title-members">Members</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'members', true)" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        </div>
-
-        <div class="tile tile-grey" id="tile-hr" onclick="openModule('HR')">
-          <div class="tile-icon-wrapper" id="icon-hr">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          </div>
-          <div class="tile-title" id="title-hr">HR</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'hr', true)" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        </div>
-
-        <div class="tile tile-olive" id="tile-finance" onclick="openModule('Finance')">
-          <div class="tile-icon-wrapper" id="icon-finance">
-            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-          </div>
-          <div class="tile-title" id="title-finance">Finance</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'finance', true)" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        </div>
-
       </div>
+
+      <!-- Right Notifications Split Screen (Max 25% Width) -->
+      <aside class="notifications-panel">
+        <div class="notifications-header">
+          <h3>🔔 Activity Feed</h3>
+          <span style="font-size:0.75rem; background:#e2e8f0; padding:2px 8px; border-radius:10px; font-weight:600;">Live</span>
+        </div>
+        <div class="notifications-list">
+          <div class="notification-item">
+            <div class="title">Leave Request Submited</div>
+            <p style="color:#64748b;">John Doe requested 2 days medical leave.</p>
+            <div class="time">10 mins ago</div>
+          </div>
+          <div class="notification-item">
+            <div class="title">New Group Created</div>
+            <p style="color:#64748b;">Manager added "Site Inspection B" group.</p>
+            <div class="time">1 hour ago</div>
+          </div>
+          <div class="notification-item">
+            <div class="title">Overtime Logged</div>
+            <p style="color:#64748b;">Sarah Smith submitted 3 hrs OT.</p>
+            <div class="time">3 hours ago</div>
+          </div>
+        </div>
+      </aside>
     </div>
 
     <!-- Floating Action Button (FAB) -->
@@ -558,7 +608,7 @@
     </button>
   </div>
 
-  <!-- 4. Tile Modal (Handles both Create and Edit) -->
+  <!-- 4. Tile Modal (Handles Create and Edit) -->
   <div class="modal-overlay" id="tileModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeTileModal()">&times;</button>
@@ -575,7 +625,6 @@
         </div>
       </button>
 
-      <!-- Expandable Icon Picker Grid -->
       <div class="icon-picker-grid" id="iconPickerGrid">
         <div class="icon-option" onclick="selectIcon('groups')" id="pick-groups"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
@@ -617,7 +666,56 @@
     let activeEditTileId = null;
     let isCreateMode = false;
     let selectedIconKey = "folder";
-    const colors = ['tile-purple', 'tile-orange', 'tile-blue', 'tile-green', 'tile-olive'];
+    const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive', 'tile-purple', 'tile-orange'];
+
+    // DEFAULT TILES ARRAY (Used on initial load if no localStorage exists)
+    const defaultTiles = [
+      { id: 'groups', title: 'Groups', iconKey: 'groups', color: 'tile-blue', isProtected: true },
+      { id: 'members', title: 'Members', iconKey: 'members', color: 'tile-green', isProtected: false },
+      { id: 'hr', title: 'HR', iconKey: 'hr', color: 'tile-grey', isProtected: false },
+      { id: 'finance', title: 'Finance', iconKey: 'finance', color: 'tile-olive', isProtected: false }
+    ];
+
+    // Load tiles from browser LocalStorage
+    function getStoredTiles() {
+      const stored = localStorage.getItem('dibadge_custom_tiles');
+      return stored ? JSON.parse(stored) : defaultTiles;
+    }
+
+    // Save tiles array back to LocalStorage permanently
+    function setStoredTiles(tilesArray) {
+      localStorage.setItem('dibadge_custom_tiles', JSON.stringify(tilesArray));
+      renderTiles();
+    }
+
+    // Render Tiles into Grid
+    function renderTiles() {
+      const tiles = getStoredTiles();
+      const grid = document.getElementById("tilesGrid");
+      grid.innerHTML = "";
+
+      tiles.forEach(tile => {
+        const svgTemplate = document.getElementById("svg-" + tile.iconKey);
+        const svgHTML = svgTemplate ? svgTemplate.outerHTML : "";
+
+        const tileElement = document.createElement("div");
+        tileElement.className = `tile ${tile.color}`;
+        tileElement.id = `tile-${tile.id}`;
+        tileElement.onclick = () => openModule(tile.title);
+
+        tileElement.innerHTML = `
+          <div class="tile-icon-wrapper" id="icon-${tile.id}">
+            ${svgHTML}
+          </div>
+          <div class="tile-title" id="title-${tile.id}">${tile.title}</div>
+          <button class="tile-edit-btn" onclick="openEditModal(event, '${tile.id}', ${!tile.isProtected})" title="Edit Tile">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+        `;
+
+        grid.appendChild(tileElement);
+      });
+    }
 
     function checkPasscode() {
       const input = document.getElementById("passInput").value;
@@ -631,6 +729,7 @@
     function showDashboard() {
       document.getElementById("portalView").style.display = "none";
       document.getElementById("dashboardLayout").style.display = "flex";
+      renderTiles();
     }
 
     function returnToPortal() {
@@ -640,10 +739,7 @@
 
     function openQrModal() { document.getElementById('qrModal').style.display = 'flex'; }
     function closeQrModal() { document.getElementById('qrModal').style.display = 'none'; }
-
-    function openModule(moduleName) {
-      alert("Opening " + moduleName + " workspace...");
-    }
+    function openModule(moduleName) { alert("Opening " + moduleName + " workspace..."); }
 
     /* Modal Controls */
     function toggleIconPicker() {
@@ -659,13 +755,10 @@
       const targetOpt = document.getElementById("pick-" + iconKey);
       if (targetOpt) targetOpt.classList.add('selected');
 
-      // Update Preview Box
       const templateSvg = document.getElementById("svg-" + iconKey);
       if (templateSvg) {
         document.getElementById("selectedIconPreview").innerHTML = templateSvg.outerHTML;
       }
-
-      // Hide picker grid after selection
       document.getElementById("iconPickerGrid").style.display = "none";
     }
 
@@ -685,16 +778,16 @@
       isCreateMode = false;
       activeEditTileId = tileId;
 
+      const tiles = getStoredTiles();
+      const targetTile = tiles.find(t => t.id === tileId);
+
       document.getElementById("modalHeaderTitle").innerText = "Edit Tile Properties";
-      const currentTitle = document.getElementById("title-" + tileId).innerText;
-      document.getElementById("modalTileTitle").value = currentTitle;
+      document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
       document.getElementById("iconPickerGrid").style.display = "none";
 
-      selectIcon(tileId);
+      selectIcon(targetTile ? targetTile.iconKey : "folder");
 
-      const deleteBtn = document.getElementById("deleteTileBtn");
-      deleteBtn.style.display = isDeletable ? "block" : "none";
-
+      document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
       document.getElementById("tileModal").style.display = "flex";
     }
 
@@ -710,43 +803,43 @@
         return;
       }
 
-      const templateSvg = document.getElementById("svg-" + selectedIconKey);
+      let tiles = getStoredTiles();
 
       if (isCreateMode) {
-        // Generate new tile
         const newId = "custom-" + Date.now();
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-        const newTileHTML = `
-          <div class="tile ${randomColor}" id="tile-${newId}" onclick="openModule('${titleInput}')">
-            <div class="tile-icon-wrapper" id="icon-${newId}">
-              ${templateSvg.outerHTML}
-            </div>
-            <div class="tile-title" id="title-${newId}">${titleInput}</div>
-            <button class="tile-edit-btn" onclick="openEditModal(event, '${newId}', true)" title="Edit Tile">
-              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </button>
-          </div>
-        `;
-
-        document.getElementById("tilesGrid").insertAdjacentHTML('beforeend', newTileHTML);
+        tiles.push({
+          id: newId,
+          title: titleInput,
+          iconKey: selectedIconKey,
+          color: randomColor,
+          isProtected: false
+        });
       } else if (activeEditTileId) {
-        // Update existing tile
-        document.getElementById("title-" + activeEditTileId).innerText = titleInput;
-        if (templateSvg) {
-          document.getElementById("icon-" + activeEditTileId).innerHTML = templateSvg.outerHTML;
+        const tileIndex = tiles.findIndex(t => t.id === activeEditTileId);
+        if (tileIndex !== -1) {
+          tiles[tileIndex].title = titleInput;
+          tiles[tileIndex].iconKey = selectedIconKey;
         }
       }
 
+      setStoredTiles(tiles);
       closeTileModal();
     }
 
     function deleteCurrentTile() {
       if (!activeEditTileId) return;
-      const tileElement = document.getElementById("tile-" + activeEditTileId);
-      if (tileElement) tileElement.remove();
+
+      let tiles = getStoredTiles();
+      tiles = tiles.filter(t => t.id !== activeEditTileId);
+
+      setStoredTiles(tiles);
       closeTileModal();
     }
+
+    // Initialize rendering
+    renderTiles();
   </script>
 </body>
 </html>
