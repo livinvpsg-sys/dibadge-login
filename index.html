@@ -185,18 +185,33 @@
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
     }
 
-    .tile-icon {
-      font-size: 2.8rem;
+    /* Standard SVG Icon Styling */
+    .tile-icon-wrapper {
+      width: 52px;
+      height: 52px;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tile-icon-wrapper svg {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .tile-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 600;
       letter-spacing: 0.3px;
     }
 
-    /* Edit Pencil Button - Appears only on hover */
+    /* Edit Pencil Button - Vector SVG */
     .tile-edit-btn {
       position: absolute;
       bottom: 8px;
@@ -206,14 +221,24 @@
       border: none;
       width: 28px;
       height: 28px;
-      border-radius: 50%;
+      border-radius: 4px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 0.85rem;
       cursor: pointer;
       opacity: 0;
       transition: opacity 0.2s ease, background 0.2s ease;
+      padding: 5px;
+    }
+
+    .tile-edit-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: #ffffff;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .tile:hover .tile-edit-btn {
@@ -245,7 +270,7 @@
     .modal-card {
       background: #ffffff;
       padding: 28px;
-      border-radius: 16px;
+      border-radius: 12px;
       text-align: center;
       max-width: 380px;
       width: 90%;
@@ -275,29 +300,52 @@
       font-size: 0.95rem;
     }
 
-    /* Emoji Picker Grid */
+    /* Standard Icon Picker Grid */
     .icon-picker-grid {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 8px;
-      max-height: 120px;
-      overflow-y: auto;
-      padding: 4px;
+      padding: 8px;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
+      background: #f8fafc;
     }
 
     .icon-option {
-      font-size: 1.4rem;
-      padding: 6px;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
-      border-radius: 4px;
-      transition: background 0.15s;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      padding: 10px;
+      transition: all 0.15s;
     }
 
-    .icon-option:hover, .icon-option.selected {
+    .icon-option svg {
+      width: 24px;
+      height: 24px;
+      stroke: #475569;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .icon-option:hover {
+      background: #e2e8f0;
+    }
+
+    .icon-option.selected {
       background: #e0f2fe;
+      border-color: #0284c7;
+    }
+
+    .icon-option.selected svg {
+      stroke: #0284c7;
     }
 
     .modal-actions {
@@ -339,6 +387,26 @@
 </head>
 <body>
 
+  <!-- Hidden SVG Template Library -->
+  <div style="display: none;">
+    <!-- Groups / Chat Icon -->
+    <svg id="svg-groups" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    <!-- Members / Users Icon -->
+    <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    <!-- HR / Document Icon -->
+    <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    <!-- Finance / Wallet Icon -->
+    <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+    <!-- Analytics Icon -->
+    <svg id="svg-analytics" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+    <!-- Folder Icon -->
+    <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    <!-- Settings Icon -->
+    <svg id="svg-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <!-- Calendar Icon -->
+    <svg id="svg-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+  </div>
+
   <!-- 1. Password Protection Gate -->
   <div id="gateModal">
     <div class="gate-card">
@@ -370,37 +438,53 @@
   <!-- 3. Organization Tiles Dashboard -->
   <div id="dashboardLayout">
     <header class="dashboard-header">
-      <h1>🛡️ Organization Dashboard</h1>
+      <h1>Organization Dashboard</h1>
       <button class="back-portal-btn" onclick="returnToPortal()">← Back to Portal</button>
     </header>
 
     <div class="tiles-container">
       <div class="tiles-grid" id="tilesGrid">
 
-        <!-- Protected Tile: Groups (Cannot be deleted) -->
+        <!-- Protected Tile: Groups -->
         <div class="tile tile-blue" id="tile-groups" onclick="openModule('Groups')">
-          <div class="tile-icon" id="icon-groups">💬</div>
+          <div class="tile-icon-wrapper" id="icon-groups">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
           <div class="tile-title" id="title-groups">Groups</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'groups', false)" title="Edit Tile">✏️</button>
+          <button class="tile-edit-btn" onclick="openEditModal(event, 'groups', false)" title="Edit Tile">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         </div>
 
         <!-- Default Editable Tiles -->
         <div class="tile tile-green" id="tile-members" onclick="openModule('Members')">
-          <div class="tile-icon" id="icon-members">👥</div>
+          <div class="tile-icon-wrapper" id="icon-members">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
           <div class="tile-title" id="title-members">Members</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'members', true)" title="Edit Tile">✏️</button>
+          <button class="tile-edit-btn" onclick="openEditModal(event, 'members', true)" title="Edit Tile">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         </div>
 
         <div class="tile tile-grey" id="tile-hr" onclick="openModule('HR')">
-          <div class="tile-icon" id="icon-hr">📝</div>
+          <div class="tile-icon-wrapper" id="icon-hr">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </div>
           <div class="tile-title" id="title-hr">HR</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'hr', true)" title="Edit Tile">✏️</button>
+          <button class="tile-edit-btn" onclick="openEditModal(event, 'hr', true)" title="Edit Tile">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         </div>
 
         <div class="tile tile-olive" id="tile-finance" onclick="openModule('Finance')">
-          <div class="tile-icon" id="icon-finance">💳</div>
+          <div class="tile-icon-wrapper" id="icon-finance">
+            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+          </div>
           <div class="tile-title" id="title-finance">Finance</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, 'finance', true)" title="Edit Tile">✏️</button>
+          <button class="tile-edit-btn" onclick="openEditModal(event, 'finance', true)" title="Edit Tile">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         </div>
 
       </div>
@@ -411,25 +495,37 @@
   <div class="modal-overlay" id="editModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeEditModal()">&times;</button>
-      <h3>Edit Tile</h3>
+      <h3>Edit Tile Properties</h3>
 
       <label class="modal-label">Tile Name</label>
       <input type="text" id="editTileTitle" class="modal-input" placeholder="Enter tile title" />
 
       <label class="modal-label">Select Icon</label>
       <div class="icon-picker-grid" id="iconPicker">
-        <span class="icon-option" onclick="selectPickerIcon('💬')">💬</span>
-        <span class="icon-option" onclick="selectPickerIcon('👥')">👥</span>
-        <span class="icon-option" onclick="selectPickerIcon('📝')">📝</span>
-        <span class="icon-option" onclick="selectPickerIcon('💳')">💳</span>
-        <span class="icon-option" onclick="selectPickerIcon('📁')">📁</span>
-        <span class="icon-option" onclick="selectPickerIcon('📊')">📊</span>
-        <span class="icon-option" onclick="selectPickerIcon('📜')">📜</span>
-        <span class="icon-option" onclick="selectPickerIcon('⚙️')">⚙️</span>
-        <span class="icon-option" onclick="selectPickerIcon('📅')">📅</span>
-        <span class="icon-option" onclick="selectPickerIcon('📌')">📌</span>
-        <span class="icon-option" onclick="selectPickerIcon('🔔')">🔔</span>
-        <span class="icon-option" onclick="selectPickerIcon('🏢')">🏢</span>
+        <div class="icon-option" onclick="selectPickerIcon('groups')" id="pick-groups">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('members')" id="pick-members">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('hr')" id="pick-hr">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('finance')" id="pick-finance">
+          <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('analytics')" id="pick-analytics">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('folder')" id="pick-folder">
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('settings')" id="pick-settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </div>
+        <div class="icon-option" onclick="selectPickerIcon('calendar')" id="pick-calendar">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -452,9 +548,9 @@
   </div>
 
   <script>
-    const SECRET_PASSCODE = "177449"; 
+    const SECRET_PASSCODE = "177994"; 
     let activeEditTileId = null;
-    let selectedIcon = "";
+    let selectedIconKey = "groups";
 
     function checkPasscode() {
       const input = document.getElementById("passInput").value;
@@ -489,16 +585,14 @@
 
     /* Tile Editing Logic */
     function openEditModal(event, tileId, isDeletable) {
-      event.stopPropagation(); // Prevents tile click/navigation event
+      event.stopPropagation();
       activeEditTileId = tileId;
 
       const currentTitle = document.getElementById("title-" + tileId).innerText;
-      const currentIcon = document.getElementById("icon-" + tileId).innerText;
-
       document.getElementById("editTileTitle").value = currentTitle;
-      selectPickerIcon(currentIcon);
 
-      // Protect "Groups" tile from deletion
+      selectPickerIcon(tileId);
+
       const deleteBtn = document.getElementById("deleteTileBtn");
       if (isDeletable) {
         deleteBtn.style.display = "block";
@@ -514,13 +608,15 @@
       activeEditTileId = null;
     }
 
-    function selectPickerIcon(emoji) {
-      selectedIcon = emoji;
+    function selectPickerIcon(iconKey) {
+      selectedIconKey = iconKey;
       const options = document.querySelectorAll('.icon-option');
-      options.forEach(opt => {
-        if (opt.innerText === emoji) opt.classList.add('selected');
-        else opt.classList.remove('selected');
-      });
+      options.forEach(opt => opt.classList.remove('selected'));
+
+      const targetOpt = document.getElementById("pick-" + iconKey);
+      if (targetOpt) {
+        targetOpt.classList.add('selected');
+      }
     }
 
     function saveTileChanges() {
@@ -530,8 +626,11 @@
       if (newTitle) {
         document.getElementById("title-" + activeEditTileId).innerText = newTitle;
       }
-      if (selectedIcon) {
-        document.getElementById("icon-" + activeEditTileId).innerText = selectedIcon;
+
+      // Copy SVG inner HTML from template
+      const templateSvg = document.getElementById("svg-" + selectedIconKey);
+      if (templateSvg) {
+        document.getElementById("icon-" + activeEditTileId).innerHTML = templateSvg.outerHTML;
       }
 
       closeEditModal();
