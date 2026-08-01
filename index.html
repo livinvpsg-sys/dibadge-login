@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diBadge | Select Portal</title>
+  <style>
+    /* Reset & Base Styling */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Main Center Container */
+    .portal-container {
+      display: flex;
+      gap: 24px;
+      max-width: 700px;
+      width: 90%;
+    }
+
+    /* Clickable Option Cards */
+    .portal-card {
+      flex: 1;
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .portal-card:hover {
+      border-color: #2563eb;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 20px -3px rgba(37, 99, 235, 0.15);
+    }
+
+    .portal-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .portal-card p {
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+
+    /* Footer Links (Fixed Bottom Left & Right) */
+    .footer-link {
+      position: absolute;
+      bottom: 24px;
+      font-size: 0.9rem;
+      color: #64748b;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-link:hover {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+
+    .bottom-left {
+      left: 32px;
+    }
+
+    .bottom-right {
+      right: 32px;
+    }
+
+    /* Modal Styling for QR Code */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      padding: 32px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 360px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-card img {
+      width: 200px;
+      height: 200px;
+      margin: 20px 0;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #94a3b8;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 600px) {
+      .portal-container {
+        flex-direction: column;
+      }
+      .bottom-left, .bottom-right {
+        position: static;
+        margin-top: 24px;
+      }
+      body {
+        justify-content: space-between;
+        padding: 40px 0 24px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Center Portal Options -->
+  <main class="portal-container">
+    <div class="portal-card" onclick="openQrModal('Personal')">
+      <h2>Personal</h2>
+      <p>Scan QR to log in to your account</p>
+    </div>
+
+    <div class="portal-card" onclick="openQrModal('Organization')">
+      <h2>Organization</h2>
+      <p>Scan QR for enterprise portal</p>
+    </div>
+  </main>
+
+  <!-- Bottom Links -->
+  <a href="/privacy-policy" class="footer-link bottom-left">Privacy Policy</a>
+  <a href="/org-signup" class="footer-link bottom-right">Sign up for Organization account</a>
+
+  <!-- QR Code Modal Popup -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeQrModal()">&times;</button>
+      <h3 id="modalTitle">Scan to Login</h3>
+      <p id="modalSubtitle" style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">Use your mobile app to scan</p>
+      
+      <!-- Placeholder QR Code - Replace with your dynamic QR endpoint -->
+      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-login-placeholder" alt="Login QR Code" />
+
+      <p style="font-size: 0.8rem; color: #94a3b8;">QR Code expires in 5 minutes</p>
+    </div>
+  </div>
+
+  <script>
+    function openQrModal(type) {
+      document.getElementById('modalTitle').innerText = type + ' Login';
+      // You can customize the QR code data URL based on 'Personal' or 'Organization'
+      const qrData = encodeURIComponent('https://dibadge.com/auth?type=' + type.toLowerCase());
+      document.getElementById('qrImage').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + qrData;
+      
+      document.getElementById('qrModal').style.display = 'flex';
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside content box
+    window.onclick = function(event) {
+      const modal = document.getElementById('qrModal');
+      if (event.target === modal) {
+        closeQrModal();
+      }
+    }
+  </script>
+</body>
+</html>
