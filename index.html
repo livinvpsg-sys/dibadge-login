@@ -163,6 +163,7 @@
       align-items: center;
       padding: 40px 24px;
       overflow-y: auto;
+      position: relative;
     }
 
     /* Strict 6-Columns Grid Layout */
@@ -268,7 +269,7 @@
 
     /* ---------------- RIGHT NOTIFICATION PANEL (MAX 25% WIDTH) ---------------- */
     .notifications-panel {
-      width: 25%; /* Max 1/4 of screen */
+      width: 25%;
       min-width: 260px;
       max-width: 320px;
       background: #ffffff;
@@ -277,7 +278,6 @@
       flex-direction: column;
       height: 100%;
       box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03);
-      transition: transform 0.3s ease;
     }
 
     .notifications-header {
@@ -315,23 +315,14 @@
       font-size: 0.85rem;
     }
 
-    .notification-item .title {
-      font-weight: 600;
-      color: #0f172a;
-      margin-bottom: 4px;
-    }
+    .notification-item .title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+    .notification-item .time { font-size: 0.75rem; color: #94a3b8; margin-top: 6px; }
 
-    .notification-item .time {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 6px;
-    }
-
-    /* Floating Action Button (FAB) */
+    /* Floating Action Button (FAB) - NOW MOVED TO RIGHT SIDE JUST BEFORE ACTIVITY FEED */
     .fab-add {
-      position: fixed;
+      position: absolute;
       bottom: 32px;
-      left: 32px;
+      right: 32px;
       width: 52px;
       height: 52px;
       border-radius: 50%;
@@ -402,7 +393,6 @@
       font-size: 0.95rem;
     }
 
-    /* Icon Picker Selector Trigger Button */
     .icon-selector-trigger {
       display: flex;
       align-items: center;
@@ -433,7 +423,6 @@
       fill: none;
     }
 
-    /* Expandable Icon Picker Grid */
     .icon-picker-grid {
       display: none;
       grid-template-columns: repeat(5, 1fr);
@@ -499,10 +488,10 @@
       font-size: 1.2rem; cursor: pointer; color: #94a3b8;
     }
 
-    /* Responsive Adjustments */
     @media (max-width: 1024px) {
       .tiles-grid { grid-template-columns: repeat(3, 1fr); }
-      .notifications-panel { display: none; } /* Hidden on smaller mobile view */
+      .notifications-panel { display: none; }
+      .fab-add { right: 32px; }
     }
 
     @media (max-width: 600px) {
@@ -572,8 +561,13 @@
       <!-- Centered 6-Tile Row Workspace -->
       <div class="tiles-wrapper">
         <div class="tiles-grid" id="tilesGrid">
-          <!-- Dynamically populated from localStorage -->
+          <!-- Dynamically populated from localStorage / Database -->
         </div>
+
+        <!-- Floating Action Button (FAB) Positioned on Right Side before Activity Feed -->
+        <button class="fab-add" onclick="openCreateModal()" title="Create New Tile">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
       </div>
 
       <!-- Right Notifications Split Screen (Max 25% Width) -->
@@ -584,7 +578,7 @@
         </div>
         <div class="notifications-list">
           <div class="notification-item">
-            <div class="title">Leave Request Submited</div>
+            <div class="title">Leave Request Submitted</div>
             <p style="color:#64748b;">John Doe requested 2 days medical leave.</p>
             <div class="time">10 mins ago</div>
           </div>
@@ -601,11 +595,6 @@
         </div>
       </aside>
     </div>
-
-    <!-- Floating Action Button (FAB) -->
-    <button class="fab-add" onclick="openCreateModal()" title="Create New Tile">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-    </button>
   </div>
 
   <!-- 4. Tile Modal (Handles Create and Edit) -->
@@ -668,7 +657,6 @@
     let selectedIconKey = "folder";
     const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive', 'tile-purple', 'tile-orange'];
 
-    // DEFAULT TILES ARRAY (Used on initial load if no localStorage exists)
     const defaultTiles = [
       { id: 'groups', title: 'Groups', iconKey: 'groups', color: 'tile-blue', isProtected: true },
       { id: 'members', title: 'Members', iconKey: 'members', color: 'tile-green', isProtected: false },
@@ -676,19 +664,16 @@
       { id: 'finance', title: 'Finance', iconKey: 'finance', color: 'tile-olive', isProtected: false }
     ];
 
-    // Load tiles from browser LocalStorage
     function getStoredTiles() {
       const stored = localStorage.getItem('dibadge_custom_tiles');
       return stored ? JSON.parse(stored) : defaultTiles;
     }
 
-    // Save tiles array back to LocalStorage permanently
     function setStoredTiles(tilesArray) {
       localStorage.setItem('dibadge_custom_tiles', JSON.stringify(tilesArray));
       renderTiles();
     }
 
-    // Render Tiles into Grid
     function renderTiles() {
       const tiles = getStoredTiles();
       const grid = document.getElementById("tilesGrid");
@@ -741,7 +726,6 @@
     function closeQrModal() { document.getElementById('qrModal').style.display = 'none'; }
     function openModule(moduleName) { alert("Opening " + moduleName + " workspace..."); }
 
-    /* Modal Controls */
     function toggleIconPicker() {
       const picker = document.getElementById("iconPickerGrid");
       picker.style.display = (picker.style.display === "grid") ? "none" : "grid";
@@ -838,7 +822,6 @@
       closeTileModal();
     }
 
-    // Initialize rendering
     renderTiles();
   </script>
 </body>
