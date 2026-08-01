@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>diBadge | Under Construction</title>
+  <title>diBadge | Organization Portal</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,23 +13,15 @@
     }
 
     body {
-      background-color: #f8fafc;
+      background-color: #f1f5f9;
       color: #0f172a;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: relative;
     }
 
-    /* Maintenance Gate Modal */
+    /* ---------------- 1. SITE LOCK MODAL ---------------- */
     #gateModal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       background: #0f172a;
       display: flex;
       justify-content: center;
@@ -47,16 +39,8 @@
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
     }
 
-    .gate-card h2 {
-      margin-bottom: 8px;
-    }
-
-    .gate-card p {
-      color: #64748b;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
-    }
-
+    .gate-card h2 { margin-bottom: 8px; }
+    .gate-card p { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
     .gate-card input {
       width: 100%;
       padding: 12px;
@@ -70,7 +54,7 @@
     .gate-card button {
       width: 100%;
       padding: 12px;
-      background: #2563eb;
+      background: #0284c7;
       color: white;
       border: none;
       border-radius: 8px;
@@ -79,11 +63,16 @@
       cursor: pointer;
     }
 
-    .gate-card button:hover {
-      background: #1d4ed8;
+    /* ---------------- 2. PORTAL SELECTION VIEW ---------------- */
+    .portal-wrapper {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
     }
 
-    /* Main Center Container */
     .portal-container {
       display: flex;
       gap: 24px;
@@ -91,7 +80,6 @@
       width: 90%;
     }
 
-    /* Clickable Option Cards */
     .portal-card {
       flex: 1;
       background: #ffffff;
@@ -105,46 +93,123 @@
     }
 
     .portal-card:hover {
-      border-color: #2563eb;
+      border-color: #0284c7;
       transform: translateY(-4px);
-      box-shadow: 0 12px 20px -3px rgba(37, 99, 235, 0.15);
+      box-shadow: 0 12px 20px -3px rgba(2, 132, 199, 0.15);
     }
 
-    .portal-card h2 {
-      font-size: 1.5rem;
-      margin-bottom: 8px;
-    }
+    .portal-card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .portal-card p { color: #64748b; font-size: 0.95rem; }
 
-    .portal-card p {
-      color: #64748b;
-      font-size: 0.95rem;
-    }
-
-    /* Footer Links */
     .footer-link {
       position: absolute;
       bottom: 24px;
       font-size: 0.9rem;
       color: #64748b;
       text-decoration: none;
-      transition: color 0.2s;
     }
-
-    .footer-link:hover {
-      color: #2563eb;
-      text-decoration: underline;
-    }
-
     .bottom-left { left: 32px; }
     .bottom-right { right: 32px; }
 
-    /* Modal Styling for Personal QR Code */
+    /* ---------------- 3. TILE DASHBOARD LAYOUT ---------------- */
+    #dashboardLayout {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Top Bar */
+    .dashboard-header {
+      background: #0f172a;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-portal-btn {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+    }
+
+    .back-portal-btn:hover {
+      background: #334155;
+      color: white;
+    }
+
+    /* Main Grid Area */
+    .tiles-container {
+      max-width: 1200px;
+      width: 90%;
+      margin: 40px auto;
+    }
+
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    /* Metro Tile Base Design */
+    .tile {
+      aspect-ratio: 1 / 1;
+      border-radius: 4px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: #ffffff;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      text-decoration: none;
+    }
+
+    .tile:hover {
+      transform: scale(1.03);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    }
+
+    .tile-icon {
+      font-size: 2.8rem;
+      margin-bottom: 12px;
+    }
+
+    .tile-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    /* Metro Color Themes */
+    .tile-blue   { background-color: #0284c7; }
+    .tile-green  { background-color: #059669; }
+    .tile-grey   { background-color: #475569; }
+    .tile-olive  { background-color: #65a30d; }
+    .tile-purple { background-color: #7c3aed; }
+    .tile-orange { background-color: #ea580c; }
+
+    /* Modal for Personal QR Code */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(4px);
       display: none;
@@ -161,133 +226,135 @@
       max-width: 360px;
       width: 90%;
       position: relative;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
 
     .close-btn {
       position: absolute;
-      top: 16px;
-      right: 16px;
-      background: none;
-      border: none;
-      font-size: 1.2rem;
-      cursor: pointer;
-      color: #94a3b8;
-    }
-
-    /* Dummy Home Screen View (for Organization Direct Access) */
-    #homeScreen {
-      display: none;
-      text-align: center;
-      background: #ffffff;
-      padding: 60px 40px;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
-    }
-
-    #homeScreen h1 {
-      margin-bottom: 12px;
-      color: #0f172a;
-    }
-
-    #homeScreen p {
-      color: #64748b;
-      margin-bottom: 24px;
-    }
-
-    #homeScreen button {
-      padding: 10px 20px;
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      top: 16px; right: 16px;
+      background: none; border: none;
+      font-size: 1.2rem; cursor: pointer; color: #94a3b8;
     }
 
     @media (max-width: 600px) {
+      .tiles-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
       .portal-container { flex-direction: column; }
       .bottom-left, .bottom-right { position: static; margin-top: 24px; }
-      body { justify-content: space-between; padding: 40px 0 24px 0; }
+      .portal-wrapper { justify-content: space-between; padding: 40px 0 24px 0; }
     }
   </style>
 </head>
 <body>
 
-  <!-- 1. Password Protection Gate (Public Lock) -->
+  <!-- 1. Password Protection Gate -->
   <div id="gateModal">
     <div class="gate-card">
       <h2>diBadge Site Lock</h2>
-      <p>This site is currently under construction. Please enter access key.</p>
+      <p>Enter passcode to open site view.</p>
       <input type="password" id="passInput" placeholder="Enter Access Passcode" />
       <button onclick="checkPasscode()">Unlock Site</button>
     </div>
   </div>
 
-  <!-- 2. Portal Options View -->
-  <main class="portal-container" id="portalView">
-    <div class="portal-card" onclick="openQrModal('Personal')">
-      <h2>Personal</h2>
-      <p>Scan QR to log in to your account</p>
-    </div>
+  <!-- 2. Portal Selection View -->
+  <div class="portal-wrapper" id="portalView">
+    <main class="portal-container">
+      <div class="portal-card" onclick="openQrModal()">
+        <h2>Personal</h2>
+        <p>Scan QR to log in to your account</p>
+      </div>
 
-    <!-- Organization Bypass: Calls direct Home Page load -->
-    <div class="portal-card" onclick="openOrganizationHome()">
-      <h2>Organization</h2>
-      <p>Click to access enterprise home</p>
-    </div>
-  </main>
+      <div class="portal-card" onclick="showDashboard()">
+        <h2>Organization</h2>
+        <p>Enter enterprise tile dashboard</p>
+      </div>
+    </main>
 
-  <!-- 3. Organization Home Page View (Bypassed View) -->
-  <div id="homeScreen">
-    <h1>Organization Home Page</h1>
-    <p>Welcome! You bypassed the QR login. Build your organization dashboard here.</p>
-    <button onclick="location.reload()">Return to Portal</button>
+    <a href="#" class="footer-link bottom-left">Privacy Policy</a>
+    <a href="#" class="footer-link bottom-right">Sign up for Organization account</a>
   </div>
 
-  <!-- Footer Links -->
-  <a href="#" class="footer-link bottom-left" id="linkPrivacy">Privacy Policy</a>
-  <a href="#" class="footer-link bottom-right" id="linkSignup">Sign up for Organization account</a>
+  <!-- 3. Organization Tiles Dashboard -->
+  <div id="dashboardLayout">
+    <header class="dashboard-header">
+      <h1>🛡️ Organization Dashboard</h1>
+      <button class="back-portal-btn" onclick="returnToPortal()">← Back to Portal</button>
+    </header>
 
-  <!-- QR Code Modal (For Personal Only) -->
+    <div class="tiles-container">
+      <div class="tiles-grid">
+
+        <!-- Default Requested Tiles -->
+        <div class="tile tile-blue" onclick="openModule('Projects')">
+          <div class="tile-icon">📁</div>
+          <div class="tile-title">Projects</div>
+        </div>
+
+        <div class="tile tile-green" onclick="openModule('Members')">
+          <div class="tile-icon">👥</div>
+          <div class="tile-title">Members</div>
+        </div>
+
+        <div class="tile tile-grey" onclick="openModule('HR')">
+          <div class="tile-icon">📝</div>
+          <div class="tile-title">HR (Leave & OT)</div>
+        </div>
+
+        <div class="tile tile-olive" onclick="openModule('Finance')">
+          <div class="tile-icon">💳</div>
+          <div class="tile-title">Finance</div>
+        </div>
+
+        <!-- Additional Operational Tiles -->
+        <div class="tile tile-purple" onclick="openModule('Career Logbook')">
+          <div class="tile-icon">📜</div>
+          <div class="tile-title">Career Logs</div>
+        </div>
+
+        <div class="tile tile-orange" onclick="openModule('Settings')">
+          <div class="tile-icon">⚙️</div>
+          <div class="tile-title">Settings</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal QR Modal -->
   <div class="modal-overlay" id="qrModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeQrModal()">&times;</button>
-      <h3 id="modalTitle">Personal Login</h3>
+      <h3>Personal Login</h3>
       <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">Use your mobile app to scan</p>
-      <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-personal-login" alt="Login QR Code" style="width:200px; height:200px; margin:20px 0;" />
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-personal-login" alt="Login QR Code" style="width:200px; height:200px; margin:20px 0;" />
       <p style="font-size: 0.8rem; color: #94a3b8;">QR Code expires in 5 minutes</p>
     </div>
   </div>
 
   <script>
-    // DEFINE YOUR PRIVATE PASSCODE HERE
     const SECRET_PASSCODE = "177994"; 
-
-    // Auto-unlock if developer already entered password previously
-    if (localStorage.getItem("dibadge_access") === "granted") {
-      document.getElementById("gateModal").style.display = "none";
-    }
 
     function checkPasscode() {
       const input = document.getElementById("passInput").value;
       if (input === SECRET_PASSCODE) {
-        localStorage.setItem("dibadge_access", "granted");
         document.getElementById("gateModal").style.display = "none";
       } else {
         alert("Incorrect access passcode.");
       }
     }
 
-    // Bypass QR: Directly opens Organization Home View
-    function openOrganizationHome() {
+    function showDashboard() {
       document.getElementById("portalView").style.display = "none";
-      document.getElementById("linkPrivacy").style.display = "none";
-      document.getElementById("linkSignup").style.display = "none";
-      document.getElementById("homeScreen").style.display = "block";
+      document.getElementById("dashboardLayout").style.display = "flex";
     }
 
-    function openQrModal(type) {
+    function returnToPortal() {
+      document.getElementById("dashboardLayout").style.display = "none";
+      document.getElementById("portalView").style.display = "flex";
+    }
+
+    function openQrModal() {
       document.getElementById('qrModal').style.display = 'flex';
     }
 
@@ -295,9 +362,9 @@
       document.getElementById('qrModal').style.display = 'none';
     }
 
-    window.onclick = function(event) {
-      const modal = document.getElementById('qrModal');
-      if (event.target === modal) closeQrModal();
+    // Tile Click Handler
+    function openModule(moduleName) {
+      alert("Opening " + moduleName + " module workspace...");
     }
   </script>
 </body>
