@@ -115,6 +115,14 @@
 
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
+    
+    /* Project Metadata Card Banner */
+    .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; }
+    .project-meta-line1 { display: flex; align-items: center; gap: 12px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
+    .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .project-meta-line3 { font-size: 0.82rem; color: var(--text-color); opacity: 0.9; margin-top: 2px; line-height: 1.3; }
+
     .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
     /* Clean Folder Cards */
@@ -126,7 +134,7 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ READ-ONLY CHAT VIEW WORKSPACE ------------ */
+    /* READ-ONLY CHAT VIEW WORKSPACE */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
     
@@ -138,13 +146,12 @@
     .msg-body-wrapper { display: flex; flex-direction: column; gap: 2px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
     .msg-bubble-incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); padding: 10px 16px; border-radius: 18px 18px 18px 4px; font-size: 0.9rem; line-height: 1.4; position: relative; }
-    .msg-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
-    .msg-timestamp { font-size: 0.68rem; color: var(--cool-ash); }
 
     /* Outgoing Msg Row */
     .msg-row-outgoing { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; max-width: 70%; }
     .msg-bubble-outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); padding: 10px 16px; border-radius: 18px 18px 4px 18px; font-size: 0.9rem; line-height: 1.4; font-weight: 500; }
     .msg-bubble-outgoing .msg-timestamp { color: #666666; margin-top: 4px; display: block; }
+    .msg-timestamp { font-size: 0.68rem; color: var(--cool-ash); margin-top: 4px; }
 
     /* Media Attachment Box inside Chat Bubble */
     .chat-media-attachment { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1); }
@@ -270,6 +277,19 @@
 
     <!-- Folder Browser View -->
     <section class="folder-explorer-view" id="folderExplorerWorkspace" oncontextmenu="handleWorkspaceContextMenu(event)">
+      <!-- Project Metadata Header Banner -->
+      <div class="project-meta-banner" id="projectMetaHeader">
+        <div class="project-meta-line1">
+          <span id="metaClientName">Amber Holdings</span>
+          <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
+        </div>
+        <div class="project-meta-line2">
+          <svg style="width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span id="metaLocation">North Tower B</span>
+        </div>
+        <div class="project-meta-line3" id="metaRemarks">Site inspection & visual documentation logs.</div>
+      </div>
+
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
@@ -278,7 +298,7 @@
       <div class="chat-messages-container" id="chatThreadContainer">
         <div class="chat-date-pill">Today</div>
 
-        <!-- Incoming Message 1 (Standard Text - NO download button) -->
+        <!-- Incoming Message 1 -->
         <div class="msg-row-incoming">
           <div class="msg-avatar">J</div>
           <div class="msg-body-wrapper">
@@ -290,7 +310,7 @@
           </div>
         </div>
 
-        <!-- Outgoing Message 1 (Standard Text - NO download button) -->
+        <!-- Outgoing Message 1 -->
         <div class="msg-row-outgoing">
           <div class="msg-bubble-outgoing">
             Hello! How can I help you?
@@ -298,7 +318,7 @@
           </div>
         </div>
 
-        <!-- Incoming Message 2 (WITH Media/File Attachment -> Download Button Included) -->
+        <!-- Incoming Message 2 (Media Attachment) -->
         <div class="msg-row-incoming">
           <div class="msg-avatar">M</div>
           <div class="msg-body-wrapper">
@@ -306,7 +326,6 @@
             <div class="msg-bubble-incoming">
               I have attached the inspection certificate below.
               
-              <!-- Attached Media Box with Download Option -->
               <div class="chat-media-attachment">
                 <div class="chat-media-info">
                   <span class="chat-media-title">Site_Certificate_2026.pdf</span>
@@ -322,7 +341,7 @@
           </div>
         </div>
 
-        <!-- Outgoing Message 2 (Standard Text - NO download button) -->
+        <!-- Outgoing Message 2 -->
         <div class="msg-row-outgoing">
           <div class="msg-bubble-outgoing">
             Received, thank you! I will review it right away.
@@ -532,6 +551,12 @@
       activeOpenedProject = proj;
       folderObjectStack = [proj];
 
+      // Populate Project Metadata Banner
+      document.getElementById("metaClientName").innerText = proj.client || "Client N/A";
+      document.getElementById("metaProjectNo").innerText = proj.projectNo || "NO-ID";
+      document.getElementById("metaLocation").innerText = proj.location || "Location N/A";
+      document.getElementById("metaRemarks").innerText = proj.remarks || "No remarks provided.";
+
       document.getElementById("projectSubNav").style.display = "flex";
 
       document.getElementById("defaultHeaderTitle").style.display = "none";
@@ -600,6 +625,14 @@
           breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
         }
       });
+
+      // Hide metadata banner if navigated deep into sub-folders
+      const metaHeader = document.getElementById("projectMetaHeader");
+      if (folderObjectStack.length > 1) {
+        metaHeader.style.display = "none";
+      } else {
+        metaHeader.style.display = "flex";
+      }
 
       const currentFolderNode = getCurrentWorkspaceFolder();
       const subGrid = document.getElementById("innerFolderGrid");
@@ -672,7 +705,6 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    /* Media File Download Trigger */
     function downloadMedia(filename) {
       alert(`Downloading media attachment: ${filename}`);
     }
