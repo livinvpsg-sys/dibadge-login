@@ -144,12 +144,18 @@
     /* Outgoing Msg Row */
     .msg-row-outgoing { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; max-width: 70%; }
     .msg-bubble-outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); padding: 10px 16px; border-radius: 18px 18px 4px 18px; font-size: 0.9rem; line-height: 1.4; font-weight: 500; }
-    .msg-bubble-outgoing .msg-timestamp { color: #666666; }
+    .msg-bubble-outgoing .msg-timestamp { color: #666666; margin-top: 4px; display: block; }
 
-    /* Download Icon Button Inside Chat Bubbles */
-    .chat-download-btn { background: transparent; border: none; color: currentColor; opacity: 0.75; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.72rem; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
-    .chat-download-btn:hover { opacity: 1; }
-    .chat-download-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
+    /* Media Attachment Box inside Chat Bubble */
+    .chat-media-attachment { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1); }
+    .chat-media-info { display: flex; flex-direction: column; gap: 2px; }
+    .chat-media-title { font-size: 0.82rem; font-weight: 600; color: var(--accent-white); }
+    .chat-media-size { font-size: 0.7rem; color: var(--cool-ash); }
+
+    /* Download Button ONLY for Media/File Attachments */
+    .media-download-btn { background: var(--accent-blue); border: none; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s; }
+    .media-download-btn:hover { transform: scale(1.08); background: #0369a1; }
+    .media-download-btn svg { width: 14px; height: 14px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
 
     /* Sub-view Panels (BOM, Comparison, Schedule) */
     .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
@@ -224,9 +230,9 @@
     
     <!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
-      <!-- Sub-module Navigation SVG Icons (Home icon removed when viewing a project) -->
+      <!-- Sub-module Navigation SVG Icons -->
       <div class="project-sub-nav" id="projectSubNav">
-        <!-- 1. Folder Icon (Default Active View) -->
+        <!-- 1. Folder Icon -->
         <button class="tab-btn active" id="btnSubFolder" onclick="switchProjectSubTab('folder')" title="Folders & Files">
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </button>
@@ -267,62 +273,60 @@
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- Read-Only Chat View Workspace (Read chats and download media only) -->
+    <!-- Read-Only Chat View Workspace -->
     <section class="chat-view-workspace" id="panelChatWorkspace">
       <div class="chat-messages-container" id="chatThreadContainer">
         <div class="chat-date-pill">Today</div>
 
-        <!-- Incoming Message 1 -->
+        <!-- Incoming Message 1 (Standard Text - NO download button) -->
         <div class="msg-row-incoming">
           <div class="msg-avatar">J</div>
           <div class="msg-body-wrapper">
             <span class="msg-sender-name">John</span>
             <div class="msg-bubble-incoming">
               Hi there!
-              <div class="msg-footer">
-                <span class="msg-timestamp">10:04 am</span>
-                <button class="chat-download-btn" onclick="downloadMedia('Site_Log_Doc.pdf')" title="Download file">
-                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                </button>
-              </div>
+              <div class="msg-timestamp">10:04 am</div>
             </div>
           </div>
         </div>
 
-        <!-- Outgoing Message 1 -->
+        <!-- Outgoing Message 1 (Standard Text - NO download button) -->
         <div class="msg-row-outgoing">
           <div class="msg-bubble-outgoing">
             Hello! How can I help you?
-            <div class="msg-footer">
-              <span class="msg-timestamp">10:04 am</span>
-            </div>
+            <span class="msg-timestamp">10:04 am</span>
           </div>
         </div>
 
-        <!-- Incoming Message 2 (With Media Attachment) -->
+        <!-- Incoming Message 2 (WITH Media/File Attachment -> Download Button Included) -->
         <div class="msg-row-incoming">
           <div class="msg-avatar">M</div>
           <div class="msg-body-wrapper">
             <span class="msg-sender-name">Mary</span>
             <div class="msg-bubble-incoming">
-              I have a question about the certificate.
-              <div class="msg-footer">
-                <span class="msg-timestamp">10:04 am</span>
-                <button class="chat-download-btn" onclick="downloadMedia('Site_Certificate_2026.png')" title="Download Media">
+              I have attached the inspection certificate below.
+              
+              <!-- Attached Media Box with Download Option -->
+              <div class="chat-media-attachment">
+                <div class="chat-media-info">
+                  <span class="chat-media-title">Site_Certificate_2026.pdf</span>
+                  <span class="chat-media-size">1.4 MB • PDF Document</span>
+                </div>
+                <button class="media-download-btn" onclick="downloadMedia('Site_Certificate_2026.pdf')" title="Download file">
                   <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 </button>
               </div>
+
+              <div class="msg-timestamp">10:04 am</div>
             </div>
           </div>
         </div>
 
-        <!-- Outgoing Message 2 -->
+        <!-- Outgoing Message 2 (Standard Text - NO download button) -->
         <div class="msg-row-outgoing">
           <div class="msg-bubble-outgoing">
-            Sure, go ahead and ask.
-            <div class="msg-footer">
-              <span class="msg-timestamp">10:04 am</span>
-            </div>
+            Received, thank you! I will review it right away.
+            <span class="msg-timestamp">10:05 am</span>
           </div>
         </div>
       </div>
@@ -524,7 +528,6 @@
       }
     }
 
-    /* Single-Click Folder Navigation & Sub-nav Activation */
     function openProjectFolder(proj) {
       activeOpenedProject = proj;
       folderObjectStack = [proj];
@@ -669,9 +672,9 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    /* Media Download Function */
+    /* Media File Download Trigger */
     function downloadMedia(filename) {
-      alert(`Downloading media: ${filename}`);
+      alert(`Downloading media attachment: ${filename}`);
     }
 
     function showFolderContextMenu(e, folder, idx) {
