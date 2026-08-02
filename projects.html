@@ -69,24 +69,26 @@
 
     /* Center Projects Grid Workspace */
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 40px 24px; overflow-y: auto; position: relative; }
-    .tiles-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
+    .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
 
-    /* Tile Layout: Client Initial + Name + Project No */
-    .tile { position: relative; width: 100%; max-width: 170px; aspect-ratio: 1 / 1; border-radius: 12px; padding: 16px 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
+    /* Compact Tile Design with Centered Letter Avatar */
+    .tile { position: relative; width: 100%; max-width: 130px; aspect-ratio: 1 / 1; border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
     .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
 
-    .tile-letter-avatar { width: 42px; height: 42px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.25rem; font-weight: 800; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255, 255, 255, 0.3); text-transform: uppercase; }
-    .tile-content-bottom { display: flex; flex-direction: column; gap: 2px; width: 100%; }
-    .tile-client-name { font-size: 0.85rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.3px; }
-    .tile-project-no { font-size: 0.72rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .tile-avatar-center { flex: 1; display: flex; justify-content: center; align-items: center; }
+    .tile-letter-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255, 255, 255, 0.3); text-transform: uppercase; }
+    
+    .tile-content-bottom { display: flex; flex-direction: column; gap: 1px; width: 100%; }
+    .tile-client-name { font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
+    .tile-project-no { font-size: 0.68rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; }
 
     .tile-blue   { background-color: #0284c7; }
     .tile-green  { background-color: #059669; }
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
-    /* Popover Details Box */
-    .tile-popover { position: absolute; z-index: 90; width: 260px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
+    /* Floating Popover Box (Client, Project No, Location, Remarks) */
+    .tile-popover { position: absolute; z-index: 90; width: 250px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
     .tile-popover-header { font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .popover-row { font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px; }
     .popover-label { color: var(--subtext-color); font-weight: 600; font-size: 0.75rem; }
@@ -102,7 +104,7 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* New Project Modal */
+    /* Modal Form (Placeholders Removed) */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 420px; width: 90%; position: relative; color: var(--text-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
@@ -161,7 +163,7 @@
       <!-- Floating Tile Details Popover -->
       <div class="tile-popover" id="tilePopover">
         <div class="tile-popover-header">
-          <span id="popClient">Client Details</span>
+          <span id="popClient">-</span>
           <button style="background:none; border:none; color:var(--subtext-color); cursor:pointer;" onclick="closePopover()">✕</button>
         </div>
         <div class="popover-row">
@@ -171,10 +173,6 @@
         <div class="popover-row">
           <span class="popover-label">Project Location</span>
           <span class="popover-value" id="popLocation">-</span>
-        </div>
-        <div class="popover-row">
-          <span class="popover-label">Year</span>
-          <span class="popover-value" id="popYear">-</span>
         </div>
         <div class="popover-row">
           <span class="popover-label">Remarks</span>
@@ -200,23 +198,23 @@
     </aside>
   </div>
 
-  <!-- Create New Project Modal -->
+  <!-- Create New Project Modal (NO Placeholders) -->
   <div class="modal-overlay" id="createProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
       <h3>Create New Project Tile</h3>
 
       <label class="modal-label">Client Name</label>
-      <input type="text" id="newProjectClient" class="modal-input" placeholder="e.g. Amber Holdings Ltd" />
+      <input type="text" id="newProjectClient" class="modal-input" />
 
       <label class="modal-label">Project No</label>
-      <input type="text" id="newProjectNo" class="modal-input" placeholder="e.g. PRJ-2026-001" />
+      <input type="text" id="newProjectNo" class="modal-input" />
 
       <label class="modal-label">Project Location</label>
-      <input type="text" id="newProjectLocation" class="modal-input" placeholder="e.g. Sector 4, North Site" />
+      <input type="text" id="newProjectLocation" class="modal-input" />
 
       <label class="modal-label">Remarks</label>
-      <textarea id="newProjectRemarks" class="modal-input" placeholder="Enter optional notes or project scope..."></textarea>
+      <textarea id="newProjectRemarks" class="modal-input"></textarea>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
@@ -232,7 +230,7 @@
     const defaultProjects = [
       { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue' },
       { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green' },
-      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', client: 'Gov Authority', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple' }
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple' }
     ];
 
     function getProjects() {
@@ -273,16 +271,17 @@
         const tileEl = document.createElement("div");
         tileEl.className = `tile ${proj.color}`;
         
-        // Render Tile: First Letter Avatar + Client Name & Project No
+        // Render Tile: Centered Letter Avatar + Bottom Client Name & Project No
         tileEl.innerHTML = `
-          <div class="tile-letter-avatar">${firstLetter}</div>
+          <div class="tile-avatar-center">
+            <div class="tile-letter-avatar">${firstLetter}</div>
+          </div>
           <div class="tile-content-bottom">
             <div class="tile-client-name">${clientName}</div>
             <div class="tile-project-no">${proj.projectNo || 'NO-ID'}</div>
           </div>
         `;
 
-        // Handle Single Click (Popover) and Double Click (Open Tile)
         tileEl.onclick = function(e) {
           e.stopPropagation();
           if (clickTimer) clearTimeout(clickTimer);
@@ -302,7 +301,7 @@
       });
     }
 
-    /* Popover Details */
+    /* Popover Details (Client Name, Project No, Location, Remarks) */
     function showPopover(event, proj) {
       const popover = document.getElementById("tilePopover");
       const tileRect = event.currentTarget.getBoundingClientRect();
@@ -311,14 +310,13 @@
       document.getElementById("popClient").innerText = proj.client || "Client Details";
       document.getElementById("popProjectNo").innerText = proj.projectNo || "N/A";
       document.getElementById("popLocation").innerText = proj.location || "N/A";
-      document.getElementById("popYear").innerText = proj.year || "N/A";
       document.getElementById("popRemarks").innerText = proj.remarks || "None";
 
       let topPos = tileRect.top - wrapperRect.top;
       let leftPos = tileRect.right - wrapperRect.left + 12;
 
-      if (leftPos + 260 > wrapperRect.width) {
-        leftPos = tileRect.left - wrapperRect.left - 272;
+      if (leftPos + 250 > wrapperRect.width) {
+        leftPos = tileRect.left - wrapperRect.left - 262;
       }
 
       popover.style.top = `${topPos}px`;
@@ -356,7 +354,6 @@
       const location = document.getElementById("newProjectLocation").value.trim();
       const remarks = document.getElementById("newProjectRemarks").value.trim();
       
-      // Year defaults to currently active header year
       const year = document.getElementById("yearPicker").value || "2026";
 
       if (!client) return alert("Please enter a client name.");
