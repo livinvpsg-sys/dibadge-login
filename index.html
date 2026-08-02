@@ -67,7 +67,7 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: var(--accent-white); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    /* ------------ PERFECTLY CENTERED TILES WORKSPACE ------------ */
+    /* PERFECTLY CENTERED TILES WORKSPACE */
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
     .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
 
@@ -123,9 +123,9 @@
 </head>
 <body>
 
-  <!-- Hidden SVG Template Library -->
+  <!-- Hidden SVG Template Library (Suitcase Icon for Projects) -->
   <div style="display: none;">
-    <svg id="svg-projects" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    <svg id="svg-projects" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
     <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
     <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
     <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
@@ -211,7 +211,7 @@
       </button>
 
       <div class="icon-picker-grid" id="iconPickerGrid">
-        <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
+        <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
         <div class="icon-option" onclick="selectIcon('hr')" id="pick-hr"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
@@ -226,7 +226,7 @@
   </div>
 
   <script>
-    const SECRET_PASSCODE = "177994";
+    const SECRET_PASSCODE = "1234";
     let activeEditTileId = null;
     let isCreateMode = false;
     let selectedIconKey = "projects";
