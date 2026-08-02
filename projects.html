@@ -168,7 +168,7 @@
     .media-download-btn:hover { transform: scale(1.08); background: #0369a1; }
     .media-download-btn svg { width: 14px; height: 14px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
 
-    /* Sub-view Panels (BOM, Comparison, Schedule) */
+    /* Sub-view Panels */
     .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
 
     /* Context Menu */
@@ -241,6 +241,11 @@
     
     <!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
+      <!-- Always Available Home Icon -->
+      <a href="index.html" class="tab-btn" id="btnNavHome" title="Home Grid">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      </a>
+
       <!-- Sub-module Navigation SVG Icons -->
       <div class="project-sub-nav" id="projectSubNav">
         <!-- 1. Folder Icon -->
