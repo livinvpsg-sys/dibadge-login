@@ -88,23 +88,30 @@
     .tile-orange { background-color: #ea580c; }
 
     /* ------------ FOLDER EXPLORER VIEW WORKSPACE ------------ */
-    .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); }
+    .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
     .folder-breadcrumb-bar { display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 24px; }
-    .breadcrumb-path { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+    .breadcrumb-path { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; color: var(--text-color); }
     .breadcrumb-back-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .breadcrumb-back-btn:hover { background: var(--accent-blue); color: white; }
 
-    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; width: 100%; }
+    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; }
 
     /* Folder Cards */
-    .folder-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+    .folder-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; user-select: none; }
     .folder-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
+    .folder-card.selected-cut { opacity: 0.4; border-style: dashed; }
     .folder-card svg { width: 44px; height: 44px; fill: #0284c7; stroke: none; margin-bottom: 8px; }
-    .folder-name { font-size: 0.85rem; font-weight: 600; color: var(--text-color); word-break: break-word; }
-    .folder-items-count { font-size: 0.72rem; color: var(--subtext-color); margin-top: 4px; }
+    .folder-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); word-break: break-word; }
+    .folder-items-count { font-size: 0.7rem; color: var(--subtext-color); margin-top: 4px; }
 
-    /* Floating Popover Box */
+    /* Custom Context Menu (Right Click Options) */
+    .context-menu { position: absolute; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; backdrop-filter: blur(8px); }
+    .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
+    .context-menu-item:hover { background: var(--accent-blue); color: white; }
+    .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+    /* Floating Details Popover Box */
     .tile-popover { position: absolute; z-index: 90; width: 250px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
     .tile-popover-header { font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .popover-row { font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px; }
@@ -137,7 +144,7 @@
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
 </head>
-<body>
+<body onclick="hideContextMenu(); closePopover();">
 
   <!-- Header -->
   <header class="dashboard-header">
@@ -174,7 +181,7 @@
     </aside>
 
     <!-- Center Grid Workspace -->
-    <main class="tiles-wrapper" id="mainGridWorkspace" onclick="closePopover()">
+    <main class="tiles-wrapper" id="mainGridWorkspace">
       <div class="tiles-grid" id="projectTilesGrid"></div>
 
       <!-- Floating Details Popover -->
@@ -199,13 +206,13 @@
       </div>
     </main>
 
-    <!-- Folder Browser View (Revealed when project tile is opened) -->
-    <section class="folder-explorer-view" id="folderExplorerWorkspace">
+    <!-- Folder Browser View -->
+    <section class="folder-explorer-view" id="folderExplorerWorkspace" oncontextmenu="handleWorkspaceContextMenu(event)">
       <div class="folder-breadcrumb-bar">
         <div class="breadcrumb-path" id="breadcrumbText">Projects > Client</div>
-        <button class="breadcrumb-back-btn" onclick="backToProjectGrid()">
+        <button class="breadcrumb-back-btn" onclick="navigateUpBreadcrumb()">
           <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          Back to Projects
+          Back
         </button>
       </div>
 
@@ -230,25 +237,33 @@
     </aside>
   </div>
 
+  <!-- Custom Right-Click Context Menu -->
+  <div class="context-menu" id="folderContextMenu">
+    <div class="context-menu-item" onclick="executeContextAction('copy')">Copy</div>
+    <div class="context-menu-item" onclick="executeContextAction('cut')">Cut</div>
+    <div class="context-menu-item" id="pasteContextBtn" onclick="executeContextAction('paste')" style="display:none;">Paste</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" onclick="executeContextAction('rename')">Rename</div>
+    <div class="context-menu-item" onclick="executeContextAction('delete')" style="color:var(--error-red,#ff3b30);">Delete</div>
+  </div>
+
   <!-- Create New Project Modal -->
   <div class="modal-overlay" id="createProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
-      <h3 id="modalTitleText">Create New Project Tile</h3>
+      <h3>Create New Project Tile</h3>
 
-      <div id="projectModalFields">
-        <label class="modal-label">Client Name</label>
-        <input type="text" id="newProjectClient" class="modal-input" />
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="newProjectClient" class="modal-input" />
 
-        <label class="modal-label">Project No</label>
-        <input type="text" id="newProjectNo" class="modal-input" />
+      <label class="modal-label">Project No</label>
+      <input type="text" id="newProjectNo" class="modal-input" />
 
-        <label class="modal-label">Project Location</label>
-        <input type="text" id="newProjectLocation" class="modal-input" />
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="newProjectLocation" class="modal-input" />
 
-        <label class="modal-label">Remarks</label>
-        <textarea id="newProjectRemarks" class="modal-input"></textarea>
-      </div>
+      <label class="modal-label">Remarks</label>
+      <textarea id="newProjectRemarks" class="modal-input"></textarea>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
@@ -261,6 +276,12 @@
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let clickTimer = null;
     let activeOpenedProject = null;
+    let folderPathStack = [];
+
+    // Clipboard for copy/cut/paste
+    let clipboardFolder = null;
+    let isCutOperation = false;
+    let selectedFolderForContext = null;
 
     const defaultProjects = [
       { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue' },
@@ -269,10 +290,10 @@
     ];
 
     const defaultSubFolders = [
-      { name: 'Site Photos & diCam', items: '14 Files' },
-      { name: 'Safety & Compliance Logs', items: '5 Forms' },
-      { name: 'Reports & Worksheets', items: '8 Docs' },
-      { name: 'Drawings & Blueprints', items: '3 Files' }
+      { id: 'f-1', name: 'Site Photos & diCam', items: '14 Files' },
+      { id: 'f-2', name: 'Safety & Compliance Logs', items: '5 Forms' },
+      { id: 'f-3', name: 'Reports & Worksheets', items: '8 Docs' },
+      { id: 'f-4', name: 'Drawings & Blueprints', items: '3 Files' }
     ];
 
     function getProjects() {
@@ -373,53 +394,161 @@
       document.getElementById("tilePopover").style.display = "none";
     }
 
-    /* Open Project Folder View */
+    /* Folder Navigation */
     function openProjectFolder(proj) {
       closePopover();
       activeOpenedProject = proj;
+      folderPathStack = [proj.client];
 
       document.getElementById("mainGridWorkspace").style.display = "none";
       document.getElementById("folderExplorerWorkspace").style.display = "flex";
 
-      document.getElementById("breadcrumbText").innerText = `Projects > ${proj.client} (${proj.projectNo})`;
+      renderFolderView();
+    }
+
+    function renderFolderView() {
+      document.getElementById("breadcrumbText").innerText = "Projects > " + folderPathStack.join(" > ");
       
       const subGrid = document.getElementById("innerFolderGrid");
       subGrid.innerHTML = "";
 
-      defaultSubFolders.forEach(sub => {
+      let currentFolders = getActiveFolderList();
+
+      currentFolders.forEach((folder, idx) => {
         const folderCard = document.createElement("div");
         folderCard.className = "folder-card";
-        folderCard.onclick = () => alert(`Opening folder: ${sub.name}`);
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          folderCard.classList.add("selected-cut");
+        }
+
         folderCard.innerHTML = `
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          <div class="folder-name">${sub.name}</div>
-          <div class="folder-items-count">${sub.items}</div>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-items-count">${folder.items || '0 Items'}</div>
         `;
+
+        // Double click navigates into folder
+        folderCard.ondblclick = (e) => {
+          e.stopPropagation();
+          folderPathStack.push(folder.name);
+          renderFolderView();
+        };
+
+        // Right click context menu
+        folderCard.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showContextMenu(e, folder, idx);
+        };
+
         subGrid.appendChild(folderCard);
       });
     }
 
-    function backToProjectGrid() {
-      activeOpenedProject = null;
-      document.getElementById("folderExplorerWorkspace").style.display = "none";
-      document.getElementById("mainGridWorkspace").style.display = "flex";
-      filterProjects();
+    function getActiveFolderList() {
+      if (!activeOpenedProject.folders) {
+        activeOpenedProject.folders = JSON.parse(JSON.stringify(defaultSubFolders));
+      }
+      return activeOpenedProject.folders;
+    }
+
+    function navigateUpBreadcrumb() {
+      if (folderPathStack.length > 1) {
+        folderPathStack.pop();
+        renderFolderView();
+      } else {
+        activeOpenedProject = null;
+        document.getElementById("folderExplorerWorkspace").style.display = "none";
+        document.getElementById("mainGridWorkspace").style.display = "flex";
+        filterProjects();
+      }
+    }
+
+    /* Right Click Context Menu Functions */
+    function showContextMenu(e, folder, idx) {
+      selectedFolderForContext = { folder, idx };
+      const menu = document.getElementById("folderContextMenu");
+      
+      document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
+
+      menu.style.top = `${e.clientY}px`;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.display = "flex";
+    }
+
+    function handleWorkspaceContextMenu(e) {
+      if (activeOpenedProject && clipboardFolder) {
+        e.preventDefault();
+        selectedFolderForContext = null;
+        const menu = document.getElementById("folderContextMenu");
+        document.getElementById("pasteContextBtn").style.display = "flex";
+        menu.style.top = `${e.clientY}px`;
+        menu.style.left = `${e.clientX}px`;
+        menu.style.display = "flex";
+      }
+    }
+
+    function hideContextMenu() {
+      document.getElementById("folderContextMenu").style.display = "none";
+    }
+
+    function executeContextAction(action) {
+      hideContextMenu();
+      let folders = getActiveFolderList();
+
+      if (action === 'copy') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = { ...selectedFolderForContext.folder };
+        isCutOperation = false;
+        renderFolderView();
+      } 
+      else if (action === 'cut') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = { ...selectedFolderForContext.folder, sourceIdx: selectedFolderForContext.idx };
+        isCutOperation = true;
+        renderFolderView();
+      } 
+      else if (action === 'paste') {
+        if (!clipboardFolder) return;
+        
+        if (isCutOperation) {
+          folders.splice(clipboardFolder.sourceIdx, 1);
+        }
+        
+        folders.push({
+          id: 'f-' + Date.now(),
+          name: isCutOperation ? clipboardFolder.name : clipboardFolder.name + " - Copy",
+          items: clipboardFolder.items || '0 Items'
+        });
+
+        clipboardFolder = null;
+        isCutOperation = false;
+        renderFolderView();
+      } 
+      else if (action === 'rename') {
+        if (!selectedFolderForContext) return;
+        const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+        if (newName && newName.trim()) {
+          folders[selectedFolderForContext.idx].name = newName.trim();
+          renderFolderView();
+        }
+      } 
+      else if (action === 'delete') {
+        if (!selectedFolderForContext) return;
+        if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+          folders.splice(selectedFolderForContext.idx, 1);
+          renderFolderView();
+        }
+      }
     }
 
     function handleFabClick() {
       if (activeOpenedProject) {
         const newSubName = prompt("Enter new folder name:");
-        if (newSubName) {
-          const subGrid = document.getElementById("innerFolderGrid");
-          const folderCard = document.createElement("div");
-          folderCard.className = "folder-card";
-          folderCard.onclick = () => alert(`Opening folder: ${newSubName}`);
-          folderCard.innerHTML = `
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            <div class="folder-name">${newSubName}</div>
-            <div class="folder-items-count">0 Items</div>
-          `;
-          subGrid.appendChild(folderCard);
+        if (newSubName && newSubName.trim()) {
+          let folders = getActiveFolderList();
+          folders.push({ id: 'f-' + Date.now(), name: newSubName.trim(), items: '0 Items' });
+          renderFolderView();
         }
       } else {
         openCreateProjectModal();
