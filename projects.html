@@ -32,6 +32,12 @@
       --tabbar-bg: var(--jet-black);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
+
+      --chat-incoming-bg: #262626;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     [data-theme="dark"] {
@@ -42,12 +48,18 @@
       --tabbar-bg: #050505;
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
+
+      --chat-incoming-bg: #222224;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Single Header Line */
+    /* Header Line */
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
     .header-left { display: flex; align-items: center; gap: 12px; }
     
@@ -55,7 +67,7 @@
     .default-header-title h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .year-select { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
-    /* Header Breadcrumb Navigation for Folder View */
+    /* Header Breadcrumb Navigation for Folder & Chat View */
     .folder-header-nav { display: none; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: 600; }
     .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
     .header-back-icon:hover { background: var(--surface-color); color: var(--accent-blue); }
@@ -85,7 +97,7 @@
     .tiles-wrapper { flex: 1; display: flex; justify-content: flex-start; align-items: flex-start; padding: 24px; overflow-y: auto; position: relative; background: var(--bg-color); }
     .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
-    /* Tile Design Matching Folder Sizing */
+    /* Tile Design */
     .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
     .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
 
@@ -105,9 +117,6 @@
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
-    /* Sub-view Panels (Chat, BOM, Comparison, Schedule) */
-    .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
-
     /* Clean Folder Cards */
     .folder-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); }
@@ -117,14 +126,42 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* Custom Right-Click Context Menu */
+    /* ------------ READ-ONLY CHAT VIEW WORKSPACE ------------ */
+    .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
+    .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
+    
+    .chat-date-pill { align-self: center; background: #26262a; color: var(--cool-ash); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin-bottom: 6px; }
+
+    /* Incoming Msg Row */
+    .msg-row-incoming { display: flex; gap: 10px; align-items: flex-start; max-width: 70%; }
+    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: #a67c70; color: #ffffff; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 18px; }
+    .msg-body-wrapper { display: flex; flex-direction: column; gap: 2px; }
+    .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
+    .msg-bubble-incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); padding: 10px 16px; border-radius: 18px 18px 18px 4px; font-size: 0.9rem; line-height: 1.4; position: relative; }
+    .msg-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
+    .msg-timestamp { font-size: 0.68rem; color: var(--cool-ash); }
+
+    /* Outgoing Msg Row */
+    .msg-row-outgoing { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; max-width: 70%; }
+    .msg-bubble-outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); padding: 10px 16px; border-radius: 18px 18px 4px 18px; font-size: 0.9rem; line-height: 1.4; font-weight: 500; }
+    .msg-bubble-outgoing .msg-timestamp { color: #666666; }
+
+    /* Download Icon Button Inside Chat Bubbles */
+    .chat-download-btn { background: transparent; border: none; color: currentColor; opacity: 0.75; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 0.72rem; padding: 2px 4px; border-radius: 4px; transition: opacity 0.15s; }
+    .chat-download-btn:hover { opacity: 1; }
+    .chat-download-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Sub-view Panels (BOM, Comparison, Schedule) */
+    .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
+
+    /* Context Menu */
     .context-menu { position: fixed; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
     .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
     .context-menu-item:hover { background: var(--accent-blue); color: white; }
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-    /* Right Activity Feed */
+    /* Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
     .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
@@ -187,12 +224,7 @@
     
     <!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
-      <!-- Home Icon -->
-      <a href="index.html" class="tab-btn" title="Home Grid">
-        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-      </a>
-
-      <!-- Sub-module Navigation SVG Standard Icons (Visible when project tile is opened) -->
+      <!-- Sub-module Navigation SVG Icons (Home icon removed when viewing a project) -->
       <div class="project-sub-nav" id="projectSubNav">
         <!-- 1. Folder Icon (Default Active View) -->
         <button class="tab-btn active" id="btnSubFolder" onclick="switchProjectSubTab('folder')" title="Folders & Files">
@@ -235,12 +267,68 @@
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- Sub-View Panels -->
-    <section class="sub-view-panel" id="panelChatWorkspace">
-      <h2 style="font-size:1.1rem; margin-bottom:12px;">Project Chat</h2>
-      <p style="color:var(--subtext-color);">Team message thread and visual activity log.</p>
+    <!-- Read-Only Chat View Workspace (Read chats and download media only) -->
+    <section class="chat-view-workspace" id="panelChatWorkspace">
+      <div class="chat-messages-container" id="chatThreadContainer">
+        <div class="chat-date-pill">Today</div>
+
+        <!-- Incoming Message 1 -->
+        <div class="msg-row-incoming">
+          <div class="msg-avatar">J</div>
+          <div class="msg-body-wrapper">
+            <span class="msg-sender-name">John</span>
+            <div class="msg-bubble-incoming">
+              Hi there!
+              <div class="msg-footer">
+                <span class="msg-timestamp">10:04 am</span>
+                <button class="chat-download-btn" onclick="downloadMedia('Site_Log_Doc.pdf')" title="Download file">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outgoing Message 1 -->
+        <div class="msg-row-outgoing">
+          <div class="msg-bubble-outgoing">
+            Hello! How can I help you?
+            <div class="msg-footer">
+              <span class="msg-timestamp">10:04 am</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Incoming Message 2 (With Media Attachment) -->
+        <div class="msg-row-incoming">
+          <div class="msg-avatar">M</div>
+          <div class="msg-body-wrapper">
+            <span class="msg-sender-name">Mary</span>
+            <div class="msg-bubble-incoming">
+              I have a question about the certificate.
+              <div class="msg-footer">
+                <span class="msg-timestamp">10:04 am</span>
+                <button class="chat-download-btn" onclick="downloadMedia('Site_Certificate_2026.png')" title="Download Media">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Outgoing Message 2 -->
+        <div class="msg-row-outgoing">
+          <div class="msg-bubble-outgoing">
+            Sure, go ahead and ask.
+            <div class="msg-footer">
+              <span class="msg-timestamp">10:04 am</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
+    <!-- Other Sub-View Panels -->
     <section class="sub-view-panel" id="panelBOMWorkspace">
       <h2 style="font-size:1.1rem; margin-bottom:12px;">Bill of Materials (BOM)</h2>
       <p style="color:var(--subtext-color);">Quantity takeoff lists and material specifications.</p>
@@ -272,14 +360,13 @@
     </aside>
   </div>
 
-  <!-- Project Tile Context Menu -->
+  <!-- Context Menus -->
   <div class="context-menu" id="projectTileContextMenu">
     <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
   </div>
 
-  <!-- Folder Context Menu -->
   <div class="context-menu" id="folderContextMenu">
     <div class="context-menu-item" onclick="executeContextAction('copy')">Copy</div>
     <div class="context-menu-item" onclick="executeContextAction('cut')">Cut</div>
@@ -442,10 +529,8 @@
       activeOpenedProject = proj;
       folderObjectStack = [proj];
 
-      // Display Sub-Nav Icons on Left Vertical Tabbar
       document.getElementById("projectSubNav").style.display = "flex";
 
-      // Switch header from Default Title to Folder Breadcrumb Bar
       document.getElementById("defaultHeaderTitle").style.display = "none";
       document.getElementById("folderHeaderNav").style.display = "flex";
 
@@ -478,7 +563,7 @@
         btnFolder.classList.add("active");
         renderFolderView();
       } else if (tabKey === 'chat') {
-        chatWS.style.display = "block";
+        chatWS.style.display = "flex";
         btnChat.classList.add("active");
       } else if (tabKey === 'bom') {
         bomWS.style.display = "block";
@@ -558,10 +643,8 @@
         activeOpenedProject = null;
         folderObjectStack = [];
 
-        // Hide Sub-Nav Icons on main grid
         document.getElementById("projectSubNav").style.display = "none";
 
-        // Restore Default Header & Search Bar
         document.getElementById("folderHeaderNav").style.display = "none";
         document.getElementById("defaultHeaderTitle").style.display = "flex";
 
@@ -584,6 +667,11 @@
 
     function navigateUpBreadcrumb() {
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+    }
+
+    /* Media Download Function */
+    function downloadMedia(filename) {
+      alert(`Downloading media: ${filename}`);
     }
 
     function showFolderContextMenu(e, folder, idx) {
