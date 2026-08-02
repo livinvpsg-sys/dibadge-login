@@ -131,7 +131,21 @@
       z-index: 10;
     }
 
-    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; }
+    .dashboard-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo-icon {
+      width: 24px;
+      height: 24px;
+      stroke: #0284c7;
+      stroke-width: 2;
+      fill: none;
+    }
 
     .back-portal-btn {
       background: #1e293b;
@@ -146,7 +160,6 @@
 
     .back-portal-btn:hover { background: #334155; color: white; }
 
-    /* Main Split Area (Tiles View + Notifications Panel) */
     .dashboard-body-split {
       display: flex;
       flex: 1;
@@ -155,7 +168,68 @@
       position: relative;
     }
 
-    /* Left Workspace (Centered Tiles Grid) */
+    /* LEFT VERTICAL ICON TAB BAR */
+    .left-vertical-tabbar {
+      width: 64px;
+      background: #0f172a;
+      border-right: 1px solid #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      height: 100%;
+      z-index: 20;
+    }
+
+    .tab-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+
+    .tab-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .tab-btn:hover {
+      background: #1e293b;
+      color: #ffffff;
+    }
+
+    .tab-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+    }
+
+    /* FAB TAB BUTTON AT BOTTOM OF LEFT TABBAR */
+    .fab-tab-btn {
+      margin-top: auto;
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4);
+    }
+
+    .fab-tab-btn:hover {
+      background: #0369a1;
+      transform: scale(1.05);
+    }
+
+    /* CENTER WORKSPACE */
     .tiles-wrapper {
       flex: 1;
       display: flex;
@@ -166,7 +240,6 @@
       position: relative;
     }
 
-    /* Strict 6-Columns Grid Layout */
     .tiles-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -176,7 +249,6 @@
       justify-items: center;
     }
 
-    /* Metro Tile Base Design */
     .tile {
       position: relative;
       width: 100%;
@@ -226,7 +298,6 @@
       word-break: break-word;
     }
 
-    /* Edit Pencil Button - Hover Vector SVG */
     .tile-edit-btn {
       position: absolute;
       bottom: 6px;
@@ -259,7 +330,6 @@
     .tile:hover .tile-edit-btn { opacity: 1; }
     .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-    /* Metro Color Themes */
     .tile-blue   { background-color: #0284c7; }
     .tile-green  { background-color: #059669; }
     .tile-grey   { background-color: #475569; }
@@ -267,7 +337,15 @@
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
-    /* ---------------- RIGHT NOTIFICATION PANEL (MAX 25% WIDTH) ---------------- */
+    /* Alternate Settings View */
+    #settingsView {
+      display: none;
+      flex: 1;
+      padding: 40px;
+      background: #ffffff;
+    }
+
+    /* ---------------- RIGHT NOTIFICATION PANEL ---------------- */
     .notifications-panel {
       width: 25%;
       min-width: 260px;
@@ -298,6 +376,14 @@
       gap: 8px;
     }
 
+    .notifications-header h3 svg {
+      width: 18px;
+      height: 18px;
+      stroke: #0284c7;
+      stroke-width: 2;
+      fill: none;
+    }
+
     .notifications-list {
       flex: 1;
       padding: 16px;
@@ -317,39 +403,6 @@
 
     .notification-item .title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: #94a3b8; margin-top: 6px; }
-
-    /* Floating Action Button (FAB) - NOW MOVED TO RIGHT SIDE JUST BEFORE ACTIVITY FEED */
-    .fab-add {
-      position: absolute;
-      bottom: 32px;
-      right: 32px;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: #0284c7;
-      color: white;
-      border: none;
-      box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.4);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.2s, background 0.2s;
-      z-index: 90;
-    }
-
-    .fab-add:hover {
-      transform: scale(1.08);
-      background: #0369a1;
-    }
-
-    .fab-add svg {
-      width: 26px;
-      height: 26px;
-      stroke: white;
-      stroke-width: 2.5;
-      fill: none;
-    }
 
     /* ---------------- 4. MODALS ---------------- */
     .modal-overlay {
@@ -491,7 +544,6 @@
     @media (max-width: 1024px) {
       .tiles-grid { grid-template-columns: repeat(3, 1fr); }
       .notifications-panel { display: none; }
-      .fab-add { right: 32px; }
     }
 
     @media (max-width: 600px) {
@@ -504,8 +556,9 @@
 </head>
 <body>
 
-  <!-- Hidden SVG Library -->
+  <!-- Hidden SVG Master Template Library -->
   <div style="display: none;">
+    <svg id="svg-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
     <svg id="svg-groups" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
     <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
     <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
@@ -520,6 +573,7 @@
     <svg id="svg-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
     <svg id="svg-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
     <svg id="svg-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    <svg id="svg-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
   </div>
 
   <!-- 1. Password Protection Gate -->
@@ -553,27 +607,50 @@
   <!-- 3. Organization Dashboard Split View Layout -->
   <div id="dashboardLayout">
     <header class="dashboard-header">
-      <h1>Organization Dashboard</h1>
+      <h1>
+        <svg class="header-logo-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Organization Dashboard
+      </h1>
       <button class="back-portal-btn" onclick="returnToPortal()">← Back to Portal</button>
     </header>
 
     <div class="dashboard-body-split">
-      <!-- Centered 6-Tile Row Workspace -->
-      <div class="tiles-wrapper">
-        <div class="tiles-grid" id="tilesGrid">
-          <!-- Dynamically populated from localStorage / Database -->
-        </div>
+      <!-- LEFT VERTICAL ICON TAB BAR -->
+      <aside class="left-vertical-tabbar">
+        <!-- 1. Home Icon -->
+        <button class="tab-btn active" id="tabNavHome" onclick="switchMainTab('home')" title="Home Tiles">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        </button>
 
-        <!-- Floating Action Button (FAB) Positioned on Right Side before Activity Feed -->
-        <button class="fab-add" onclick="openCreateModal()" title="Create New Tile">
+        <!-- 2. Settings Icon -->
+        <button class="tab-btn" id="tabNavSettings" onclick="switchMainTab('settings')" title="Organization Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+
+        <!-- 3. FAB Add Tile Button -->
+        <button class="tab-btn fab-tab-btn" onclick="openCreateModal()" title="Create New Tile">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
+      </aside>
+
+      <!-- CENTER TILES WORKSPACE -->
+      <div class="tiles-wrapper" id="homeView">
+        <div class="tiles-grid" id="tilesGrid"></div>
       </div>
 
-      <!-- Right Notifications Split Screen (Max 25% Width) -->
+      <!-- ALTERNATE SETTINGS WORKSPACE -->
+      <div id="settingsView">
+        <h2 style="margin-bottom:12px;">Organization Settings</h2>
+        <p style="color:#64748b;">Manage company profile, security policies, and enterprise options here.</p>
+      </div>
+
+      <!-- RIGHT NOTIFICATION PANEL -->
       <aside class="notifications-panel">
         <div class="notifications-header">
-          <h3>🔔 Activity Feed</h3>
+          <h3>
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            Activity Feed
+          </h3>
           <span style="font-size:0.75rem; background:#e2e8f0; padding:2px 8px; border-radius:10px; font-weight:600;">Live</span>
         </div>
         <div class="notifications-list">
@@ -597,7 +674,7 @@
     </div>
   </div>
 
-  <!-- 4. Tile Modal (Handles Create and Edit) -->
+  <!-- 4. Tile Modal -->
   <div class="modal-overlay" id="tileModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeTileModal()">&times;</button>
@@ -651,7 +728,7 @@
   </div>
 
   <script>
-    const SECRET_PASSCODE = "177994"; 
+    const SECRET_PASSCODE = "1234"; 
     let activeEditTileId = null;
     let isCreateMode = false;
     let selectedIconKey = "folder";
@@ -659,14 +736,20 @@
 
     const defaultTiles = [
       { id: 'groups', title: 'Groups', iconKey: 'groups', color: 'tile-blue', isProtected: true },
-      { id: 'members', title: 'Members', iconKey: 'members', color: 'tile-green', isProtected: false },
+      { id: 'members', title: 'Members', iconKey: 'members', color: 'tile-green', isProtected: true },
       { id: 'hr', title: 'HR', iconKey: 'hr', color: 'tile-grey', isProtected: false },
       { id: 'finance', title: 'Finance', iconKey: 'finance', color: 'tile-olive', isProtected: false }
     ];
 
     function getStoredTiles() {
       const stored = localStorage.getItem('dibadge_custom_tiles');
-      return stored ? JSON.parse(stored) : defaultTiles;
+      if (!stored) return defaultTiles;
+      
+      const parsed = JSON.parse(stored);
+      return parsed.map(t => {
+        if (t.id === 'groups' || t.id === 'members') t.isProtected = true;
+        return t;
+      });
     }
 
     function setStoredTiles(tilesArray) {
@@ -702,6 +785,25 @@
       });
     }
 
+    function switchMainTab(tab) {
+      const homeView = document.getElementById("homeView");
+      const settingsView = document.getElementById("settingsView");
+      const btnHome = document.getElementById("tabNavHome");
+      const btnSettings = document.getElementById("tabNavSettings");
+
+      if (tab === 'home') {
+        homeView.style.display = "flex";
+        settingsView.style.display = "none";
+        btnHome.classList.add("active");
+        btnSettings.classList.remove("active");
+      } else if (tab === 'settings') {
+        homeView.style.display = "none";
+        settingsView.style.display = "block";
+        btnHome.classList.remove("active");
+        btnSettings.classList.add("active");
+      }
+    }
+
     function checkPasscode() {
       const input = document.getElementById("passInput").value;
       if (input === SECRET_PASSCODE) {
@@ -714,6 +816,7 @@
     function showDashboard() {
       document.getElementById("portalView").style.display = "none";
       document.getElementById("dashboardLayout").style.display = "flex";
+      switchMainTab('home');
       renderTiles();
     }
 
