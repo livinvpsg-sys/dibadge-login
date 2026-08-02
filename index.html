@@ -5,927 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>diBadge | Organization Portal</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f1f5f9; color: #0f172a; min-height: 100vh; overflow-x: hidden; }
 
-    body {
-      background-color: #f1f5f9;
-      color: #0f172a;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    /* Site Lock */
+    #gateModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .gate-card { background: #ffffff; padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; width: 90%; }
+    .gate-card input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; margin: 12px 0; text-align: center; }
+    .gate-card button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-    /* ---------------- 1. SITE LOCK MODAL ---------------- */
-    #gateModal {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #0f172a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
+    /* Layout */
+    #dashboardLayout { display: none; flex-direction: column; height: 100vh; }
+    .dashboard-header { background: #0f172a; color: white; padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; }
+    .dashboard-header h1 { font-size: 1.25rem; display: flex; align-items: center; gap: 10px; }
+    .header-logo-icon { width: 24px; height: 24px; stroke: #0284c7; stroke-width: 2; fill: none; }
+    
+    .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); }
 
-    .gate-card {
-      background: #ffffff;
-      padding: 40px;
-      border-radius: 16px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-    }
+    /* Left Tabbar */
+    .left-vertical-tabbar { width: 64px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
+    .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: #94a3b8; display: flex; justify-content: center; align-items: center; cursor: pointer; margin-bottom: 12px; text-decoration: none; }
+    .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .tab-btn:hover, .tab-btn.active { background: #0284c7; color: white; }
 
-    .gate-card h2 { margin-bottom: 8px; }
-    .gate-card p { color: #64748b; font-size: 0.9rem; margin-bottom: 20px; }
-    .gate-card input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-size: 1rem;
-      text-align: center;
-    }
-
-    .gate-card button {
-      width: 100%;
-      padding: 12px;
-      background: #0284c7;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    /* ---------------- 2. PORTAL SELECTION VIEW ---------------- */
-    .portal-wrapper {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      position: relative;
-    }
-
-    .portal-container {
-      display: flex;
-      gap: 24px;
-      max-width: 700px;
-      width: 90%;
-    }
-
-    .portal-card {
-      flex: 1;
-      background: #ffffff;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 48px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-
-    .portal-card:hover {
-      border-color: #0284c7;
-      transform: translateY(-4px);
-      box-shadow: 0 12px 20px -3px rgba(2, 132, 199, 0.15);
-    }
-
-    .portal-card h2 { font-size: 1.5rem; margin-bottom: 8px; }
-    .portal-card p { color: #64748b; font-size: 0.95rem; }
-
-    .footer-link {
-      position: absolute;
-      bottom: 24px;
-      font-size: 0.9rem;
-      color: #64748b;
-      text-decoration: none;
-    }
-    .bottom-left { left: 32px; }
-    .bottom-right { right: 32px; }
-
-    /* ---------------- 3. DASHBOARD MAIN SPLIT LAYOUT ---------------- */
-    #dashboardLayout {
-      display: none;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    .dashboard-header {
-      background: #0f172a;
-      color: white;
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      height: 64px;
-      z-index: 10;
-    }
-
-    .dashboard-header h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .header-logo-icon {
-      width: 24px;
-      height: 24px;
-      stroke: #0284c7;
-      stroke-width: 2;
-      fill: none;
-    }
-
-    .back-portal-btn {
-      background: #1e293b;
-      color: #cbd5e1;
-      border: 1px solid #334155;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: background 0.2s;
-    }
-
-    .back-portal-btn:hover { background: #334155; color: white; }
-
-    .dashboard-body-split {
-      display: flex;
-      flex: 1;
-      height: calc(100vh - 64px);
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* LEFT VERTICAL ICON TAB BAR */
-    .left-vertical-tabbar {
-      width: 64px;
-      background: #0f172a;
-      border-right: 1px solid #1e293b;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 0;
-      height: 100%;
-      z-index: 20;
-    }
-
-    .tab-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      margin-bottom: 12px;
-      transition: all 0.2s;
-    }
-
-    .tab-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: currentColor;
-      stroke-width: 2;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .tab-btn:hover {
-      background: #1e293b;
-      color: #ffffff;
-    }
-
-    .tab-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-    }
-
-    /* FAB TAB BUTTON AT BOTTOM OF LEFT TABBAR */
-    .fab-tab-btn {
-      margin-top: auto;
-      background: #0284c7;
-      color: white;
-      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4);
-    }
-
-    .fab-tab-btn:hover {
-      background: #0369a1;
-      transform: scale(1.05);
-    }
-
-    /* CENTER WORKSPACE */
-    .tiles-wrapper {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 24px;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .tiles-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 16px;
-      max-width: 1100px;
-      width: 100%;
-      justify-items: center;
-    }
-
-    .tile {
-      position: relative;
-      width: 100%;
-      max-width: 150px;
-      aspect-ratio: 1 / 1;
-      border-radius: 6px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      color: #ffffff;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .tile:hover {
-      transform: scale(1.04);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
-    }
-
-    .tile-icon-wrapper {
-      width: 42px;
-      height: 42px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .tile-icon-wrapper svg {
-      width: 100%;
-      height: 100%;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 1.8;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .tile-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      word-break: break-word;
-    }
-
-    .tile-edit-btn {
-      position: absolute;
-      bottom: 6px;
-      right: 6px;
-      background: rgba(0, 0, 0, 0.35);
-      color: #ffffff;
-      border: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 4px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.2s ease, background 0.2s ease;
-      padding: 4px;
-    }
-
-    .tile-edit-btn svg {
-      width: 14px;
-      height: 14px;
-      stroke: #ffffff;
-      stroke-width: 2;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .tile:hover .tile-edit-btn { opacity: 1; }
-    .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
+    /* Tiles Grid */
+    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 24px; overflow-y: auto; }
+    .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; }
+    .tile { text-decoration: none; position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s; }
+    .tile:hover { transform: scale(1.04); }
+    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 10px; }
+    .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .tile-title { font-size: 0.9rem; font-weight: 600; }
 
     .tile-blue   { background-color: #0284c7; }
     .tile-green  { background-color: #059669; }
     .tile-grey   { background-color: #475569; }
     .tile-olive  { background-color: #65a30d; }
-    .tile-purple { background-color: #7c3aed; }
-    .tile-orange { background-color: #ea580c; }
 
-    /* Alternate Settings View */
-    #settingsView {
-      display: none;
-      flex: 1;
-      padding: 40px;
-      background: #ffffff;
-    }
-
-    /* ---------------- RIGHT NOTIFICATION PANEL ---------------- */
-    .notifications-panel {
-      width: 25%;
-      min-width: 260px;
-      max-width: 320px;
-      background: #ffffff;
-      border-left: 1px solid #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03);
-    }
-
-    .notifications-header {
-      padding: 16px;
-      border-bottom: 1px solid #f1f5f9;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8fafc;
-    }
-
-    .notifications-header h3 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .notifications-header h3 svg {
-      width: 18px;
-      height: 18px;
-      stroke: #0284c7;
-      stroke-width: 2;
-      fill: none;
-    }
-
-    .notifications-list {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .notification-item {
-      padding: 12px;
-      border-radius: 8px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      font-size: 0.85rem;
-    }
-
-    .notification-item .title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
-    .notification-item .time { font-size: 0.75rem; color: #94a3b8; margin-top: 6px; }
-
-    /* ---------------- 4. MODALS ---------------- */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-
-    .modal-card {
-      background: #ffffff;
-      padding: 28px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 380px;
-      width: 90%;
-      position: relative;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
-    }
-
-    .modal-card h3 { margin-bottom: 16px; color: #0f172a; }
-
-    .modal-label {
-      display: block;
-      text-align: left;
-      font-size: 0.85rem;
-      color: #64748b;
-      margin: 12px 0 6px 0;
-      font-weight: 600;
-    }
-
-    .modal-input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 0.95rem;
-    }
-
-    .icon-selector-trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      background: #f8fafc;
-      cursor: pointer;
-      font-size: 0.9rem;
-      color: #334155;
-    }
-
-    .icon-preview-box {
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .icon-preview-box svg {
-      width: 22px;
-      height: 22px;
-      stroke: #0284c7;
-      stroke-width: 2;
-      fill: none;
-    }
-
-    .icon-picker-grid {
-      display: none;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-      margin-top: 10px;
-      padding: 8px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      background: #f8fafc;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    .icon-option {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      border-radius: 6px;
-      border: 1px solid transparent;
-      padding: 8px;
-      transition: all 0.15s;
-    }
-
-    .icon-option svg {
-      width: 22px;
-      height: 22px;
-      stroke: #475569;
-      stroke-width: 2;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .icon-option:hover { background: #e2e8f0; }
-    .icon-option.selected { background: #e0f2fe; border-color: #0284c7; }
-    .icon-option.selected svg { stroke: #0284c7; }
-
-    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-
-    .modal-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-save { background: #0284c7; color: white; }
-    .btn-save:hover { background: #0369a1; }
-    .btn-delete { background: #ef4444; color: white; }
-    .btn-delete:hover { background: #dc2626; }
-    .btn-cancel { background: #e2e8f0; color: #475569; }
-
-    .close-btn {
-      position: absolute;
-      top: 14px; right: 14px;
-      background: none; border: none;
-      font-size: 1.2rem; cursor: pointer; color: #94a3b8;
-    }
-
-    @media (max-width: 1024px) {
-      .tiles-grid { grid-template-columns: repeat(3, 1fr); }
-      .notifications-panel { display: none; }
-    }
-
-    @media (max-width: 600px) {
-      .tiles-grid { grid-template-columns: repeat(2, 1fr); }
-      .portal-container { flex-direction: column; }
-      .bottom-left, .bottom-right { position: static; margin-top: 24px; }
-      .portal-wrapper { justify-content: space-between; padding: 40px 0 24px 0; }
-    }
+    /* Notifications Panel */
+    .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: #ffffff; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; padding: 16px; }
+    .notifications-header { font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .notification-item { padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; }
   </style>
 </head>
 <body>
 
-  <!-- Hidden SVG Master Template Library -->
-  <div style="display: none;">
-    <svg id="svg-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-    <svg id="svg-groups" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-    <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-    <svg id="svg-analytics" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-    <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-    <svg id="svg-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-    <svg id="svg-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-    <svg id="svg-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-    <svg id="svg-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-    <svg id="svg-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-    <svg id="svg-cloud" viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>
-    <svg id="svg-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-    <svg id="svg-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-    <svg id="svg-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-  </div>
-
-  <!-- 1. Password Protection Gate -->
   <div id="gateModal">
     <div class="gate-card">
       <h2>diBadge Site Lock</h2>
-      <p>Enter passcode to open site view.</p>
       <input type="password" id="passInput" placeholder="Enter Access Passcode" />
       <button onclick="checkPasscode()">Unlock Site</button>
     </div>
   </div>
 
-  <!-- 2. Portal Selection View -->
-  <div class="portal-wrapper" id="portalView">
-    <main class="portal-container">
-      <div class="portal-card" onclick="openQrModal()">
-        <h2>Personal</h2>
-        <p>Scan QR to log in to your account</p>
-      </div>
-
-      <div class="portal-card" onclick="showDashboard()">
-        <h2>Organization</h2>
-        <p>Enter enterprise tile dashboard</p>
-      </div>
-    </main>
-
-    <a href="#" class="footer-link bottom-left">Privacy Policy</a>
-    <a href="#" class="footer-link bottom-right">Sign up for Organization account</a>
-  </div>
-
-  <!-- 3. Organization Dashboard Split View Layout -->
   <div id="dashboardLayout">
     <header class="dashboard-header">
       <h1>
         <svg class="header-logo-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-        Organization Dashboard
+        Organization Portal
       </h1>
-      <button class="back-portal-btn" onclick="returnToPortal()">← Back to Portal</button>
     </header>
 
     <div class="dashboard-body-split">
-      <!-- LEFT VERTICAL ICON TAB BAR -->
       <aside class="left-vertical-tabbar">
-        <!-- 1. Home Icon -->
-        <button class="tab-btn active" id="tabNavHome" onclick="switchMainTab('home')" title="Home Tiles">
-          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </button>
-
-        <!-- 2. Settings Icon -->
-        <button class="tab-btn" id="tabNavSettings" onclick="switchMainTab('settings')" title="Organization Settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-
-        <!-- 3. FAB Add Tile Button -->
-        <button class="tab-btn fab-tab-btn" onclick="openCreateModal()" title="Create New Tile">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
+        <a href="index.html" class="tab-btn active" title="Home Grid">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+        </a>
       </aside>
 
-      <!-- CENTER TILES WORKSPACE -->
-      <div class="tiles-wrapper" id="homeView">
-        <div class="tiles-grid" id="tilesGrid"></div>
+      <div class="tiles-wrapper">
+        <div class="tiles-grid">
+          <!-- Direct File Links -->
+          <a href="groups.html" class="tile tile-blue">
+            <div class="tile-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+            <div class="tile-title">Groups</div>
+          </a>
+
+          <a href="members.html" class="tile tile-green">
+            <div class="tile-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
+            <div class="tile-title">Members</div>
+          </a>
+
+          <a href="hr.html" class="tile tile-grey">
+            <div class="tile-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div>
+            <div class="tile-title">HR</div>
+          </a>
+
+          <a href="finance.html" class="tile tile-olive">
+            <div class="tile-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
+            <div class="tile-title">Finance</div>
+          </a>
+        </div>
       </div>
 
-      <!-- ALTERNATE SETTINGS WORKSPACE -->
-      <div id="settingsView">
-        <h2 style="margin-bottom:12px;">Organization Settings</h2>
-        <p style="color:#64748b;">Manage company profile, security policies, and enterprise options here.</p>
-      </div>
-
-      <!-- RIGHT NOTIFICATION PANEL -->
       <aside class="notifications-panel">
-        <div class="notifications-header">
-          <h3>
-            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            Activity Feed
-          </h3>
-          <span style="font-size:0.75rem; background:#e2e8f0; padding:2px 8px; border-radius:10px; font-weight:600;">Live</span>
-        </div>
-        <div class="notifications-list">
-          <div class="notification-item">
-            <div class="title">Leave Request Submitted</div>
-            <p style="color:#64748b;">John Doe requested 2 days medical leave.</p>
-            <div class="time">10 mins ago</div>
-          </div>
-          <div class="notification-item">
-            <div class="title">New Group Created</div>
-            <p style="color:#64748b;">Manager added "Site Inspection B" group.</p>
-            <div class="time">1 hour ago</div>
-          </div>
-          <div class="notification-item">
-            <div class="title">Overtime Logged</div>
-            <p style="color:#64748b;">Sarah Smith submitted 3 hrs OT.</p>
-            <div class="time">3 hours ago</div>
-          </div>
-        </div>
+        <div class="notifications-header">Activity Feed</div>
+        <div class="notification-item"><strong>Leave Request</strong><p>John Doe requested 2 days leave.</p></div>
+        <div class="notification-item"><strong>New Member</strong><p>Sarah added to engineering.</p></div>
       </aside>
-    </div>
-  </div>
-
-  <!-- 4. Tile Modal -->
-  <div class="modal-overlay" id="tileModal">
-    <div class="modal-card">
-      <button class="close-btn" onclick="closeTileModal()">&times;</button>
-      <h3 id="modalHeaderTitle">Tile Properties</h3>
-
-      <label class="modal-label">Tile Name</label>
-      <input type="text" id="modalTileTitle" class="modal-input" placeholder="Enter tile title" />
-
-      <label class="modal-label">Icon</label>
-      <button class="icon-selector-trigger" onclick="toggleIconPicker()">
-        <span>Choose Icon</span>
-        <div class="icon-preview-box" id="selectedIconPreview">
-          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        </div>
-      </button>
-
-      <div class="icon-picker-grid" id="iconPickerGrid">
-        <div class="icon-option" onclick="selectIcon('groups')" id="pick-groups"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('hr')" id="pick-hr"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg></div>
-        <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
-        <div class="icon-option" onclick="selectIcon('analytics')" id="pick-analytics"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
-        <div class="icon-option" onclick="selectIcon('folder')" id="pick-folder"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('briefcase')" id="pick-briefcase"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('calendar')" id="pick-calendar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
-        <div class="icon-option" onclick="selectIcon('clock')" id="pick-clock"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
-        <div class="icon-option" onclick="selectIcon('shield')" id="pick-shield"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('cloud')" id="pick-cloud"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('globe')" id="pick-globe"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('bell')" id="pick-bell"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('settings')" id="pick-settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
-      </div>
-
-      <div class="modal-actions">
-        <button class="modal-btn btn-save" onclick="saveTileModal()">Save</button>
-        <button class="modal-btn btn-delete" id="deleteTileBtn" onclick="deleteCurrentTile()">Delete</button>
-        <button class="modal-btn btn-cancel" onclick="closeTileModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Personal QR Modal -->
-  <div class="modal-overlay" id="qrModal">
-    <div class="modal-card">
-      <button class="close-btn" onclick="closeQrModal()">&times;</button>
-      <h3>Personal Login</h3>
-      <p style="color: #64748b; font-size: 0.85rem; margin-top: 4px;">Use your mobile app to scan</p>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=dibadge-personal-login" alt="Login QR Code" style="width:200px; height:200px; margin:20px 0;" />
-      <p style="font-size: 0.8rem; color: #94a3b8;">QR Code expires in 5 minutes</p>
     </div>
   </div>
 
   <script>
-    const SECRET_PASSCODE = "177994"; 
-    let activeEditTileId = null;
-    let isCreateMode = false;
-    let selectedIconKey = "folder";
-    const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive', 'tile-purple', 'tile-orange'];
-
-    const defaultTiles = [
-      { id: 'groups', title: 'Groups', iconKey: 'groups', color: 'tile-blue', isProtected: true },
-      { id: 'members', title: 'Members', iconKey: 'members', color: 'tile-green', isProtected: true },
-      { id: 'hr', title: 'HR', iconKey: 'hr', color: 'tile-grey', isProtected: false },
-      { id: 'finance', title: 'Finance', iconKey: 'finance', color: 'tile-olive', isProtected: false }
-    ];
-
-    function getStoredTiles() {
-      const stored = localStorage.getItem('dibadge_custom_tiles');
-      if (!stored) return defaultTiles;
-      
-      const parsed = JSON.parse(stored);
-      return parsed.map(t => {
-        if (t.id === 'groups' || t.id === 'members') t.isProtected = true;
-        return t;
-      });
-    }
-
-    function setStoredTiles(tilesArray) {
-      localStorage.setItem('dibadge_custom_tiles', JSON.stringify(tilesArray));
-      renderTiles();
-    }
-
-    function renderTiles() {
-      const tiles = getStoredTiles();
-      const grid = document.getElementById("tilesGrid");
-      grid.innerHTML = "";
-
-      tiles.forEach(tile => {
-        const svgTemplate = document.getElementById("svg-" + tile.iconKey);
-        const svgHTML = svgTemplate ? svgTemplate.outerHTML : "";
-
-        const tileElement = document.createElement("div");
-        tileElement.className = `tile ${tile.color}`;
-        tileElement.id = `tile-${tile.id}`;
-        tileElement.onclick = () => openModule(tile.title);
-
-        tileElement.innerHTML = `
-          <div class="tile-icon-wrapper" id="icon-${tile.id}">
-            ${svgHTML}
-          </div>
-          <div class="tile-title" id="title-${tile.id}">${tile.title}</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, '${tile.id}', ${!tile.isProtected})" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        `;
-
-        grid.appendChild(tileElement);
-      });
-    }
-
-    function switchMainTab(tab) {
-      const homeView = document.getElementById("homeView");
-      const settingsView = document.getElementById("settingsView");
-      const btnHome = document.getElementById("tabNavHome");
-      const btnSettings = document.getElementById("tabNavSettings");
-
-      if (tab === 'home') {
-        homeView.style.display = "flex";
-        settingsView.style.display = "none";
-        btnHome.classList.add("active");
-        btnSettings.classList.remove("active");
-      } else if (tab === 'settings') {
-        homeView.style.display = "none";
-        settingsView.style.display = "block";
-        btnHome.classList.remove("active");
-        btnSettings.classList.add("active");
-      }
+    const SECRET_PASSCODE = "177994";
+    if (localStorage.getItem("dibadge_unlocked") === "true") {
+      document.getElementById("gateModal").style.display = "none";
+      document.getElementById("dashboardLayout").style.display = "flex";
     }
 
     function checkPasscode() {
-      const input = document.getElementById("passInput").value;
-      if (input === SECRET_PASSCODE) {
+      if (document.getElementById("passInput").value === SECRET_PASSCODE) {
+        localStorage.setItem("dibadge_unlocked", "true");
         document.getElementById("gateModal").style.display = "none";
+        document.getElementById("dashboardLayout").style.display = "flex";
       } else {
-        alert("Incorrect access passcode.");
+        alert("Incorrect passcode.");
       }
     }
-
-    function showDashboard() {
-      document.getElementById("portalView").style.display = "none";
-      document.getElementById("dashboardLayout").style.display = "flex";
-      switchMainTab('home');
-      renderTiles();
-    }
-
-    function returnToPortal() {
-      document.getElementById("dashboardLayout").style.display = "none";
-      document.getElementById("portalView").style.display = "flex";
-    }
-
-    function openQrModal() { document.getElementById('qrModal').style.display = 'flex'; }
-    function closeQrModal() { document.getElementById('qrModal').style.display = 'none'; }
-    function openModule(moduleName) { alert("Opening " + moduleName + " workspace..."); }
-
-    function toggleIconPicker() {
-      const picker = document.getElementById("iconPickerGrid");
-      picker.style.display = (picker.style.display === "grid") ? "none" : "grid";
-    }
-
-    function selectIcon(iconKey) {
-      selectedIconKey = iconKey;
-      const options = document.querySelectorAll('.icon-option');
-      options.forEach(opt => opt.classList.remove('selected'));
-
-      const targetOpt = document.getElementById("pick-" + iconKey);
-      if (targetOpt) targetOpt.classList.add('selected');
-
-      const templateSvg = document.getElementById("svg-" + iconKey);
-      if (templateSvg) {
-        document.getElementById("selectedIconPreview").innerHTML = templateSvg.outerHTML;
-      }
-      document.getElementById("iconPickerGrid").style.display = "none";
-    }
-
-    function openCreateModal() {
-      isCreateMode = true;
-      activeEditTileId = null;
-      document.getElementById("modalHeaderTitle").innerText = "Create New Tile";
-      document.getElementById("modalTileTitle").value = "";
-      document.getElementById("deleteTileBtn").style.display = "none";
-      document.getElementById("iconPickerGrid").style.display = "none";
-      selectIcon("folder");
-      document.getElementById("tileModal").style.display = "flex";
-    }
-
-    function openEditModal(event, tileId, isDeletable) {
-      event.stopPropagation();
-      isCreateMode = false;
-      activeEditTileId = tileId;
-
-      const tiles = getStoredTiles();
-      const targetTile = tiles.find(t => t.id === tileId);
-
-      document.getElementById("modalHeaderTitle").innerText = "Edit Tile Properties";
-      document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
-      document.getElementById("iconPickerGrid").style.display = "none";
-
-      selectIcon(targetTile ? targetTile.iconKey : "folder");
-
-      document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
-      document.getElementById("tileModal").style.display = "flex";
-    }
-
-    function closeTileModal() {
-      document.getElementById("tileModal").style.display = "none";
-      document.getElementById("iconPickerGrid").style.display = "none";
-    }
-
-    function saveTileModal() {
-      const titleInput = document.getElementById("modalTileTitle").value.trim();
-      if (!titleInput) {
-        alert("Please enter a tile name.");
-        return;
-      }
-
-      let tiles = getStoredTiles();
-
-      if (isCreateMode) {
-        const newId = "custom-" + Date.now();
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-        tiles.push({
-          id: newId,
-          title: titleInput,
-          iconKey: selectedIconKey,
-          color: randomColor,
-          isProtected: false
-        });
-      } else if (activeEditTileId) {
-        const tileIndex = tiles.findIndex(t => t.id === activeEditTileId);
-        if (tileIndex !== -1) {
-          tiles[tileIndex].title = titleInput;
-          tiles[tileIndex].iconKey = selectedIconKey;
-        }
-      }
-
-      setStoredTiles(tiles);
-      closeTileModal();
-    }
-
-    function deleteCurrentTile() {
-      if (!activeEditTileId) return;
-
-      let tiles = getStoredTiles();
-      tiles = tiles.filter(t => t.id !== activeEditTileId);
-
-      setStoredTiles(tiles);
-      closeTileModal();
-    }
-
-    renderTiles();
   </script>
 </body>
 </html>
