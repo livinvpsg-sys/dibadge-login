@@ -166,18 +166,14 @@
     .wa-download-btn:hover { transform: scale(1.08); background: #0369a1; }
     .wa-download-btn svg { width: 16px; height: 16px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
 
-    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
-    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 980px; flex-wrap: wrap; justify-content: space-between; }
-    .boq-controls-left { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN WITH CONTROLS ------------ */
+    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
     .boq-control-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
     .boq-select, .boq-control-input { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
-    .btn-add-col { background: var(--surface-color); color: var(--accent-blue); border: 1px solid var(--accent-blue); padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 6px; }
-    .btn-add-col:hover { background: rgba(2, 132, 199, 0.15); }
-
-    .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 980px; margin-top: 12px; overflow-x: auto; }
+    .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 900px; margin-top: 12px; }
     .boq-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; white-space: nowrap; }
+    .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
     .boq-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; font-size: 0.88rem; }
     .boq-input { width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; outline: none; }
     .boq-input:focus { border-color: var(--accent-blue); }
@@ -418,47 +414,40 @@
       </div>
     </section>
 
-    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL WITH EQUATION AND CURRENCY/TAX CONTROLS -->
     <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
       <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
+      <p style="color:var(--subtext-color); font-size:0.85rem; margin-top:2px;">Itemized quantities (supports math equations like 10+5), unit pricing, custom tax, and currency settings.</p>
 
-      <!-- Controls Bar & Add Column Button -->
+      <!-- Currency & Tax Controls Bar -->
       <div class="boq-top-controls">
-        <div class="boq-controls-left">
-          <div class="boq-control-group">
-            <span>Currency:</span>
-            <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
-              <option value="$" selected>$ USD</option>
-              <option value="₹">₹ INR</option>
-              <option value="€">€ EUR</option>
-              <option value="£">£ GBP</option>
-              <option value="¥">¥ JPY</option>
-              <option value="A$">A$ AUD</option>
-            </select>
-          </div>
-
-          <div class="boq-control-group">
-            <span>Tax Rate (%):</span>
-            <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
-          </div>
+        <div class="boq-control-group">
+          <span>Currency:</span>
+          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+            <option value="$" selected>$ USD</option>
+            <option value="₹">₹ INR</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+            <option value="¥">¥ JPY</option>
+            <option value="A$">A$ AUD</option>
+          </select>
         </div>
 
-        <button class="btn-add-col" onclick="openAddColumnModal()">
-          <svg style="width:14px; height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Add Custom Column
-        </button>
+        <div class="boq-control-group">
+          <span>Tax Rate (%):</span>
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
+        </div>
       </div>
 
       <div class="boq-table-card">
         <table class="boq-table">
           <thead>
-            <tr id="boqTableHeader">
+            <tr>
               <th style="width: 60px;">Sl No</th>
               <th>Item Description</th>
               <th style="width: 140px;">Quantity</th>
               <th style="width: 140px;">Unit Price</th>
               <th style="width: 140px; text-align:right;">Total Price</th>
-              <!-- Dynamic Custom Columns appended here -->
               <th style="width: 40px;"></th>
             </tr>
           </thead>
@@ -583,30 +572,6 @@
     </div>
   </div>
 
-  <!-- Add Custom BOQ Column Modal -->
-  <div class="modal-overlay" id="addColumnModal">
-    <div class="modal-card">
-      <button class="close-btn" onclick="closeAddColumnModal()">&times;</button>
-      <h3>Add Custom Column</h3>
-
-      <label class="modal-label">Column Name</label>
-      <input type="text" id="newColName" class="modal-input" placeholder="e.g. Contingency (5%), Surcharge" />
-
-      <label class="modal-label">Formula (Optional)</label>
-      <input type="text" id="newColFormula" class="modal-input" placeholder="e.g. [QTY]*[PRICE]*0.05" />
-
-      <div style="font-size:0.75rem; color:var(--subtext-color); margin-top:6px; line-height:1.4;">
-        Available variables: <code>[QTY]</code>, <code>[PRICE]</code>, <code>[SL]</code>.<br/>
-        Leave formula blank for text-only inputs.
-      </div>
-
-      <div class="modal-actions">
-        <button class="modal-btn btn-save" onclick="saveNewColumn()">Add Column</button>
-        <button class="modal-btn btn-cancel" onclick="closeAddColumnModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
@@ -617,11 +582,10 @@
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
-    // BOQ Data & Custom Columns Setup
-    let customBOQColumns = []; // Array of { id, name, formula }
+    // Default BOQ Data
     let currentBOQItems = [
-      { item: 'Foundation Concrete', qty: '25', price: '150', customValues: {} },
-      { item: 'Steel Reinforcement Bars', qty: '10', price: '850', customValues: {} }
+      { item: 'Foundation Concrete', qty: '25', price: '150' },
+      { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
     ];
 
     function getDefaultSubFolders() {
@@ -855,7 +819,7 @@
       const btnSchedule = document.getElementById("btnSubSchedule");
 
       [folderWS, chatWS, boqWS, compareWS, scheduleWS].forEach(ws => ws.style.display = "none");
-      [btnFolder, btnChat, btnBOM, btnCompare, btnSchedule].forEach(btn => btn.classList.remove("active"));
+      [btnFolder, btnChat, btnBOQ, btnCompare, btnSchedule].forEach(btn => btn.classList.remove("active"));
 
       if (tabKey === 'folder') {
         folderWS.style.display = "flex";
@@ -877,11 +841,12 @@
       }
     }
 
-    /* ------------ BILL OF QUANTITY (BOQ) ENGINE & DYNAMIC COLUMNS ------------ */
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS WITH EQUATION SUPPORT ------------ */
     function evaluateMathExpr(expr) {
       if (typeof expr === 'number') return expr;
       if (!expr || typeof expr !== 'string') return 0;
       try {
+        // Clean non-math characters except numbers and standard operators
         const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
         if (!cleanExpr) return 0;
         const result = Function(`'use strict'; return (${cleanExpr})`)();
@@ -891,85 +856,8 @@
       }
     }
 
-    function evaluateCustomFormula(formula, row, slNo) {
-      if (!formula) return '';
-      try {
-        const numQty = evaluateMathExpr(row.qty);
-        const numPrice = evaluateMathExpr(row.price);
-
-        let parsedFormula = formula
-          .replace(/\[QTY\]/gi, numQty)
-          .replace(/\[PRICE\]/gi, numPrice)
-          .replace(/\[SL\]/gi, slNo);
-
-        const cleanExpr = parsedFormula.replace(/[^0-9+\-*/().]/g, '');
-        if (!cleanExpr) return '';
-        const res = Function(`'use strict'; return (${cleanExpr})`)();
-        return isNaN(res) ? '' : res.toFixed(2);
-      } catch(e) {
-        return 'Err';
-      }
-    }
-
-    function openAddColumnModal() {
-      document.getElementById("newColName").value = "";
-      document.getElementById("newColFormula").value = "";
-      document.getElementById("addColumnModal").style.display = "flex";
-    }
-
-    function closeAddColumnModal() {
-      document.getElementById("addColumnModal").style.display = "none";
-    }
-
-    function saveNewColumn() {
-      const colName = document.getElementById("newColName").value.trim();
-      const formula = document.getElementById("newColFormula").value.trim();
-
-      if (!colName) return alert("Please enter a column name.");
-
-      customBOQColumns.push({
-        id: 'col-' + Date.now(),
-        name: colName,
-        formula: formula
-      });
-
-      closeAddColumnModal();
-      renderBOQTable();
-    }
-
-    function deleteCustomColumn(colId) {
-      if (confirm("Delete this custom column?")) {
-        customBOQColumns = customBOQColumns.filter(c => c.id !== colId);
-        renderBOQTable();
-      }
-    }
-
     function renderBOQTable() {
-      const thead = document.getElementById("boqTableHeader");
       const tbody = document.getElementById("boqTableBody");
-
-      // Render Table Headers including Custom Columns
-      let headerHTML = `
-        <style>#btnSubBOQ{color:white;background:var(--accent-blue);}</style>
-        <th style="width: 60px;">Sl No</th>
-        <th>Item Description</th>
-        <th style="width: 130px;">Quantity</th>
-        <th style="width: 130px;">Unit Price</th>
-        <th style="width: 140px; text-align:right;">Total Price</th>
-      `;
-
-      customBOQColumns.forEach(col => {
-        headerHTML += `
-          <th style="width: 130px; text-align:right; position:relative;">
-            ${col.name}
-            <span onclick="deleteCustomColumn('${col.id}')" style="cursor:pointer; color:var(--error-red); margin-left:6px; font-size:0.75rem;" title="Remove Column">✕</span>
-          </th>
-        `;
-      });
-
-      headerHTML += `<th style="width: 40px;"></th>`;
-      thead.innerHTML = headerHTML;
-
       tbody.innerHTML = "";
 
       const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
@@ -983,19 +871,6 @@
         const rowTotal = numQty * numPrice;
         subTotal += rowTotal;
 
-        if (!row.customValues) row.customValues = {};
-
-        let customCellsHTML = "";
-        customBOQColumns.forEach(col => {
-          if (col.formula) {
-            const calculatedVal = evaluateCustomFormula(col.formula, row, index + 1);
-            customCellsHTML += `<td style="text-align:right; font-weight:600; color:var(--accent-blue);">${calculatedVal !== '' ? currency + calculatedVal : '-'}</td>`;
-          } else {
-            const userVal = row.customValues[col.id] || '';
-            customCellsHTML += `<td><input type="text" class="boq-input" value="${userVal}" onchange="updateCustomColValue(${index}, '${col.id}', this.value)" /></td>`;
-          }
-        });
-
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${index + 1}</td>
@@ -1003,7 +878,6 @@
           <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
           <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
           <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
-          ${customCellsHTML}
           <td style="text-align:center;">
             <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
               <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1022,11 +896,6 @@
       document.getElementById("boqGrandTotal").innerText = `${currency}${grandTotal.toFixed(2)}`;
     }
 
-    function updateCustomColValue(rowIdx, colId, value) {
-      if (!currentBOQItems[rowIdx].customValues) currentBOQItems[rowIdx].customValues = {};
-      currentBOQItems[rowIdx].customValues[colId] = value;
-    }
-
     function updateBOQData(index, field, value) {
       if (field === 'qty' || field === 'price') {
         const evaluated = evaluateMathExpr(value);
@@ -1038,7 +907,7 @@
     }
 
     function addBOQRow() {
-      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0', customValues: {} });
+      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
       renderBOQTable();
     }
 
