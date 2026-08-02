@@ -67,7 +67,7 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); cursor: pointer; }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    /* ------------ CENTER PROJECTS GRID WORKSPACE (ALIGNED WITH FOLDERS) ------------ */
+    /* Center Projects Grid Workspace */
     .tiles-wrapper { flex: 1; display: flex; justify-content: flex-start; align-items: flex-start; padding: 24px; overflow-y: auto; position: relative; background: var(--bg-color); }
     .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
@@ -87,7 +87,7 @@
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
-    /* ------------ FOLDER EXPLORER VIEW WORKSPACE ------------ */
+    /* Folder Explorer View */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
     .folder-breadcrumb-bar { display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 24px; }
@@ -115,14 +115,6 @@
     .context-menu-item:hover { background: var(--accent-blue); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-    /* Floating Details Popover Box */
-    .tile-popover { position: absolute; z-index: 90; width: 250px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
-    .tile-popover-header { font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .popover-row { font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px; }
-    .popover-label { color: var(--subtext-color); font-weight: 600; font-size: 0.75rem; }
-    .popover-value { font-weight: 500; }
-    .popover-hint { font-size: 0.72rem; color: var(--accent-blue); text-align: center; margin-top: 6px; font-style: italic; border-top: 1px dashed var(--border-color); padding-top: 6px; cursor: pointer; }
-
     /* Right Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
@@ -148,7 +140,7 @@
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
 </head>
-<body onclick="hideContextMenu(); closePopover();">
+<body onclick="hideContextMenu();">
 
   <!-- Header -->
   <header class="dashboard-header">
@@ -187,27 +179,6 @@
     <!-- Center Grid Workspace -->
     <main class="tiles-wrapper" id="mainGridWorkspace">
       <div class="tiles-grid" id="projectTilesGrid"></div>
-
-      <!-- Floating Details Popover -->
-      <div class="tile-popover" id="tilePopover">
-        <div class="tile-popover-header">
-          <span id="popClient">-</span>
-          <button style="background:none; border:none; color:var(--subtext-color); cursor:pointer;" onclick="closePopover()">✕</button>
-        </div>
-        <div class="popover-row">
-          <span class="popover-label">Project No</span>
-          <span class="popover-value" id="popProjectNo">-</span>
-        </div>
-        <div class="popover-row">
-          <span class="popover-label">Project Location</span>
-          <span class="popover-value" id="popLocation">-</span>
-        </div>
-        <div class="popover-row">
-          <span class="popover-label">Remarks</span>
-          <span class="popover-value" id="popRemarks">-</span>
-        </div>
-        <div class="popover-hint" id="popOpenHint">Click here or double click tile to open folder</div>
-      </div>
     </main>
 
     <!-- Folder Browser View -->
@@ -276,7 +247,6 @@
 
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
-    let clickTimer = null;
     let activeOpenedProject = null;
     let folderObjectStack = [];
 
@@ -315,7 +285,6 @@
     }
 
     function filterProjects() {
-      closePopover();
       const selectedYear = document.getElementById("yearPicker").value;
       const searchQuery = document.getElementById("projectSearchInput").value.toLowerCase().trim();
       const grid = document.getElementById("projectTilesGrid");
@@ -352,18 +321,9 @@
           </div>
         `;
 
+        // Single click opens project folder
         tileEl.onclick = function(e) {
           e.stopPropagation();
-          if (clickTimer) clearTimeout(clickTimer);
-
-          clickTimer = setTimeout(() => {
-            showPopover(e, proj);
-          }, 220);
-        };
-
-        tileEl.ondblclick = function(e) {
-          e.stopPropagation();
-          if (clickTimer) clearTimeout(clickTimer);
           openProjectFolder(proj);
         };
 
@@ -371,38 +331,8 @@
       });
     }
 
-    function showPopover(event, proj) {
-      const popover = document.getElementById("tilePopover");
-      const tileRect = event.currentTarget.getBoundingClientRect();
-      const wrapperRect = document.querySelector(".tiles-wrapper").getBoundingClientRect();
-
-      document.getElementById("popClient").innerText = proj.client || "Client Details";
-      document.getElementById("popProjectNo").innerText = proj.projectNo || "N/A";
-      document.getElementById("popLocation").innerText = proj.location || "N/A";
-      document.getElementById("popRemarks").innerText = proj.remarks || "None";
-
-      document.getElementById("popOpenHint").onclick = function() {
-        openProjectFolder(proj);
-      };
-
-      let topPos = tileRect.top - wrapperRect.top;
-      let leftPos = tileRect.right - wrapperRect.left + 12;
-
-      if (leftPos + 250 > wrapperRect.width) {
-        leftPos = tileRect.left - wrapperRect.left - 262;
-      }
-
-      popover.style.top = `${topPos}px`;
-      popover.style.left = `${leftPos}px`;
-      popover.style.display = "flex";
-    }
-
-    function closePopover() {
-      document.getElementById("tilePopover").style.display = "none";
-    }
-
+    /* Single-Click Tree Folder Navigation */
     function openProjectFolder(proj) {
-      closePopover();
       activeOpenedProject = proj;
       folderObjectStack = [proj];
 
@@ -457,7 +387,8 @@
           <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
         `;
 
-        folderCard.ondblclick = (e) => {
+        // Single click opens sub-folder
+        folderCard.onclick = (e) => {
           e.stopPropagation();
           folderObjectStack.push(folder);
           renderFolderView();
@@ -604,7 +535,6 @@
     }
 
     function openCreateProjectModal() {
-      closePopover();
       document.getElementById("newProjectClient").value = "";
       document.getElementById("newProjectNo").value = "";
       document.getElementById("newProjectLocation").value = "";
