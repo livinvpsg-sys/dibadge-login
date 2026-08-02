@@ -1,13 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>diBadge | Organization Portal</title>
+  
+  <!-- Global Theme Pre-loader Script (Prevents Flickering) -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
   <style>
     /* ---------------- DIBADGE APP COLOR THEME VARIABLES ---------------- */
     :root {
-      /* Palette Tokens */
       --jet-black: #0f0f0f;
       --paper-white: #f8f9fa;
       --slate-surface: #1e1e1e;
@@ -18,7 +26,7 @@
       --error-red: #ff3b30;
       --accent-blue: #0284c7;
 
-      /* Dynamic Theme Variables (Default Light) */
+      /* Light Theme Variables */
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
       --surface-color: var(--accent-white);
@@ -28,7 +36,7 @@
       --subtext-color: var(--cool-ash);
     }
 
-    /* Dark Theme Mapping (Matching darkColorScheme) */
+    /* Dark Theme Variables (DEFAULT) */
     [data-theme="dark"] {
       --bg-color: var(--jet-black);
       --text-color: var(--accent-white);
@@ -49,7 +57,7 @@
     .gate-card input { width: 100%; padding: 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 8px; margin: 12px 0; text-align: center; outline: none; }
     .gate-card button { width: 100%; padding: 12px; background: var(--accent-blue); color: var(--accent-white); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-    /* Main Split Dashboard */
+    /* Dashboard Split Layout */
     #dashboardLayout { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
     .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
@@ -70,7 +78,6 @@
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 24px; overflow-y: auto; position: relative; }
     .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
 
-    /* Preserved Original Tile Styling */
     .tile { position: relative; width: 100%; max-width: 150px; aspect-ratio: 1 / 1; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-decoration: none; }
     .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
     .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
@@ -89,12 +96,12 @@
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
-    /* Settings View Workspace */
+    /* Settings Workspace */
     #settingsView { display: none; flex: 1; padding: 40px; background: var(--surface-color); overflow-y: auto; }
     .settings-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; max-width: 500px; margin-top: 20px; }
     .theme-selector-group { display: flex; gap: 16px; margin-top: 12px; }
     .theme-option-btn { flex: 1; padding: 14px; border: 2px solid var(--border-color); background: var(--surface-color); color: var(--text-color); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-    .theme-option-btn.active { border-color: var(--accent-blue); background: rgba(2, 132, 199, 0.1); color: var(--accent-blue); }
+    .theme-option-btn.active { border-color: var(--accent-blue); background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); }
 
     /* Right Activity Feed Panel */
     .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); }
@@ -106,7 +113,7 @@
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
     /* Modal Styling */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; position: relative; border: 1px solid var(--border-color); color: var(--text-color); }
     .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
@@ -136,9 +143,6 @@
     <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
     <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
     <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-    <svg id="svg-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-    <svg id="svg-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-    <svg id="svg-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
   </div>
 
   <!-- Site Lock Screen -->
@@ -178,24 +182,24 @@
         <div class="tiles-grid" id="tilesGrid"></div>
       </div>
 
-      <!-- Settings Workspace with Theme Switcher -->
+      <!-- Settings Workspace -->
       <div id="settingsView">
         <h2>Organization Settings</h2>
-        <p style="color:var(--subtext-color); margin-top:4px;">Customize portal preferences and mobile app theme options.</p>
+        <p style="color:var(--subtext-color); margin-top:4px;">Customize portal preferences and theme options.</p>
 
         <div class="settings-card">
           <h3 style="font-size:1rem; margin-bottom:6px;">Appearance Theme</h3>
           <p style="font-size:0.85rem; color:var(--subtext-color);">Select your preferred theme matching the mobile DiBadgeTheme.</p>
 
           <div class="theme-selector-group">
+            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">
+              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              Dark Theme (Default)
+            </button>
+
             <button class="theme-option-btn" id="themeBtnLight" onclick="setAppTheme('light')">
               <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
               Light Theme
-            </button>
-
-            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">
-              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-              Dark Theme
             </button>
           </div>
         </div>
@@ -268,23 +272,27 @@
       { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: 'tile-olive', isProtected: false }
     ];
 
-    /* Theme Engine Switcher */
+    /* Global Persistent Theme Engine Switcher */
     function setAppTheme(theme) {
-      if (theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.getElementById('themeBtnDark').classList.add('active');
-        document.getElementById('themeBtnLight').classList.remove('active');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.getElementById('themeBtnLight').classList.add('active');
-        document.getElementById('themeBtnDark').classList.remove('active');
-      }
+      document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('dibadge_web_theme', theme);
+
+      const darkBtn = document.getElementById('themeBtnDark');
+      const lightBtn = document.getElementById('themeBtnLight');
+      if (darkBtn && lightBtn) {
+        if (theme === 'dark') {
+          darkBtn.classList.add('active');
+          lightBtn.classList.remove('active');
+        } else {
+          lightBtn.classList.add('active');
+          darkBtn.classList.remove('active');
+        }
+      }
     }
 
-    // Load initial theme
-    const savedTheme = localStorage.getItem('dibadge_web_theme') || 'light';
-    setAppTheme(savedTheme);
+    // Initialize UI theme states on load
+    const currentTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+    setAppTheme(currentTheme);
 
     function getStoredTiles() {
       const stored = localStorage.getItem('dibadge_custom_tiles');
