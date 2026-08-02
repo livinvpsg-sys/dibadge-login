@@ -67,19 +67,19 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); cursor: pointer; }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    /* Center Projects Grid Workspace */
-    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 40px 24px; overflow-y: auto; position: relative; }
-    .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
+    /* ------------ CENTER PROJECTS GRID WORKSPACE (ALIGNED WITH FOLDERS) ------------ */
+    .tiles-wrapper { flex: 1; display: flex; justify-content: flex-start; align-items: flex-start; padding: 24px; overflow-y: auto; position: relative; background: var(--bg-color); }
+    .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
-    /* Compact Tile Design */
-    .tile { position: relative; width: 100%; max-width: 130px; aspect-ratio: 1 / 1; border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
-    .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
+    /* Tile Design Matching Folder Sizing */
+    .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
 
     .tile-avatar-center { flex: 1; display: flex; justify-content: center; align-items: center; }
-    .tile-letter-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255, 255, 255, 0.3); text-transform: uppercase; }
+    .tile-letter-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255, 255, 255, 0.3); text-transform: uppercase; }
     
     .tile-content-bottom { display: flex; flex-direction: column; gap: 1px; width: 100%; }
-    .tile-client-name { font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
+    .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .tile-project-no { font-size: 0.68rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; }
 
     .tile-blue   { background-color: #0284c7; }
@@ -99,15 +99,15 @@
     .breadcrumb-back-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .breadcrumb-back-btn:hover { background: var(--accent-blue); color: white; }
 
-    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; }
+    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
     /* Folder Cards */
-    .folder-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; user-select: none; }
+    .folder-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
     .folder-card.selected-cut { opacity: 0.4; border-style: dashed; }
-    .folder-card svg { width: 44px; height: 44px; fill: #0284c7; stroke: none; margin-bottom: 8px; }
-    .folder-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); word-break: break-word; }
-    .folder-items-count { font-size: 0.7rem; color: var(--subtext-color); margin-top: 4px; }
+    .folder-card svg { width: 44px; height: 44px; fill: #0284c7; stroke: none; margin-top: 4px; }
+    .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
+    .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
     /* Custom Right-Click Context Menu */
     .context-menu { position: absolute; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; backdrop-filter: blur(8px); }
@@ -278,19 +278,18 @@
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let clickTimer = null;
     let activeOpenedProject = null;
-    let folderObjectStack = []; // Navigation path stack holding actual folder objects
+    let folderObjectStack = [];
 
-    // Clipboard for copy/cut/paste
     let clipboardFolder = null;
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
     function getDefaultSubFolders() {
       return [
-        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '14 Files', children: [] },
-        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '5 Forms', children: [] },
-        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '8 Docs', children: [] },
-        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '3 Files', children: [] }
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [] }
       ];
     }
 
@@ -372,7 +371,6 @@
       });
     }
 
-    /* Popover Details */
     function showPopover(event, proj) {
       const popover = document.getElementById("tilePopover");
       const tileRect = event.currentTarget.getBoundingClientRect();
@@ -403,7 +401,6 @@
       document.getElementById("tilePopover").style.display = "none";
     }
 
-    /* True Tree Folder Navigation */
     function openProjectFolder(proj) {
       closePopover();
       activeOpenedProject = proj;
@@ -420,7 +417,6 @@
     }
 
     function renderFolderView() {
-      // Build Interactive Breadcrumbs
       const breadcrumbContainer = document.getElementById("breadcrumbBar");
       breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
 
@@ -494,7 +490,6 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    /* Context Menu Functions */
     function showContextMenu(e, folder, idx) {
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
@@ -608,7 +603,6 @@
       }
     }
 
-    /* Modal Handlers */
     function openCreateProjectModal() {
       closePopover();
       document.getElementById("newProjectClient").value = "";
