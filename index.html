@@ -59,7 +59,7 @@
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
-    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 20; }
+    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 20; flex-shrink: 0; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--muted-gray); display: flex; justify-content: center; align-items: center; cursor: pointer; margin-bottom: 12px; text-decoration: none; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
     .tab-btn:hover, .tab-btn.active { background: var(--accent-blue); color: var(--accent-white); }
@@ -67,12 +67,13 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: var(--accent-white); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 24px; overflow-y: auto; position: relative; }
-    .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
+    /* ------------ PERFECTLY CENTERED TILES WORKSPACE ------------ */
+    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
+    .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
 
-    .tile { position: relative; width: 100%; max-width: 150px; aspect-ratio: 1 / 1; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-decoration: none; }
-    .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
-    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
+    .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-decoration: none; flex-shrink: 0; }
+    .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
+    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; }
     .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
 
@@ -92,7 +93,7 @@
     .theme-option-btn { flex: 1; padding: 14px; border: 2px solid var(--border-color); background: var(--surface-color); color: var(--text-color); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
     .theme-option-btn.active { border-color: var(--accent-blue); background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); }
 
-    .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); }
+    .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); flex-shrink: 0; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); font-weight: 600; font-size: 0.95rem; }
     .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
@@ -117,7 +118,7 @@
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
-    @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
+    @media (max-width: 1024px) { .notifications-panel { display: none; } }
   </style>
 </head>
 <body>
@@ -231,7 +232,6 @@
     let selectedIconKey = "projects";
     const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive'];
 
-    /* Default Tiles: 'Projects' replaces 'Groups' */
     const defaultTiles = [
       { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: 'tile-blue', isProtected: true },
       { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: 'tile-green', isProtected: true },
