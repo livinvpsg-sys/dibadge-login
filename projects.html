@@ -71,7 +71,7 @@
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 40px 24px; overflow-y: auto; position: relative; }
     .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
 
-    /* Compact Tile Design with Centered Letter Avatar */
+    /* Compact Tile Design */
     .tile { position: relative; width: 100%; max-width: 130px; aspect-ratio: 1 / 1; border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
     .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
 
@@ -87,13 +87,30 @@
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
 
-    /* Floating Popover Box (Client, Project No, Location, Remarks) */
+    /* ------------ FOLDER EXPLORER VIEW WORKSPACE ------------ */
+    .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); }
+    
+    .folder-breadcrumb-bar { display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 24px; }
+    .breadcrumb-path { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; }
+    .breadcrumb-back-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .breadcrumb-back-btn:hover { background: var(--accent-blue); color: white; }
+
+    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; width: 100%; }
+
+    /* Folder Cards */
+    .folder-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+    .folder-card:hover { transform: translateY(-3px); border-color: var(--accent-blue); }
+    .folder-card svg { width: 44px; height: 44px; fill: #0284c7; stroke: none; margin-bottom: 8px; }
+    .folder-name { font-size: 0.85rem; font-weight: 600; color: var(--text-color); word-break: break-word; }
+    .folder-items-count { font-size: 0.72rem; color: var(--subtext-color); margin-top: 4px; }
+
+    /* Floating Popover Box */
     .tile-popover { position: absolute; z-index: 90; width: 250px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
     .tile-popover-header { font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .popover-row { font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px; }
     .popover-label { color: var(--subtext-color); font-weight: 600; font-size: 0.75rem; }
     .popover-value { font-weight: 500; }
-    .popover-hint { font-size: 0.72rem; color: var(--accent-blue); text-align: center; margin-top: 6px; font-style: italic; border-top: 1px dashed var(--border-color); padding-top: 6px; }
+    .popover-hint { font-size: 0.72rem; color: var(--accent-blue); text-align: center; margin-top: 6px; font-style: italic; border-top: 1px dashed var(--border-color); padding-top: 6px; cursor: pointer; }
 
     /* Right Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
@@ -104,7 +121,7 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* Modal Form (Placeholders Removed) */
+    /* Modal Form */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 420px; width: 90%; position: relative; color: var(--text-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
@@ -151,16 +168,16 @@
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
       </a>
 
-      <button class="tab-btn fab-tab-btn" onclick="openCreateProjectModal()" title="Create New Project Tile">
+      <button class="tab-btn fab-tab-btn" id="fabBtn" onclick="handleFabClick()" title="Create New Project Tile">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
     </aside>
 
-    <!-- Center Workspace -->
-    <main class="tiles-wrapper" onclick="closePopover()">
+    <!-- Center Grid Workspace -->
+    <main class="tiles-wrapper" id="mainGridWorkspace" onclick="closePopover()">
       <div class="tiles-grid" id="projectTilesGrid"></div>
 
-      <!-- Floating Tile Details Popover -->
+      <!-- Floating Details Popover -->
       <div class="tile-popover" id="tilePopover">
         <div class="tile-popover-header">
           <span id="popClient">-</span>
@@ -178,9 +195,24 @@
           <span class="popover-label">Remarks</span>
           <span class="popover-value" id="popRemarks">-</span>
         </div>
-        <div class="popover-hint">Double click tile to open project</div>
+        <div class="popover-hint" id="popOpenHint">Click here or double click tile to open folder</div>
       </div>
     </main>
+
+    <!-- Folder Browser View (Revealed when project tile is opened) -->
+    <section class="folder-explorer-view" id="folderExplorerWorkspace">
+      <div class="folder-breadcrumb-bar">
+        <div class="breadcrumb-path" id="breadcrumbText">Projects > Client</div>
+        <button class="breadcrumb-back-btn" onclick="backToProjectGrid()">
+          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back to Projects
+        </button>
+      </div>
+
+      <div class="folder-contents-grid" id="innerFolderGrid">
+        <!-- Sub-folders rendered dynamically -->
+      </div>
+    </section>
 
     <!-- Right Activity Feed -->
     <aside class="notifications-panel">
@@ -198,23 +230,25 @@
     </aside>
   </div>
 
-  <!-- Create New Project Modal (NO Placeholders) -->
+  <!-- Create New Project Modal -->
   <div class="modal-overlay" id="createProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
-      <h3>Create New Project Tile</h3>
+      <h3 id="modalTitleText">Create New Project Tile</h3>
 
-      <label class="modal-label">Client Name</label>
-      <input type="text" id="newProjectClient" class="modal-input" />
+      <div id="projectModalFields">
+        <label class="modal-label">Client Name</label>
+        <input type="text" id="newProjectClient" class="modal-input" />
 
-      <label class="modal-label">Project No</label>
-      <input type="text" id="newProjectNo" class="modal-input" />
+        <label class="modal-label">Project No</label>
+        <input type="text" id="newProjectNo" class="modal-input" />
 
-      <label class="modal-label">Project Location</label>
-      <input type="text" id="newProjectLocation" class="modal-input" />
+        <label class="modal-label">Project Location</label>
+        <input type="text" id="newProjectLocation" class="modal-input" />
 
-      <label class="modal-label">Remarks</label>
-      <textarea id="newProjectRemarks" class="modal-input"></textarea>
+        <label class="modal-label">Remarks</label>
+        <textarea id="newProjectRemarks" class="modal-input"></textarea>
+      </div>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
@@ -226,11 +260,19 @@
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let clickTimer = null;
+    let activeOpenedProject = null;
 
     const defaultProjects = [
       { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue' },
       { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green' },
       { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple' }
+    ];
+
+    const defaultSubFolders = [
+      { name: 'Site Photos & diCam', items: '14 Files' },
+      { name: 'Safety & Compliance Logs', items: '5 Forms' },
+      { name: 'Reports & Worksheets', items: '8 Docs' },
+      { name: 'Drawings & Blueprints', items: '3 Files' }
     ];
 
     function getProjects() {
@@ -271,7 +313,6 @@
         const tileEl = document.createElement("div");
         tileEl.className = `tile ${proj.color}`;
         
-        // Render Tile: Centered Letter Avatar + Bottom Client Name & Project No
         tileEl.innerHTML = `
           <div class="tile-avatar-center">
             <div class="tile-letter-avatar">${firstLetter}</div>
@@ -294,14 +335,14 @@
         tileEl.ondblclick = function(e) {
           e.stopPropagation();
           if (clickTimer) clearTimeout(clickTimer);
-          openProject(proj);
+          openProjectFolder(proj);
         };
 
         grid.appendChild(tileEl);
       });
     }
 
-    /* Popover Details (Client Name, Project No, Location, Remarks) */
+    /* Popover Details */
     function showPopover(event, proj) {
       const popover = document.getElementById("tilePopover");
       const tileRect = event.currentTarget.getBoundingClientRect();
@@ -311,6 +352,10 @@
       document.getElementById("popProjectNo").innerText = proj.projectNo || "N/A";
       document.getElementById("popLocation").innerText = proj.location || "N/A";
       document.getElementById("popRemarks").innerText = proj.remarks || "None";
+
+      document.getElementById("popOpenHint").onclick = function() {
+        openProjectFolder(proj);
+      };
 
       let topPos = tileRect.top - wrapperRect.top;
       let leftPos = tileRect.right - wrapperRect.left + 12;
@@ -328,9 +373,57 @@
       document.getElementById("tilePopover").style.display = "none";
     }
 
-    function openProject(proj) {
+    /* Open Project Folder View */
+    function openProjectFolder(proj) {
       closePopover();
-      alert(`Opening Project: ${proj.client} (${proj.projectNo})`);
+      activeOpenedProject = proj;
+
+      document.getElementById("mainGridWorkspace").style.display = "none";
+      document.getElementById("folderExplorerWorkspace").style.display = "flex";
+
+      document.getElementById("breadcrumbText").innerText = `Projects > ${proj.client} (${proj.projectNo})`;
+      
+      const subGrid = document.getElementById("innerFolderGrid");
+      subGrid.innerHTML = "";
+
+      defaultSubFolders.forEach(sub => {
+        const folderCard = document.createElement("div");
+        folderCard.className = "folder-card";
+        folderCard.onclick = () => alert(`Opening folder: ${sub.name}`);
+        folderCard.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div class="folder-name">${sub.name}</div>
+          <div class="folder-items-count">${sub.items}</div>
+        `;
+        subGrid.appendChild(folderCard);
+      });
+    }
+
+    function backToProjectGrid() {
+      activeOpenedProject = null;
+      document.getElementById("folderExplorerWorkspace").style.display = "none";
+      document.getElementById("mainGridWorkspace").style.display = "flex";
+      filterProjects();
+    }
+
+    function handleFabClick() {
+      if (activeOpenedProject) {
+        const newSubName = prompt("Enter new folder name:");
+        if (newSubName) {
+          const subGrid = document.getElementById("innerFolderGrid");
+          const folderCard = document.createElement("div");
+          folderCard.className = "folder-card";
+          folderCard.onclick = () => alert(`Opening folder: ${newSubName}`);
+          folderCard.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <div class="folder-name">${newSubName}</div>
+            <div class="folder-items-count">0 Items</div>
+          `;
+          subGrid.appendChild(folderCard);
+        }
+      } else {
+        openCreateProjectModal();
+      }
     }
 
     /* Modal Handlers */
