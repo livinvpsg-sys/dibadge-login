@@ -23,6 +23,7 @@
       --cool-ash: #a1a1a6;
       --soft-border: #e5e5ea;
       --accent-blue: #0284c7;
+      --error-red: #ff3b30;
 
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
@@ -110,9 +111,10 @@
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
     /* Custom Right-Click Context Menu */
-    .context-menu { position: absolute; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; backdrop-filter: blur(8px); }
+    .context-menu { position: fixed; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; backdrop-filter: blur(8px); }
     .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
     .context-menu-item:hover { background: var(--accent-blue); color: white; }
+    .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
     /* Right Activity Feed */
@@ -140,7 +142,7 @@
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
 </head>
-<body onclick="hideContextMenu();">
+<body onclick="hideContextMenus();">
 
   <!-- Header -->
   <header class="dashboard-header">
@@ -210,14 +212,21 @@
     </aside>
   </div>
 
-  <!-- Custom Right-Click Context Menu -->
+  <!-- Project Tile Right-Click Context Menu -->
+  <div class="context-menu" id="projectTileContextMenu">
+    <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
+  </div>
+
+  <!-- Sub-Folder Right-Click Context Menu -->
   <div class="context-menu" id="folderContextMenu">
     <div class="context-menu-item" onclick="executeContextAction('copy')">Copy</div>
     <div class="context-menu-item" onclick="executeContextAction('cut')">Cut</div>
     <div class="context-menu-item" id="pasteContextBtn" onclick="executeContextAction('paste')" style="display:none;">Paste</div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-item" onclick="executeContextAction('rename')">Rename</div>
-    <div class="context-menu-item" onclick="executeContextAction('delete')" style="color:var(--error-red,#ff3b30);">Delete</div>
+    <div class="context-menu-item danger" onclick="executeContextAction('delete')" style="color:var(--error-red);">Delete</div>
   </div>
 
   <!-- Create New Project Modal -->
@@ -248,6 +257,7 @@
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
+    let selectedProjectForContext = null;
     let folderObjectStack = [];
 
     let clipboardFolder = null;
@@ -321,14 +331,52 @@
           </div>
         `;
 
-        // Single click opens project folder
+        // Left single click opens project folder
         tileEl.onclick = function(e) {
           e.stopPropagation();
           openProjectFolder(proj);
         };
 
+        // Right click opens project context menu (with Delete option)
+        tileEl.oncontextmenu = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          showProjectTileContextMenu(e, proj);
+        };
+
         grid.appendChild(tileEl);
       });
+    }
+
+    /* Project Tile Right-Click Context Menu Handlers */
+    function showProjectTileContextMenu(e, proj) {
+      hideContextMenus();
+      selectedProjectForContext = proj;
+      const menu = document.getElementById("projectTileContextMenu");
+      menu.style.top = `${e.clientY}px`;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.display = "flex";
+    }
+
+    function openSelectedProjectFromContext() {
+      hideContextMenus();
+      if (selectedProjectForContext) {
+        openProjectFolder(selectedProjectForContext);
+      }
+    }
+
+    function deleteSelectedProjectFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+
+      const projName = selectedProjectForContext.client || selectedProjectForContext.projectNo;
+      if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
+        let projects = getProjects();
+        projects = projects.filter(p => p.id !== selectedProjectForContext.id);
+        saveProjects(projects);
+        selectedProjectForContext = null;
+        filterProjects();
+      }
     }
 
     /* Single-Click Tree Folder Navigation */
@@ -387,7 +435,6 @@
           <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
         `;
 
-        // Single click opens sub-folder
         folderCard.onclick = (e) => {
           e.stopPropagation();
           folderObjectStack.push(folder);
@@ -397,7 +444,7 @@
         folderCard.oncontextmenu = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          showContextMenu(e, folder, idx);
+          showFolderContextMenu(e, folder, idx);
         };
 
         subGrid.appendChild(folderCard);
@@ -421,7 +468,8 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    function showContextMenu(e, folder, idx) {
+    function showFolderContextMenu(e, folder, idx) {
+      hideContextMenus();
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
       
@@ -435,6 +483,7 @@
     function handleWorkspaceContextMenu(e) {
       if (activeOpenedProject && clipboardFolder) {
         e.preventDefault();
+        hideContextMenus();
         selectedFolderForContext = null;
         const menu = document.getElementById("folderContextMenu");
         document.getElementById("pasteContextBtn").style.display = "flex";
@@ -444,12 +493,13 @@
       }
     }
 
-    function hideContextMenu() {
+    function hideContextMenus() {
+      document.getElementById("projectTileContextMenu").style.display = "none";
       document.getElementById("folderContextMenu").style.display = "none";
     }
 
     function executeContextAction(action) {
-      hideContextMenu();
+      hideContextMenus();
       let currentFolderNode = getCurrentWorkspaceFolder();
 
       if (action === 'copy') {
