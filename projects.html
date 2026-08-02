@@ -91,7 +91,11 @@
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
     .folder-breadcrumb-bar { display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); border: 1px solid var(--border-color); padding: 12px 20px; border-radius: 10px; margin-bottom: 24px; }
-    .breadcrumb-path { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.95rem; color: var(--text-color); }
+    .breadcrumb-path { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.92rem; color: var(--text-color); flex-wrap: wrap; }
+    .breadcrumb-item { cursor: pointer; color: var(--accent-blue); text-decoration: none; }
+    .breadcrumb-item:hover { text-decoration: underline; }
+    .breadcrumb-item.active { color: var(--text-color); cursor: default; text-decoration: none; }
+    
     .breadcrumb-back-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
     .breadcrumb-back-btn:hover { background: var(--accent-blue); color: white; }
 
@@ -105,7 +109,7 @@
     .folder-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); word-break: break-word; }
     .folder-items-count { font-size: 0.7rem; color: var(--subtext-color); margin-top: 4px; }
 
-    /* Custom Context Menu (Right Click Options) */
+    /* Custom Right-Click Context Menu */
     .context-menu { position: absolute; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; backdrop-filter: blur(8px); }
     .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
     .context-menu-item:hover { background: var(--accent-blue); color: white; }
@@ -209,16 +213,14 @@
     <!-- Folder Browser View -->
     <section class="folder-explorer-view" id="folderExplorerWorkspace" oncontextmenu="handleWorkspaceContextMenu(event)">
       <div class="folder-breadcrumb-bar">
-        <div class="breadcrumb-path" id="breadcrumbText">Projects > Client</div>
+        <div class="breadcrumb-path" id="breadcrumbBar"></div>
         <button class="breadcrumb-back-btn" onclick="navigateUpBreadcrumb()">
           <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
           Back
         </button>
       </div>
 
-      <div class="folder-contents-grid" id="innerFolderGrid">
-        <!-- Sub-folders rendered dynamically -->
-      </div>
+      <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
     <!-- Right Activity Feed -->
@@ -276,34 +278,41 @@
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let clickTimer = null;
     let activeOpenedProject = null;
-    let folderPathStack = [];
+    let folderObjectStack = []; // Navigation path stack holding actual folder objects
 
     // Clipboard for copy/cut/paste
     let clipboardFolder = null;
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
-    const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue' },
-      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green' },
-      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple' }
-    ];
+    function getDefaultSubFolders() {
+      return [
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '14 Files', children: [] },
+        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '5 Forms', children: [] },
+        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '8 Docs', children: [] },
+        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '3 Files', children: [] }
+      ];
+    }
 
-    const defaultSubFolders = [
-      { id: 'f-1', name: 'Site Photos & diCam', items: '14 Files' },
-      { id: 'f-2', name: 'Safety & Compliance Logs', items: '5 Forms' },
-      { id: 'f-3', name: 'Reports & Worksheets', items: '8 Docs' },
-      { id: 'f-4', name: 'Drawings & Blueprints', items: '3 Files' }
+    const defaultProjects = [
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue', children: getDefaultSubFolders() },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green', children: getDefaultSubFolders() },
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple', children: getDefaultSubFolders() }
     ];
 
     function getProjects() {
       const stored = localStorage.getItem('dibadge_project_tiles');
-      return stored ? JSON.parse(stored) : defaultProjects;
+      if (!stored) return defaultProjects;
+      const parsed = JSON.parse(stored);
+      return parsed.map(p => {
+        if (!p.children) p.children = getDefaultSubFolders();
+        return p;
+      });
     }
 
     function saveProjects(array) {
       localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
-      filterProjects();
+      if (!activeOpenedProject) filterProjects();
     }
 
     function filterProjects() {
@@ -394,11 +403,11 @@
       document.getElementById("tilePopover").style.display = "none";
     }
 
-    /* Folder Navigation */
+    /* True Tree Folder Navigation */
     function openProjectFolder(proj) {
       closePopover();
       activeOpenedProject = proj;
-      folderPathStack = [proj.client];
+      folderObjectStack = [proj];
 
       document.getElementById("mainGridWorkspace").style.display = "none";
       document.getElementById("folderExplorerWorkspace").style.display = "flex";
@@ -406,15 +415,40 @@
       renderFolderView();
     }
 
+    function getCurrentWorkspaceFolder() {
+      return folderObjectStack[folderObjectStack.length - 1];
+    }
+
     function renderFolderView() {
-      document.getElementById("breadcrumbText").innerText = "Projects > " + folderPathStack.join(" > ");
-      
+      // Build Interactive Breadcrumbs
+      const breadcrumbContainer = document.getElementById("breadcrumbBar");
+      breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+      folderObjectStack.forEach((node, idx) => {
+        const isLast = idx === folderObjectStack.length - 1;
+        const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+        
+        breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color);">></span> `;
+        
+        if (isLast) {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+        } else {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+        }
+      });
+
+      const currentFolderNode = getCurrentWorkspaceFolder();
       const subGrid = document.getElementById("innerFolderGrid");
       subGrid.innerHTML = "";
 
-      let currentFolders = getActiveFolderList();
+      if (!currentFolderNode.children) currentFolderNode.children = [];
 
-      currentFolders.forEach((folder, idx) => {
+      if (currentFolderNode.children.length === 0) {
+        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Click the + button to add a new folder.</div>`;
+        return;
+      }
+
+      currentFolderNode.children.forEach((folder, idx) => {
         const folderCard = document.createElement("div");
         folderCard.className = "folder-card";
         if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
@@ -424,17 +458,15 @@
         folderCard.innerHTML = `
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
           <div class="folder-name">${folder.name}</div>
-          <div class="folder-items-count">${folder.items || '0 Items'}</div>
+          <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
         `;
 
-        // Double click navigates into folder
         folderCard.ondblclick = (e) => {
           e.stopPropagation();
-          folderPathStack.push(folder.name);
+          folderObjectStack.push(folder);
           renderFolderView();
         };
 
-        // Right click context menu
         folderCard.oncontextmenu = (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -445,26 +477,24 @@
       });
     }
 
-    function getActiveFolderList() {
-      if (!activeOpenedProject.folders) {
-        activeOpenedProject.folders = JSON.parse(JSON.stringify(defaultSubFolders));
-      }
-      return activeOpenedProject.folders;
-    }
-
-    function navigateUpBreadcrumb() {
-      if (folderPathStack.length > 1) {
-        folderPathStack.pop();
-        renderFolderView();
-      } else {
+    function jumpToBreadcrumbIndex(targetIndex) {
+      if (targetIndex === 0) {
         activeOpenedProject = null;
+        folderObjectStack = [];
         document.getElementById("folderExplorerWorkspace").style.display = "none";
         document.getElementById("mainGridWorkspace").style.display = "flex";
         filterProjects();
+      } else {
+        folderObjectStack = folderObjectStack.slice(0, targetIndex);
+        renderFolderView();
       }
     }
 
-    /* Right Click Context Menu Functions */
+    function navigateUpBreadcrumb() {
+      jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+    }
+
+    /* Context Menu Functions */
     function showContextMenu(e, folder, idx) {
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
@@ -494,51 +524,65 @@
 
     function executeContextAction(action) {
       hideContextMenu();
-      let folders = getActiveFolderList();
+      let currentFolderNode = getCurrentWorkspaceFolder();
 
       if (action === 'copy') {
         if (!selectedFolderForContext) return;
-        clipboardFolder = { ...selectedFolderForContext.folder };
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
         isCutOperation = false;
         renderFolderView();
       } 
       else if (action === 'cut') {
         if (!selectedFolderForContext) return;
-        clipboardFolder = { ...selectedFolderForContext.folder, sourceIdx: selectedFolderForContext.idx };
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+        clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+        clipboardFolder.sourceParent = currentFolderNode;
         isCutOperation = true;
         renderFolderView();
       } 
       else if (action === 'paste') {
         if (!clipboardFolder) return;
         
-        if (isCutOperation) {
-          folders.splice(clipboardFolder.sourceIdx, 1);
+        if (isCutOperation && clipboardFolder.sourceParent) {
+          clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
         }
         
-        folders.push({
-          id: 'f-' + Date.now(),
-          name: isCutOperation ? clipboardFolder.name : clipboardFolder.name + " - Copy",
-          items: clipboardFolder.items || '0 Items'
-        });
+        const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+        newPastedFolder.id = 'f-' + Date.now();
+        if (!isCutOperation) newPastedFolder.name += " - Copy";
+
+        currentFolderNode.children.push(newPastedFolder);
 
         clipboardFolder = null;
         isCutOperation = false;
+        persistProjectTree();
         renderFolderView();
       } 
       else if (action === 'rename') {
         if (!selectedFolderForContext) return;
         const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
         if (newName && newName.trim()) {
-          folders[selectedFolderForContext.idx].name = newName.trim();
+          currentFolderNode.children[selectedFolderForContext.idx].name = newName.trim();
+          persistProjectTree();
           renderFolderView();
         }
       } 
       else if (action === 'delete') {
         if (!selectedFolderForContext) return;
         if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
-          folders.splice(selectedFolderForContext.idx, 1);
+          currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+          persistProjectTree();
           renderFolderView();
         }
+      }
+    }
+
+    function persistProjectTree() {
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      if (idx !== -1) {
+        allProjects[idx] = activeOpenedProject;
+        saveProjects(allProjects);
       }
     }
 
@@ -546,8 +590,17 @@
       if (activeOpenedProject) {
         const newSubName = prompt("Enter new folder name:");
         if (newSubName && newSubName.trim()) {
-          let folders = getActiveFolderList();
-          folders.push({ id: 'f-' + Date.now(), name: newSubName.trim(), items: '0 Items' });
+          let currentFolderNode = getCurrentWorkspaceFolder();
+          if (!currentFolderNode.children) currentFolderNode.children = [];
+          
+          currentFolderNode.children.push({
+            id: 'f-' + Date.now(),
+            name: newSubName.trim(),
+            items: '0 Items',
+            children: []
+          });
+
+          persistProjectTree();
           renderFolderView();
         }
       } else {
@@ -588,7 +641,8 @@
         location: location || 'N/A',
         remarks: remarks,
         year: year,
-        color: colors[Math.floor(Math.random() * colors.length)]
+        color: colors[Math.floor(Math.random() * colors.length)],
+        children: getDefaultSubFolders()
       });
 
       saveProjects(projects);
