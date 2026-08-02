@@ -116,10 +116,15 @@
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
-    /* Project Metadata Card Banner */
-    .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; }
-    .project-meta-line1 { display: flex; align-items: center; gap: 12px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
+    /* Project Metadata Header Banner */
+    .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .project-meta-line1 { display: flex; align-items: center; gap: 10px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
     .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .edit-meta-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: color 0.15s, background 0.15s; margin-left: 4px; }
+    .edit-meta-btn:hover { color: var(--accent-blue); background: rgba(2, 132, 199, 0.12); }
+    .edit-meta-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
     .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .project-meta-line3 { font-size: 0.82rem; color: var(--text-color); opacity: 0.9; margin-top: 2px; line-height: 1.3; }
 
@@ -159,7 +164,6 @@
     .chat-media-title { font-size: 0.82rem; font-weight: 600; color: var(--accent-white); }
     .chat-media-size { font-size: 0.7rem; color: var(--cool-ash); }
 
-    /* Download Button ONLY for Media/File Attachments */
     .media-download-btn { background: var(--accent-blue); border: none; color: #ffffff; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s; }
     .media-download-btn:hover { transform: scale(1.08); background: #0369a1; }
     .media-download-btn svg { width: 14px; height: 14px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
@@ -184,7 +188,7 @@
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
     /* Modal Form */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 420px; width: 90%; position: relative; color: var(--text-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
     .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
@@ -282,6 +286,10 @@
         <div class="project-meta-line1">
           <span id="metaClientName">Amber Holdings</span>
           <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
+          
+          <button class="edit-meta-btn" onclick="openEditProjectModal()" title="Edit Project Details">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
         </div>
         <div class="project-meta-line2">
           <svg style="width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
@@ -424,6 +432,31 @@
     </div>
   </div>
 
+  <!-- Edit Project Details Modal -->
+  <div class="modal-overlay" id="editProjectModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeEditProjectModal()">&times;</button>
+      <h3>Edit Project Details</h3>
+
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="editProjectClient" class="modal-input" />
+
+      <label class="modal-label">Project No</label>
+      <input type="text" id="editProjectNo" class="modal-input" />
+
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="editProjectLocation" class="modal-input" />
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="editProjectRemarks" class="modal-input"></textarea>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
+        <button class="modal-btn btn-cancel" onclick="closeEditProjectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
@@ -551,11 +584,7 @@
       activeOpenedProject = proj;
       folderObjectStack = [proj];
 
-      // Populate Project Metadata Banner
-      document.getElementById("metaClientName").innerText = proj.client || "Client N/A";
-      document.getElementById("metaProjectNo").innerText = proj.projectNo || "NO-ID";
-      document.getElementById("metaLocation").innerText = proj.location || "Location N/A";
-      document.getElementById("metaRemarks").innerText = proj.remarks || "No remarks provided.";
+      updateProjectMetaBanner();
 
       document.getElementById("projectSubNav").style.display = "flex";
 
@@ -568,6 +597,60 @@
       document.getElementById("mainGridWorkspace").style.display = "none";
       
       switchProjectSubTab('folder');
+    }
+
+    function updateProjectMetaBanner() {
+      if (!activeOpenedProject) return;
+      document.getElementById("metaClientName").innerText = activeOpenedProject.client || "Client N/A";
+      document.getElementById("metaProjectNo").innerText = activeOpenedProject.projectNo || "NO-ID";
+      document.getElementById("metaLocation").innerText = activeOpenedProject.location || "Location N/A";
+      document.getElementById("metaRemarks").innerText = activeOpenedProject.remarks || "No remarks provided.";
+    }
+
+    /* Edit Project Details Modal Handlers */
+    function openEditProjectModal() {
+      if (!activeOpenedProject) return;
+      document.getElementById("editProjectClient").value = activeOpenedProject.client || "";
+      document.getElementById("editProjectNo").value = activeOpenedProject.projectNo || "";
+      document.getElementById("editProjectLocation").value = activeOpenedProject.location || "";
+      document.getElementById("editProjectRemarks").value = activeOpenedProject.remarks || "";
+      
+      document.getElementById("editProjectModal").style.display = "flex";
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById("editProjectModal").style.display = "none";
+    }
+
+    function saveProjectEdits() {
+      if (!activeOpenedProject) return;
+
+      const client = document.getElementById("editProjectClient").value.trim();
+      const projectNo = document.getElementById("editProjectNo").value.trim();
+      const location = document.getElementById("editProjectLocation").value.trim();
+      const remarks = document.getElementById("editProjectRemarks").value.trim();
+
+      if (!client) return alert("Please enter a client name.");
+
+      activeOpenedProject.client = client;
+      activeOpenedProject.projectNo = projectNo || activeOpenedProject.projectNo;
+      activeOpenedProject.location = location || 'N/A';
+      activeOpenedProject.remarks = remarks;
+
+      // Persist tree to sync tile data in localStorage & refresh views
+      persistProjectTree();
+      updateProjectMetaBanner();
+      renderFolderView();
+      
+      // Also update stored project list to keep project tile in sync
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      if (idx !== -1) {
+        allProjects[idx] = activeOpenedProject;
+        localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+      }
+
+      closeEditProjectModal();
     }
 
     function switchProjectSubTab(tabKey) {
@@ -626,7 +709,6 @@
         }
       });
 
-      // Hide metadata banner if navigated deep into sub-folders
       const metaHeader = document.getElementById("projectMetaHeader");
       if (folderObjectStack.length > 1) {
         metaHeader.style.display = "none";
