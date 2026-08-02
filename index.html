@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>diBadge | Organization Portal</title>
   
-  <!-- Global Theme Pre-loader Script (Prevents Flickering) -->
   <script>
     (function() {
       const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
@@ -14,7 +13,6 @@
   </script>
 
   <style>
-    /* ---------------- DIBADGE APP COLOR THEME VARIABLES ---------------- */
     :root {
       --jet-black: #0f0f0f;
       --paper-white: #f8f9fa;
@@ -26,7 +24,6 @@
       --error-red: #ff3b30;
       --accent-blue: #0284c7;
 
-      /* Light Theme Variables */
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
       --surface-color: var(--accent-white);
@@ -36,7 +33,6 @@
       --subtext-color: var(--cool-ash);
     }
 
-    /* Dark Theme Variables (DEFAULT) */
     [data-theme="dark"] {
       --bg-color: var(--jet-black);
       --text-color: var(--accent-white);
@@ -50,14 +46,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; overflow-x: hidden; transition: background-color 0.2s, color 0.2s; }
 
-    /* Site Lock Screen */
     #gateModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--jet-black); display: flex; justify-content: center; align-items: center; z-index: 1000; }
     .gate-card { background: var(--surface-color); padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; width: 90%; border: 1px solid var(--border-color); }
     .gate-card h2 { margin-bottom: 8px; color: var(--text-color); }
     .gate-card input { width: 100%; padding: 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 8px; margin: 12px 0; text-align: center; outline: none; }
     .gate-card button { width: 100%; padding: 12px; background: var(--accent-blue); color: var(--accent-white); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 
-    /* Dashboard Split Layout */
     #dashboardLayout { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
     .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
@@ -65,7 +59,6 @@
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
-    /* Left Vertical Navigation Tab Bar */
     .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 20; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--muted-gray); display: flex; justify-content: center; align-items: center; cursor: pointer; margin-bottom: 12px; text-decoration: none; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -74,7 +67,6 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: var(--accent-white); box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    /* Center Tile Grid Workspace */
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 24px; overflow-y: auto; position: relative; }
     .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
 
@@ -93,17 +85,13 @@
     .tile-green  { background-color: #059669; }
     .tile-grey   { background-color: #475569; }
     .tile-olive  { background-color: #65a30d; }
-    .tile-purple { background-color: #7c3aed; }
-    .tile-orange { background-color: #ea580c; }
 
-    /* Settings Workspace */
     #settingsView { display: none; flex: 1; padding: 40px; background: var(--surface-color); overflow-y: auto; }
     .settings-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; max-width: 500px; margin-top: 20px; }
     .theme-selector-group { display: flex; gap: 16px; margin-top: 12px; }
     .theme-option-btn { flex: 1; padding: 14px; border: 2px solid var(--border-color); background: var(--surface-color); color: var(--text-color); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
     .theme-option-btn.active { border-color: var(--accent-blue); background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); }
 
-    /* Right Activity Feed Panel */
     .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); font-weight: 600; font-size: 0.95rem; }
     .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
@@ -112,7 +100,6 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* Modal Styling */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; position: relative; border: 1px solid var(--border-color); color: var(--text-color); }
     .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
@@ -135,17 +122,15 @@
 </head>
 <body>
 
-  <!-- Hidden SVG Library -->
+  <!-- Hidden SVG Template Library -->
   <div style="display: none;">
-    <svg id="svg-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-    <svg id="svg-groups" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-    <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-    <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+    <svg id="svg-projects" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+    <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
     <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
     <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
   </div>
 
-  <!-- Site Lock Screen -->
   <div id="gateModal">
     <div class="gate-card">
       <h2>diBadge Site Lock</h2>
@@ -155,7 +140,6 @@
     </div>
   </div>
 
-  <!-- Dashboard Layout -->
   <div id="dashboardLayout">
     <header class="dashboard-header">
       <h1 id="pageTopHeader">
@@ -177,35 +161,23 @@
         </button>
       </aside>
 
-      <!-- Center Workspaces -->
       <div class="tiles-wrapper" id="homeView">
         <div class="tiles-grid" id="tilesGrid"></div>
       </div>
 
-      <!-- Settings Workspace -->
       <div id="settingsView">
         <h2>Organization Settings</h2>
         <p style="color:var(--subtext-color); margin-top:4px;">Customize portal preferences and theme options.</p>
 
         <div class="settings-card">
           <h3 style="font-size:1rem; margin-bottom:6px;">Appearance Theme</h3>
-          <p style="font-size:0.85rem; color:var(--subtext-color);">Select your preferred theme matching the mobile DiBadgeTheme.</p>
-
           <div class="theme-selector-group">
-            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">
-              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-              Dark Theme (Default)
-            </button>
-
-            <button class="theme-option-btn" id="themeBtnLight" onclick="setAppTheme('light')">
-              <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line></svg>
-              Light Theme
-            </button>
+            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">Dark Theme</button>
+            <button class="theme-option-btn" id="themeBtnLight" onclick="setAppTheme('light')">Light Theme</button>
           </div>
         </div>
       </div>
 
-      <!-- Right Activity Feed -->
       <aside class="notifications-panel">
         <div class="notifications-header">
           <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
@@ -217,17 +189,12 @@
             <p style="color:var(--subtext-color);">John Doe requested 2 days medical leave.</p>
             <div class="time">10 mins ago</div>
           </div>
-          <div class="notification-item">
-            <div class="title">New Group Created</div>
-            <p style="color:var(--subtext-color);">Manager added "Amber point" group.</p>
-            <div class="time">1 hour ago</div>
-          </div>
         </div>
       </aside>
     </div>
   </div>
 
-  <!-- Tile Edit Modal -->
+  <!-- Tile Modal -->
   <div class="modal-overlay" id="tileModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeTileModal()">&times;</button>
@@ -243,11 +210,10 @@
       </button>
 
       <div class="icon-picker-grid" id="iconPickerGrid">
-        <div class="icon-option" onclick="selectIcon('groups')" id="pick-groups"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+        <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
         <div class="icon-option" onclick="selectIcon('hr')" id="pick-hr"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
-        <div class="icon-option" onclick="selectIcon('folder')" id="pick-folder"><svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
       </div>
 
       <div class="modal-actions">
@@ -262,44 +228,36 @@
     const SECRET_PASSCODE = "177994";
     let activeEditTileId = null;
     let isCreateMode = false;
-    let selectedIconKey = "folder";
-    const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive', 'tile-purple', 'tile-orange'];
+    let selectedIconKey = "projects";
+    const colors = ['tile-blue', 'tile-green', 'tile-grey', 'tile-olive'];
 
+    /* Default Tiles: 'Projects' replaces 'Groups' */
     const defaultTiles = [
-      { id: 'groups', title: 'Groups', url: 'groups.html', iconKey: 'groups', color: 'tile-blue', isProtected: true },
+      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: 'tile-blue', isProtected: true },
       { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: 'tile-green', isProtected: true },
       { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', color: 'tile-grey', isProtected: false },
       { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: 'tile-olive', isProtected: false }
     ];
 
-    /* Global Persistent Theme Engine Switcher */
     function setAppTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('dibadge_web_theme', theme);
-
       const darkBtn = document.getElementById('themeBtnDark');
       const lightBtn = document.getElementById('themeBtnLight');
       if (darkBtn && lightBtn) {
-        if (theme === 'dark') {
-          darkBtn.classList.add('active');
-          lightBtn.classList.remove('active');
-        } else {
-          lightBtn.classList.add('active');
-          darkBtn.classList.remove('active');
-        }
+        if (theme === 'dark') { darkBtn.classList.add('active'); lightBtn.classList.remove('active'); }
+        else { lightBtn.classList.add('active'); darkBtn.classList.remove('active'); }
       }
     }
 
-    // Initialize UI theme states on load
-    const currentTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
-    setAppTheme(currentTheme);
+    setAppTheme(localStorage.getItem('dibadge_web_theme') || 'dark');
 
     function getStoredTiles() {
       const stored = localStorage.getItem('dibadge_custom_tiles');
       if (!stored) return defaultTiles;
       const parsed = JSON.parse(stored);
       return parsed.map(t => {
-        if (t.id === 'groups' || t.id === 'members') t.isProtected = true;
+        if (t.id === 'projects' || t.id === 'members') t.isProtected = true;
         return t;
       });
     }
@@ -340,20 +298,13 @@
       const settingsView = document.getElementById("settingsView");
       const btnHome = document.getElementById("tabNavHome");
       const btnSettings = document.getElementById("tabNavSettings");
-      const headerTitle = document.getElementById("pageTopHeader");
 
       if (tab === 'home') {
-        homeView.style.display = "flex";
-        settingsView.style.display = "none";
-        btnHome.classList.add("active");
-        btnSettings.classList.remove("active");
-        headerTitle.innerHTML = `<svg class="header-logo-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Home`;
-      } else if (tab === 'settings') {
-        homeView.style.display = "none";
-        settingsView.style.display = "block";
-        btnHome.classList.remove("active");
-        btnSettings.classList.add("active");
-        headerTitle.innerHTML = `<svg class="header-logo-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> Settings`;
+        homeView.style.display = "flex"; settingsView.style.display = "none";
+        btnHome.classList.add("active"); btnSettings.classList.remove("active");
+      } else {
+        homeView.style.display = "none"; settingsView.style.display = "block";
+        btnHome.classList.remove("active"); btnSettings.classList.add("active");
       }
     }
 
@@ -363,9 +314,7 @@
         document.getElementById("gateModal").style.display = "none";
         document.getElementById("dashboardLayout").style.display = "flex";
         renderTiles();
-      } else {
-        alert("Incorrect passcode.");
-      }
+      } else { alert("Incorrect passcode."); }
     }
 
     if (localStorage.getItem("dibadge_unlocked") === "true") {
@@ -374,7 +323,6 @@
       renderTiles();
     }
 
-    /* Modal Controls */
     function toggleIconPicker() {
       const picker = document.getElementById("iconPickerGrid");
       picker.style.display = (picker.style.display === "grid") ? "none" : "grid";
@@ -391,26 +339,22 @@
     }
 
     function openCreateModal() {
-      isCreateMode = true;
-      activeEditTileId = null;
+      isCreateMode = true; activeEditTileId = null;
       document.getElementById("modalHeaderTitle").innerText = "Create New Tile";
       document.getElementById("modalTileTitle").value = "";
       document.getElementById("deleteTileBtn").style.display = "none";
-      selectIcon("folder");
+      selectIcon("projects");
       document.getElementById("tileModal").style.display = "flex";
     }
 
     function openEditModal(event, tileId, isDeletable) {
-      event.preventDefault();
-      event.stopPropagation();
-      isCreateMode = false;
-      activeEditTileId = tileId;
-      const tiles = getStoredTiles();
-      const targetTile = tiles.find(t => t.id === tileId);
+      event.preventDefault(); event.stopPropagation();
+      isCreateMode = false; activeEditTileId = tileId;
+      const targetTile = getStoredTiles().find(t => t.id === tileId);
 
       document.getElementById("modalHeaderTitle").innerText = "Edit Tile Properties";
       document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
-      selectIcon(targetTile ? targetTile.iconKey : "folder");
+      selectIcon(targetTile ? targetTile.iconKey : "projects");
       document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
       document.getElementById("tileModal").style.display = "flex";
     }
@@ -420,17 +364,13 @@
     function saveTileModal() {
       const titleInput = document.getElementById("modalTileTitle").value.trim();
       if (!titleInput) return alert("Please enter a tile name.");
-
       let tiles = getStoredTiles();
+
       if (isCreateMode) {
-        const newId = "custom-" + Date.now();
-        tiles.push({ id: newId, title: titleInput, url: `#`, iconKey: selectedIconKey, color: colors[Math.floor(Math.random() * colors.length)], isProtected: false });
+        tiles.push({ id: "custom-" + Date.now(), title: titleInput, url: `#`, iconKey: selectedIconKey, color: colors[Math.floor(Math.random() * colors.length)], isProtected: false });
       } else if (activeEditTileId) {
-        const tileIndex = tiles.findIndex(t => t.id === activeEditTileId);
-        if (tileIndex !== -1) {
-          tiles[tileIndex].title = titleInput;
-          tiles[tileIndex].iconKey = selectedIconKey;
-        }
+        const idx = tiles.findIndex(t => t.id === activeEditTileId);
+        if (idx !== -1) { tiles[idx].title = titleInput; tiles[idx].iconKey = selectedIconKey; }
       }
       setStoredTiles(tiles);
       closeTileModal();
@@ -438,8 +378,7 @@
 
     function deleteCurrentTile() {
       if (!activeEditTileId) return;
-      let tiles = getStoredTiles().filter(t => t.id !== activeEditTileId);
-      setStoredTiles(tiles);
+      setStoredTiles(getStoredTiles().filter(t => t.id !== activeEditTileId));
       closeTileModal();
     }
   </script>
