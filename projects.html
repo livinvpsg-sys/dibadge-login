@@ -158,6 +158,11 @@
       </select>
     </div>
 
+    <div class="header-center">
+      <!-- Search input visible on main projects grid only -->
+      <input type="text" id="projectSearchInput" class="search-input" placeholder="search projects.." onkeyup="filterProjects()" />
+    </div>
+
     <div style="width: 120px;"></div>
   </header>
 
@@ -381,7 +386,11 @@
       activeOpenedProject = proj;
       folderObjectStack = [proj];
 
+      // hide main grid and also hide the search input in the header for sub-pages
       document.getElementById("mainGridWorkspace").style.display = "none";
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "none";
+
       document.getElementById("folderExplorerWorkspace").style.display = "flex";
 
       renderFolderView();
@@ -454,6 +463,8 @@
         folderObjectStack = [];
         document.getElementById("folderExplorerWorkspace").style.display = "none";
         document.getElementById("mainGridWorkspace").style.display = "flex";
+        const searchElem = document.getElementById("projectSearchInput");
+        if (searchElem) searchElem.style.display = ""; // show search on main page
         filterProjects();
       } else {
         folderObjectStack = folderObjectStack.slice(0, targetIndex);
@@ -491,8 +502,8 @@
     }
 
     function hideContextMenus() {
-      document.getElementById("projectTileContextMenu").style.display = "none";
-      document.getElementById("folderContextMenu").style.display = "none";
+      const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+      const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
     }
 
     function executeContextAction(action) {
@@ -620,6 +631,12 @@
       filterProjects();
       closeCreateProjectModal();
     }
+
+    // ensure search input is visible on initial load (main page)
+    (function init() {
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+    })();
 
     filterProjects();
   </script>
