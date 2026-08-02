@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>diBadge | Projects</title>
 
+  <!-- Global Theme Pre-loader Script -->
   <script>
     (function() {
       const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
@@ -45,21 +46,19 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Single Header Line with Year Picker and Center Search Bar */
+    /* Single Header Line */
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
-    
     .header-left { display: flex; align-items: center; gap: 12px; }
     .header-left h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    
     .year-select { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; cursor: pointer; }
 
     .header-center { flex: 1; max-width: 400px; margin: 0 20px; }
     .search-input { width: 100%; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 0.88rem; outline: none; }
     .search-input::placeholder { color: var(--subtext-color); }
 
-    .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; }
+    .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
-    /* Left Tabbar: Only Home at top and FAB at bottom */
+    /* Left Navigation Bar */
     .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 20; flex-shrink: 0; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--muted-gray); display: flex; justify-content: center; align-items: center; margin-bottom: 12px; text-decoration: none; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -68,20 +67,30 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4); cursor: pointer; }
     .fab-tab-btn:hover { background: #0369a1; transform: scale(1.05); }
 
-    /* Center Projects Grid Workspace (Matching Home Tiles) */
-    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 40px 24px; overflow-y: auto; }
-    .tiles-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
+    /* Center Projects Grid Workspace */
+    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 40px 24px; overflow-y: auto; position: relative; }
+    .tiles-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; max-width: 1100px; width: 100%; justify-items: center; }
 
-    .tile { position: relative; width: 100%; max-width: 150px; aspect-ratio: 1 / 1; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-decoration: none; }
-    .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
-    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
-    .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
+    /* Clean Tile: Only Showing Client Name and Project No */
+    .tile { position: relative; width: 100%; max-width: 170px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
+    .tile:hover { transform: scale(1.04); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
+    .tile.active-popover { ring: 3px solid var(--accent-blue); transform: scale(1.04); }
+
+    .tile-client { font-size: 0.72rem; font-weight: 700; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0,0,0,0.25); padding: 4px 8px; border-radius: 12px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile-project-no { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; margin: auto 0; }
 
     .tile-blue   { background-color: #0284c7; }
     .tile-green  { background-color: #059669; }
     .tile-purple { background-color: #7c3aed; }
     .tile-orange { background-color: #ea580c; }
+
+    /* Floating Popover Card Next to Clicked Tile */
+    .tile-popover { position: absolute; z-index: 90; width: 260px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; gap: 8px; color: var(--text-color); backdrop-filter: blur(8px); }
+    .tile-popover-header { font-weight: 700; font-size: 0.95rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .popover-row { font-size: 0.82rem; display: flex; flex-direction: column; gap: 2px; }
+    .popover-label { color: var(--subtext-color); font-weight: 600; font-size: 0.75rem; }
+    .popover-value { font-weight: 500; }
+    .popover-hint { font-size: 0.72rem; color: var(--accent-blue); text-align: center; margin-top: 6px; font-style: italic; border-top: 1px dashed var(--border-color); padding-top: 6px; }
 
     /* Right Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
@@ -92,11 +101,13 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* New Project Modal */
+    /* Modal Styling */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
-    .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; position: relative; color: var(--text-color); }
-    .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
-    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
+    .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 420px; width: 90%; position: relative; color: var(--text-color); }
+    .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
+    .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
+    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    textarea.modal-input { resize: vertical; min-height: 60px; font-family: inherit; }
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
     .btn-save { background: var(--accent-blue); color: white; }
@@ -108,12 +119,7 @@
 </head>
 <body>
 
-  <!-- Hidden SVG Library -->
-  <div style="display: none;">
-    <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-  </div>
-
-  <!-- Header with Projects Title, Year Dropdown, and Search Bar -->
+  <!-- Header -->
   <header class="dashboard-header">
     <div class="header-left">
       <h1>
@@ -131,12 +137,12 @@
       <input type="text" id="projectSearchInput" class="search-input" placeholder="search projects.." onkeyup="filterProjects()" />
     </div>
 
-    <div style="width: 120px;"></div> <!-- Spacer for visual balance -->
+    <div style="width: 120px;"></div>
   </header>
 
   <div class="dashboard-body-split">
     
-    <!-- Left Navigation Bar: Home at top, FAB at bottom -->
+    <!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
       <a href="index.html" class="tab-btn" title="Home Grid">
         <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
@@ -147,10 +153,33 @@
       </button>
     </aside>
 
-    <!-- Center Workspace: Project Tiles Grid -->
-    <main class="tiles-wrapper">
-      <div class="tiles-grid" id="projectTilesGrid">
-        <!-- Rendered dynamically -->
+    <!-- Center Workspace -->
+    <main class="tiles-wrapper" onclick="closePopover()">
+      <div class="tiles-grid" id="projectTilesGrid"></div>
+
+      <!-- Floating Tile Details Popover -->
+      <div class="tile-popover" id="tilePopover">
+        <div class="tile-popover-header">
+          <span id="popTitle">Project Details</span>
+          <button style="background:none; border:none; color:var(--subtext-color); cursor:pointer;" onclick="closePopover()">✕</button>
+        </div>
+        <div class="popover-row">
+          <span class="popover-label">Client Name</span>
+          <span class="popover-value" id="popClient">-</span>
+        </div>
+        <div class="popover-row">
+          <span class="popover-label">Project No</span>
+          <span class="popover-value" id="popProjectNo">-</span>
+        </div>
+        <div class="popover-row">
+          <span class="popover-label">Project Year</span>
+          <span class="popover-value" id="popYear">-</span>
+        </div>
+        <div class="popover-row">
+          <span class="popover-label">Remarks</span>
+          <span class="popover-value" id="popRemarks">-</span>
+        </div>
+        <div class="popover-hint">Double click tile to open project</div>
       </div>
     </main>
 
@@ -163,7 +192,7 @@
       <div class="notifications-list">
         <div class="notification-item">
           <div class="title">New Project Initialized</div>
-          <p style="color:var(--subtext-color);">Amber point site setup complete.</p>
+          <p style="color:var(--subtext-color);">Amber point setup complete.</p>
           <div class="time">1 hour ago</div>
         </div>
       </div>
@@ -174,17 +203,26 @@
   <div class="modal-overlay" id="createProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
-      <h3 style="margin-bottom:12px;">Create New Project Tile</h3>
+      <h3>Create New Project Tile</h3>
 
       <label class="modal-label">Project Name</label>
       <input type="text" id="newProjectName" class="modal-input" placeholder="e.g. Amber point" />
 
-      <label class="modal-label">Project Year</label>
+      <label class="modal-label">Project No</label>
+      <input type="text" id="newProjectNo" class="modal-input" placeholder="e.g. PRJ-2026-001" />
+
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="newProjectClient" class="modal-input" placeholder="e.g. Amber Holdings Ltd" />
+
+      <label class="modal-label">Year</label>
       <select id="newProjectYear" class="modal-input">
-        <option value="2026" selected>2026</option>
+        <option value="2026">2026</option>
         <option value="2025">2025</option>
         <option value="2024">2024</option>
       </select>
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="newProjectRemarks" class="modal-input" placeholder="Enter optional notes or project scope..."></textarea>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
@@ -195,11 +233,12 @@
 
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
+    let clickTimer = null;
 
     const defaultProjects = [
-      { id: 'proj-1', title: 'Amber point2', year: '2026', color: 'tile-blue' },
-      { id: 'proj-2', title: 'Site Inspection Alpha', year: '2026', color: 'tile-green' },
-      { id: 'proj-3', title: 'Q4 Compliance Audit', year: '2025', color: 'tile-purple' }
+      { id: 'proj-1', title: 'Amber point', projectNo: 'PRJ-2026-001', client: 'Amber Corp', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue' },
+      { id: 'proj-2', title: 'Site Alpha Inspection', projectNo: 'PRJ-2026-002', client: 'Alpha Development', remarks: 'Routine safety audit', year: '2026', color: 'tile-green' },
+      { id: 'proj-3', title: 'Q4 Compliance Audit', projectNo: 'PRJ-2025-089', client: 'Gov Authority', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple' }
     ];
 
     function getProjects() {
@@ -213,6 +252,7 @@
     }
 
     function filterProjects() {
+      closePopover();
       const selectedYear = document.getElementById("yearPicker").value;
       const searchQuery = document.getElementById("projectSearchInput").value.toLowerCase().trim();
       const grid = document.getElementById("projectTilesGrid");
@@ -221,7 +261,9 @@
       const projects = getProjects();
       const filtered = projects.filter(p => {
         const matchesYear = p.year === selectedYear;
-        const matchesSearch = p.title.toLowerCase().includes(searchQuery);
+        const matchesSearch = p.title.toLowerCase().includes(searchQuery) || 
+                              (p.client && p.client.toLowerCase().includes(searchQuery)) ||
+                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery));
         return matchesYear && matchesSearch;
       });
 
@@ -233,18 +275,80 @@
       filtered.forEach(proj => {
         const tileEl = document.createElement("div");
         tileEl.className = `tile ${proj.color}`;
+        
+        // Tile surface showing ONLY Client and Project No
         tileEl.innerHTML = `
-          <div class="tile-icon-wrapper">
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          </div>
-          <div class="tile-title">${proj.title}</div>
+          <div class="tile-client">${proj.client || 'Client N/A'}</div>
+          <div class="tile-project-no">${proj.projectNo || 'NO-ID'}</div>
         `;
+
+        // Handle Single Click (Popover) and Double Click (Open Tile)
+        tileEl.onclick = function(e) {
+          e.stopPropagation();
+          if (clickTimer) clearTimeout(clickTimer);
+
+          clickTimer = setTimeout(() => {
+            showPopover(e, proj);
+          }, 220); // Delay to distinguish single from double click
+        };
+
+        tileEl.ondblclick = function(e) {
+          e.stopPropagation();
+          if (clickTimer) clearTimeout(clickTimer);
+          openProject(proj);
+        };
+
         grid.appendChild(tileEl);
       });
     }
 
+    /* Popover Details */
+    function showPopover(event, proj) {
+      const popover = document.getElementById("tilePopover");
+      const tileRect = event.currentTarget.getBoundingClientRect();
+      const wrapperRect = document.querySelector(".tiles-wrapper").getBoundingClientRect();
+
+      document.getElementById("popTitle").innerText = proj.title || "Project Details";
+      document.getElementById("popClient").innerText = proj.client || "N/A";
+      document.getElementById("popProjectNo").innerText = proj.projectNo || "N/A";
+      document.getElementById("popYear").innerText = proj.year || "N/A";
+      document.getElementById("popRemarks").innerText = proj.remarks || "None";
+
+      // Position popover relative to clicked tile
+      let topPos = tileRect.top - wrapperRect.top;
+      let leftPos = tileRect.right - wrapperRect.left + 12;
+
+      // Adjust if overflowing workspace boundary
+      if (leftPos + 260 > wrapperRect.width) {
+        leftPos = tileRect.left - wrapperRect.left - 272;
+      }
+
+      popover.style.top = `${topPos}px`;
+      popover.style.left = `${leftPos}px`;
+      popover.style.display = "flex";
+    }
+
+    function closePopover() {
+      document.getElementById("tilePopover").style.display = "none";
+    }
+
+    function openProject(proj) {
+      closePopover();
+      alert(`Opening Project: ${proj.title} (${proj.projectNo})`);
+      // Here you can navigate to the inner project detail view/workspace!
+    }
+
+    /* Modal Handlers */
     function openCreateProjectModal() {
+      closePopover();
+      const activeYear = document.getElementById("yearPicker").value;
+      document.getElementById("newProjectYear").value = activeYear;
+
       document.getElementById("newProjectName").value = "";
+      document.getElementById("newProjectNo").value = "";
+      document.getElementById("newProjectClient").value = "";
+      document.getElementById("newProjectRemarks").value = "";
+      
       document.getElementById("createProjectModal").style.display = "flex";
     }
 
@@ -254,13 +358,20 @@
 
     function createNewProject() {
       const name = document.getElementById("newProjectName").value.trim();
+      const projectNo = document.getElementById("newProjectNo").value.trim();
+      const client = document.getElementById("newProjectClient").value.trim();
       const year = document.getElementById("newProjectYear").value;
+      const remarks = document.getElementById("newProjectRemarks").value.trim();
+
       if (!name) return alert("Please enter a project name.");
 
       const projects = getProjects();
       projects.push({
         id: 'proj-' + Date.now(),
         title: name,
+        projectNo: projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`,
+        client: client || 'Internal',
+        remarks: remarks,
         year: year,
         color: colors[Math.floor(Math.random() * colors.length)]
       });
