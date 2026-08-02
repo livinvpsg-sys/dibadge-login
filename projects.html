@@ -162,24 +162,15 @@
     .chat-media-image-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
     .chat-media-title-sub { font-size: 0.78rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 
-    .chat-media-video-card { position: relative; border-radius: 10px; overflow: hidden; background: #000000; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; height: 160px; display: flex; justify-content: center; align-items: center; }
-    .chat-video-play-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(0,0,0,0.65); border: 2px solid #ffffff; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.15s; }
-    .chat-video-play-btn:hover { transform: scale(1.1); background: var(--accent-blue); }
-    .chat-video-play-btn svg { width: 18px; height: 18px; fill: #ffffff; stroke: none; margin-left: 2px; }
-    .chat-video-duration { position: absolute; bottom: 8px; left: 10px; font-size: 0.7rem; font-weight: 600; color: #ffffff; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; }
-
-    .chat-document-card { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 10px 12px; border-radius: 8px; margin-top: 6px; }
-    .chat-doc-icon-box { width: 36px; height: 36px; border-radius: 6px; background: rgba(2, 132, 199, 0.2); color: var(--accent-blue); display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-    .chat-doc-icon-box svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .chat-doc-details { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-    .chat-doc-name { font-size: 0.82rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .chat-doc-size { font-size: 0.7rem; color: var(--cool-ash); }
-
     .wa-download-btn { background: var(--accent-blue); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s, background 0.15s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
     .wa-download-btn:hover { transform: scale(1.08); background: #0369a1; }
     .wa-download-btn svg { width: 16px; height: 16px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
 
-    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN WITH CONTROLS ------------ */
+    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
+    .boq-control-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .boq-select, .boq-control-input { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
+
     .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 900px; margin-top: 12px; }
     .boq-table { width: 100%; border-collapse: collapse; text-align: left; }
     .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
@@ -190,7 +181,7 @@
     .boq-add-row-btn { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border: 1px dashed var(--accent-blue); width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; margin-top: 14px; transition: background 0.15s; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .boq-add-row-btn:hover { background: rgba(2, 132, 199, 0.28); }
 
-    .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 300px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
+    .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 320px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
     .boq-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; color: var(--subtext-color); }
     .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--accent-blue); }
 
@@ -423,10 +414,30 @@
       </div>
     </section>
 
-    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL WITH EQUATION AND CURRENCY/TAX CONTROLS -->
     <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
       <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
-      <p style="color:var(--subtext-color); font-size:0.85rem; margin-top:2px;">Itemized quantities, unit pricing, and estimated total costs.</p>
+      <p style="color:var(--subtext-color); font-size:0.85rem; margin-top:2px;">Itemized quantities (supports math equations like 10+5), unit pricing, custom tax, and currency settings.</p>
+
+      <!-- Currency & Tax Controls Bar -->
+      <div class="boq-top-controls">
+        <div class="boq-control-group">
+          <span>Currency:</span>
+          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+            <option value="$" selected>$ USD</option>
+            <option value="₹">₹ INR</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+            <option value="¥">¥ JPY</option>
+            <option value="A$">A$ AUD</option>
+          </select>
+        </div>
+
+        <div class="boq-control-group">
+          <span>Tax Rate (%):</span>
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
+        </div>
+      </div>
 
       <div class="boq-table-card">
         <table class="boq-table">
@@ -434,9 +445,9 @@
             <tr>
               <th style="width: 60px;">Sl No</th>
               <th>Item Description</th>
-              <th style="width: 110px;">Quantity</th>
-              <th style="width: 130px;">Unit Price ($)</th>
-              <th style="width: 140px; text-align:right;">Total Price ($)</th>
+              <th style="width: 140px;">Quantity</th>
+              <th style="width: 140px;">Unit Price</th>
+              <th style="width: 140px; text-align:right;">Total Price</th>
               <th style="width: 40px;"></th>
             </tr>
           </thead>
@@ -457,7 +468,7 @@
             <span id="boqSubTotal">$0.00</span>
           </div>
           <div class="boq-summary-row">
-            <span>Tax / VAT (10%):</span>
+            <span id="boqTaxLabel">Tax / VAT (10%):</span>
             <span id="boqTax">$0.00</span>
           </div>
           <div class="boq-summary-row grand-total">
@@ -573,8 +584,8 @@
 
     // Default BOQ Data
     let currentBOQItems = [
-      { item: 'Foundation Concrete', qty: 25, price: 150 },
-      { item: 'Steel Reinforcement Bars', qty: 10, price: 850 }
+      { item: 'Foundation Concrete', qty: '25', price: '150' },
+      { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
     ];
 
     function getDefaultSubFolders() {
@@ -830,24 +841,43 @@
       }
     }
 
-    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS WITH EQUATION SUPPORT ------------ */
+    function evaluateMathExpr(expr) {
+      if (typeof expr === 'number') return expr;
+      if (!expr || typeof expr !== 'string') return 0;
+      try {
+        // Clean non-math characters except numbers and standard operators
+        const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+        if (!cleanExpr) return 0;
+        const result = Function(`'use strict'; return (${cleanExpr})`)();
+        return isNaN(result) ? 0 : result;
+      } catch (e) {
+        return 0;
+      }
+    }
+
     function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
       tbody.innerHTML = "";
 
+      const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+      const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
       let subTotal = 0;
 
       currentBOQItems.forEach((row, index) => {
-        const rowTotal = (row.qty || 0) * (row.price || 0);
+        const numQty = evaluateMathExpr(row.qty);
+        const numPrice = evaluateMathExpr(row.price);
+        const rowTotal = numQty * numPrice;
         subTotal += rowTotal;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
-          <td><input type="number" class="boq-input" value="${row.qty}" min="0" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
-          <td><input type="number" class="boq-input" value="${row.price}" min="0" step="0.01" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
-          <td style="text-align:right; font-weight:700;">$${rowTotal.toFixed(2)}</td>
+          <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+          <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+          <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
           <td style="text-align:center;">
             <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
               <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -857,17 +887,19 @@
         tbody.appendChild(tr);
       });
 
-      const tax = subTotal * 0.10;
-      const grandTotal = subTotal + tax;
+      const taxAmount = subTotal * (taxRate / 100);
+      const grandTotal = subTotal + taxAmount;
 
-      document.getElementById("boqSubTotal").innerText = `$${subTotal.toFixed(2)}`;
-      document.getElementById("boqTax").innerText = `$${tax.toFixed(2)}`;
-      document.getElementById("boqGrandTotal").innerText = `$${grandTotal.toFixed(2)}`;
+      document.getElementById("boqSubTotal").innerText = `${currency}${subTotal.toFixed(2)}`;
+      document.getElementById("boqTaxLabel").innerText = `Tax / VAT (${taxRate}%):`;
+      document.getElementById("boqTax").innerText = `${currency}${taxAmount.toFixed(2)}`;
+      document.getElementById("boqGrandTotal").innerText = `${currency}${grandTotal.toFixed(2)}`;
     }
 
     function updateBOQData(index, field, value) {
       if (field === 'qty' || field === 'price') {
-        currentBOQItems[index][field] = parseFloat(value) || 0;
+        const evaluated = evaluateMathExpr(value);
+        currentBOQItems[index][field] = evaluated.toString();
       } else {
         currentBOQItems[index][field] = value;
       }
@@ -875,7 +907,7 @@
     }
 
     function addBOQRow() {
-      currentBOQItems.push({ item: 'New Material / Service', qty: 1, price: 0 });
+      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
       renderBOQTable();
     }
 
