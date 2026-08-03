@@ -54,8 +54,7 @@
 
     #dashboardLayout { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
-    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    .header-logo-icon { width: 24px; height: 24px; stroke: var(--accent-blue); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; }
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
@@ -143,16 +142,7 @@
 
   <div id="dashboardLayout">
     <header class="dashboard-header">
-      <h1 id="pageTopHeader">
-        <!-- Branded ID / Badge Icon -->
-        <svg class="header-logo-icon" viewBox="0 0 24 24">
-          <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z"></path>
-          <path d="M9 3v2a3 3 0 0 0 6 0V3"></path>
-          <circle cx="12" cy="11" r="2.5"></circle>
-          <path d="M8 17a4 4 0 0 1 8 0"></path>
-        </svg>
-        diBadge
-      </h1>
+      <h1 id="pageTopHeader">diBadge</h1>
     </header>
 
     <div class="dashboard-body-split">
