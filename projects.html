@@ -208,9 +208,9 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* Modal Form */
+    /* Modal Form Builder */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
-    .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 420px; width: 90%; position: relative; color: var(--text-color); }
+    .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); max-height: 85vh; overflow-y: auto; }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
     .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
@@ -220,6 +220,10 @@
     .btn-save { background: var(--accent-blue); color: white; }
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
+
+    /* Form Builder Field Block */
+    .form-builder-field-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+    .form-builder-field-card .remove-field-btn { position: absolute; top: 8px; right: 8px; color: var(--error-red); background: none; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 700; }
 
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
@@ -323,7 +327,7 @@
         </button>
       </div>
 
-      <button class="tab-btn fab-tab-btn" id="fabBtn" onclick="handleFabClick()" title="Create New Project Tile">
+      <button class="tab-btn fab-tab-btn" id="fabBtn" onclick="handleFabClick()" title="Create Action">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
     </aside>
@@ -336,7 +340,8 @@
     <!-- Global Main Level View Panels -->
     <section class="sub-view-panel" id="panelGlobalForms">
       <h2 style="font-size:1.1rem; margin-bottom:12px;">Forms & Worksheets</h2>
-      <p style="color:var(--subtext-color);">Organization-wide compliance forms and field audit templates.</p>
+      <p style="color:var(--subtext-color); font-size:0.85rem; margin-bottom:16px;">Organization-wide compliance forms and field audit templates.</p>
+      <div id="globalFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px;"></div>
     </section>
 
     <section class="sub-view-panel" id="panelGlobalSchedule">
@@ -427,7 +432,8 @@
     <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
     <section class="sub-view-panel" id="panelProjectFormsWorkspace">
       <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Project Forms</h2>
-      <p style="color:var(--subtext-color); font-size:0.85rem;">Project-specific digital forms and field logs.</p>
+      <p style="color:var(--subtext-color); font-size:0.85rem; margin-bottom:16px;">Project-specific digital forms and field logs.</p>
+      <div id="projectFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px;"></div>
     </section>
 
     <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
@@ -597,15 +603,53 @@
     </div>
   </div>
 
+  <!-- diBadge DYNAMIC FORM BUILDER SETUP MODAL -->
+  <div class="modal-overlay" id="dibadgeFormBuilderModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeFormBuilderModal()">&times;</button>
+      <h3>diBadge Form Setup Builder</h3>
+
+      <label class="modal-label">Form Title</label>
+      <input type="text" id="formBuilderTitle" class="modal-input" placeholder="e.g. Site Safety & Inspection Checklist" />
+
+      <label class="modal-label">Category</label>
+      <select id="formBuilderCategory" class="modal-input">
+        <option value="Safety Audit">Safety & Compliance Audit</option>
+        <option value="Site Inspection">Site Inspection Log</option>
+        <option value="Quality Control">Quality Checklist</option>
+        <option value="Material Claim">Material & Work Log</option>
+      </select>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 0 8px 0;">
+        <span class="modal-label" style="margin:0;">Form Input Fields</span>
+        <button type="button" onclick="addFormFieldToBuilder()" style="background:rgba(2,132,199,0.15); color:var(--accent-blue); border:1px dashed var(--accent-blue); padding:4px 10px; border-radius:6px; font-weight:600; font-size:0.78rem; cursor:pointer;">+ Add Question Field</button>
+      </div>
+
+      <!-- Container where dynamic question fields are rendered -->
+      <div id="formFieldsList"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="saveCreatedForm()">Create & Save Form</button>
+        <button class="modal-btn btn-cancel" onclick="closeFormBuilderModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
     let selectedProjectForContext = null;
     let folderObjectStack = [];
+    let activeViewMode = 'projects'; // 'projects', 'forms', 'folder'
 
     let clipboardFolder = null;
     let isCutOperation = false;
     let selectedFolderForContext = null;
+
+    let createdFormsList = [
+      { id: 'f-101', title: 'Daily Site Safety Audit', category: 'Safety Audit', fieldsCount: 5, date: '2026-08-01' },
+      { id: 'f-102', title: 'Quality Control Inspection', category: 'Quality Control', fieldsCount: 8, date: '2026-08-02' }
+    ];
 
     // Default BOQ Data
     let currentBOQItems = [
@@ -698,6 +742,7 @@
 
     /* Switch Main Level View Tabs */
     function switchMainViewTab(tabKey) {
+      activeViewMode = tabKey;
       const mainGrid = document.getElementById("mainGridWorkspace");
       const formsPanel = document.getElementById("panelGlobalForms");
       const schedulePanel = document.getElementById("panelGlobalSchedule");
@@ -720,6 +765,7 @@
         formsPanel.style.display = "block";
         btnForms.classList.add("active");
         if (searchElem) searchElem.style.display = "none";
+        renderFormsViewUI('globalFormsContainer');
       } else if (tabKey === 'schedule') {
         schedulePanel.style.display = "block";
         btnSchedule.classList.add("active");
@@ -760,6 +806,7 @@
     function openProjectFolder(proj) {
       activeOpenedProject = proj;
       folderObjectStack = [proj];
+      activeViewMode = 'folder';
 
       updateProjectMetaBanner();
 
@@ -831,6 +878,7 @@
     }
 
     function switchProjectSubTab(tabKey) {
+      activeViewMode = tabKey;
       const folderWS = document.getElementById("folderExplorerWorkspace");
       const chatWS = document.getElementById("panelChatWorkspace");
       const formsWS = document.getElementById("panelProjectFormsWorkspace");
@@ -860,6 +908,7 @@
       } else if (tabKey === 'forms') {
         formsWS.style.display = "block";
         btnForms.classList.add("active");
+        renderFormsViewUI('projectFormsContainer');
       } else if (tabKey === 'boq') {
         boqWS.style.display = "flex";
         btnBOQ.classList.add("active");
@@ -876,7 +925,89 @@
       }
     }
 
-    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS WITH EQUATION SUPPORT ------------ */
+    /* ------------ FORM BUILDER MODAL & RENDER FUNCTIONS ------------ */
+    function renderFormsViewUI(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (createdFormsList.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:30px;">No forms created yet. Click the bottom + button to build a new diBadge form.</div>`;
+        return;
+      }
+
+      createdFormsList.forEach(form => {
+        const card = document.createElement("div");
+        card.style.cssText = "background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px;";
+        card.innerHTML = `
+          <div style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase;">${form.category}</div>
+          <div style="font-weight:700; font-size:0.95rem; color:var(--text-color);">${form.title}</div>
+          <div style="font-size:0.78rem; color:var(--subtext-color);">${form.fieldsCount} Questions / Inputs • Created ${form.date}</div>
+          <button style="margin-top:8px; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="alert('Opening form: ${form.title}')">Open Form</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openFormBuilderModal() {
+      document.getElementById("formBuilderTitle").value = "";
+      document.getElementById("formFieldsList").innerHTML = "";
+      addFormFieldToBuilder(); // Add one default question block
+      document.getElementById("dibadgeFormBuilderModal").style.display = "flex";
+    }
+
+    function closeFormBuilderModal() {
+      document.getElementById("dibadgeFormBuilderModal").style.display = "none";
+    }
+
+    function addFormFieldToBuilder() {
+      const list = document.getElementById("formFieldsList");
+      const fieldId = 'field-' + Date.now();
+      const div = document.createElement("div");
+      div.className = "form-builder-field-card";
+      div.id = fieldId;
+
+      div.innerHTML = `
+        <button type="button" class="remove-field-btn" onclick="document.getElementById('${fieldId}').remove()">✕ Remove</button>
+        <label class="modal-label" style="margin:0;">Question Label</label>
+        <input type="text" class="modal-input field-label-input" placeholder="e.g. Is safety helmet worn?" />
+        <label class="modal-label" style="margin:4px 0 0 0;">Input Answer Type</label>
+        <select class="modal-input field-type-input">
+          <option value="text">Short Text Answer</option>
+          <option value="checkbox">Yes / No Checkbox</option>
+          <option value="dropdown">Dropdown Selection</option>
+          <option value="photo">Photo / Camera Upload (diCam)</option>
+          <option value="date">Date Picker</option>
+        </select>
+      `;
+      list.appendChild(div);
+    }
+
+    function saveCreatedForm() {
+      const title = document.getElementById("formBuilderTitle").value.trim();
+      const category = document.getElementById("formBuilderCategory").value;
+      const fields = document.querySelectorAll(".form-builder-field-card");
+
+      if (!title) return alert("Please enter a form title.");
+
+      createdFormsList.push({
+        id: 'f-' + Date.now(),
+        title: title,
+        category: category,
+        fieldsCount: fields.length,
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      closeFormBuilderModal();
+
+      if (activeOpenedProject) {
+        renderFormsViewUI('projectFormsContainer');
+      } else {
+        renderFormsViewUI('globalFormsContainer');
+      }
+    }
+
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
     function evaluateMathExpr(expr) {
       if (typeof expr === 'number') return expr;
       if (!expr || typeof expr !== 'string') return 0;
@@ -1022,6 +1153,7 @@
       if (targetIndex === 0) {
         activeOpenedProject = null;
         folderObjectStack = [];
+        activeViewMode = 'projects';
 
         document.getElementById("projectSubNav").style.display = "none";
         document.getElementById("mainNavGroup").style.display = "flex";
@@ -1149,8 +1281,11 @@
       }
     }
 
+    /* FAB BUTTON DYNAMIC ROUTER */
     function handleFabClick() {
-      if (activeOpenedProject) {
+      if (activeViewMode === 'forms') {
+        openFormBuilderModal();
+      } else if (activeOpenedProject && activeViewMode === 'folder') {
         const newSubName = prompt("Enter new folder name:");
         if (newSubName && newSubName.trim()) {
           let currentFolderNode = getCurrentWorkspaceFolder();
