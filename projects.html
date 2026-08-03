@@ -221,7 +221,7 @@
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
-    /* FULL-SCREEN PROFESSIONAL DIBADGE FORM CREATOR BUILDER */
+    /* FULL-SCREEN PROFESSIONAL DIBADGE FORM CREATOR OVERLAY WORKSPACE */
     .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
     .form-creator-header { height: 64px; background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
     .form-creator-body { flex: 1; display: flex; overflow: hidden; }
@@ -348,15 +348,9 @@
 
     <!-- Global Main Level View Panels -->
     <section class="sub-view-panel" id="panelGlobalForms">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <div>
-          <h2 style="font-size:1.1rem; font-weight:700;">Global Organization Forms</h2>
-          <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates.</p>
-        </div>
-        <button onclick="openFormCreator('global')" style="background:var(--accent-blue); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px;">
-          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Create Global Form
-        </button>
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.1rem; font-weight:700;">Global Organization Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates. Click bottom left + button to create a new template.</p>
       </div>
       <div id="globalFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
     </section>
@@ -448,15 +442,9 @@
 
     <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
     <section class="sub-view-panel" id="panelProjectFormsWorkspace">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <div>
-          <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
-          <p style="color:var(--subtext-color); font-size:0.85rem;">Forms, worksheets, and field logs assigned strictly to this project.</p>
-        </div>
-        <button onclick="openFormCreator('project')" style="background:var(--accent-blue); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px;">
-          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Create Project Form
-        </button>
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
       </div>
       <div id="projectFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
     </section>
@@ -628,6 +616,21 @@
     </div>
   </div>
 
+  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS -->
+  <div class="modal-overlay" id="importGlobalFormModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeImportFormModal()">&times;</button>
+      <h3>Import Form from Global Library</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select an organization form template to assign to this project.</p>
+
+      <div id="globalImportListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; margin-bottom:16px;"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeImportFormModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- FULL-SCREEN PROFESSIONAL DIBADGE FORM CREATOR OVERLAY WORKSPACE -->
   <div class="fullscreen-form-creator" id="dibadgeFormCreatorOverlay">
     <div class="form-creator-header">
@@ -636,7 +639,7 @@
           <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         <h2 style="font-size:1.1rem; font-weight:700;">diBadge Form Studio & Builder</h2>
-        <span id="formCreatorTargetBadge" style="font-size:0.72rem; font-weight:700; background:rgba(2,132,199,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:6px; text-transform:uppercase;">Global Form</span>
+        <span style="font-size:0.72rem; font-weight:700; background:rgba(2,132,199,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:6px; text-transform:uppercase;">Global Template</span>
       </div>
 
       <div style="display:flex; gap:12px;">
@@ -697,11 +700,10 @@
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
-    let targetFormContext = 'global'; // 'global' or 'project'
-
     // Completely Separate Lists for Global and Project Forms
     let globalFormsList = [
-      { id: 'gf-1', title: 'Organization Master Safety Audit', category: 'Safety Audit', questions: [{ label: 'Inspector Name', type: 'text' }, { label: 'Site Helmet Verified?', type: 'checkbox' }], date: '2026-08-01' }
+      { id: 'gf-1', title: 'Organization Master Safety Audit', category: 'Safety Audit', questions: [{ label: 'Inspector Name', type: 'text' }, { label: 'Site Helmet Verified?', type: 'checkbox' }], date: '2026-08-01' },
+      { id: 'gf-2', title: 'Standard Quality Assurance Checklist', category: 'Quality Control', questions: [{ label: 'Batch No', type: 'text' }, { label: 'Site Photo', type: 'photo' }], date: '2026-08-02' }
     ];
 
     let projectFormsList = [
@@ -838,8 +840,8 @@
       const fab = document.getElementById("fabBtn");
       if (!fab) return;
       
-      // Rule: FAB is visible ONLY on Main Projects workspace OR inside active Folders view inside a project
-      if (activeViewMode === 'projects' || (activeOpenedProject && activeViewMode === 'folder')) {
+      // Rule: FAB is visible in Projects grid, Global Forms view, Project Folders, and Project Forms
+      if (activeViewMode === 'projects' || activeViewMode === 'forms' || (activeOpenedProject && (activeViewMode === 'folder' || activeViewMode === 'forms'))) {
         fab.style.display = "flex";
       } else {
         fab.style.display = "none";
@@ -1000,14 +1002,14 @@
       }
     }
 
-    /* ------------ FORM LIST & FULLSCREEN BUILDER STUDIO FUNCTIONS ------------ */
+    /* ------------ FORM LIST, IMPORT & FULLSCREEN BUILDER STUDIO FUNCTIONS ------------ */
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
       container.innerHTML = "";
 
       if (list.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created in this section yet. Click Create Form button above to build one.</div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created in this section yet. Click bottom left + button to create or import one.</div>`;
         return;
       }
 
@@ -1024,9 +1026,46 @@
       });
     }
 
-    function openFormCreator(context) {
-      targetFormContext = context;
-      document.getElementById("formCreatorTargetBadge").innerText = context === 'global' ? "Global Form" : "Project Form";
+    function openImportGlobalFormModal() {
+      const listContainer = document.getElementById("globalImportListContainer");
+      listContainer.innerHTML = "";
+
+      if (globalFormsList.length === 0) {
+        listContainer.innerHTML = `<div style="color:var(--subtext-color); text-align:center; padding:12px;">No Global Forms available to import.</div>`;
+      } else {
+        globalFormsList.forEach(gf => {
+          const item = document.createElement("div");
+          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-space-between; align-items:center;";
+          item.innerHTML = `
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
+              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category} • ${gf.questions.length} questions</div>
+            </div>
+            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+
+      document.getElementById("importGlobalFormModal").style.display = "flex";
+    }
+
+    function closeImportFormModal() {
+      document.getElementById("importGlobalFormModal").style.display = "none";
+    }
+
+    function importSelectedForm(globalFormId) {
+      const found = globalFormsList.find(f => f.id === globalFormId);
+      if (found) {
+        const importedCopy = JSON.parse(JSON.stringify(found));
+        importedCopy.id = 'pf-' + Date.now();
+        projectFormsList.push(importedCopy);
+        renderFormsListUI('projectFormsContainer', projectFormsList);
+        closeImportFormModal();
+      }
+    }
+
+    function openFormCreator() {
       document.getElementById("fcTitleInput").value = "Daily Inspection & Safety Log";
       document.getElementById("fcCategorySelect").value = "Safety Audit";
 
@@ -1132,21 +1171,15 @@
       if (!title) return alert("Please enter a form title.");
 
       const newFormObj = {
-        id: 'f-' + Date.now(),
+        id: 'gf-' + Date.now(),
         title: title,
         category: category,
         questions: [...activeCreatorQuestions],
         date: new Date().toISOString().split('T')[0]
       };
 
-      if (targetFormContext === 'global') {
-        globalFormsList.push(newFormObj);
-        renderFormsListUI('globalFormsContainer', globalFormsList);
-      } else {
-        projectFormsList.push(newFormObj);
-        renderFormsListUI('projectFormsContainer', projectFormsList);
-      }
-
+      globalFormsList.push(newFormObj);
+      renderFormsListUI('globalFormsContainer', globalFormsList);
       closeFormCreator();
     }
 
@@ -1426,7 +1459,14 @@
 
     /* FAB BUTTON ROUTER ACTION */
     function handleFabClick() {
-      if (activeOpenedProject && activeViewMode === 'folder') {
+      if (activeOpenedProject && activeViewMode === 'forms') {
+        // FAB inside Project Forms: Import from Global Forms
+        openImportGlobalFormModal();
+      } else if (activeViewMode === 'forms') {
+        // FAB inside Global Forms: Create New Global Form Template
+        openFormCreator();
+      } else if (activeOpenedProject && activeViewMode === 'folder') {
+        // FAB inside Project Folders: Create New Folder
         const newSubName = prompt("Enter new folder name:");
         if (newSubName && newSubName.trim()) {
           let currentFolderNode = getCurrentWorkspaceFolder();
@@ -1443,6 +1483,7 @@
           renderFolderView();
         }
       } else if (activeViewMode === 'projects') {
+        // FAB inside Main Projects: Create New Project Tile
         openCreateProjectModal();
       }
     }
