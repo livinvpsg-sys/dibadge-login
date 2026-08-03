@@ -276,7 +276,7 @@
 
         <!-- 3. Forms Icon (Page with Writing lines 📝) -->
         <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Global Forms">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="14" y2="17"></line><line x1="8" y1="9" x2="10" y2="9"></line></svg>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="16" y2="15"></line><line x1="8" y1="7" x2="11" y2="7"></line><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
         </button>
 
         <!-- 4. Schedule Icon -->
@@ -297,22 +297,27 @@
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
 
-        <!-- 3. Bill of Quantity (BOQ Box Icon) -->
+        <!-- 3. Forms Icon (Page with Writing lines 📝) -->
+        <button class="tab-btn" id="btnSubForms" onclick="switchProjectSubTab('forms')" title="Forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="16" y2="15"></line><line x1="8" y1="7" x2="11" y2="7"></line><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+
+        <!-- 4. Bill of Quantity (BOQ Box Icon) -->
         <button class="tab-btn" id="btnSubBOQ" onclick="switchProjectSubTab('boq')" title="Bill of Quantity (BOQ)">
           <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" ry="3" stroke="currentColor" stroke-width="2" fill="none"></rect><text x="12" y="14.5" font-size="8" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" font-family="sans-serif">BOQ</text></svg>
         </button>
 
-        <!-- 4. Expense & BOQ Comparison Icon -->
+        <!-- 5. Expense & BOQ Comparison Icon -->
         <button class="tab-btn" id="btnSubCompare" onclick="switchProjectSubTab('compare')" title="Expense vs BOQ Comparison">
           <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </button>
 
-        <!-- 5. Claims Icon (Dollar Circle) -->
+        <!-- 6. Claims Icon (Dollar Circle) -->
         <button class="tab-btn" id="btnSubClaims" onclick="switchProjectSubTab('claims')" title="Claims">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"></circle><path d="M12 7v10M15 9.5a2 2 0 0 0-2-1.5h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-2-1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
         </button>
 
-        <!-- 6. Schedule Icon -->
+        <!-- 7. Schedule Icon -->
         <button class="tab-btn" id="btnSubSchedule" onclick="switchProjectSubTab('schedule')" title="Project Schedule & Milestones">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </button>
@@ -417,6 +422,12 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelProjectFormsWorkspace">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Project Forms</h2>
+      <p style="color:var(--subtext-color); font-size:0.85rem;">Project-specific digital forms and field logs.</p>
     </section>
 
     <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
@@ -822,6 +833,7 @@
     function switchProjectSubTab(tabKey) {
       const folderWS = document.getElementById("folderExplorerWorkspace");
       const chatWS = document.getElementById("panelChatWorkspace");
+      const formsWS = document.getElementById("panelProjectFormsWorkspace");
       const boqWS = document.getElementById("panelBOQWorkspace");
       const compareWS = document.getElementById("panelCompareWorkspace");
       const claimsWS = document.getElementById("panelClaimsWorkspace");
@@ -829,13 +841,14 @@
 
       const btnFolder = document.getElementById("btnSubFolder");
       const btnChat = document.getElementById("btnSubChat");
+      const btnForms = document.getElementById("btnSubForms");
       const btnBOQ = document.getElementById("btnSubBOQ");
       const btnCompare = document.getElementById("btnSubCompare");
       const btnClaims = document.getElementById("btnSubClaims");
       const btnSchedule = document.getElementById("btnSubSchedule");
 
-      [folderWS, chatWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => ws.style.display = "none");
-      [btnFolder, btnChat, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => btn.classList.remove("active"));
+      [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => ws.style.display = "none");
+      [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => btn.classList.remove("active"));
 
       if (tabKey === 'folder') {
         folderWS.style.display = "flex";
@@ -844,6 +857,9 @@
       } else if (tabKey === 'chat') {
         chatWS.style.display = "flex";
         btnChat.classList.add("active");
+      } else if (tabKey === 'forms') {
+        formsWS.style.display = "block";
+        btnForms.classList.add("active");
       } else if (tabKey === 'boq') {
         boqWS.style.display = "flex";
         btnBOQ.classList.add("active");
@@ -1018,6 +1034,7 @@
 
         document.getElementById("folderExplorerWorkspace").style.display = "none";
         document.getElementById("panelChatWorkspace").style.display = "none";
+        document.getElementById("panelProjectFormsWorkspace").style.display = "none";
         document.getElementById("panelBOQWorkspace").style.display = "none";
         document.getElementById("panelCompareWorkspace").style.display = "none";
         document.getElementById("panelClaimsWorkspace").style.display = "none";
