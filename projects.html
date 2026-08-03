@@ -143,28 +143,6 @@
     /* CHAT VIEW WORKSPACE */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
-    
-    .chat-date-pill { align-self: center; background: #26262a; color: var(--cool-ash); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin-bottom: 6px; }
-
-    .msg-row-incoming { display: flex; gap: 10px; align-items: flex-start; max-width: 320px; }
-    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: #a67c70; color: #ffffff; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 18px; }
-    .msg-body-wrapper { display: flex; flex-direction: column; gap: 2px; width: 100%; }
-    .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
-    .msg-bubble-incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); padding: 8px 10px; border-radius: 14px 14px 14px 4px; font-size: 0.9rem; line-height: 1.4; position: relative; overflow: hidden; }
-
-    .msg-row-outgoing { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; max-width: 320px; }
-    .msg-bubble-outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); padding: 8px 10px; border-radius: 14px 14px 4px 14px; font-size: 0.9rem; line-height: 1.4; font-weight: 500; overflow: hidden; }
-    .msg-bubble-outgoing .msg-timestamp { color: #666666; margin-top: 4px; display: block; }
-    .msg-timestamp { font-size: 0.68rem; color: var(--cool-ash); margin-top: 4px; text-align: right; }
-
-    .chat-media-image-card { position: relative; border-radius: 10px; overflow: hidden; background: #1a1a1c; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
-    .chat-media-image-preview { width: 100%; height: 160px; object-fit: cover; display: block; }
-    .chat-media-image-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
-    .chat-media-title-sub { font-size: 0.78rem; font-weight: 600; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-
-    .wa-download-btn { background: var(--accent-blue); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; flex-shrink: 0; transition: transform 0.15s, background 0.15s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-    .wa-download-btn:hover { transform: scale(1.08); background: #0369a1; }
-    .wa-download-btn svg { width: 16px; height: 16px; stroke: #ffffff; stroke-width: 2.2; fill: none; }
 
     /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
     .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
@@ -176,8 +154,7 @@
     .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
     .boq-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; font-size: 0.88rem; }
     .boq-input { width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; outline: none; }
-    .boq-input:focus { border-color: var(--accent-blue); }
-    
+
     .boq-add-row-btn { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border: 1px dashed var(--accent-blue); width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; margin-top: 14px; transition: background 0.15s; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .boq-add-row-btn:hover { background: rgba(2, 132, 199, 0.28); }
 
@@ -205,8 +182,6 @@
     .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
-    .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
-    .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
     /* Standard Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
@@ -221,18 +196,21 @@
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
-    /* FULL-SCREEN PROFESSIONAL DIBADGE FORM CREATOR OVERLAY WORKSPACE */
+    /* EXCEL-STYLE FULLSCREEN SPREADSHEET FORM STUDIO */
     .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
-    .form-creator-header { height: 64px; background: var(--surface-color); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
-    .form-creator-body { flex: 1; display: flex; overflow: hidden; }
-    
-    .form-creator-editor { flex: 1; padding: 32px; overflow-y: auto; border-right: 1px solid var(--border-color); max-width: 650px; }
-    .form-creator-preview { flex: 1; padding: 32px; overflow-y: auto; background: var(--surface-color); display: flex; flex-direction: column; align-items: center; }
+    .excel-toolbar { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+    .excel-tool-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+    .excel-tool-btn:hover { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border-color: var(--accent-blue); }
+    .excel-tool-select, .excel-color-picker { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 8px; border-radius: 6px; font-size: 0.82rem; outline: none; }
 
-    .form-preview-paper { width: 100%; max-width: 520px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; flex-direction: column; gap: 18px; }
+    .excel-grid-workspace { flex: 1; overflow: auto; padding: 24px; background: var(--bg-color); display: flex; justify-content: flex-start; align-items: flex-start; }
+    .excel-table { border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .excel-table td, .excel-table th { border: 1px solid var(--border-color); min-width: 120px; height: 38px; padding: 4px 8px; position: relative; font-size: 0.88rem; color: var(--text-color); outline: none; }
+    .excel-table th { background: rgba(2, 132, 199, 0.12); color: var(--accent-blue); font-weight: 700; text-align: center; }
+    .excel-table td.selected-cell { outline: 2px solid var(--accent-blue); z-index: 5; background: rgba(2, 132, 199, 0.08); }
 
-    .builder-question-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 16px; border-radius: 10px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; position: relative; }
-    .builder-question-card .remove-q-btn { position: absolute; top: 12px; right: 12px; background: rgba(255, 59, 48, 0.1); color: var(--error-red); border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    .excel-btn-element { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
 
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
@@ -350,7 +328,7 @@
     <section class="sub-view-panel" id="panelGlobalForms">
       <div style="margin-bottom:16px;">
         <h2 style="font-size:1.1rem; font-weight:700;">Global Organization Forms</h2>
-        <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates. Click bottom left + button to create a new template.</p>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates. Click bottom left + button to create a spreadsheet template.</p>
       </div>
       <div id="globalFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
     </section>
@@ -404,37 +382,6 @@
           <div class="msg-bubble-outgoing">
             Hello John! I am reviewing the documents now.
             <span class="msg-timestamp">10:04 am</span>
-          </div>
-        </div>
-
-        <!-- Incoming Message 2 (Image Attachment) -->
-        <div class="msg-row-incoming">
-          <div class="msg-avatar">M</div>
-          <div class="msg-body-wrapper">
-            <span class="msg-sender-name">Mary</span>
-            <div class="msg-bubble-incoming">
-              Here is the updated site survey photo:
-              
-              <div class="chat-media-image-card">
-                <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b3?auto=format&fit=crop&w=500&q=80" alt="Site Photo" class="chat-media-image-preview" />
-                <div class="chat-media-image-overlay">
-                  <span class="chat-media-title-sub">Site_Inspection_Photo.jpg</span>
-                  <button class="wa-download-btn" onclick="downloadMedia('Site_Inspection_Photo.jpg')" title="Download Image">
-                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="msg-timestamp">10:06 am</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Outgoing Message 2 -->
-        <div class="msg-row-outgoing">
-          <div class="msg-bubble-outgoing">
-            Received all files! Downloads complete.
-            <span class="msg-timestamp">10:12 am</span>
           </div>
         </div>
       </div>
@@ -631,61 +578,65 @@
     </div>
   </div>
 
-  <!-- FULL-SCREEN PROFESSIONAL DIBADGE FORM CREATOR OVERLAY WORKSPACE -->
-  <div class="fullscreen-form-creator" id="dibadgeFormCreatorOverlay">
-    <div class="form-creator-header">
+  <!-- FULL-SCREEN EXCEL-STYLE SPREADSHEET FORM STUDIO -->
+  <div class="fullscreen-form-creator" id="excelFormStudioOverlay">
+    <div class="dashboard-header" style="height:56px; border-bottom:1px solid var(--border-color); padding:0 20px;">
       <div style="display:flex; align-items:center; gap:12px;">
-        <button onclick="closeFormCreator()" style="background:none; border:none; color:var(--text-color); cursor:pointer;" title="Exit Form Creator">
-          <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <button onclick="closeExcelStudio()" style="background:none; border:none; color:var(--text-color); cursor:pointer;" title="Close Studio">
+          <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        <h2 style="font-size:1.1rem; font-weight:700;">diBadge Form Studio & Builder</h2>
-        <span style="font-size:0.72rem; font-weight:700; background:rgba(2,132,199,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:6px; text-transform:uppercase;">Global Template</span>
+        <h2 style="font-size:1rem; font-weight:700;">diBadge Spreadsheet Form Designer</h2>
       </div>
 
-      <div style="display:flex; gap:12px;">
-        <button onclick="closeFormCreator()" style="background:var(--border-color); color:var(--text-color); border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
-        <button onclick="saveCreatedForm()" style="background:var(--accent-blue); color:#fff; border:none; padding:8px 20px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
+        <button onclick="saveExcelFormTemplate()" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
       </div>
     </div>
 
-    <div class="form-creator-body">
-      <!-- Left Column: Field Builder Editor -->
-      <div class="form-creator-editor">
-        <h3 style="font-size:1rem; font-weight:700; margin-bottom:14px;">Form Settings & Specification</h3>
+    <!-- Excel Formatting Toolbar -->
+    <div class="excel-toolbar">
+      <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
+      
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-        <label class="modal-label">Form Title</label>
-        <input type="text" id="fcTitleInput" class="modal-input" placeholder="e.g. Daily Site Safety & Hazard Checklist" oninput="updateLiveFormPreview()" />
+      <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
+      <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
 
-        <label class="modal-label">Category</label>
-        <select id="fcCategorySelect" class="modal-input" onchange="updateLiveFormPreview()">
-          <option value="Safety Audit">Safety & Compliance Audit</option>
-          <option value="Site Inspection">Site Inspection Log</option>
-          <option value="Quality Control">Quality Checklist</option>
-          <option value="Material Claim">Material & Work Claim</option>
-        </select>
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:24px 0 12px 0;">
-          <h3 style="font-size:1rem; font-weight:700;">Questions & Input Fields</h3>
-          <button type="button" onclick="addQuestionToBuilder()" style="background:rgba(2,132,199,0.15); color:var(--accent-blue); border:1px dashed var(--accent-blue); padding:6px 12px; border-radius:6px; font-weight:600; font-size:0.82rem; cursor:pointer;">+ Add Question Field</button>
-        </div>
+      <!-- Formatting -->
+      <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
+      
+      <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
+        <option value="12px">12px</option>
+        <option value="14px" selected>14px</option>
+        <option value="16px">16px</option>
+        <option value="18px">18px</option>
+        <option value="22px">22px</option>
+      </select>
 
-        <div id="fcQuestionsContainer"></div>
-      </div>
+      <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
+        <option value="left">Align Left</option>
+        <option value="center">Align Center</option>
+        <option value="right">Align Right</option>
+      </select>
 
-      <!-- Right Column: Interactive Live Preview -->
-      <div class="form-creator-preview">
-        <div style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">Live Interactive Preview</div>
-        
-        <div class="form-preview-paper">
-          <div>
-            <div id="prevCategory" style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase;">SAFETY AUDIT</div>
-            <h2 id="prevTitle" style="font-size:1.2rem; font-weight:800; color:var(--text-color); margin-top:2px;">Daily Site Safety Checklist</h2>
-          </div>
-          <div style="height:1px; background:var(--border-color);"></div>
-          
-          <div id="prevFieldsContainer" style="display:flex; flex-direction:column; gap:16px;"></div>
-        </div>
-      </div>
+      <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
+
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <!-- Interactive Form Controls Insertion -->
+      <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
+      <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
+      <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+    </div>
+
+    <!-- Spreadsheet Grid Canvas -->
+    <div class="excel-grid-workspace">
+      <table class="excel-table" id="excelSheetTable">
+        <tbody id="excelSheetBody"></tbody>
+      </table>
     </div>
   </div>
 
@@ -700,18 +651,19 @@
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
-    // Completely Separate Lists for Global and Project Forms
+    // Excel Studio State
+    let excelRowsCount = 8;
+    let excelColsCount = 6;
+    let selectedExcelCell = null;
+
     let globalFormsList = [
-      { id: 'gf-1', title: 'Organization Master Safety Audit', category: 'Safety Audit', questions: [{ label: 'Inspector Name', type: 'text' }, { label: 'Site Helmet Verified?', type: 'checkbox' }], date: '2026-08-01' },
-      { id: 'gf-2', title: 'Standard Quality Assurance Checklist', category: 'Quality Control', questions: [{ label: 'Batch No', type: 'text' }, { label: 'Site Photo', type: 'photo' }], date: '2026-08-02' }
+      { id: 'gf-1', title: 'Organization Master Safety Audit Sheet', category: 'Spreadsheet Form', date: '2026-08-01' },
+      { id: 'gf-2', title: 'Standard Quality Assurance Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
     ];
 
     let projectFormsList = [
-      { id: 'pf-1', title: 'Tower B Foundation Inspection Log', category: 'Site Inspection', questions: [{ label: 'Concrete Slump Test Result', type: 'text' }, { label: 'Rebar Inspection Photo', type: 'photo' }], date: '2026-08-02' }
+      { id: 'pf-1', title: 'Tower B Foundation Log Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
     ];
-
-    // Questions array inside active Form Creator Session
-    let activeCreatorQuestions = [];
 
     // Default BOQ Data
     let currentBOQItems = [
@@ -840,7 +792,6 @@
       const fab = document.getElementById("fabBtn");
       if (!fab) return;
       
-      // Rule: FAB is visible in Projects grid, Global Forms view, Project Folders, and Project Forms
       if (activeViewMode === 'projects' || activeViewMode === 'forms' || (activeOpenedProject && (activeViewMode === 'folder' || activeViewMode === 'forms'))) {
         fab.style.display = "flex";
       } else {
@@ -1002,7 +953,7 @@
       }
     }
 
-    /* ------------ FORM LIST, IMPORT & FULLSCREEN BUILDER STUDIO FUNCTIONS ------------ */
+    /* ------------ FORM LIST & IMPORT MODAL ------------ */
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -1019,8 +970,8 @@
         card.innerHTML = `
           <div style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase;">${form.category}</div>
           <div style="font-weight:700; font-size:1rem; color:var(--text-color);">${form.title}</div>
-          <div style="font-size:0.8rem; color:var(--subtext-color);">${form.questions ? form.questions.length : 0} Questions • Created ${form.date}</div>
-          <button style="margin-top:10px; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="alert('Launching Form: ${form.title}')">Open Form Template</button>
+          <div style="font-size:0.8rem; color:var(--subtext-color);">Spreadsheet Form Sheet • Created ${form.date}</div>
+          <button style="margin-top:10px; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="alert('Launching Spreadsheet Form: ${form.title}')">Open Spreadsheet Sheet</button>
         `;
         container.appendChild(card);
       });
@@ -1035,11 +986,11 @@
       } else {
         globalFormsList.forEach(gf => {
           const item = document.createElement("div");
-          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-space-between; align-items:center;";
+          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;";
           item.innerHTML = `
             <div>
               <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
-              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category} • ${gf.questions.length} questions</div>
+              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category}</div>
             </div>
             <button onclick="importSelectedForm('${gf.id}')" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
           `;
@@ -1065,122 +1016,109 @@
       }
     }
 
-    function openFormCreator() {
-      document.getElementById("fcTitleInput").value = "Daily Inspection & Safety Log";
-      document.getElementById("fcCategorySelect").value = "Safety Audit";
-
-      activeCreatorQuestions = [
-        { id: 'q-1', label: 'Inspector Name', type: 'text' },
-        { id: 'q-2', label: 'Safety Helmet & Boots Verified?', type: 'checkbox' }
-      ];
-
-      renderQuestionCards();
-      updateLiveFormPreview();
-      document.getElementById("dibadgeFormCreatorOverlay").style.display = "flex";
+    /* ------------ EXCEL SPREADSHEET FORM STUDIO LOGIC ------------ */
+    function openExcelStudio() {
+      buildExcelTableGrid();
+      document.getElementById("excelFormStudioOverlay").style.display = "flex";
     }
 
-    function closeFormCreator() {
-      document.getElementById("dibadgeFormCreatorOverlay").style.display = "none";
+    function closeExcelStudio() {
+      document.getElementById("excelFormStudioOverlay").style.display = "none";
     }
 
-    function addQuestionToBuilder() {
-      activeCreatorQuestions.push({
-        id: 'q-' + Date.now(),
-        label: 'New Inspection Question',
-        type: 'text'
-      });
-      renderQuestionCards();
-      updateLiveFormPreview();
-    }
+    function buildExcelTableGrid() {
+      const tbody = document.getElementById("excelSheetBody");
+      tbody.innerHTML = "";
 
-    function renderQuestionCards() {
-      const container = document.getElementById("fcQuestionsContainer");
-      container.innerHTML = "";
-
-      activeCreatorQuestions.forEach((q, idx) => {
-        const card = document.createElement("div");
-        card.className = "builder-question-card";
-        card.innerHTML = `
-          <button class="remove-q-btn" onclick="removeQuestion(${idx})">✕ Remove</button>
-          <label class="modal-label" style="margin:0;">Question ${idx + 1} Label</label>
-          <input type="text" class="modal-input" value="${q.label}" oninput="updateQuestionData(${idx}, 'label', this.value)" />
-          
-          <label class="modal-label" style="margin:6px 0 0 0;">Input Response Type</label>
-          <select class="modal-input" onchange="updateQuestionData(${idx}, 'type', this.value)">
-            <option value="text" ${q.type === 'text' ? 'selected' : ''}>Short Text Entry</option>
-            <option value="checkbox" ${q.type === 'checkbox' ? 'selected' : ''}>Yes / No Checkbox</option>
-            <option value="photo" ${q.type === 'photo' ? 'selected' : ''}>Photo / Camera Capture (diCam)</option>
-            <option value="date" ${q.type === 'date' ? 'selected' : ''}>Date Picker</option>
-          </select>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function updateQuestionData(idx, key, val) {
-      activeCreatorQuestions[idx][key] = val;
-      updateLiveFormPreview();
-    }
-
-    function removeQuestion(idx) {
-      activeCreatorQuestions.splice(idx, 1);
-      renderQuestionCards();
-      updateLiveFormPreview();
-    }
-
-    function updateLiveFormPreview() {
-      const title = document.getElementById("fcTitleInput").value || "Untitled Form";
-      const category = document.getElementById("fcCategorySelect").value;
-
-      document.getElementById("prevTitle").innerText = title;
-      document.getElementById("prevCategory").innerText = category;
-
-      const container = document.getElementById("prevFieldsContainer");
-      container.innerHTML = "";
-
-      if (activeCreatorQuestions.length === 0) {
-        container.innerHTML = `<div style="color:var(--subtext-color); font-size:0.85rem;">No question fields added yet.</div>`;
-        return;
+      // Render Header Row (A, B, C, D...)
+      const headerTr = document.createElement("tr");
+      headerTr.innerHTML = `<th>#</th>`;
+      for (let c = 0; c < excelColsCount; c++) {
+        const colLetter = String.fromCharCode(65 + c);
+        headerTr.innerHTML += `<th>${colLetter}</th>`;
       }
+      tbody.appendChild(headerTr);
 
-      activeCreatorQuestions.forEach(q => {
-        const field = document.createElement("div");
-        field.style.cssText = "display:flex; flex-direction:column; gap:4px;";
-        
-        let inputHtml = `<input type="text" class="modal-input" placeholder="Enter answer..." disabled />`;
-        if (q.type === 'checkbox') {
-          inputHtml = `<label style="display:flex; align-items:center; gap:8px; font-size:0.88rem;"><input type="checkbox" disabled /> Yes / Verified</label>`;
-        } else if (q.type === 'photo') {
-          inputHtml = `<div style="border:1px dashed var(--border-color); border-radius:6px; padding:12px; text-align:center; font-size:0.8rem; color:var(--accent-blue);">📷 Tap to Capture Photo (diCam Engine)</div>`;
-        } else if (q.type === 'date') {
-          inputHtml = `<input type="date" class="modal-input" disabled />`;
+      // Render Rows
+      for (let r = 1; r <= excelRowsCount; r++) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<th>${r}</th>`;
+
+        for (let c = 0; c < excelColsCount; c++) {
+          const td = document.createElement("td");
+          td.contentEditable = "true";
+          td.onclick = function(e) { selectExcelCell(e, td); };
+          tr.appendChild(td);
         }
-
-        field.innerHTML = `
-          <label style="font-size:0.85rem; font-weight:700; color:var(--text-color);">${q.label}</label>
-          ${inputHtml}
-        `;
-        container.appendChild(field);
-      });
+        tbody.appendChild(tr);
+      }
     }
 
-    function saveCreatedForm() {
-      const title = document.getElementById("fcTitleInput").value.trim();
-      const category = document.getElementById("fcCategorySelect").value;
+    function selectExcelCell(e, td) {
+      if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+      selectedExcelCell = td;
+      selectedExcelCell.classList.add("selected-cell");
+    }
 
+    function addExcelRow() {
+      excelRowsCount++;
+      buildExcelTableGrid();
+    }
+
+    function addExcelColumn() {
+      excelColsCount++;
+      buildExcelTableGrid();
+    }
+
+    function formatSelectedCell(action, value) {
+      if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+      if (action === 'bold') {
+        const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+        selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+      } else if (action === 'fontSize') {
+        selectedExcelCell.style.fontSize = value;
+      } else if (action === 'align') {
+        selectedExcelCell.style.textAlign = value;
+      } else if (action === 'color') {
+        selectedExcelCell.style.color = value;
+      }
+    }
+
+    function insertControlToCell(type) {
+      if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+      if (type === 'checkbox') {
+        selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+      } else if (type === 'button') {
+        const btnLabel = prompt("Enter button label:", "Action Button");
+        if (btnLabel) {
+          selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+        }
+      }
+    }
+
+    function mergeExcelCells() {
+      if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+      const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+      if (colspan && parseInt(colspan) > 1) {
+        selectedExcelCell.setAttribute("colspan", colspan);
+      }
+    }
+
+    function saveExcelFormTemplate() {
+      const title = document.getElementById("excelFormTitle").value.trim();
       if (!title) return alert("Please enter a form title.");
 
-      const newFormObj = {
+      globalFormsList.push({
         id: 'gf-' + Date.now(),
         title: title,
-        category: category,
-        questions: [...activeCreatorQuestions],
+        category: 'Spreadsheet Form',
         date: new Date().toISOString().split('T')[0]
-      };
+      });
 
-      globalFormsList.push(newFormObj);
       renderFormsListUI('globalFormsContainer', globalFormsList);
-      closeFormCreator();
+      closeExcelStudio();
     }
 
     /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
@@ -1463,8 +1401,8 @@
         // FAB inside Project Forms: Import from Global Forms
         openImportGlobalFormModal();
       } else if (activeViewMode === 'forms') {
-        // FAB inside Global Forms: Create New Global Form Template
-        openFormCreator();
+        // FAB inside Global Forms: Launch Excel-Style Form Studio
+        openExcelStudio();
       } else if (activeOpenedProject && activeViewMode === 'folder') {
         // FAB inside Project Folders: Create New Folder
         const newSubName = prompt("Enter new folder name:");
