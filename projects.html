@@ -414,10 +414,9 @@
       </div>
     </section>
 
-    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL WITH EQUATION AND CURRENCY/TAX CONTROLS -->
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
     <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
       <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
-      <p style="color:var(--subtext-color); font-size:0.85rem; margin-top:2px;">Itemized quantities (supports math equations like 10+5), unit pricing, custom tax, and currency settings.</p>
 
       <!-- Currency & Tax Controls Bar -->
       <div class="boq-top-controls">
@@ -425,6 +424,7 @@
           <span>Currency:</span>
           <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
             <option value="$" selected>$ USD</option>
+            <option value="S$">S$ SGD</option>
             <option value="₹">₹ INR</option>
             <option value="€">€ EUR</option>
             <option value="£">£ GBP</option>
