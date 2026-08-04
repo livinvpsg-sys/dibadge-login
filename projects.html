@@ -91,9 +91,6 @@
     .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .project-sub-nav { display: none; }
 
-    /* Home icon hidden by default */
-    #btnNavHome { display: none; }
-
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(0, 168, 132, 0.4); cursor: pointer; display: flex; }
     .fab-tab-btn:hover { background: #008f6c; transform: scale(1.05); }
 
@@ -277,7 +274,7 @@
   <!-- Header -->
   <header class="dashboard-header">
     <div class="header-left">
-      <!-- Default Title & Year Picker -->
+      <!-- Permanent Header Title: Projects -->
       <div class="default-header-title" id="defaultHeaderTitle">
         <h1 id="headerMainTitle">
           <svg id="headerTitleIcon" style="width:24px; height:24px; stroke:#00a884; stroke-width:2; fill:none;" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
@@ -312,23 +309,18 @@
     <aside class="left-vertical-tabbar">
       <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
-        <!-- 1. Home Icon (Shown when project icon active) -->
-        <a href="index.html" class="tab-btn" id="btnNavHome" title="Home Grid">
-          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </a>
-
-        <!-- 2. Suitcase Icon (Projects Grid) -->
+        <!-- 1. Suitcase Icon (Projects Grid) -->
         <button class="tab-btn active" id="btnNavSuitcase" onclick="switchMainViewTab('projects')" title="Project Tiles Grid">
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </button>
 
-        <!-- 3. Forms Icon -->
-        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Global Forms">
+        <!-- 2. Forms Icon -->
+        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
 
-        <!-- 4. Schedule Icon -->
-        <button class="tab-btn" id="btnNavSchedule" onclick="switchMainViewTab('schedule')" title="Global Schedule">
+        <!-- 3. Schedule Icon -->
+        <button class="tab-btn" id="btnNavSchedule" onclick="switchMainViewTab('schedule')" title="Schedule">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </button>
       </div>
@@ -390,8 +382,8 @@
     </section>
 
     <section class="sub-view-panel" id="panelGlobalSchedule">
-      <h2 style="font-size:1.1rem; margin-bottom:12px;">Master Schedule</h2>
-      <p style="color:var(--subtext-color);">Master project timeline, calendar schedules, and milestones.</p>
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
+      <p style="color:var(--subtext-color);">Project timeline, calendar schedules, and milestones.</p>
     </section>
 
     <!-- Inner Folder Browser View -->
@@ -944,20 +936,17 @@
       if (slider) slider.style.setProperty('--thumb-color', currentModalColor);
     }
 
-    /* Switch Main Level View Tabs with Header & Home Icon Logic */
+    /* Switch Main Level View Tabs - Permanent "Projects" Title Header */
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       const mainGrid = document.getElementById("mainGridWorkspace");
       const formsPanel = document.getElementById("panelGlobalForms");
       const schedulePanel = document.getElementById("panelGlobalSchedule");
 
-      const btnHome = document.getElementById("btnNavHome");
       const btnSuitcase = document.getElementById("btnNavSuitcase");
       const btnForms = document.getElementById("btnNavForms");
       const btnSchedule = document.getElementById("btnNavSchedule");
 
-      const headerTitleText = document.getElementById("headerTitleText");
-      const headerTitleIcon = document.getElementById("headerTitleIcon");
       const yearPicker = document.getElementById("yearPicker");
 
       [mainGrid, formsPanel, schedulePanel].forEach(el => { if (el) el.style.display = "none"; });
@@ -969,33 +958,21 @@
       if (tabKey === 'projects') {
         if (mainGrid) mainGrid.style.display = "flex";
         if (btnSuitcase) btnSuitcase.classList.add("active");
-        if (btnHome) btnHome.style.display = "flex"; // Show home icon when project icon is active
         if (searchElem) searchElem.style.display = "";
-        
-        if (headerTitleText) headerTitleText.innerText = "Projects";
-        if (headerTitleIcon) headerTitleIcon.innerHTML = `<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>`;
-        if (yearPicker) yearPicker.style.display = "";
+        if (yearPicker) yearPicker.style.display = ""; // Show year picker in Projects view
         
         filterProjects();
       } else if (tabKey === 'forms') {
         if (formsPanel) formsPanel.style.display = "block";
         if (btnForms) btnForms.classList.add("active");
-        if (btnHome) btnHome.style.display = "none";
         if (searchElem) searchElem.style.display = "none";
-        
-        if (headerTitleText) headerTitleText.innerText = "Forms";
-        if (headerTitleIcon) headerTitleIcon.innerHTML = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line>`;
         if (yearPicker) yearPicker.style.display = "none"; // Hide year picker in Forms view
         
         renderFormsListUI('globalFormsContainer', globalFormsList);
       } else if (tabKey === 'schedule') {
         if (schedulePanel) schedulePanel.style.display = "block";
         if (btnSchedule) btnSchedule.classList.add("active");
-        if (btnHome) btnHome.style.display = "none";
         if (searchElem) searchElem.style.display = "none";
-        
-        if (headerTitleText) headerTitleText.innerText = "Schedule";
-        if (headerTitleIcon) headerTitleIcon.innerHTML = `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>`;
         if (yearPicker) yearPicker.style.display = "";
       }
     }
@@ -1315,7 +1292,7 @@
           <div class="form-file-name">${form.title}</div>
         `;
         
-        // Double-click to open form studio or alert
+        // Double-click to open form studio
         card.ondblclick = function() {
           alert(`Opening Form: ${form.title}`);
         };
