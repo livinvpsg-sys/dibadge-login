@@ -35,9 +35,9 @@
 
       --chat-incoming-bg: #262626;
       --chat-incoming-text: #ffffff;
-      --chat-outgoing-bg: #0284c7;
-      --chat-outgoing-text: #ffffff;
-      --chat-sender-name: #38bdf8;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     [data-theme="dark"] {
@@ -51,9 +51,9 @@
 
       --chat-incoming-bg: #222224;
       --chat-incoming-text: #ffffff;
-      --chat-outgoing-bg: #0284c7;
-      --chat-outgoing-text: #ffffff;
-      --chat-sender-name: #38bdf8;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -117,67 +117,102 @@
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
+    /* Project Metadata Header Banner */
     .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; position: relative; }
     .project-meta-line1 { display: flex; align-items: center; gap: 10px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
     .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    .edit-meta-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: color 0.15s, background 0.15s; margin-left: 4px; }
+    .edit-meta-btn:hover { color: var(--accent-blue); background: rgba(2, 132, 199, 0.12); }
+    .edit-meta-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .project-meta-line3 { font-size: 0.82rem; color: var(--text-color); opacity: 0.9; margin-top: 2px; line-height: 1.3; }
 
     .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
+    /* Clean Folder Cards */
     .folder-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); }
+    .folder-card.selected-cut { opacity: 0.4; }
+    
     .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT VIEW WORKSPACE ------------ */
+    /* CHAT VIEW WORKSPACE */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
-    .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+    .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px; }
 
-    .chat-date-pill { align-self: center; background: #26262a; color: var(--cool-ash); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin: 8px 0; }
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
+    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
+    .boq-control-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .boq-select, .boq-control-input { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
-    .msg-row { display: flex; gap: 8px; width: 100%; align-items: flex-end; position: relative; }
-    .msg-row.incoming { justify-content: flex-start; }
-    .msg-row.outgoing { justify-content: flex-end; }
+    .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 900px; margin-top: 12px; }
+    .boq-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
+    .boq-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; font-size: 0.88rem; }
+    .boq-input { width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; outline: none; }
 
-    .msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: #0284c7; color: #ffffff; font-weight: 700; font-size: 0.75rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-    .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
-    .msg-sender-name { font-size: 0.75rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 4px; margin-bottom: 2px; }
+    .boq-add-row-btn { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border: 1px dashed var(--accent-blue); width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; margin-top: 14px; transition: background 0.15s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .boq-add-row-btn:hover { background: rgba(2, 132, 199, 0.28); }
 
-    .msg-bubble { padding: 8px 12px; border-radius: 14px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-top-left-radius: 4px; }
-    .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-top-right-radius: 4px; }
+    .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 320px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
+    .boq-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; color: var(--subtext-color); }
+    .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--accent-blue); }
 
-    .msg-media-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 4px; cursor: pointer; }
-    .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 2px; }
-
-    /* Bottom Input Bar */
-    .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-    .chat-input-row { display: flex; align-items: center; gap: 8px; }
-    .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
-    
-    .chat-action-btn { background: transparent; border: none; color: var(--cool-ash); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
-    .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
-    .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
-
-    .chat-send-fab { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-blue); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    .chat-send-fab svg { width: 18px; height: 18px; fill: currentColor; }
-
-    .emoji-picker-panel { display: none; grid-template-columns: repeat(8, 1fr); gap: 6px; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 12px; max-height: 150px; overflow-y: auto; }
-    .emoji-item { font-size: 1.3rem; text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; }
-    .emoji-item:hover { background: var(--surface-color); }
-
-    .attachment-popover { display: none; gap: 16px; padding: 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; justify-content: space-around; }
-    .attach-option-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-color); cursor: pointer; }
-    .attach-icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; }
+    .delete-row-btn { background: transparent; border: none; color: var(--error-red); cursor: pointer; opacity: 0.7; padding: 4px; border-radius: 4px; }
+    .delete-row-btn:hover { opacity: 1; background: rgba(255, 59, 48, 0.15); }
+    .delete-row-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 
     /* Sub-view Panels */
     .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
 
+    /* Context Menu */
+    .context-menu { position: fixed; z-index: 1000; width: 160px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
+    .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
+    .context-menu-item:hover { background: var(--accent-blue); color: white; }
+    .context-menu-item.danger:hover { background: var(--error-red); color: white; }
+    .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
     /* Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
+    .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
+    .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
 
-    @media (max-width: 1024px) { .notifications-panel { display: none; } }
+    /* Standard Modals */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); }
+    .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
+    .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
+    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    textarea.modal-input { resize: vertical; min-height: 65px; font-family: inherit; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-save { background: var(--accent-blue); color: white; }
+    .btn-cancel { background: var(--border-color); color: var(--text-color); }
+    .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
+
+    /* EXCEL-STYLE FULLSCREEN SPREADSHEET FORM STUDIO */
+    .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
+    .excel-toolbar { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+    .excel-tool-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+    .excel-tool-btn:hover { background: rgba(2, 132, 199, 0.15); color: var(--accent-blue); border-color: var(--accent-blue); }
+    .excel-tool-select, .excel-color-picker { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 8px; border-radius: 6px; font-size: 0.82rem; outline: none; }
+
+    .excel-grid-workspace { flex: 1; overflow: auto; padding: 24px; background: var(--bg-color); display: flex; justify-content: flex-start; align-items: flex-start; }
+    .excel-table { border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .excel-table td, .excel-table th { border: 1px solid var(--border-color); min-width: 120px; height: 38px; padding: 4px 8px; position: relative; font-size: 0.88rem; color: var(--text-color); outline: none; }
+    .excel-table th { background: rgba(2, 132, 199, 0.12); color: var(--accent-blue); font-weight: 700; text-align: center; }
+    .excel-table td.selected-cell { outline: 2px solid var(--accent-blue); z-index: 5; background: rgba(2, 132, 199, 0.08); }
+
+    .excel-btn-element { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
+
+    @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
 </head>
 <body onclick="hideContextMenus();">
@@ -185,6 +220,7 @@
   <!-- Header -->
   <header class="dashboard-header">
     <div class="header-left">
+      <!-- Default Title & Year Picker -->
       <div class="default-header-title" id="defaultHeaderTitle">
         <h1>
           <svg style="width:24px; height:24px; stroke:#0284c7; stroke-width:2; fill:none;" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
@@ -197,6 +233,7 @@
         </select>
       </div>
 
+      <!-- Folder Navigation Header Path with Back Arrow -->
       <div class="folder-header-nav" id="folderHeaderNav">
         <button class="header-back-icon" onclick="navigateUpBreadcrumb()" title="Go Back">
           <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -213,26 +250,67 @@
   </header>
 
   <div class="dashboard-body-split">
+    
     <!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
+      <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
+        <!-- 1. Home Icon -->
         <a href="index.html" class="tab-btn" id="btnNavHome" title="Home Grid">
           <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </a>
+
+        <!-- 2. Suitcase Icon (Projects Grid) -->
         <button class="tab-btn active" id="btnNavSuitcase" onclick="switchMainViewTab('projects')" title="Project Tiles Grid">
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </button>
+
+        <!-- 3. Forms Icon (Clean Vector Page with Writing Lines 📝) -->
         <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Global Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
+
+        <!-- 4. Schedule Icon -->
+        <button class="tab-btn" id="btnNavSchedule" onclick="switchMainViewTab('schedule')" title="Global Schedule">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </button>
       </div>
 
+      <!-- PROJECT INNER SUB-MODULE NAVIGATION GROUP -->
       <div class="project-sub-nav" id="projectSubNav">
+        <!-- 1. Folder Icon -->
         <button class="tab-btn active" id="btnSubFolder" onclick="switchProjectSubTab('folder')" title="Folders & Files">
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </button>
+
+        <!-- 2. Chat Icon -->
         <button class="tab-btn" id="btnSubChat" onclick="switchProjectSubTab('chat')" title="Project Chat">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+
+        <!-- 3. Forms Icon (Clean Vector Page with Writing Lines 📝) -->
+        <button class="tab-btn" id="btnSubForms" onclick="switchProjectSubTab('forms')" title="Forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
+        </button>
+
+        <!-- 4. Bill of Quantity (BOQ Box Icon) -->
+        <button class="tab-btn" id="btnSubBOQ" onclick="switchProjectSubTab('boq')" title="Bill of Quantity (BOQ)">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3" ry="3" stroke="currentColor" stroke-width="2" fill="none"></rect><text x="12" y="14.5" font-size="8" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" font-family="sans-serif">BOQ</text></svg>
+        </button>
+
+        <!-- 5. Expense & BOQ Comparison Icon -->
+        <button class="tab-btn" id="btnSubCompare" onclick="switchProjectSubTab('compare')" title="Expense vs BOQ Comparison">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </button>
+
+        <!-- 6. Claims Icon (Dollar Circle) -->
+        <button class="tab-btn" id="btnSubClaims" onclick="switchProjectSubTab('claims')" title="Claims">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"></circle><path d="M12 7v10M15 9.5a2 2 0 0 0-2-1.5h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-2-1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path></svg>
+        </button>
+
+        <!-- 7. Schedule Icon -->
+        <button class="tab-btn" id="btnSubSchedule" onclick="switchProjectSubTab('schedule')" title="Project Schedule & Milestones">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </button>
       </div>
 
@@ -241,197 +319,1160 @@
       </button>
     </aside>
 
-    <!-- Center Workspace -->
+    <!-- Center Grid Workspace (Project Tiles Grid) -->
     <main class="tiles-wrapper" id="mainGridWorkspace">
       <div class="tiles-grid" id="projectTilesGrid"></div>
     </main>
 
-    <!-- Inner Folder Explorer -->
-    <section class="folder-explorer-view" id="folderExplorerWorkspace">
+    <!-- Global Main Level View Panels -->
+    <section class="sub-view-panel" id="panelGlobalForms">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.1rem; font-weight:700;">Global Organization Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates. Click bottom left + button to create a spreadsheet template.</p>
+      </div>
+      <div id="globalFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
+    </section>
+
+    <section class="sub-view-panel" id="panelGlobalSchedule">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Master Schedule</h2>
+      <p style="color:var(--subtext-color);">Master project timeline, calendar schedules, and milestones.</p>
+    </section>
+
+    <!-- Inner Folder Browser View -->
+    <section class="folder-explorer-view" id="folderExplorerWorkspace" oncontextmenu="handleWorkspaceContextMenu(event)">
+      <!-- Project Metadata Header Banner -->
+      <div class="project-meta-banner" id="projectMetaHeader">
+        <div class="project-meta-line1">
+          <span id="metaClientName">Amber Holdings</span>
+          <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
+          
+          <button class="edit-meta-btn" onclick="openEditProjectModal()" title="Edit Project Details">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+        </div>
+        <div class="project-meta-line2">
+          <svg style="width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span id="metaLocation">North Tower B</span>
+        </div>
+        <div class="project-meta-line3" id="metaRemarks">Site inspection & visual documentation logs.</div>
+      </div>
+
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- FULL CHAT WORKSPACE (Text & Media Attachments Only) -->
+    <!-- Read-Only Chat View Workspace -->
     <section class="chat-view-workspace" id="panelChatWorkspace">
       <div class="chat-messages-container" id="chatThreadContainer">
         <div class="chat-date-pill">Today</div>
 
-        <!-- Sample Incoming Message -->
-        <div class="msg-row incoming">
+        <!-- Incoming Message 1 -->
+        <div class="msg-row-incoming">
           <div class="msg-avatar">J</div>
-          <div class="msg-body">
+          <div class="msg-body-wrapper">
             <span class="msg-sender-name">John</span>
-            <div class="msg-bubble incoming">
+            <div class="msg-bubble-incoming">
               Hi team! Please review the site survey photos and inspection documents uploaded today.
-              <div class="msg-meta-row"><span>10:04 AM</span></div>
+              <div class="msg-timestamp">10:04 am</div>
             </div>
           </div>
         </div>
 
-        <!-- Sample Outgoing Message -->
-        <div class="msg-row outgoing">
-          <div class="msg-body">
-            <div class="msg-bubble outgoing">
-              Hello John! I am reviewing the site photos now.
-              <div class="msg-meta-row"><span>10:05 AM</span></div>
-            </div>
+        <!-- Outgoing Message 1 -->
+        <div class="msg-row-outgoing">
+          <div class="msg-bubble-outgoing">
+            Hello John! I am reviewing the documents now.
+            <span class="msg-timestamp">10:04 am</span>
           </div>
         </div>
       </div>
-
-      <!-- Attachment Popover -->
-      <div class="attachment-popover" id="chatAttachmentPopover">
-        <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
-          <div class="attach-icon-circle" style="background:#e91e63;">📷</div>
-          <span>Image</span>
-        </div>
-        <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
-          <div class="attach-icon-circle" style="background:#9c27b0;">🎥</div>
-          <span>Video</span>
-        </div>
-        <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
-          <div class="attach-icon-circle" style="background:#2196f3;">📄</div>
-          <span>Document</span>
-        </div>
-      </div>
-
-      <!-- Emoji Picker -->
-      <div class="emoji-picker-panel" id="chatEmojiPanel">
-        <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-        <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
-        <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
-        <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
-        <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-        <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
-        <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
-        <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
-      </div>
-
-      <!-- Chat Bottom Input Bar -->
-      <div class="chat-bottom-bar">
-        <div class="chat-input-row">
-          <button class="chat-action-btn" onclick="toggleEmojiPicker()" title="Emoji">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-          </button>
-          
-          <button class="chat-action-btn" onclick="toggleAttachmentPopover()" title="Attach File">
-            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-          </button>
-
-          <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" onkeyup="handleChatInputKey(event)" />
-
-          <button class="chat-send-fab" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
-            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-          </button>
-        </div>
-      </div>
-
-      <input type="file" id="chatHiddenFileInput" style="display:none;" onchange="handleFileSelected(event)" />
     </section>
 
-    <!-- Activity Feed -->
+    <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelProjectFormsWorkspace">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
+      </div>
+      <div id="projectFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
+    </section>
+
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
+      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
+
+      <!-- Currency & Tax Controls Bar -->
+      <div class="boq-top-controls">
+        <div class="boq-control-group">
+          <span>Currency:</span>
+          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+            <option value="$" selected>$ USD</option>
+            <option value="S$">S$ SGD</option>
+            <option value="₹">₹ INR</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+            <option value="¥">¥ JPY</option>
+            <option value="A$">A$ AUD</option>
+          </select>
+        </div>
+
+        <div class="boq-control-group">
+          <span>Tax Rate (%):</span>
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
+        </div>
+      </div>
+
+      <div class="boq-table-card">
+        <table class="boq-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Sl No</th>
+              <th>Item Description</th>
+              <th style="width: 140px;">Quantity</th>
+              <th style="width: 140px;">Unit Price</th>
+              <th style="width: 140px; text-align:right;">Total Price</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="boqTableBody">
+            <!-- Dynamic BOQ Rows rendered here -->
+          </tbody>
+        </table>
+
+        <button class="boq-add-row-btn" onclick="addBOQRow()">
+          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Row Item
+        </button>
+
+        <!-- Calculations Summary Card -->
+        <div class="boq-summary-card">
+          <div class="boq-summary-row">
+            <span>Sub Total:</span>
+            <span id="boqSubTotal">$0.00</span>
+          </div>
+          <div class="boq-summary-row">
+            <span id="boqTaxLabel">Tax / VAT (10%):</span>
+            <span id="boqTax">$0.00</span>
+          </div>
+          <div class="boq-summary-row grand-total">
+            <span>Grand Total:</span>
+            <span id="boqGrandTotal">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECT CLAIMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelClaimsWorkspace">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+
+      <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
+        <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
+      </div>
+    </section>
+
+    <!-- Other Inner Sub-View Panels -->
+    <section class="sub-view-panel" id="panelCompareWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
+      <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
+    </section>
+
+    <section class="sub-view-panel" id="panelScheduleWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Project Schedule</h2>
+      <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
+    </section>
+
+    <!-- Right Activity Feed -->
     <aside class="notifications-panel">
-      <div class="notifications-header"><span>Activity Feed</span></div>
-      <div class="notifications-list"><div class="notification-item">Project chat synced.</div></div>
+      <div class="notifications-header">
+        <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
+        <span style="font-size:0.75rem; background:rgba(2,132,199,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:10px;">Live</span>
+      </div>
+      <div class="notifications-list">
+        <div class="notification-item">
+          <div class="title">New Project Initialized</div>
+          <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
+          <div class="time">1 hour ago</div>
+        </div>
+      </div>
     </aside>
   </div>
 
+  <!-- Context Menus -->
+  <div class="context-menu" id="projectTileContextMenu">
+    <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
+  </div>
+
+  <div class="context-menu" id="folderContextMenu">
+    <div class="context-menu-item" onclick="executeContextAction('copy')">Copy</div>
+    <div class="context-menu-item" onclick="executeContextAction('cut')">Cut</div>
+    <div class="context-menu-item" id="pasteContextBtn" onclick="executeContextAction('paste')" style="display:none;">Paste</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" onclick="executeContextAction('rename')">Rename</div>
+    <div class="context-menu-item danger" onclick="executeContextAction('delete')" style="color:var(--error-red);">Delete</div>
+  </div>
+
+  <!-- Create New Project Modal -->
+  <div class="modal-overlay" id="createProjectModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
+      <h3>Create New Project Tile</h3>
+
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="newProjectClient" class="modal-input" />
+
+      <label class="modal-label">Project No</label>
+      <input type="text" id="newProjectNo" class="modal-input" />
+
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="newProjectLocation" class="modal-input" />
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="newProjectRemarks" class="modal-input"></textarea>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
+        <button class="modal-btn btn-cancel" onclick="closeCreateProjectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Project Details Modal -->
+  <div class="modal-overlay" id="editProjectModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeEditProjectModal()">&times;</button>
+      <h3>Edit Project Details</h3>
+
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="editProjectClient" class="modal-input" />
+
+      <label class="modal-label">Project No</label>
+      <input type="text" id="editProjectNo" class="modal-input" />
+
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="editProjectLocation" class="modal-input" />
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="editProjectRemarks" class="modal-input"></textarea>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
+        <button class="modal-btn btn-cancel" onclick="closeEditProjectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS -->
+  <div class="modal-overlay" id="importGlobalFormModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeImportFormModal()">&times;</button>
+      <h3>Import Form from Global Library</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select an organization form template to assign to this project.</p>
+
+      <div id="globalImportListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; margin-bottom:16px;"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeImportFormModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN EXCEL-STYLE SPREADSHEET FORM STUDIO -->
+  <div class="fullscreen-form-creator" id="excelFormStudioOverlay">
+    <div class="dashboard-header" style="height:56px; border-bottom:1px solid var(--border-color); padding:0 20px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button onclick="closeExcelStudio()" style="background:none; border:none; color:var(--text-color); cursor:pointer;" title="Close Studio">
+          <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <h2 style="font-size:1rem; font-weight:700;">diBadge Spreadsheet Form Designer</h2>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
+        <button onclick="saveExcelFormTemplate()" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
+      </div>
+    </div>
+
+    <!-- Excel Formatting Toolbar -->
+    <div class="excel-toolbar">
+      <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
+      
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
+      <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
+
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <!-- Formatting -->
+      <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
+      
+      <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
+        <option value="12px">12px</option>
+        <option value="14px" selected>14px</option>
+        <option value="16px">16px</option>
+        <option value="18px">18px</option>
+        <option value="22px">22px</option>
+      </select>
+
+      <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
+        <option value="left">Align Left</option>
+        <option value="center">Align Center</option>
+        <option value="right">Align Right</option>
+      </select>
+
+      <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
+
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <!-- Interactive Form Controls Insertion -->
+      <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
+      <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
+      <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+    </div>
+
+    <!-- Spreadsheet Grid Canvas -->
+    <div class="excel-grid-workspace">
+      <table class="excel-table" id="excelSheetTable">
+        <tbody id="excelSheetBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <script>
+    const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
+    let selectedProjectForContext = null;
+    let folderObjectStack = [];
     let activeViewMode = 'projects';
+
+    let clipboardFolder = null;
+    let isCutOperation = false;
+    let selectedFolderForContext = null;
+
+    // Excel Studio State
+    let excelRowsCount = 8;
+    let excelColsCount = 6;
+    let selectedExcelCell = null;
+
+    let globalFormsList = [
+      { id: 'gf-1', title: 'Organization Master Safety Audit Sheet', category: 'Spreadsheet Form', date: '2026-08-01' },
+      { id: 'gf-2', title: 'Standard Quality Assurance Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
+    ];
+
+    let projectFormsList = [
+      { id: 'pf-1', title: 'Tower B Foundation Log Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
+    ];
+
+    // Default BOQ Data
+    let currentBOQItems = [
+      { item: 'Foundation Concrete', qty: '25', price: '150' },
+      { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
+    ];
+
+    function getDefaultSubFolders() {
+      return [
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [] }
+      ];
+    }
+
+    const defaultProjects = [
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue', children: getDefaultSubFolders() },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green', children: getDefaultSubFolders() },
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple', children: getDefaultSubFolders() }
+    ];
+
+    function getProjects() {
+      const stored = localStorage.getItem('dibadge_project_tiles');
+      if (!stored) return defaultProjects;
+      const parsed = JSON.parse(stored);
+      return parsed.map(p => {
+        if (!p.children) p.children = getDefaultSubFolders();
+        return p;
+      });
+    }
+
+    function saveProjects(array) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
+      if (!activeOpenedProject) filterProjects();
+    }
+
+    function filterProjects() {
+      const selectedYear = document.getElementById("yearPicker").value;
+      const searchInputElem = document.getElementById("projectSearchInput");
+      const searchQuery = searchInputElem ? searchInputElem.value.toLowerCase().trim() : "";
+      const grid = document.getElementById("projectTilesGrid");
+      grid.innerHTML = "";
+
+      const projects = getProjects();
+      const filtered = projects.filter(p => {
+        const matchesYear = p.year === selectedYear;
+        const matchesSearch = (p.client && p.client.toLowerCase().includes(searchQuery)) ||
+                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
+                              (p.location && p.location.toLowerCase().includes(searchQuery));
+        return matchesYear && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px;">No projects found for ${selectedYear} matching "${searchQuery}"</div>`;
+        return;
+      }
+
+      filtered.forEach(proj => {
+        const clientName = proj.client || 'Client';
+        const firstLetter = clientName.charAt(0).toUpperCase();
+
+        const tileEl = document.createElement("div");
+        tileEl.className = `tile ${proj.color}`;
+        
+        tileEl.innerHTML = `
+          <div class="tile-avatar-center">
+            <div class="tile-letter-avatar">${firstLetter}</div>
+          </div>
+          <div class="tile-content-bottom">
+            <div class="tile-client-name">${clientName}</div>
+            <div class="tile-project-no">${proj.projectNo || 'NO-ID'}</div>
+          </div>
+        `;
+
+        tileEl.onclick = function(e) {
+          e.stopPropagation();
+          openProjectFolder(proj);
+        };
+
+        tileEl.oncontextmenu = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          showProjectTileContextMenu(e, proj);
+        };
+
+        grid.appendChild(tileEl);
+      });
+    }
+
+    /* Switch Main Level View Tabs */
+    function switchMainViewTab(tabKey) {
+      activeViewMode = tabKey;
+      const mainGrid = document.getElementById("mainGridWorkspace");
+      const formsPanel = document.getElementById("panelGlobalForms");
+      const schedulePanel = document.getElementById("panelGlobalSchedule");
+
+      const btnSuitcase = document.getElementById("btnNavSuitcase");
+      const btnForms = document.getElementById("btnNavForms");
+      const btnSchedule = document.getElementById("btnNavSchedule");
+
+      [mainGrid, formsPanel, schedulePanel].forEach(el => el.style.display = "none");
+      [btnSuitcase, btnForms, btnSchedule].forEach(btn => btn.classList.remove("active"));
+
+      const searchElem = document.getElementById("projectSearchInput");
+      updateFabVisibility();
+
+      if (tabKey === 'projects') {
+        mainGrid.style.display = "flex";
+        btnSuitcase.classList.add("active");
+        if (searchElem) searchElem.style.display = "";
+        filterProjects();
+      } else if (tabKey === 'forms') {
+        formsPanel.style.display = "block";
+        btnForms.classList.add("active");
+        if (searchElem) searchElem.style.display = "none";
+        renderFormsListUI('globalFormsContainer', globalFormsList);
+      } else if (tabKey === 'schedule') {
+        schedulePanel.style.display = "block";
+        btnSchedule.classList.add("active");
+        if (searchElem) searchElem.style.display = "none";
+      }
+    }
+
+    function updateFabVisibility() {
+      const fab = document.getElementById("fabBtn");
+      if (!fab) return;
+      
+      if (activeViewMode === 'projects' || activeViewMode === 'forms' || (activeOpenedProject && (activeViewMode === 'folder' || activeViewMode === 'forms'))) {
+        fab.style.display = "flex";
+      } else {
+        fab.style.display = "none";
+      }
+    }
+
+    function showProjectTileContextMenu(e, proj) {
+      hideContextMenus();
+      selectedProjectForContext = proj;
+      const menu = document.getElementById("projectTileContextMenu");
+      menu.style.top = `${e.clientY}px`;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.display = "flex";
+    }
+
+    function openSelectedProjectFromContext() {
+      hideContextMenus();
+      if (selectedProjectForContext) {
+        openProjectFolder(selectedProjectForContext);
+      }
+    }
+
+    function deleteSelectedProjectFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+
+      const projName = selectedProjectForContext.client || selectedProjectForContext.projectNo;
+      if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
+        let projects = getProjects();
+        projects = projects.filter(p => p.id !== selectedProjectForContext.id);
+        saveProjects(projects);
+        selectedProjectForContext = null;
+        filterProjects();
+      }
+    }
+
+    function openProjectFolder(proj) {
+      activeOpenedProject = proj;
+      folderObjectStack = [proj];
+      activeViewMode = 'folder';
+
+      updateProjectMetaBanner();
+
+      document.getElementById("mainNavGroup").style.display = "none";
+      document.getElementById("projectSubNav").style.display = "flex";
+
+      document.getElementById("defaultHeaderTitle").style.display = "none";
+      document.getElementById("folderHeaderNav").style.display = "flex";
+
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "none";
+
+      document.getElementById("mainGridWorkspace").style.display = "none";
+      document.getElementById("panelGlobalForms").style.display = "none";
+      document.getElementById("panelGlobalSchedule").style.display = "none";
+      
+      switchProjectSubTab('folder');
+    }
+
+    function updateProjectMetaBanner() {
+      if (!activeOpenedProject) return;
+      document.getElementById("metaClientName").innerText = activeOpenedProject.client || "Client N/A";
+      document.getElementById("metaProjectNo").innerText = activeOpenedProject.projectNo || "NO-ID";
+      document.getElementById("metaLocation").innerText = activeOpenedProject.location || "Location N/A";
+      document.getElementById("metaRemarks").innerText = activeOpenedProject.remarks || "No remarks provided.";
+    }
+
+    function openEditProjectModal() {
+      if (!activeOpenedProject) return;
+      document.getElementById("editProjectClient").value = activeOpenedProject.client || "";
+      document.getElementById("editProjectNo").value = activeOpenedProject.projectNo || "";
+      document.getElementById("editProjectLocation").value = activeOpenedProject.location || "";
+      document.getElementById("editProjectRemarks").value = activeOpenedProject.remarks || "";
+      
+      document.getElementById("editProjectModal").style.display = "flex";
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById("editProjectModal").style.display = "none";
+    }
+
+    function saveProjectEdits() {
+      if (!activeOpenedProject) return;
+
+      const client = document.getElementById("editProjectClient").value.trim();
+      const projectNo = document.getElementById("editProjectNo").value.trim();
+      const location = document.getElementById("editProjectLocation").value.trim();
+      const remarks = document.getElementById("editProjectRemarks").value.trim();
+
+      if (!client) return alert("Please enter a client name.");
+
+      activeOpenedProject.client = client;
+      activeOpenedProject.projectNo = projectNo || activeOpenedProject.projectNo;
+      activeOpenedProject.location = location || 'N/A';
+      activeOpenedProject.remarks = remarks;
+
+      persistProjectTree();
+      updateProjectMetaBanner();
+      renderFolderView();
+      
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      if (idx !== -1) {
+        allProjects[idx] = activeOpenedProject;
+        localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+      }
+
+      closeEditProjectModal();
+    }
 
     function switchProjectSubTab(tabKey) {
       activeViewMode = tabKey;
       const folderWS = document.getElementById("folderExplorerWorkspace");
       const chatWS = document.getElementById("panelChatWorkspace");
+      const formsWS = document.getElementById("panelProjectFormsWorkspace");
+      const boqWS = document.getElementById("panelBOQWorkspace");
+      const compareWS = document.getElementById("panelCompareWorkspace");
+      const claimsWS = document.getElementById("panelClaimsWorkspace");
+      const scheduleWS = document.getElementById("panelScheduleWorkspace");
 
-      [folderWS, chatWS].forEach(ws => ws.style.display = "none");
+      const btnFolder = document.getElementById("btnSubFolder");
+      const btnChat = document.getElementById("btnSubChat");
+      const btnForms = document.getElementById("btnSubForms");
+      const btnBOQ = document.getElementById("btnSubBOQ");
+      const btnCompare = document.getElementById("btnSubCompare");
+      const btnClaims = document.getElementById("btnSubClaims");
+      const btnSchedule = document.getElementById("btnSubSchedule");
+
+      [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => ws.style.display = "none");
+      [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => btn.classList.remove("active"));
+
+      updateFabVisibility();
 
       if (tabKey === 'folder') {
         folderWS.style.display = "flex";
+        btnFolder.classList.add("active");
+        renderFolderView();
       } else if (tabKey === 'chat') {
         chatWS.style.display = "flex";
+        btnChat.classList.add("active");
+      } else if (tabKey === 'forms') {
+        formsWS.style.display = "block";
+        btnForms.classList.add("active");
+        renderFormsListUI('projectFormsContainer', projectFormsList);
+      } else if (tabKey === 'boq') {
+        boqWS.style.display = "flex";
+        btnBOQ.classList.add("active");
+        renderBOQTable();
+      } else if (tabKey === 'compare') {
+        compareWS.style.display = "block";
+        btnCompare.classList.add("active");
+      } else if (tabKey === 'claims') {
+        claimsWS.style.display = "block";
+        btnClaims.classList.add("active");
+      } else if (tabKey === 'schedule') {
+        scheduleWS.style.display = "block";
+        btnSchedule.classList.add("active");
       }
     }
 
-    function toggleEmojiPicker() {
-      const panel = document.getElementById("chatEmojiPanel");
-      panel.style.display = panel.style.display === "grid" ? "none" : "grid";
-      document.getElementById("chatAttachmentPopover").style.display = "none";
+    /* ------------ FORM LIST & IMPORT MODAL ------------ */
+    function renderFormsListUI(containerId, list) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created in this section yet. Click bottom left + button to create or import one.</div>`;
+        return;
+      }
+
+      list.forEach(form => {
+        const card = document.createElement("div");
+        card.style.cssText = "background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 8px;";
+        card.innerHTML = `
+          <div style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase;">${form.category}</div>
+          <div style="font-weight:700; font-size:1rem; color:var(--text-color);">${form.title}</div>
+          <div style="font-size:0.8rem; color:var(--subtext-color);">Spreadsheet Form Sheet • Created ${form.date}</div>
+          <button style="margin-top:10px; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="alert('Launching Spreadsheet Form: ${form.title}')">Open Spreadsheet Sheet</button>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    function toggleAttachmentPopover() {
-      const popover = document.getElementById("chatAttachmentPopover");
-      popover.style.display = popover.style.display === "flex" ? "none" : "flex";
-      document.getElementById("chatEmojiPanel").style.display = "none";
+    function openImportGlobalFormModal() {
+      const listContainer = document.getElementById("globalImportListContainer");
+      listContainer.innerHTML = "";
+
+      if (globalFormsList.length === 0) {
+        listContainer.innerHTML = `<div style="color:var(--subtext-color); text-align:center; padding:12px;">No Global Forms available to import.</div>`;
+      } else {
+        globalFormsList.forEach(gf => {
+          const item = document.createElement("div");
+          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;";
+          item.innerHTML = `
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
+              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category}</div>
+            </div>
+            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+
+      document.getElementById("importGlobalFormModal").style.display = "flex";
     }
 
-    function insertEmoji(emoji) {
-      const input = document.getElementById("chatMsgInput");
-      input.value += emoji;
+    function closeImportFormModal() {
+      document.getElementById("importGlobalFormModal").style.display = "none";
     }
 
-    function triggerFileInput(acceptType) {
-      const fileInput = document.getElementById("chatHiddenFileInput");
-      fileInput.accept = acceptType;
-      fileInput.click();
-      toggleAttachmentPopover();
+    function importSelectedForm(globalFormId) {
+      const found = globalFormsList.find(f => f.id === globalFormId);
+      if (found) {
+        const importedCopy = JSON.parse(JSON.stringify(found));
+        importedCopy.id = 'pf-' + Date.now();
+        projectFormsList.push(importedCopy);
+        renderFormsListUI('projectFormsContainer', projectFormsList);
+        closeImportFormModal();
+      }
     }
 
-    function sendChatMessage() {
-      const input = document.getElementById("chatMsgInput");
-      const text = input.value.trim();
-      if (!text) return;
-
-      const container = document.getElementById("chatThreadContainer");
-      const msgRow = document.createElement("div");
-      msgRow.className = "msg-row outgoing";
-      msgRow.innerHTML = `
-        <div class="msg-body">
-          <div class="msg-bubble outgoing">
-            ${text}
-            <div class="msg-meta-row"><span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
-          </div>
-        </div>
-      `;
-      container.appendChild(msgRow);
-      input.value = "";
-      container.scrollTop = container.scrollHeight;
+    /* ------------ EXCEL SPREADSHEET FORM STUDIO LOGIC ------------ */
+    function openExcelStudio() {
+      buildExcelTableGrid();
+      document.getElementById("excelFormStudioOverlay").style.display = "flex";
     }
 
-    function handleChatInputKey(e) {
-      if (e.key === 'Enter') sendChatMessage();
+    function closeExcelStudio() {
+      document.getElementById("excelFormStudioOverlay").style.display = "none";
     }
 
-    function handleFileSelected(e) {
-      const file = e.target.files[0];
-      if (!file) return;
+    function buildExcelTableGrid() {
+      const tbody = document.getElementById("excelSheetBody");
+      tbody.innerHTML = "";
 
-      const container = document.getElementById("chatThreadContainer");
-      const msgRow = document.createElement("div");
-      msgRow.className = "msg-row outgoing";
+      // Render Header Row (A, B, C, D...)
+      const headerTr = document.createElement("tr");
+      headerTr.innerHTML = `<th>#</th>`;
+      for (let c = 0; c < excelColsCount; c++) {
+        const colLetter = String.fromCharCode(65 + c);
+        headerTr.innerHTML += `<th>${colLetter}</th>`;
+      }
+      tbody.appendChild(headerTr);
+
+      // Render Rows
+      for (let r = 1; r <= excelRowsCount; r++) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<th>${r}</th>`;
+
+        for (let c = 0; c < excelColsCount; c++) {
+          const td = document.createElement("td");
+          td.contentEditable = "true";
+          td.onclick = function(e) { selectExcelCell(e, td); };
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function selectExcelCell(e, td) {
+      if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+      selectedExcelCell = td;
+      selectedExcelCell.classList.add("selected-cell");
+    }
+
+    function addExcelRow() {
+      excelRowsCount++;
+      buildExcelTableGrid();
+    }
+
+    function addExcelColumn() {
+      excelColsCount++;
+      buildExcelTableGrid();
+    }
+
+    function formatSelectedCell(action, value) {
+      if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+      if (action === 'bold') {
+        const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+        selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+      } else if (action === 'fontSize') {
+        selectedExcelCell.style.fontSize = value;
+      } else if (action === 'align') {
+        selectedExcelCell.style.textAlign = value;
+      } else if (action === 'color') {
+        selectedExcelCell.style.color = value;
+      }
+    }
+
+    function insertControlToCell(type) {
+      if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+      if (type === 'checkbox') {
+        selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+      } else if (type === 'button') {
+        const btnLabel = prompt("Enter button label:", "Action Button");
+        if (btnLabel) {
+          selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+        }
+      }
+    }
+
+    function mergeExcelCells() {
+      if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+      const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+      if (colspan && parseInt(colspan) > 1) {
+        selectedExcelCell.setAttribute("colspan", colspan);
+      }
+    }
+
+    function saveExcelFormTemplate() {
+      const title = document.getElementById("excelFormTitle").value.trim();
+      if (!title) return alert("Please enter a form title.");
+
+      globalFormsList.push({
+        id: 'gf-' + Date.now(),
+        title: title,
+        category: 'Spreadsheet Form',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      renderFormsListUI('globalFormsContainer', globalFormsList);
+      closeExcelStudio();
+    }
+
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
+    function evaluateMathExpr(expr) {
+      if (typeof expr === 'number') return expr;
+      if (!expr || typeof expr !== 'string') return 0;
+      try {
+        const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+        if (!cleanExpr) return 0;
+        const result = Function(`'use strict'; return (${cleanExpr})`)();
+        return isNaN(result) ? 0 : result;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function renderBOQTable() {
+      const tbody = document.getElementById("boqTableBody");
+      tbody.innerHTML = "";
+
+      const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+      const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
+      let subTotal = 0;
+
+      currentBOQItems.forEach((row, index) => {
+        const numQty = evaluateMathExpr(row.qty);
+        const numPrice = evaluateMathExpr(row.price);
+        const rowTotal = numQty * numPrice;
+        subTotal += rowTotal;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+          <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+          <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+          <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
+          <td style="text-align:center;">
+            <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const taxAmount = subTotal * (taxRate / 100);
+      const grandTotal = subTotal + taxAmount;
+
+      document.getElementById("boqSubTotal").innerText = `${currency}${subTotal.toFixed(2)}`;
+      document.getElementById("boqTaxLabel").innerText = `Tax / VAT (${taxRate}%):`;
+      document.getElementById("boqTax").innerText = `${currency}${taxAmount.toFixed(2)}`;
+      document.getElementById("boqGrandTotal").innerText = `${currency}${grandTotal.toFixed(2)}`;
+    }
+
+    function updateBOQData(index, field, value) {
+      if (field === 'qty' || field === 'price') {
+        const evaluated = evaluateMathExpr(value);
+        currentBOQItems[index][field] = evaluated.toString();
+      } else {
+        currentBOQItems[index][field] = value;
+      }
+      renderBOQTable();
+    }
+
+    function addBOQRow() {
+      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+      renderBOQTable();
+    }
+
+    function deleteBOQRow(index) {
+      currentBOQItems.splice(index, 1);
+      renderBOQTable();
+    }
+
+    function getCurrentWorkspaceFolder() {
+      return folderObjectStack[folderObjectStack.length - 1];
+    }
+
+    function renderFolderView() {
+      const breadcrumbContainer = document.getElementById("breadcrumbBar");
+      breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+      folderObjectStack.forEach((node, idx) => {
+        const isLast = idx === folderObjectStack.length - 1;
+        const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+        
+        breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
+        
+        if (isLast) {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+        } else {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+        }
+      });
+
+      const metaHeader = document.getElementById("projectMetaHeader");
+      if (folderObjectStack.length > 1) {
+        metaHeader.style.display = "none";
+      } else {
+        metaHeader.style.display = "flex";
+      }
+
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      const subGrid = document.getElementById("innerFolderGrid");
+      subGrid.innerHTML = "";
+
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+
+      if (currentFolderNode.children.length === 0) {
+        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Click the + button to add a new folder.</div>`;
+        return;
+      }
+
+      currentFolderNode.children.forEach((folder, idx) => {
+        const folderCard = document.createElement("div");
+        folderCard.className = "folder-card";
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          folderCard.classList.add("selected-cut");
+        }
+
+        folderCard.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
+        `;
+
+        folderCard.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        folderCard.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        subGrid.appendChild(folderCard);
+      });
+    }
+
+    function jumpToBreadcrumbIndex(targetIndex) {
+      if (targetIndex === 0) {
+        activeOpenedProject = null;
+        folderObjectStack = [];
+        activeViewMode = 'projects';
+
+        document.getElementById("projectSubNav").style.display = "none";
+        document.getElementById("mainNavGroup").style.display = "flex";
+
+        document.getElementById("folderHeaderNav").style.display = "none";
+        document.getElementById("defaultHeaderTitle").style.display = "flex";
+
+        const searchElem = document.getElementById("projectSearchInput");
+        if (searchElem) searchElem.style.display = "";
+
+        document.getElementById("folderExplorerWorkspace").style.display = "none";
+        document.getElementById("panelChatWorkspace").style.display = "none";
+        document.getElementById("panelProjectFormsWorkspace").style.display = "none";
+        document.getElementById("panelBOQWorkspace").style.display = "none";
+        document.getElementById("panelCompareWorkspace").style.display = "none";
+        document.getElementById("panelClaimsWorkspace").style.display = "none";
+        document.getElementById("panelScheduleWorkspace").style.display = "none";
+
+        switchMainViewTab('projects');
+      } else {
+        folderObjectStack = folderObjectStack.slice(0, targetIndex);
+        switchProjectSubTab('folder');
+      }
+    }
+
+    function navigateUpBreadcrumb() {
+      jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+    }
+
+    function downloadMedia(filename) {
+      alert(`Downloading media attachment: ${filename}`);
+    }
+
+    function showFolderContextMenu(e, folder, idx) {
+      hideContextMenus();
+      selectedFolderForContext = { folder, idx };
+      const menu = document.getElementById("folderContextMenu");
       
-      let mediaHtml = `📄 Attachment: ${file.name}`;
-      if (file.type.startsWith("image/")) {
-        const url = URL.createObjectURL(file);
-        mediaHtml = `<img src="${url}" class="msg-media-img" />`;
-      }
+      document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
 
-      msgRow.innerHTML = `
-        <div class="msg-body">
-          <div class="msg-bubble outgoing">
-            ${mediaHtml}
-            <div class="msg-meta-row"><span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
-          </div>
-        </div>
-      `;
-      container.appendChild(msgRow);
-      container.scrollTop = container.scrollHeight;
+      menu.style.top = `${e.clientY}px`;
+      menu.style.left = `${e.clientX}px`;
+      menu.style.display = "flex";
     }
 
-    function handleFabClick() {}
-    function filterProjects() {}
-    function hideContextMenus() {}
+    function handleWorkspaceContextMenu(e) {
+      if (activeOpenedProject && clipboardFolder) {
+        e.preventDefault();
+        hideContextMenus();
+        selectedFolderForContext = null;
+        const menu = document.getElementById("folderContextMenu");
+        document.getElementById("pasteContextBtn").style.display = "flex";
+        menu.style.top = `${e.clientY}px`;
+        menu.style.left = `${e.clientX}px`;
+        menu.style.display = "flex";
+      }
+    }
+
+    function hideContextMenus() {
+      const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+      const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
+    }
+
+    function executeContextAction(action) {
+      hideContextMenus();
+      let currentFolderNode = getCurrentWorkspaceFolder();
+
+      if (action === 'copy') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+        isCutOperation = false;
+        renderFolderView();
+      } 
+      else if (action === 'cut') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+        clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+        clipboardFolder.sourceParent = currentFolderNode;
+        isCutOperation = true;
+        renderFolderView();
+      } 
+      else if (action === 'paste') {
+        if (!clipboardFolder) return;
+        
+        if (isCutOperation && clipboardFolder.sourceParent) {
+          clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
+        }
+        
+        const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+        newPastedFolder.id = 'f-' + Date.now();
+        if (!isCutOperation) newPastedFolder.name += " - Copy";
+
+        currentFolderNode.children.push(newPastedFolder);
+
+        clipboardFolder = null;
+        isCutOperation = false;
+        persistProjectTree();
+        renderFolderView();
+      } 
+      else if (action === 'rename') {
+        if (!selectedFolderForContext) return;
+        const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+        if (newName && newName.trim()) {
+          currentFolderNode.children[selectedFolderForContext.idx].name = newName.trim();
+          persistProjectTree();
+          renderFolderView();
+        }
+      } 
+      else if (action === 'delete') {
+        if (!selectedFolderForContext) return;
+        if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+          currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+          persistProjectTree();
+          renderFolderView();
+        }
+      }
+    }
+
+    function persistProjectTree() {
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      if (idx !== -1) {
+        allProjects[idx] = activeOpenedProject;
+        saveProjects(allProjects);
+      }
+    }
+
+    /* FAB BUTTON ROUTER ACTION */
+    function handleFabClick() {
+      if (activeOpenedProject && activeViewMode === 'forms') {
+        // FAB inside Project Forms: Import from Global Forms
+        openImportGlobalFormModal();
+      } else if (activeViewMode === 'forms') {
+        // FAB inside Global Forms: Launch Excel-Style Form Studio
+        openExcelStudio();
+      } else if (activeOpenedProject && activeViewMode === 'folder') {
+        // FAB inside Project Folders: Create New Folder
+        const newSubName = prompt("Enter new folder name:");
+        if (newSubName && newSubName.trim()) {
+          let currentFolderNode = getCurrentWorkspaceFolder();
+          if (!currentFolderNode.children) currentFolderNode.children = [];
+          
+          currentFolderNode.children.push({
+            id: 'f-' + Date.now(),
+            name: newSubName.trim(),
+            items: '0 Items',
+            children: []
+          });
+
+          persistProjectTree();
+          renderFolderView();
+        }
+      } else if (activeViewMode === 'projects') {
+        // FAB inside Main Projects: Create New Project Tile
+        openCreateProjectModal();
+      }
+    }
+
+    function openCreateProjectModal() {
+      document.getElementById("newProjectClient").value = "";
+      document.getElementById("newProjectNo").value = "";
+      document.getElementById("newProjectLocation").value = "";
+      document.getElementById("newProjectRemarks").value = "";
+      
+      document.getElementById("createProjectModal").style.display = "flex";
+    }
+
+    function closeCreateProjectModal() {
+      document.getElementById("createProjectModal").style.display = "none";
+    }
+
+    function createNewProject() {
+      const client = document.getElementById("newProjectClient").value.trim();
+      const projectNo = document.getElementById("newProjectNo").value.trim();
+      const location = document.getElementById("newProjectLocation").value.trim();
+      const remarks = document.getElementById("newProjectRemarks").value.trim();
+      
+      const year = document.getElementById("yearPicker").value || "2026";
+
+      if (!client) return alert("Please enter a client name.");
+
+      const projects = getProjects();
+      projects.push({
+        id: 'proj-' + Date.now(),
+        client: client,
+        projectNo: projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`,
+        location: location || 'N/A',
+        remarks: remarks,
+        year: year,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        children: getDefaultSubFolders()
+      });
+
+      saveProjects(projects);
+      filterProjects();
+      closeCreateProjectModal();
+    }
+
+    (function init() {
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+      updateFabVisibility();
+    })();
+
+    filterProjects();
   </script>
 </body>
 </html>
