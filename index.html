@@ -22,7 +22,7 @@
       --cool-ash: #a1a1a6;
       --soft-border: #e5e5ea;
       --error-red: #ff3b30;
-      --accent-blue: #00a884; /* Updated to Teal Green */
+      --accent-blue: #00a884; /* Teal Green System Accent */
 
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
@@ -66,7 +66,7 @@
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: var(--accent-white); box-shadow: 0 4px 10px rgba(0, 168, 132, 0.4); }
     .fab-tab-btn:hover { background: #008f6c; transform: scale(1.05); }
 
-    /* PERFECTLY CENTERED TILES WORKSPACE */
+    /* CENTERED TILES WORKSPACE */
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
     .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
 
@@ -81,7 +81,7 @@
     .tile:hover .tile-edit-btn { opacity: 1; }
     .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-    /* Tile colors excluding teal green */
+    /* Default Preset Colors (excluding Teal Green) */
     .tile-blue   { background-color: #0284c7; }
     .tile-purple { background-color: #7c3aed; }
     .tile-grey   { background-color: #475569; }
@@ -101,16 +101,37 @@
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
     .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
+    /* MODAL & HUE SLIDER STYLING */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; position: relative; border: 1px solid var(--border-color); color: var(--text-color); }
     .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
+    
     .icon-selector-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
     .icon-picker-grid { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); max-height: 150px; overflow-y: auto; }
     .icon-option { width: 100%; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 6px; padding: 8px; }
     .icon-option svg { width: 22px; height: 22px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
     .icon-option.selected { background: rgba(0, 168, 132, 0.15); }
     .icon-option.selected svg { stroke: var(--accent-blue); }
+
+    /* Custom Hue Slider Controls */
+    .color-picker-box { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 6px; }
+    .color-preview-circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color); flex-shrink: 0; transition: background 0.1s; }
+    
+    .hue-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 12px; border-radius: 10px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, 
+        hsl(0, 80%, 50%), 
+        hsl(40, 80%, 50%), 
+        hsl(80, 80%, 50%), 
+        hsl(120, 80%, 50%), 
+        hsl(190, 80%, 50%), 
+        hsl(240, 80%, 50%), 
+        hsl(280, 80%, 50%), 
+        hsl(320, 80%, 50%), 
+        hsl(360, 80%, 50%));
+    }
+    .hue-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #ffffff; border: 2px solid var(--jet-black); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
     .btn-save { background: var(--accent-blue); color: var(--accent-white); }
@@ -192,7 +213,7 @@
     </div>
   </div>
 
-  <!-- Tile Modal -->
+  <!-- Tile Properties & Hue Slider Modal -->
   <div class="modal-overlay" id="tileModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeTileModal()">&times;</button>
@@ -214,6 +235,13 @@
         <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
       </div>
 
+      <!-- Tile Color Selection with Custom Hue Slider -->
+      <label class="modal-label">Tile Color</label>
+      <div class="color-picker-box">
+        <div class="color-preview-circle" id="tileColorPreview"></div>
+        <input type="range" min="0" max="360" value="200" class="hue-slider" id="tileHueSlider" oninput="updateTileColorFromHue(this.value)" />
+      </div>
+
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="saveTileModal()">Save</button>
         <button class="modal-btn btn-delete" id="deleteTileBtn" onclick="deleteCurrentTile()">Delete</button>
@@ -227,15 +255,13 @@
     let activeEditTileId = null;
     let isCreateMode = false;
     let selectedIconKey = "projects";
-
-    // Updated colors array excluding teal green so tiles never use it
-    const colors = ['tile-blue', 'tile-purple', 'tile-grey', 'tile-orange'];
+    let selectedTileHexColor = "#0284c7";
 
     const defaultTiles = [
-      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: 'tile-blue', isProtected: true },
-      { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: 'tile-purple', isProtected: true },
-      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', color: 'tile-grey', isProtected: false },
-      { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: 'tile-orange', isProtected: false }
+      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: '#0284c7', isProtected: true },
+      { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: '#7c3aed', isProtected: true },
+      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', color: '#475569', isProtected: false },
+      { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: '#ea580c', isProtected: false }
     ];
 
     function setAppTheme(theme) {
@@ -276,9 +302,16 @@
         const svgHTML = svgTemplate ? svgTemplate.outerHTML : "";
 
         const tileElement = document.createElement("a");
-        tileElement.className = `tile ${tile.color}`;
+        tileElement.className = "tile";
         tileElement.id = `tile-${tile.id}`;
         tileElement.href = tile.url || "#";
+        
+        // Custom background color from storage or class fallback
+        if (tile.color.startsWith('#')) {
+          tileElement.style.backgroundColor = tile.color;
+        } else {
+          tileElement.classList.add(tile.color);
+        }
 
         tileElement.innerHTML = `
           <div class="tile-icon-wrapper" id="icon-${tile.id}">${svgHTML}</div>
@@ -290,6 +323,19 @@
 
         grid.appendChild(tileElement);
       });
+    }
+
+    /* Custom Hue Color Slider Engine (Excludes Teal Green ~150-175°) */
+    function updateTileColorFromHue(hueVal) {
+      let hue = parseInt(hueVal);
+      // Skip Teal Green Range (~150° to 175°)
+      if (hue >= 150 && hue <= 175) {
+        hue = 180;
+        document.getElementById("tileHueSlider").value = 180;
+      }
+      
+      selectedTileHexColor = `hsl(${hue}, 82%, 48%)`;
+      document.getElementById("tileColorPreview").style.backgroundColor = selectedTileHexColor;
     }
 
     function switchMainTab(tab) {
@@ -343,6 +389,7 @@
       document.getElementById("modalTileTitle").value = "";
       document.getElementById("deleteTileBtn").style.display = "none";
       selectIcon("projects");
+      updateTileColorFromHue(200);
       document.getElementById("tileModal").style.display = "flex";
     }
 
@@ -354,6 +401,14 @@
       document.getElementById("modalHeaderTitle").innerText = "Edit Tile Properties";
       document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
       selectIcon(targetTile ? targetTile.iconKey : "projects");
+      
+      if (targetTile && targetTile.color.startsWith('hsl')) {
+        selectedTileHexColor = targetTile.color;
+      } else {
+        selectedTileHexColor = "#0284c7";
+      }
+      document.getElementById("tileColorPreview").style.backgroundColor = selectedTileHexColor;
+
       document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
       document.getElementById("tileModal").style.display = "flex";
     }
@@ -372,10 +427,14 @@
       }
 
       if (isCreateMode) {
-        tiles.push({ id: "custom-" + Date.now(), title: titleInput, url: `#`, iconKey: selectedIconKey, color: colors[Math.floor(Math.random() * colors.length)], isProtected: false });
+        tiles.push({ id: "custom-" + Date.now(), title: titleInput, url: `#`, iconKey: selectedIconKey, color: selectedTileHexColor, isProtected: false });
       } else if (activeEditTileId) {
         const idx = tiles.findIndex(t => t.id === activeEditTileId);
-        if (idx !== -1) { tiles[idx].title = titleInput; tiles[idx].iconKey = selectedIconKey; }
+        if (idx !== -1) { 
+          tiles[idx].title = titleInput; 
+          tiles[idx].iconKey = selectedIconKey; 
+          tiles[idx].color = selectedTileHexColor;
+        }
       }
       setStoredTiles(tiles);
       closeTileModal();
