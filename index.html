@@ -70,8 +70,8 @@
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
     .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
 
-    .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); text-decoration: none; flex-shrink: 0; }
-    .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); }
+    .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: #ffffff; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); text-decoration: none; flex-shrink: 0; }
+    .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
     .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; }
     .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
@@ -81,11 +81,11 @@
     .tile:hover .tile-edit-btn { opacity: 1; }
     .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-    /* Default Preset Colors */
-    .tile-blue   { background-color: #0284c7; }
-    .tile-purple { background-color: #7c3aed; }
-    .tile-grey   { background-color: #475569; }
-    .tile-orange { background-color: #ea580c; }
+    /* Dimmed / Matte Preset Colors */
+    .tile-blue   { background-color: #1d5b83; }
+    .tile-purple { background-color: #5b319f; }
+    .tile-grey   { background-color: #3b4756; }
+    .tile-orange { background-color: #a84813; }
 
     #settingsView { display: none; flex: 1; padding: 40px; background: var(--surface-color); overflow-y: auto; }
     .settings-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; max-width: 500px; margin-top: 20px; }
@@ -107,30 +107,33 @@
     .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
     
-    .icon-selector-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .icon-selector-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .icon-preview-box { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--accent-blue); }
+    .icon-preview-box svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
     .icon-picker-grid { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); max-height: 150px; overflow-y: auto; }
     .icon-option { width: 100%; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 6px; padding: 8px; }
     .icon-option svg { width: 22px; height: 22px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
     .icon-option.selected { background: rgba(0, 168, 132, 0.15); }
     .icon-option.selected svg { stroke: var(--accent-blue); }
 
-    /* Custom Hue Slider Controls */
+    /* Custom Hue Slider Controls with Dynamic Color Thumb Sync */
     .color-picker-box { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 6px; }
     .color-preview-circle { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border-color); flex-shrink: 0; transition: background 0.1s; }
     
     .hue-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 12px; border-radius: 10px; outline: none; cursor: pointer;
       background: linear-gradient(to right, 
-        hsl(0, 80%, 50%), 
-        hsl(40, 80%, 50%), 
-        hsl(80, 80%, 50%), 
-        hsl(120, 80%, 50%), 
-        hsl(190, 80%, 50%), 
-        hsl(240, 80%, 50%), 
-        hsl(280, 80%, 50%), 
-        hsl(320, 80%, 50%), 
-        hsl(360, 80%, 50%));
+        hsl(0, 55%, 38%), 
+        hsl(40, 55%, 38%), 
+        hsl(80, 55%, 38%), 
+        hsl(120, 55%, 38%), 
+        hsl(190, 55%, 38%), 
+        hsl(240, 55%, 38%), 
+        hsl(280, 55%, 38%), 
+        hsl(320, 55%, 38%), 
+        hsl(360, 55%, 38%));
     }
-    .hue-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #ffffff; border: 2px solid var(--jet-black); cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .hue-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--thumb-color, #1d5b83); border: 2px solid #ffffff; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: background 0.1s; }
 
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
@@ -235,7 +238,7 @@
         <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
       </div>
 
-      <!-- Tile Color Selection with Custom Hue Slider -->
+      <!-- Tile Color Selection with Dimmed/Matte Hue Slider -->
       <label class="modal-label">Tile Color</label>
       <div class="color-picker-box">
         <div class="color-preview-circle" id="tileColorPreview"></div>
@@ -255,13 +258,13 @@
     let activeEditTileId = null;
     let isCreateMode = false;
     let selectedIconKey = "projects";
-    let selectedTileHexColor = "#0284c7";
+    let selectedTileHexColor = "hsl(200, 55%, 38%)";
 
     const defaultTiles = [
-      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: '#0284c7', isProtected: true },
-      { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: '#7c3aed', isProtected: true },
-      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', color: '#475569', isProtected: false },
-      { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: '#ea580c', isProtected: false }
+      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', color: 'hsl(200, 55%, 38%)', isProtected: true },
+      { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', color: 'hsl(265, 55%, 38%)', isProtected: true },
+      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', color: 'hsl(215, 20%, 35%)', isProtected: false },
+      { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', color: 'hsl(20, 75%, 38%)', isProtected: false }
     ];
 
     function setAppTheme(theme) {
@@ -307,13 +310,13 @@
         tileElement.id = `tile-${tile.id}`;
         tileElement.href = tile.url || "#";
         
-        // Render custom hex or HSL background color correctly
+        // Render custom matte color
         if (tile.color && (tile.color.startsWith('#') || tile.color.startsWith('hsl'))) {
           tileElement.style.backgroundColor = tile.color;
         } else if (tile.color) {
           tileElement.classList.add(tile.color);
         } else {
-          tileElement.style.backgroundColor = '#0284c7';
+          tileElement.style.backgroundColor = 'hsl(200, 55%, 38%)';
         }
 
         tileElement.innerHTML = `
@@ -328,17 +331,21 @@
       });
     }
 
-    /* Custom Hue Color Slider Engine (Excludes Teal Green ~150-175°) */
+    /* Dimmed / Matte Hue Color Slider Engine with Thumb Sync (Excludes Teal Green ~150-175°) */
     function updateTileColorFromHue(hueVal) {
       let hue = parseInt(hueVal);
-      // Skip Teal Green Range (~150° to 175°)
       if (hue >= 150 && hue <= 175) {
         hue = 180;
         document.getElementById("tileHueSlider").value = 180;
       }
       
-      selectedTileHexColor = `hsl(${hue}, 82%, 48%)`;
+      // Matte saturation (55%) and dark lightness (38%)
+      selectedTileHexColor = `hsl(${hue}, 55%, 38%)`;
       document.getElementById("tileColorPreview").style.backgroundColor = selectedTileHexColor;
+      
+      // Update slider circle thumb color dynamically
+      const slider = document.getElementById("tileHueSlider");
+      if (slider) slider.style.setProperty('--thumb-color', selectedTileHexColor);
     }
 
     function switchMainTab(tab) {
@@ -408,9 +415,12 @@
       if (targetTile && (targetTile.color.startsWith('hsl') || targetTile.color.startsWith('#'))) {
         selectedTileHexColor = targetTile.color;
       } else {
-        selectedTileHexColor = "#0284c7";
+        selectedTileHexColor = "hsl(200, 55%, 38%)";
       }
       document.getElementById("tileColorPreview").style.backgroundColor = selectedTileHexColor;
+      
+      const slider = document.getElementById("tileHueSlider");
+      if (slider) slider.style.setProperty('--thumb-color', selectedTileHexColor);
 
       document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
       document.getElementById("tileModal").style.display = "flex";
