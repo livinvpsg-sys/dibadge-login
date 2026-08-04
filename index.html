@@ -81,7 +81,7 @@
     .tile:hover .tile-edit-btn { opacity: 1; }
     .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-    /* Default Preset Colors (excluding Teal Green) */
+    /* Default Preset Colors */
     .tile-blue   { background-color: #0284c7; }
     .tile-purple { background-color: #7c3aed; }
     .tile-grey   { background-color: #475569; }
@@ -295,6 +295,7 @@
     function renderTiles() {
       const tiles = getStoredTiles();
       const grid = document.getElementById("tilesGrid");
+      if (!grid) return;
       grid.innerHTML = "";
 
       tiles.forEach(tile => {
@@ -306,11 +307,13 @@
         tileElement.id = `tile-${tile.id}`;
         tileElement.href = tile.url || "#";
         
-        // Custom background color from storage or class fallback
-        if (tile.color.startsWith('#')) {
+        // Render custom hex or HSL background color correctly
+        if (tile.color && (tile.color.startsWith('#') || tile.color.startsWith('hsl'))) {
           tileElement.style.backgroundColor = tile.color;
-        } else {
+        } else if (tile.color) {
           tileElement.classList.add(tile.color);
+        } else {
+          tileElement.style.backgroundColor = '#0284c7';
         }
 
         tileElement.innerHTML = `
@@ -402,7 +405,7 @@
       document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
       selectIcon(targetTile ? targetTile.iconKey : "projects");
       
-      if (targetTile && targetTile.color.startsWith('hsl')) {
+      if (targetTile && (targetTile.color.startsWith('hsl') || targetTile.color.startsWith('#'))) {
         selectedTileHexColor = targetTile.color;
       } else {
         selectedTileHexColor = "#0284c7";
