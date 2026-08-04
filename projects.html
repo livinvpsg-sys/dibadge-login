@@ -790,6 +790,7 @@
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
+    let editingProjectObj = null; // Separate reference for modal editing
     let selectedProjectForContext = null;
     let folderObjectStack = [];
     let activeViewMode = 'projects';
@@ -839,23 +840,29 @@
     function getProjects() {
       const stored = localStorage.getItem('dibadge_project_tiles');
       if (!stored) return defaultProjects;
-      const parsed = JSON.parse(stored);
-      return parsed.map(p => {
-        if (!p.children) p.children = getDefaultSubFolders();
-        return p;
-      });
+      try {
+        const parsed = JSON.parse(stored);
+        return parsed.map(p => {
+          if (!p.children) p.children = getDefaultSubFolders();
+          return p;
+        });
+      } catch(e) {
+        return defaultProjects;
+      }
     }
 
     function saveProjects(array) {
       localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
-      if (!activeOpenedProject) filterProjects();
+      filterProjects();
     }
 
     function filterProjects() {
-      const selectedYear = document.getElementById("yearPicker").value;
+      const yearPicker = document.getElementById("yearPicker");
+      const selectedYear = yearPicker ? yearPicker.value : "2026";
       const searchInputElem = document.getElementById("projectSearchInput");
       const searchQuery = searchInputElem ? searchInputElem.value.toLowerCase().trim() : "";
       const grid = document.getElementById("projectTilesGrid");
+      if (!grid) return;
       grid.innerHTML = "";
 
       const projects = getProjects();
@@ -912,12 +919,13 @@
       });
     }
 
-    /* Dimmed / Matte Hue Color Slider Engine with Thumb Sync (Excludes Teal Green ~150-175°) */
+    /* Dimmed / Matte Hue Color Slider Engine with Thumb Sync */
     function updateModalColorFromHue(mode, hueVal) {
       let hue = parseInt(hueVal);
       if (hue >= 150 && hue <= 175) {
         hue = 180;
-        document.getElementById(mode + "HueSlider").value = 180;
+        const sliderElem = document.getElementById(mode + "HueSlider");
+        if (sliderElem) sliderElem.value = 180;
       }
       
       currentModalColor = `hsl(${hue}, 55%, 38%)`;
@@ -928,7 +936,6 @@
       if (slider) slider.style.setProperty('--thumb-color', currentModalColor);
     }
 
-    /* Switch Main Level View Tabs */
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       const mainGrid = document.getElementById("mainGridWorkspace");
@@ -939,25 +946,25 @@
       const btnForms = document.getElementById("btnNavForms");
       const btnSchedule = document.getElementById("btnNavSchedule");
 
-      [mainGrid, formsPanel, schedulePanel].forEach(el => el.style.display = "none");
-      [btnSuitcase, btnForms, btnSchedule].forEach(btn => btn.classList.remove("active"));
+      [mainGrid, formsPanel, schedulePanel].forEach(el => { if (el) el.style.display = "none"; });
+      [btnSuitcase, btnForms, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
 
       const searchElem = document.getElementById("projectSearchInput");
       updateFabVisibility();
 
       if (tabKey === 'projects') {
-        mainGrid.style.display = "flex";
-        btnSuitcase.classList.add("active");
+        if (mainGrid) mainGrid.style.display = "flex";
+        if (btnSuitcase) btnSuitcase.classList.add("active");
         if (searchElem) searchElem.style.display = "";
         filterProjects();
       } else if (tabKey === 'forms') {
-        formsPanel.style.display = "block";
-        btnForms.classList.add("active");
+        if (formsPanel) formsPanel.style.display = "block";
+        if (btnForms) btnForms.classList.add("active");
         if (searchElem) searchElem.style.display = "none";
         renderFormsListUI('globalFormsContainer', globalFormsList);
       } else if (tabKey === 'schedule') {
-        schedulePanel.style.display = "block";
-        btnSchedule.classList.add("active");
+        if (schedulePanel) schedulePanel.style.display = "block";
+        if (btnSchedule) btnSchedule.classList.add("active");
         if (searchElem) searchElem.style.display = "none";
       }
     }
@@ -978,15 +985,17 @@
       hideContextMenus();
       selectedProjectForContext = proj;
       const menu = document.getElementById("projectTileContextMenu");
-      menu.style.top = `${e.pageY}px`;
-      menu.style.left = `${e.pageX}px`;
-      menu.style.display = "flex";
+      if (menu) {
+        menu.style.top = `${e.pageY}px`;
+        menu.style.left = `${e.pageX}px`;
+        menu.style.display = "flex";
+      }
     }
 
     function editSelectedProjectDetailsFromContext() {
       hideContextMenus();
       if (!selectedProjectForContext) return;
-      activeOpenedProject = selectedProjectForContext;
+      editingProjectObj = selectedProjectForContext;
       openEditProjectModal();
     }
 
@@ -1051,21 +1060,25 @@
 
     function updateProjectMetaBanner() {
       if (!activeOpenedProject) return;
-      document.getElementById("metaClientName").innerText = activeOpenedProject.client || "Client N/A";
-      document.getElementById("metaProjectNo").innerText = activeOpenedProject.projectNo || "NO-ID";
-      document.getElementById("metaLocation").innerText = activeOpenedProject.location || "Location N/A";
-      document.getElementById("metaRemarks").innerText = activeOpenedProject.remarks || "No remarks provided.";
+      const c = document.getElementById("metaClientName"); if (c) c.innerText = activeOpenedProject.client || "Client N/A";
+      const p = document.getElementById("metaProjectNo"); if (p) p.innerText = activeOpenedProject.projectNo || "NO-ID";
+      const l = document.getElementById("metaLocation"); if (l) l.innerText = activeOpenedProject.location || "Location N/A";
+      const r = document.getElementById("metaRemarks"); if (r) r.innerText = activeOpenedProject.remarks || "No remarks provided.";
     }
 
     function openEditProjectModal() {
-      if (!activeOpenedProject) return;
-      document.getElementById("editProjectClient").value = activeOpenedProject.client || "";
-      document.getElementById("editProjectNo").value = activeOpenedProject.projectNo || "";
-      document.getElementById("editProjectLocation").value = activeOpenedProject.location || "";
-      document.getElementById("editProjectRemarks").value = activeOpenedProject.remarks || "";
+      const proj = editingProjectObj || activeOpenedProject;
+      if (!proj) return;
+
+      document.getElementById("editProjectClient").value = proj.client || "";
+      document.getElementById("editProjectNo").value = proj.projectNo || "";
+      document.getElementById("editProjectLocation").value = proj.location || "";
+      document.getElementById("editProjectRemarks").value = proj.remarks || "";
       
-      currentModalColor = activeOpenedProject.color || "hsl(200, 55%, 38%)";
-      document.getElementById("editColorPreview").style.backgroundColor = currentModalColor;
+      currentModalColor = proj.color || "hsl(200, 55%, 38%)";
+      const preview = document.getElementById("editColorPreview");
+      if (preview) preview.style.backgroundColor = currentModalColor;
+      
       const slider = document.getElementById("editHueSlider");
       if (slider) slider.style.setProperty('--thumb-color', currentModalColor);
 
@@ -1074,10 +1087,12 @@
 
     function closeEditProjectModal() {
       document.getElementById("editProjectModal").style.display = "none";
+      editingProjectObj = null;
     }
 
     function saveProjectEdits() {
-      if (!activeOpenedProject) return;
+      const targetProj = editingProjectObj || activeOpenedProject;
+      if (!targetProj) return;
 
       const client = document.getElementById("editProjectClient").value.trim();
       const projectNo = document.getElementById("editProjectNo").value.trim();
@@ -1087,29 +1102,30 @@
       if (!client) return alert("Please enter a client name.");
       if (!projectNo) return alert("Please enter a project number.");
 
-      const currentYear = activeOpenedProject.year;
+      const currentYear = targetProj.year;
       const allProjects = getProjects();
 
       // Check duplicate project number in the same year
-      const duplicateExists = allProjects.some(p => p.id !== activeOpenedProject.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
       if (duplicateExists) {
         return alert(`A project with this project number (${projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
       }
 
-      activeOpenedProject.client = client;
-      activeOpenedProject.projectNo = projectNo;
-      activeOpenedProject.location = location || 'N/A';
-      activeOpenedProject.remarks = remarks;
-      activeOpenedProject.color = currentModalColor;
+      targetProj.client = client;
+      targetProj.projectNo = projectNo;
+      targetProj.location = location || 'N/A';
+      targetProj.remarks = remarks;
+      targetProj.color = currentModalColor;
 
-      persistProjectTree();
-      updateProjectMetaBanner();
-      renderFolderView();
-      
-      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      const idx = allProjects.findIndex(p => p.id === targetProj.id);
       if (idx !== -1) {
-        allProjects[idx] = activeOpenedProject;
-        localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+        allProjects[idx] = targetProj;
+        saveProjects(allProjects);
+      }
+
+      if (activeOpenedProject && activeOpenedProject.id === targetProj.id) {
+        activeOpenedProject = targetProj;
+        updateProjectMetaBanner();
       }
 
       closeEditProjectModal();
@@ -1134,69 +1150,75 @@
       const btnClaims = document.getElementById("btnSubClaims");
       const btnSchedule = document.getElementById("btnSubSchedule");
 
-      [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => ws.style.display = "none");
-      [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => btn.classList.remove("active"));
+      [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => { if (ws) ws.style.display = "none"; });
+      [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
 
       updateFabVisibility();
 
       if (tabKey === 'folder') {
-        folderWS.style.display = "flex";
-        btnFolder.classList.add("active");
+        if (folderWS) folderWS.style.display = "flex";
+        if (btnFolder) btnFolder.classList.add("active");
         renderFolderView();
       } else if (tabKey === 'chat') {
-        chatWS.style.display = "flex";
-        btnChat.classList.add("active");
+        if (chatWS) chatWS.style.display = "flex";
+        if (btnChat) btnChat.classList.add("active");
       } else if (tabKey === 'forms') {
-        formsWS.style.display = "block";
-        btnForms.classList.add("active");
+        if (formsWS) formsWS.style.display = "block";
+        if (btnForms) btnForms.classList.add("active");
         renderFormsListUI('projectFormsContainer', projectFormsList);
       } else if (tabKey === 'boq') {
-        boqWS.style.display = "flex";
-        btnBOQ.classList.add("active");
+        if (boqWS) boqWS.style.display = "flex";
+        if (btnBOQ) btnBOQ.classList.add("active");
         renderBOQTable();
       } else if (tabKey === 'compare') {
-        compareWS.style.display = "block";
-        btnCompare.classList.add("active");
+        if (compareWS) compareWS.style.display = "block";
+        if (btnCompare) btnCompare.classList.add("active");
       } else if (tabKey === 'claims') {
-        claimsWS.style.display = "block";
-        btnClaims.classList.add("active");
+        if (claimsWS) claimsWS.style.display = "block";
+        if (btnClaims) btnClaims.classList.add("active");
       } else if (tabKey === 'schedule') {
-        scheduleWS.style.display = "block";
-        btnSchedule.classList.add("active");
+        if (scheduleWS) scheduleWS.style.display = "block";
+        if (btnSchedule) btnSchedule.classList.add("active");
       }
     }
 
     /* ------------ CHAT SCREEN CONTROLS ------------ */
     function toggleEmojiPicker() {
       const panel = document.getElementById("chatEmojiPanel");
-      panel.style.display = panel.style.display === "grid" ? "none" : "grid";
-      document.getElementById("chatAttachmentPopover").style.display = "none";
+      if (panel) panel.style.display = panel.style.display === "grid" ? "none" : "grid";
+      const pop = document.getElementById("chatAttachmentPopover");
+      if (pop) pop.style.display = "none";
     }
 
     function toggleAttachmentPopover() {
       const popover = document.getElementById("chatAttachmentPopover");
-      popover.style.display = popover.style.display === "flex" ? "none" : "flex";
-      document.getElementById("chatEmojiPanel").style.display = "none";
+      if (popover) popover.style.display = popover.style.display === "flex" ? "none" : "flex";
+      const panel = document.getElementById("chatEmojiPanel");
+      if (panel) panel.style.display = "none";
     }
 
     function insertEmoji(emoji) {
       const input = document.getElementById("chatMsgInput");
-      input.value += emoji;
+      if (input) input.value += emoji;
     }
 
     function triggerFileInput(acceptType) {
       const fileInput = document.getElementById("chatHiddenFileInput");
-      fileInput.accept = acceptType;
-      fileInput.click();
+      if (fileInput) {
+        fileInput.accept = acceptType;
+        fileInput.click();
+      }
       toggleAttachmentPopover();
     }
 
     function sendChatMessage() {
       const input = document.getElementById("chatMsgInput");
+      if (!input) return;
       const text = input.value.trim();
       if (!text) return;
 
       const container = document.getElementById("chatThreadContainer");
+      if (!container) return;
       const msgRow = document.createElement("div");
       msgRow.className = "msg-row outgoing";
       msgRow.innerHTML = `
@@ -1221,6 +1243,7 @@
       if (!file) return;
 
       const container = document.getElementById("chatThreadContainer");
+      if (!container) return;
       const msgRow = document.createElement("div");
       msgRow.className = "msg-row outgoing";
       
@@ -1268,6 +1291,7 @@
 
     function openImportGlobalFormModal() {
       const listContainer = document.getElementById("globalImportListContainer");
+      if (!listContainer) return;
       listContainer.innerHTML = "";
 
       if (globalFormsList.length === 0) {
@@ -1322,6 +1346,7 @@
 
     function buildExcelTableGrid() {
       const tbody = document.getElementById("excelSheetBody");
+      if (!tbody) return;
       tbody.innerHTML = "";
 
       const headerTr = document.createElement("tr");
@@ -1399,7 +1424,8 @@
     }
 
     function saveExcelFormTemplate() {
-      const title = document.getElementById("excelFormTitle").value.trim();
+      const titleElem = document.getElementById("excelFormTitle");
+      const title = titleElem ? titleElem.value.trim() : "";
       if (!title) return alert("Please enter a form title.");
 
       const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
@@ -1434,6 +1460,7 @@
 
     function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
+      if (!tbody) return;
       tbody.innerHTML = "";
 
       const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
@@ -1466,10 +1493,10 @@
       const taxAmount = subTotal * (taxRate / 100);
       const grandTotal = subTotal + taxAmount;
 
-      document.getElementById("boqSubTotal").innerText = `${currency}${subTotal.toFixed(2)}`;
-      document.getElementById("boqTaxLabel").innerText = `Tax / VAT (${taxRate}%):`;
-      document.getElementById("boqTax").innerText = `${currency}${taxAmount.toFixed(2)}`;
-      document.getElementById("boqGrandTotal").innerText = `${currency}${grandTotal.toFixed(2)}`;
+      const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+      const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+      const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+      const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
     }
 
     function updateBOQData(index, field, value) {
@@ -1498,6 +1525,7 @@
 
     function renderFolderView() {
       const breadcrumbContainer = document.getElementById("breadcrumbBar");
+      if (!breadcrumbContainer) return;
       breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
 
       folderObjectStack.forEach((node, idx) => {
@@ -1514,14 +1542,17 @@
       });
 
       const metaHeader = document.getElementById("projectMetaHeader");
-      if (folderObjectStack.length > 1) {
-        metaHeader.style.display = "none";
-      } else {
-        metaHeader.style.display = "flex";
+      if (metaHeader) {
+        if (folderObjectStack.length > 1) {
+          metaHeader.style.display = "none";
+        } else {
+          metaHeader.style.display = "flex";
+        }
       }
 
       const currentFolderNode = getCurrentWorkspaceFolder();
       const subGrid = document.getElementById("innerFolderGrid");
+      if (!subGrid) return;
       subGrid.innerHTML = "";
 
       if (!currentFolderNode.children) currentFolderNode.children = [];
@@ -1566,22 +1597,20 @@
         folderObjectStack = [];
         activeViewMode = 'projects';
 
-        document.getElementById("projectSubNav").style.display = "none";
-        document.getElementById("mainNavGroup").style.display = "flex";
+        const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
+        const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
 
-        document.getElementById("folderHeaderNav").style.display = "none";
-        document.getElementById("defaultHeaderTitle").style.display = "flex";
+        const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
+        const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
 
         const searchElem = document.getElementById("projectSearchInput");
         if (searchElem) searchElem.style.display = "";
 
-        document.getElementById("folderExplorerWorkspace").style.display = "none";
-        document.getElementById("panelChatWorkspace").style.display = "none";
-        document.getElementById("panelProjectFormsWorkspace").style.display = "none";
-        document.getElementById("panelBOQWorkspace").style.display = "none";
-        document.getElementById("panelCompareWorkspace").style.display = "none";
-        document.getElementById("panelClaimsWorkspace").style.display = "none";
-        document.getElementById("panelScheduleWorkspace").style.display = "none";
+        const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
+        views.forEach(vId => {
+          const el = document.getElementById(vId);
+          if (el) el.style.display = "none";
+        });
 
         switchMainViewTab('projects');
       } else {
@@ -1599,13 +1628,14 @@
       hideContextMenus();
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
+      if (!menu) return;
       
-      document.getElementById("copyContextBtn").style.display = "flex";
-      document.getElementById("cutContextBtn").style.display = "flex";
-      document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
-      document.getElementById("renameContextBtn").style.display = "flex";
-      document.getElementById("deleteContextBtn").style.display = "flex";
-      document.getElementById("menuDivider1").style.display = "block";
+      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
+      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
+      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
+      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
+      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
+      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
 
       menu.style.top = `${e.pageY}px`;
       menu.style.left = `${e.pageX}px`;
@@ -1621,13 +1651,14 @@
 
         selectedFolderForContext = null;
         const menu = document.getElementById("folderContextMenu");
+        if (!menu) return;
 
-        document.getElementById("copyContextBtn").style.display = "none";
-        document.getElementById("cutContextBtn").style.display = "none";
-        document.getElementById("pasteContextBtn").style.display = "flex";
-        document.getElementById("renameContextBtn").style.display = "none";
-        document.getElementById("deleteContextBtn").style.display = "none";
-        document.getElementById("menuDivider1").style.display = "none";
+        const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
+        const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
+        const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
+        const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
+        const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
+        const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
 
         menu.style.top = `${e.pageY}px`;
         menu.style.left = `${e.pageX}px`;
@@ -1720,6 +1751,7 @@
     }
 
     function persistProjectTree() {
+      if (!activeOpenedProject) return;
       const allProjects = getProjects();
       const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
       if (idx !== -1) {
