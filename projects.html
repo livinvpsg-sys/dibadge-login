@@ -932,14 +932,16 @@
       hideContextMenus();
       if (!selectedProjectForContext) return;
       const newName = prompt("Rename client/project name:", selectedProjectForContext.client);
-      if (newName && newName.trim()) {
-        selectedProjectForContext.client = newName.trim();
-        const allProjects = getProjects();
-        const idx = allProjects.findIndex(p => p.id === selectedProjectForContext.id);
-        if (idx !== -1) {
-          allProjects[idx] = selectedProjectForContext;
-          saveProjects(allProjects);
-        }
+      if (!newName || !newName.trim()) return;
+
+      const trimmedName = newName.trim();
+      selectedProjectForContext.client = trimmedName;
+      
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === selectedProjectForContext.id);
+      if (idx !== -1) {
+        allProjects[idx] = selectedProjectForContext;
+        saveProjects(allProjects);
       }
     }
 
@@ -1018,9 +1020,19 @@
       const remarks = document.getElementById("editProjectRemarks").value.trim();
 
       if (!client) return alert("Please enter a client name.");
+      if (!projectNo) return alert("Please enter a project number.");
+
+      const currentYear = activeOpenedProject.year;
+      const allProjects = getProjects();
+
+      // Check duplicate project number in the same year
+      const duplicateExists = allProjects.some(p => p.id !== activeOpenedProject.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
+      }
 
       activeOpenedProject.client = client;
-      activeOpenedProject.projectNo = projectNo || activeOpenedProject.projectNo;
+      activeOpenedProject.projectNo = projectNo;
       activeOpenedProject.location = location || 'N/A';
       activeOpenedProject.remarks = remarks;
 
@@ -1028,7 +1040,6 @@
       updateProjectMetaBanner();
       renderFolderView();
       
-      const allProjects = getProjects();
       const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
       if (idx !== -1) {
         allProjects[idx] = activeOpenedProject;
@@ -1219,6 +1230,12 @@
     function importSelectedForm(globalFormId) {
       const found = globalFormsList.find(f => f.id === globalFormId);
       if (found) {
+        // Prevent duplicate form import inside same project
+        const duplicateForm = projectFormsList.some(pf => pf.title.toLowerCase() === found.title.toLowerCase());
+        if (duplicateForm) {
+          return alert(`A form template named "${found.title}" is already imported in this project.`);
+        }
+
         const importedCopy = JSON.parse(JSON.stringify(found));
         importedCopy.id = 'pf-' + Date.now();
         projectFormsList.push(importedCopy);
@@ -1320,6 +1337,12 @@
     function saveExcelFormTemplate() {
       const title = document.getElementById("excelFormTitle").value.trim();
       if (!title) return alert("Please enter a form title.");
+
+      // Check duplicate form name in Global Forms list
+      const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
+      if (duplicateForm) {
+        return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
+      }
 
       globalFormsList.push({
         id: 'gf-' + Date.now(),
@@ -1514,7 +1537,6 @@
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
       
-      // Show full menu options for folder cards
       document.getElementById("copyContextBtn").style.display = "flex";
       document.getElementById("cutContextBtn").style.display = "flex";
       document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
@@ -1578,13 +1600,34 @@
       else if (action === 'paste') {
         if (!clipboardFolder) return;
         
+        let targetName = clipboardFolder.name;
+        
+        // Handle name collision in current destination folder
+        let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
+        
+        if (duplicateExists) {
+          if (isCutOperation) {
+            return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
+          } else {
+            // Windows/Mac style auto-renaming for copied items: Name - Copy, Name - Copy (2)
+            let copyCounter = 1;
+            let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
+            targetName = `${baseName} - Copy`;
+            
+            while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
+              copyCounter++;
+              targetName = `${baseName} - Copy (${copyCounter})`;
+            }
+          }
+        }
+
         if (isCutOperation && clipboardFolder.sourceParent) {
           clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
         }
         
         const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
         newPastedFolder.id = 'f-' + Date.now();
-        if (!isCutOperation) newPastedFolder.name += " - Copy";
+        newPastedFolder.name = targetName;
 
         currentFolderNode.children.push(newPastedFolder);
 
@@ -1596,11 +1639,17 @@
       else if (action === 'rename') {
         if (!selectedFolderForContext) return;
         const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
-        if (newName && newName.trim()) {
-          currentFolderNode.children[selectedFolderForContext.idx].name = newName.trim();
-          persistProjectTree();
-          renderFolderView();
+        if (!newName || !newName.trim()) return;
+
+        const trimmed = newName.trim();
+        const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named "${trimmed}" already exists in this location. Please choose a different name.`);
         }
+
+        currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
+        persistProjectTree();
+        renderFolderView();
       } 
       else if (action === 'delete') {
         if (!selectedFolderForContext) return;
@@ -1629,20 +1678,27 @@
         openExcelStudio();
       } else if (activeOpenedProject && activeViewMode === 'folder') {
         const newSubName = prompt("Enter new folder name:");
-        if (newSubName && newSubName.trim()) {
-          let currentFolderNode = getCurrentWorkspaceFolder();
-          if (!currentFolderNode.children) currentFolderNode.children = [];
-          
-          currentFolderNode.children.push({
-            id: 'f-' + Date.now(),
-            name: newSubName.trim(),
-            items: '0 Items',
-            children: []
-          });
+        if (!newSubName || !newSubName.trim()) return;
 
-          persistProjectTree();
-          renderFolderView();
+        const trimmed = newSubName.trim();
+        let currentFolderNode = getCurrentWorkspaceFolder();
+        if (!currentFolderNode.children) currentFolderNode.children = [];
+
+        // Check duplicate folder name in current directory
+        const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named "${trimmed}" already exists in this location. Please choose a different name.`);
         }
+
+        currentFolderNode.children.push({
+          id: 'f-' + Date.now(),
+          name: trimmed,
+          items: '0 Items',
+          children: []
+        });
+
+        persistProjectTree();
+        renderFolderView();
       } else if (activeViewMode === 'projects') {
         openCreateProjectModal();
       }
@@ -1672,10 +1728,18 @@
       if (!client) return alert("Please enter a client name.");
 
       const projects = getProjects();
+      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Check duplicate project number in the same year
+      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
+      }
+
       projects.push({
         id: 'proj-' + Date.now(),
         client: client,
-        projectNo: projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`,
+        projectNo: targetProjNo,
         location: location || 'N/A',
         remarks: remarks,
         year: year,
