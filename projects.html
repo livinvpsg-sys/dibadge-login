@@ -22,7 +22,7 @@
       --muted-gray: #8e8e93;
       --cool-ash: #a1a1a6;
       --soft-border: #e5e5ea;
-      --accent-blue: #00a884; /* Updated to Teal Green */
+      --accent-blue: #00a884; /* Teal Green System Accent */
       --error-red: #ff3b30;
 
       --bg-color: var(--paper-white);
@@ -99,8 +99,8 @@
     .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
     /* Tile Design */
-    .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15); user-select: none; }
-    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25); }
+    .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); user-select: none; color: #ffffff; }
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
 
     .tile-avatar-center { flex: 1; display: flex; justify-content: center; align-items: center; }
     .tile-letter-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.22); color: #ffffff; font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; }
@@ -109,10 +109,11 @@
     .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .tile-project-no { font-size: 0.68rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; }
 
-    .tile-blue   { background-color: #00a884; color: #ffffff; }
-    .tile-green  { background-color: #059669; color: #ffffff; }
-    .tile-purple { background-color: #7c3aed; color: #ffffff; }
-    .tile-orange { background-color: #ea580c; color: #ffffff; }
+    /* Dimmed Preset Colors */
+    .tile-blue   { background-color: hsl(200, 55%, 38%); }
+    .tile-green  { background-color: hsl(120, 55%, 38%); }
+    .tile-purple { background-color: hsl(265, 55%, 38%); }
+    .tile-orange { background-color: hsl(20, 75%, 38%); }
 
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
@@ -211,13 +212,31 @@
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
 
-    /* Standard Modals */
+    /* Standard Modals & Custom Hue Slider */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); border: 1px solid var(--border-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
     .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
     textarea.modal-input { resize: vertical; min-height: 65px; font-family: inherit; }
+
+    .color-picker-box { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 6px; }
+    .color-preview-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--border-color); flex-shrink: 0; transition: background 0.1s; }
+    
+    .hue-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 10px; border-radius: 10px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, 
+        hsl(0, 55%, 38%), 
+        hsl(40, 55%, 38%), 
+        hsl(80, 55%, 38%), 
+        hsl(120, 55%, 38%), 
+        hsl(190, 55%, 38%), 
+        hsl(240, 55%, 38%), 
+        hsl(280, 55%, 38%), 
+        hsl(320, 55%, 38%), 
+        hsl(360, 55%, 38%));
+    }
+    .hue-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--thumb-color, hsl(200, 55%, 38%)); border: 2px solid #ffffff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.4); transition: background 0.1s; }
+
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
     .btn-save { background: var(--accent-blue); color: white; }
@@ -241,7 +260,7 @@
     .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
 
     /* ------------ DYNAMIC POSITIONED CONTEXT MENUS ------------ */
-    .context-menu { position: absolute; z-index: 1000; width: 150px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
+    .context-menu { position: absolute; z-index: 1000; width: 170px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
     .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
     .context-menu-item:hover { background: var(--accent-blue); color: white; }
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
@@ -618,6 +637,7 @@
   <!-- CONTEXT MENUS (DYNAMIC MOUSE ANCHORED) -->
   <div class="context-menu" id="projectTileContextMenu">
     <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
+    <div class="context-menu-item" onclick="openEditSelectedProjectModalFromContext()">Edit Details & Color</div>
     <div class="context-menu-item" onclick="renameSelectedProjectFromContext()">Rename Project</div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
@@ -650,6 +670,13 @@
       <label class="modal-label">Remarks</label>
       <textarea id="newProjectRemarks" class="modal-input"></textarea>
 
+      <!-- Matte Hue Color Slider for Project Tile -->
+      <label class="modal-label">Tile Background Color</label>
+      <div class="color-picker-box">
+        <div class="color-preview-circle" id="newProjColorPreview"></div>
+        <input type="range" min="0" max="360" value="200" class="hue-slider" id="newProjHueSlider" oninput="updateProjTileColorFromHue(this.value, 'new')" />
+      </div>
+
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
         <button class="modal-btn btn-cancel" onclick="closeCreateProjectModal()">Cancel</button>
@@ -674,6 +701,13 @@
 
       <label class="modal-label">Remarks</label>
       <textarea id="editProjectRemarks" class="modal-input"></textarea>
+
+      <!-- Matte Hue Color Slider for Editing Project Tile -->
+      <label class="modal-label">Tile Background Color</label>
+      <div class="color-picker-box">
+        <div class="color-preview-circle" id="editProjColorPreview"></div>
+        <input type="range" min="0" max="360" value="200" class="hue-slider" id="editProjHueSlider" oninput="updateProjTileColorFromHue(this.value, 'edit')" />
+      </div>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
@@ -770,6 +804,9 @@
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
+    let selectedNewProjColor = "hsl(200, 55%, 38%)";
+    let selectedEditProjColor = "hsl(200, 55%, 38%)";
+
     // Excel Studio State
     let excelRowsCount = 8;
     let excelColsCount = 6;
@@ -800,9 +837,9 @@
     }
 
     const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'tile-blue', children: getDefaultSubFolders() },
-      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'tile-green', children: getDefaultSubFolders() },
-      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'tile-purple', children: getDefaultSubFolders() }
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', color: 'hsl(200, 55%, 38%)', children: getDefaultSubFolders() },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', color: 'hsl(120, 55%, 38%)', children: getDefaultSubFolders() },
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', color: 'hsl(265, 55%, 38%)', children: getDefaultSubFolders() }
     ];
 
     function getProjects() {
@@ -846,7 +883,15 @@
         const firstLetter = clientName.charAt(0).toUpperCase();
 
         const tileEl = document.createElement("div");
-        tileEl.className = `tile ${proj.color}`;
+        tileEl.className = "tile";
+        
+        if (proj.color && (proj.color.startsWith('hsl') || proj.color.startsWith('#'))) {
+          tileEl.style.backgroundColor = proj.color;
+        } else if (proj.color) {
+          tileEl.classList.add(proj.color);
+        } else {
+          tileEl.style.backgroundColor = 'hsl(200, 55%, 38%)';
+        }
         
         tileEl.innerHTML = `
           <div class="tile-avatar-center">
@@ -871,6 +916,27 @@
 
         grid.appendChild(tileEl);
       });
+    }
+
+    /* Dimmed Hue Color Slider Engine for Projects (Excludes Teal Green ~150-175°) */
+    function updateProjTileColorFromHue(hueVal, targetMode) {
+      let hue = parseInt(hueVal);
+      if (hue >= 150 && hue <= 175) {
+        hue = 180;
+        const slider = document.getElementById(targetMode === 'new' ? 'newProjHueSlider' : 'editProjHueSlider');
+        if (slider) slider.value = 180;
+      }
+
+      const calculatedColor = `hsl(${hue}, 55%, 38%)`;
+      if (targetMode === 'new') {
+        selectedNewProjColor = calculatedColor;
+        document.getElementById("newProjColorPreview").style.backgroundColor = calculatedColor;
+        document.getElementById("newProjHueSlider").style.setProperty('--thumb-color', calculatedColor);
+      } else {
+        selectedEditProjColor = calculatedColor;
+        document.getElementById("editProjColorPreview").style.backgroundColor = calculatedColor;
+        document.getElementById("editProjHueSlider").style.setProperty('--thumb-color', calculatedColor);
+      }
     }
 
     /* Switch Main Level View Tabs */
@@ -926,6 +992,13 @@
       menu.style.top = `${e.pageY}px`;
       menu.style.left = `${e.pageX}px`;
       menu.style.display = "flex";
+    }
+
+    function openEditSelectedProjectModalFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+      activeOpenedProject = selectedProjectForContext;
+      openEditProjectModal();
     }
 
     function renameSelectedProjectFromContext() {
@@ -1004,6 +1077,15 @@
       document.getElementById("editProjectLocation").value = activeOpenedProject.location || "";
       document.getElementById("editProjectRemarks").value = activeOpenedProject.remarks || "";
       
+      if (activeOpenedProject.color && (activeOpenedProject.color.startsWith('hsl') || activeOpenedProject.color.startsWith('#'))) {
+        selectedEditProjColor = activeOpenedProject.color;
+      } else {
+        selectedEditProjColor = "hsl(200, 55%, 38%)";
+      }
+      
+      document.getElementById("editProjColorPreview").style.backgroundColor = selectedEditProjColor;
+      document.getElementById("editProjHueSlider").style.setProperty('--thumb-color', selectedEditProjColor);
+
       document.getElementById("editProjectModal").style.display = "flex";
     }
 
@@ -1035,6 +1117,7 @@
       activeOpenedProject.projectNo = projectNo;
       activeOpenedProject.location = location || 'N/A';
       activeOpenedProject.remarks = remarks;
+      activeOpenedProject.color = selectedEditProjColor;
 
       persistProjectTree();
       updateProjectMetaBanner();
@@ -1047,6 +1130,7 @@
       }
 
       closeEditProjectModal();
+      filterProjects();
     }
 
     function switchProjectSubTab(tabKey) {
@@ -1230,7 +1314,6 @@
     function importSelectedForm(globalFormId) {
       const found = globalFormsList.find(f => f.id === globalFormId);
       if (found) {
-        // Prevent duplicate form import inside same project
         const duplicateForm = projectFormsList.some(pf => pf.title.toLowerCase() === found.title.toLowerCase());
         if (duplicateForm) {
           return alert(`A form template named "${found.title}" is already imported in this project.`);
@@ -1258,7 +1341,6 @@
       const tbody = document.getElementById("excelSheetBody");
       tbody.innerHTML = "";
 
-      // Render Header Row (A, B, C, D...)
       const headerTr = document.createElement("tr");
       headerTr.innerHTML = `<th>#</th>`;
       for (let c = 0; c < excelColsCount; c++) {
@@ -1267,7 +1349,6 @@
       }
       tbody.appendChild(headerTr);
 
-      // Render Rows
       for (let r = 1; r <= excelRowsCount; r++) {
         const tr = document.createElement("tr");
         tr.innerHTML = `<th>${r}</th>`;
@@ -1338,7 +1419,6 @@
       const title = document.getElementById("excelFormTitle").value.trim();
       if (!title) return alert("Please enter a form title.");
 
-      // Check duplicate form name in Global Forms list
       const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
       if (duplicateForm) {
         return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
@@ -1554,10 +1634,8 @@
         e.preventDefault();
         hideContextMenus();
 
-        // If no cut/copy done before, do NOT show any pop-up
         if (!clipboardFolder) return;
 
-        // If cut/copy was done, show ONLY the paste option
         selectedFolderForContext = null;
         const menu = document.getElementById("folderContextMenu");
 
@@ -1601,15 +1679,12 @@
         if (!clipboardFolder) return;
         
         let targetName = clipboardFolder.name;
-        
-        // Handle name collision in current destination folder
         let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
         
         if (duplicateExists) {
           if (isCutOperation) {
             return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
           } else {
-            // Windows/Mac style auto-renaming for copied items: Name - Copy, Name - Copy (2)
             let copyCounter = 1;
             let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
             targetName = `${baseName} - Copy`;
@@ -1684,7 +1759,6 @@
         let currentFolderNode = getCurrentWorkspaceFolder();
         if (!currentFolderNode.children) currentFolderNode.children = [];
 
-        // Check duplicate folder name in current directory
         const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
         if (duplicateExists) {
           return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
@@ -1710,6 +1784,7 @@
       document.getElementById("newProjectLocation").value = "";
       document.getElementById("newProjectRemarks").value = "";
       
+      updateProjTileColorFromHue(200, 'new');
       document.getElementById("createProjectModal").style.display = "flex";
     }
 
@@ -1730,7 +1805,6 @@
       const projects = getProjects();
       const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
 
-      // Check duplicate project number in the same year
       const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
       if (duplicateExists) {
         return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
@@ -1743,7 +1817,7 @@
         location: location || 'N/A',
         remarks: remarks,
         year: year,
-        color: colors[Math.floor(Math.random() * colors.length)],
+        color: selectedNewProjColor,
         children: getDefaultSubFolders()
       });
 
