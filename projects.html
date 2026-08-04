@@ -109,12 +109,6 @@
     .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .tile-project-no { font-size: 0.68rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; }
 
-    /* Dimmed Preset Palette Defaults */
-    .tile-blue   { background-color: hsl(200, 55%, 38%); color: #ffffff; }
-    .tile-green  { background-color: hsl(120, 55%, 38%); color: #ffffff; }
-    .tile-purple { background-color: hsl(265, 55%, 38%); color: #ffffff; }
-    .tile-orange { background-color: hsl(20, 75%, 38%); color: #ffffff; }
-
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
     
@@ -1281,7 +1275,7 @@
       } else {
         globalFormsList.forEach(gf => {
           const item = document.createElement("div");
-          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-space-between; align-items:center;";
+          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;";
           item.innerHTML = `
             <div>
               <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
