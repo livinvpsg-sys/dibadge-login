@@ -624,12 +624,12 @@
   </div>
 
   <div class="context-menu" id="folderContextMenu">
-    <div class="context-menu-item" onclick="executeContextAction('copy')">Copy</div>
-    <div class="context-menu-item" onclick="executeContextAction('cut')">Cut</div>
+    <div class="context-menu-item" id="copyContextBtn" onclick="executeContextAction('copy')">Copy</div>
+    <div class="context-menu-item" id="cutContextBtn" onclick="executeContextAction('cut')">Cut</div>
     <div class="context-menu-item" id="pasteContextBtn" onclick="executeContextAction('paste')" style="display:none;">Paste</div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" onclick="executeContextAction('rename')">Rename</div>
-    <div class="context-menu-item danger" onclick="executeContextAction('delete')" style="color:var(--error-red);">Delete</div>
+    <div class="context-menu-divider" id="menuDivider1"></div>
+    <div class="context-menu-item" id="renameContextBtn" onclick="executeContextAction('rename')">Rename</div>
+    <div class="context-menu-item danger" id="deleteContextBtn" onclick="executeContextAction('delete')" style="color:var(--error-red);">Delete</div>
   </div>
 
   <!-- Create New Project Modal -->
@@ -1508,13 +1508,19 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    /* RIGHT-CLICK MOUSE ANCHORED CONTEXT MENUS */
+    /* RIGHT-CLICK CONTEXT MENU HANDLERS */
     function showFolderContextMenu(e, folder, idx) {
       hideContextMenus();
       selectedFolderForContext = { folder, idx };
       const menu = document.getElementById("folderContextMenu");
       
+      // Show full menu options for folder cards
+      document.getElementById("copyContextBtn").style.display = "flex";
+      document.getElementById("cutContextBtn").style.display = "flex";
       document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
+      document.getElementById("renameContextBtn").style.display = "flex";
+      document.getElementById("deleteContextBtn").style.display = "flex";
+      document.getElementById("menuDivider1").style.display = "block";
 
       menu.style.top = `${e.pageY}px`;
       menu.style.left = `${e.pageX}px`;
@@ -1525,9 +1531,21 @@
       if (activeOpenedProject && activeViewMode === 'folder') {
         e.preventDefault();
         hideContextMenus();
+
+        // If no cut/copy done before, do NOT show any pop-up
+        if (!clipboardFolder) return;
+
+        // If cut/copy was done, show ONLY the paste option
         selectedFolderForContext = null;
         const menu = document.getElementById("folderContextMenu");
-        document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
+
+        document.getElementById("copyContextBtn").style.display = "none";
+        document.getElementById("cutContextBtn").style.display = "none";
+        document.getElementById("pasteContextBtn").style.display = "flex";
+        document.getElementById("renameContextBtn").style.display = "none";
+        document.getElementById("deleteContextBtn").style.display = "none";
+        document.getElementById("menuDivider1").style.display = "none";
+
         menu.style.top = `${e.pageY}px`;
         menu.style.left = `${e.pageX}px`;
         menu.style.display = "flex";
