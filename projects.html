@@ -128,7 +128,7 @@
     .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
     .project-meta-line3 { font-size: 0.82rem; color: var(--text-color); opacity: 0.9; margin-top: 2px; line-height: 1.3; }
 
-    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
+    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; min-height: 300px; }
 
     .folder-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); }
@@ -151,7 +151,6 @@
     .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
-    /* BUBBLE SHAPES MATCHING APP */
     .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
@@ -160,7 +159,6 @@
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
     .msg-bubble.outgoing .msg-meta-row { color: #666666; }
 
-    /* Bottom Input Bar & Compact Popovers */
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 8px; }
     .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
@@ -172,12 +170,10 @@
     .chat-send-fab { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-blue); border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     .chat-send-fab svg { width: 18px; height: 18px; fill: currentColor; }
 
-    /* Compact Emoji Panel */
     .emoji-picker-panel { display: none; grid-template-columns: repeat(6, 1fr); gap: 6px; padding: 10px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; max-width: 320px; max-height: 140px; overflow-y: auto; margin-bottom: 4px; }
     .emoji-item { font-size: 1.2rem; text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; }
     .emoji-item:hover { background: var(--bg-color); }
 
-    /* STANDARD VECTOR ATTACHMENT POPOVER */
     .attachment-popover { display: none; gap: 16px; padding: 10px 16px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; max-width: 300px; margin-bottom: 4px; }
     .attach-option-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-color); cursor: pointer; font-weight: 500; }
     .attach-icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; }
@@ -243,6 +239,13 @@
 
     .excel-btn-element { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
     .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
+
+    /* ------------ DYNAMIC POSITIONED CONTEXT MENUS ------------ */
+    .context-menu { position: absolute; z-index: 1000; width: 150px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
+    .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
+    .context-menu-item:hover { background: var(--accent-blue); color: white; }
+    .context-menu-item.danger:hover { background: var(--error-red); color: white; }
+    .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
     @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
@@ -612,9 +615,10 @@
     </aside>
   </div>
 
-  <!-- Context Menus -->
+  <!-- CONTEXT MENUS (DYNAMIC MOUSE ANCHORED) -->
   <div class="context-menu" id="projectTileContextMenu">
     <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
+    <div class="context-menu-item" onclick="renameSelectedProjectFromContext()">Rename Project</div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
   </div>
@@ -914,13 +918,29 @@
       }
     }
 
+    /* DYNAMICALLY ANCHORED CONTEXT MENUS */
     function showProjectTileContextMenu(e, proj) {
       hideContextMenus();
       selectedProjectForContext = proj;
       const menu = document.getElementById("projectTileContextMenu");
-      menu.style.top = `${e.clientY}px`;
-      menu.style.left = `${e.clientX}px`;
+      menu.style.top = `${e.pageY}px`;
+      menu.style.left = `${e.pageX}px`;
       menu.style.display = "flex";
+    }
+
+    function renameSelectedProjectFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+      const newName = prompt("Rename client/project name:", selectedProjectForContext.client);
+      if (newName && newName.trim()) {
+        selectedProjectForContext.client = newName.trim();
+        const allProjects = getProjects();
+        const idx = allProjects.findIndex(p => p.id === selectedProjectForContext.id);
+        if (idx !== -1) {
+          allProjects[idx] = selectedProjectForContext;
+          saveProjects(allProjects);
+        }
+      }
     }
 
     function openSelectedProjectFromContext() {
@@ -1421,7 +1441,7 @@
       if (!currentFolderNode.children) currentFolderNode.children = [];
 
       if (currentFolderNode.children.length === 0) {
-        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Click the + button to add a new folder.</div>`;
+        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
         return;
       }
 
@@ -1488,6 +1508,7 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
+    /* RIGHT-CLICK MOUSE ANCHORED CONTEXT MENUS */
     function showFolderContextMenu(e, folder, idx) {
       hideContextMenus();
       selectedFolderForContext = { folder, idx };
@@ -1495,20 +1516,20 @@
       
       document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
 
-      menu.style.top = `${e.clientY}px`;
-      menu.style.left = `${e.clientX}px`;
+      menu.style.top = `${e.pageY}px`;
+      menu.style.left = `${e.pageX}px`;
       menu.style.display = "flex";
     }
 
     function handleWorkspaceContextMenu(e) {
-      if (activeOpenedProject && clipboardFolder) {
+      if (activeOpenedProject && activeViewMode === 'folder') {
         e.preventDefault();
         hideContextMenus();
         selectedFolderForContext = null;
         const menu = document.getElementById("folderContextMenu");
-        document.getElementById("pasteContextBtn").style.display = "flex";
-        menu.style.top = `${e.clientY}px`;
-        menu.style.left = `${e.clientX}px`;
+        document.getElementById("pasteContextBtn").style.display = clipboardFolder ? "flex" : "none";
+        menu.style.top = `${e.pageY}px`;
+        menu.style.left = `${e.pageX}px`;
         menu.style.display = "flex";
       }
     }
