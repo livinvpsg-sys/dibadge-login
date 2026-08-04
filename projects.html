@@ -91,6 +91,9 @@
     .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .project-sub-nav { display: none; }
 
+    /* Home icon hidden by default */
+    #btnNavHome { display: none; }
+
     .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(0, 168, 132, 0.4); cursor: pointer; display: flex; }
     .fab-tab-btn:hover { background: #008f6c; transform: scale(1.05); }
 
@@ -108,6 +111,12 @@
     .tile-content-bottom { display: flex; flex-direction: column; gap: 1px; width: 100%; text-align: center; }
     .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .tile-project-no { font-size: 0.68rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; }
+
+    /* DESKTOP-STYLE FORM FILE CARDS */
+    .form-file-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .form-file-card:hover { transform: translateY(-3px); }
+    .form-file-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
+    .form-file-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
 
     /* Folder Explorer View Workspace */
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
@@ -270,9 +279,9 @@
     <div class="header-left">
       <!-- Default Title & Year Picker -->
       <div class="default-header-title" id="defaultHeaderTitle">
-        <h1>
-          <svg style="width:24px; height:24px; stroke:#00a884; stroke-width:2; fill:none;" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-          Projects
+        <h1 id="headerMainTitle">
+          <svg id="headerTitleIcon" style="width:24px; height:24px; stroke:#00a884; stroke-width:2; fill:none;" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span id="headerTitleText">Projects</span>
         </h1>
         <select id="yearPicker" class="year-select" onchange="filterProjects()">
           <option value="2026" selected>2026</option>
@@ -303,7 +312,7 @@
     <aside class="left-vertical-tabbar">
       <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
-        <!-- 1. Home Icon -->
+        <!-- 1. Home Icon (Shown when project icon active) -->
         <a href="index.html" class="tab-btn" id="btnNavHome" title="Home Grid">
           <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         </a>
@@ -313,7 +322,7 @@
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </button>
 
-        <!-- 3. Forms Icon (Clean Vector Page with Writing Lines 📝) -->
+        <!-- 3. Forms Icon -->
         <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Global Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
@@ -336,7 +345,7 @@
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
 
-        <!-- 3. Forms Icon (Clean Vector Page with Writing Lines 📝) -->
+        <!-- 3. Forms Icon -->
         <button class="tab-btn" id="btnSubForms" onclick="switchProjectSubTab('forms')" title="Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
@@ -375,10 +384,9 @@
     <!-- Global Main Level View Panels -->
     <section class="sub-view-panel" id="panelGlobalForms">
       <div style="margin-bottom:16px;">
-        <h2 style="font-size:1.1rem; font-weight:700;">Global Organization Forms</h2>
-        <p style="color:var(--subtext-color); font-size:0.85rem;">Master compliance forms and company audit templates. Click bottom left + button to create a spreadsheet template.</p>
+        <h2 style="font-size:1.1rem; font-weight:700;">Forms</h2>
       </div>
-      <div id="globalFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
+      <div id="globalFormsContainer" class="tiles-grid"></div>
     </section>
 
     <section class="sub-view-panel" id="panelGlobalSchedule">
@@ -524,7 +532,7 @@
         <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
         <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
       </div>
-      <div id="projectFormsContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:16px;"></div>
+      <div id="projectFormsContainer" class="tiles-grid"></div>
     </section>
 
     <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
@@ -790,7 +798,7 @@
   <script>
     const colors = ['tile-blue', 'tile-green', 'tile-purple', 'tile-orange'];
     let activeOpenedProject = null;
-    let editingProjectObj = null; // Separate reference for modal editing
+    let editingProjectObj = null;
     let selectedProjectForContext = null;
     let folderObjectStack = [];
     let activeViewMode = 'projects';
@@ -936,15 +944,21 @@
       if (slider) slider.style.setProperty('--thumb-color', currentModalColor);
     }
 
+    /* Switch Main Level View Tabs with Header & Home Icon Logic */
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       const mainGrid = document.getElementById("mainGridWorkspace");
       const formsPanel = document.getElementById("panelGlobalForms");
       const schedulePanel = document.getElementById("panelGlobalSchedule");
 
+      const btnHome = document.getElementById("btnNavHome");
       const btnSuitcase = document.getElementById("btnNavSuitcase");
       const btnForms = document.getElementById("btnNavForms");
       const btnSchedule = document.getElementById("btnNavSchedule");
+
+      const headerTitleText = document.getElementById("headerTitleText");
+      const headerTitleIcon = document.getElementById("headerTitleIcon");
+      const yearPicker = document.getElementById("yearPicker");
 
       [mainGrid, formsPanel, schedulePanel].forEach(el => { if (el) el.style.display = "none"; });
       [btnSuitcase, btnForms, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
@@ -955,17 +969,34 @@
       if (tabKey === 'projects') {
         if (mainGrid) mainGrid.style.display = "flex";
         if (btnSuitcase) btnSuitcase.classList.add("active");
+        if (btnHome) btnHome.style.display = "flex"; // Show home icon when project icon is active
         if (searchElem) searchElem.style.display = "";
+        
+        if (headerTitleText) headerTitleText.innerText = "Projects";
+        if (headerTitleIcon) headerTitleIcon.innerHTML = `<rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>`;
+        if (yearPicker) yearPicker.style.display = "";
+        
         filterProjects();
       } else if (tabKey === 'forms') {
         if (formsPanel) formsPanel.style.display = "block";
         if (btnForms) btnForms.classList.add("active");
+        if (btnHome) btnHome.style.display = "none";
         if (searchElem) searchElem.style.display = "none";
+        
+        if (headerTitleText) headerTitleText.innerText = "Forms";
+        if (headerTitleIcon) headerTitleIcon.innerHTML = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line>`;
+        if (yearPicker) yearPicker.style.display = "none"; // Hide year picker in Forms view
+        
         renderFormsListUI('globalFormsContainer', globalFormsList);
       } else if (tabKey === 'schedule') {
         if (schedulePanel) schedulePanel.style.display = "block";
         if (btnSchedule) btnSchedule.classList.add("active");
+        if (btnHome) btnHome.style.display = "none";
         if (searchElem) searchElem.style.display = "none";
+        
+        if (headerTitleText) headerTitleText.innerText = "Schedule";
+        if (headerTitleIcon) headerTitleIcon.innerHTML = `<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>`;
+        if (yearPicker) yearPicker.style.display = "";
       }
     }
 
@@ -1265,26 +1296,30 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    /* ------------ FORM LIST & IMPORT MODAL ------------ */
+    /* ------------ DESKTOP FILE CARD RENDER FOR FORMS ------------ */
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
       container.innerHTML = "";
 
       if (list.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created in this section yet. Click bottom left + button to create or import one.</div>`;
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
         return;
       }
 
       list.forEach(form => {
         const card = document.createElement("div");
-        card.style.cssText = "background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 8px;";
+        card.className = "form-file-card";
         card.innerHTML = `
-          <div style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); text-transform:uppercase;">${form.category}</div>
-          <div style="font-weight:700; font-size:1rem; color:var(--text-color);">${form.title}</div>
-          <div style="font-size:0.8rem; color:var(--subtext-color);">Spreadsheet Form Sheet • Created ${form.date}</div>
-          <button style="margin-top:10px; background:var(--accent-blue); color:#fff; border:none; padding:8px; border-radius:6px; font-weight:600; cursor:pointer;" onclick="alert('Launching Spreadsheet Form: ${form.title}')">Open Spreadsheet Sheet</button>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <div class="form-file-name">${form.title}</div>
         `;
+        
+        // Double-click to open form studio or alert
+        card.ondblclick = function() {
+          alert(`Opening Form: ${form.title}`);
+        };
+
         container.appendChild(card);
       });
     }
@@ -1845,10 +1880,8 @@
     (function init() {
       const searchElem = document.getElementById("projectSearchInput");
       if (searchElem) searchElem.style.display = "";
-      updateFabVisibility();
+      switchMainViewTab('projects');
     })();
-
-    filterProjects();
   </script>
 </body>
 </html>
