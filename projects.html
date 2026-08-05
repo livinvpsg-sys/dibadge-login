@@ -115,7 +115,7 @@
     .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
     .tile-project-no { font-size: 0.68rem; color: var(--subtext-color); font-weight: 600; text-transform: uppercase; }
 
-    /* List View Table Style */
+    /* Common List View Table Style */
     .projects-list-table { width: 100%; border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
     .projects-list-table th { background: var(--header-bg); color: var(--subtext-color); text-align: left; padding: 12px 16px; font-size: 0.82rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
     .projects-list-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-color); cursor: pointer; }
@@ -864,7 +864,12 @@
           btnGrid.classList.remove("active");
         }
       }
-      filterProjects();
+      
+      if (activeOpenedProject && activeViewMode === 'folder') {
+        renderFolderView();
+      } else {
+        filterProjects();
+      }
     }
 
     function filterProjects() {
@@ -1097,6 +1102,9 @@
       const searchElem = document.getElementById("projectSearchInput");
       if (searchElem) searchElem.style.display = "none";
 
+      const viewToggle = document.getElementById("headerViewToggle");
+      if (viewToggle) viewToggle.style.display = "flex"; // Keep view mode controls active in subfolders
+
       document.getElementById("mainGridWorkspace").style.display = "none";
       document.getElementById("panelGlobalForms").style.display = "none";
       document.getElementById("panelGlobalSchedule").style.display = "none";
@@ -1188,6 +1196,8 @@
       const btnClaims = document.getElementById("btnSubClaims");
       const btnSchedule = document.getElementById("btnSubSchedule");
 
+      const viewToggle = document.getElementById("headerViewToggle");
+
       [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => { if (ws) ws.style.display = "none"; });
       [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
 
@@ -1196,27 +1206,32 @@
       if (tabKey === 'folder') {
         if (folderWS) folderWS.style.display = "flex";
         if (btnFolder) btnFolder.classList.add("active");
+        if (viewToggle) viewToggle.style.display = "flex";
         renderFolderView();
-      } else if (tabKey === 'chat') {
-        if (chatWS) chatWS.style.display = "flex";
-        if (btnChat) btnChat.classList.add("active");
-      } else if (tabKey === 'forms') {
-        if (formsWS) formsWS.style.display = "block";
-        if (btnForms) btnForms.classList.add("active");
-        renderFormsListUI('projectFormsContainer', projectFormsList);
-      } else if (tabKey === 'boq') {
-        if (boqWS) boqWS.style.display = "flex";
-        if (btnBOQ) btnBOQ.classList.add("active");
-        renderBOQTable();
-      } else if (tabKey === 'compare') {
-        if (compareWS) compareWS.style.display = "block";
-        if (btnCompare) btnCompare.classList.add("active");
-      } else if (tabKey === 'claims') {
-        if (claimsWS) claimsWS.style.display = "block";
-        if (btnClaims) btnClaims.classList.add("active");
-      } else if (tabKey === 'schedule') {
-        if (scheduleWS) scheduleWS.style.display = "block";
-        if (btnSchedule) btnSchedule.classList.add("active");
+      } else {
+        if (viewToggle) viewToggle.style.display = "none";
+        
+        if (tabKey === 'chat') {
+          if (chatWS) chatWS.style.display = "flex";
+          if (btnChat) btnChat.classList.add("active");
+        } else if (tabKey === 'forms') {
+          if (formsWS) formsWS.style.display = "block";
+          if (btnForms) btnForms.classList.add("active");
+          renderFormsListUI('projectFormsContainer', projectFormsList);
+        } else if (tabKey === 'boq') {
+          if (boqWS) boqWS.style.display = "flex";
+          if (btnBOQ) btnBOQ.classList.add("active");
+          renderBOQTable();
+        } else if (tabKey === 'compare') {
+          if (compareWS) compareWS.style.display = "block";
+          if (btnCompare) btnCompare.classList.add("active");
+        } else if (tabKey === 'claims') {
+          if (claimsWS) claimsWS.style.display = "block";
+          if (btnClaims) btnClaims.classList.add("active");
+        } else if (tabKey === 'schedule') {
+          if (scheduleWS) scheduleWS.style.display = "block";
+          if (btnSchedule) btnSchedule.classList.add("active");
+        }
       }
     }
 
@@ -1604,33 +1619,85 @@
         return;
       }
 
-      currentFolderNode.children.forEach((folder, idx) => {
-        const folderCard = document.createElement("div");
-        folderCard.className = "folder-card";
-        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
-          folderCard.classList.add("selected-cut");
-        }
+      if (currentProjectDisplayMode === 'grid') {
+        subGrid.className = "folder-contents-grid";
+        currentFolderNode.children.forEach((folder, idx) => {
+          const folderCard = document.createElement("div");
+          folderCard.className = "folder-card";
+          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+            folderCard.classList.add("selected-cut");
+          }
 
-        folderCard.innerHTML = `
-          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          <div class="folder-name">${folder.name}</div>
-          <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
+          folderCard.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <div class="folder-name">${folder.name}</div>
+            <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
+          `;
+
+          folderCard.onclick = (e) => {
+            e.stopPropagation();
+            folderObjectStack.push(folder);
+            renderFolderView();
+          };
+
+          folderCard.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showFolderContextMenu(e, folder, idx);
+          };
+
+          subGrid.appendChild(folderCard);
+        });
+      } else {
+        // Render Subfolders and Files as Detailed List View Table
+        subGrid.className = "";
+        const table = document.createElement("table");
+        table.className = "projects-list-table";
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Items / Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
         `;
 
-        folderCard.onclick = (e) => {
-          e.stopPropagation();
-          folderObjectStack.push(folder);
-          renderFolderView();
-        };
+        const tbody = table.querySelector("tbody");
+        currentFolderNode.children.forEach((folder, idx) => {
+          const tr = document.createElement("tr");
+          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+            tr.style.opacity = "0.4";
+          }
 
-        folderCard.oncontextmenu = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          showFolderContextMenu(e, folder, idx);
-        };
+          const itemCount = folder.children ? folder.children.length + ' Items' : folder.items || '0 Items';
+          tr.innerHTML = `
+            <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+              <svg style="width:18px; height:18px; stroke:var(--accent-blue); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              ${folder.name}
+            </td>
+            <td style="color:var(--subtext-color);">Folder</td>
+            <td style="color:var(--subtext-color);">${itemCount}</td>
+          `;
 
-        subGrid.appendChild(folderCard);
-      });
+          tr.onclick = (e) => {
+            e.stopPropagation();
+            folderObjectStack.push(folder);
+            renderFolderView();
+          };
+
+          tr.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showFolderContextMenu(e, folder, idx);
+          };
+
+          tbody.appendChild(tr);
+        });
+
+        subGrid.appendChild(table);
+      }
     }
 
     function jumpToBreadcrumbIndex(targetIndex) {
