@@ -51,8 +51,8 @@
 
       --chat-incoming-bg: #222224;
       --chat-incoming-text: #ffffff;
-      --chat-outgoing-bg: #ffffff;
-      --chat-outgoing-text: #0f0f0f;
+      --chat-outgoing-bg: #2c2c2e; /* Updated to match charcoal surface tone */
+      --chat-outgoing-text: #ffffff; /* Updated text color for contrast */
       --chat-sender-name: #d1a396;
     }
 
@@ -150,7 +150,7 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT SPLIT WORKSPACE (CHAT + SEPARATED DETAILS PANE) ------------ */
+    /* ------------ CHAT WORKSPACE & CHARCOAL OUTGOING BUBBLE ------------ */
     .chat-view-workspace { display: none; flex: 1; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     .chat-split-container { display: flex; width: 100%; height: 100%; gap: 12px; background: var(--bg-color); padding: 10px 10px 10px 0; }
 
@@ -298,6 +298,8 @@
 
     .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
+    
+    /* Outgoing bubble now matches charcoal theme tone (--chat-outgoing-bg) with readable text color (--chat-outgoing-text) */
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
     /* WhatsApp Style Image Bubble Overrides */
@@ -314,7 +316,7 @@
     .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; pointer-events: none; }
 
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
-    .msg-bubble.outgoing .msg-meta-row { color: #666666; }
+    .msg-bubble.outgoing .msg-meta-row { color: var(--cool-ash); } /* Adjusted meta time color for charcoal theme */
 
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 8px; }
@@ -421,7 +423,7 @@
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-    @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
+    @media (max-width: 1024px) { .notifications-panel { display: none; } }
   </style>
 </head>
 <body onclick="hideContextMenus(); handleOutsideClicks(event);">
@@ -578,7 +580,7 @@
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- FULL CHAT WORKSPACE (SPLIT: CHAT AREA + SEPARATED CHAT DETAILS PANE) -->
+    <!-- FULL CHAT WORKSPACE -->
     <section class="chat-view-workspace" id="panelChatWorkspace">
       <div class="chat-split-container">
         
