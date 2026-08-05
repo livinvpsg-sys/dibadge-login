@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>diBadge | Organization Portal</title>
-  
+  <title>diBadge | Projects</title>
+
+  <!-- Global Theme Pre-loader Script -->
   <script>
     (function() {
       const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
@@ -21,8 +22,8 @@
       --muted-gray: #8e8e93;
       --cool-ash: #a1a1a6;
       --soft-border: #e5e5ea;
-      --error-red: #ff3b30;
       --accent-blue: #00a884; /* Teal Green System Accent */
+      --error-red: #ff3b30;
 
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
@@ -31,6 +32,12 @@
       --tabbar-bg: var(--jet-black);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
+
+      --chat-incoming-bg: #222224;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     [data-theme="dark"] {
@@ -41,356 +48,1962 @@
       --tabbar-bg: #050505;
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
+
+      --chat-incoming-bg: #222224;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #0f0f0f;
+      --chat-sender-name: #d1a396;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; overflow-x: hidden; transition: background-color 0.2s, color 0.2s; }
+    body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    #gateModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--jet-black); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .gate-card { background: var(--surface-color); padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; width: 90%; border: 1px solid var(--border-color); }
-    .gate-card h2 { margin-bottom: 8px; color: var(--text-color); }
-    .gate-card input { width: 100%; padding: 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 8px; margin: 12px 0; text-align: center; outline: none; }
-    .gate-card button { width: 100%; padding: 12px; background: var(--accent-blue); color: var(--accent-white); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    /* Header Line */
+    .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    
+    .default-header-title { display: flex; align-items: center; gap: 12px; }
+    .default-header-title h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .year-select { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
-    #dashboardLayout { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
-    .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
-    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; }
+    /* Header Breadcrumb Navigation */
+    .folder-header-nav { display: none; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: 600; }
+    .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
+    .header-back-icon:hover { background: var(--surface-color); color: var(--accent-blue); }
+    .header-breadcrumb-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .breadcrumb-item { cursor: pointer; color: var(--accent-blue); text-decoration: none; }
+    .breadcrumb-item:hover { text-decoration: underline; }
+    .breadcrumb-item.active { color: var(--text-color); cursor: default; text-decoration: none; }
+
+    .header-center { flex: 1; max-width: 450px; margin: 0 20px; display: flex; align-items: center; gap: 12px; }
+    .search-input { flex: 1; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 0.88rem; outline: none; }
+    .search-input::placeholder { color: var(--subtext-color); }
+
+    /* Header View Mode Controls */
+    .view-mode-toggle { display: flex; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
+    .view-btn { background: transparent; border: none; color: var(--subtext-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .view-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .view-btn.active { background: var(--accent-blue); color: #ffffff; }
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
-    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 20; flex-shrink: 0; }
-    .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--muted-gray); display: flex; justify-content: center; align-items: center; cursor: pointer; margin-bottom: 12px; text-decoration: none; transition: all 0.2s; }
+    /* Left Navigation Bar */
+    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 10; }
+    .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--muted-gray); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .tab-btn:hover, .tab-btn.active { background: var(--accent-blue); color: var(--accent-white); }
+    .tab-btn:hover, .tab-btn.active { background: var(--accent-blue); color: white; }
 
-    .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: var(--accent-white); box-shadow: 0 4px 10px rgba(0, 168, 132, 0.4); }
+    .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .project-sub-nav { display: none; }
+
+    .fab-tab-btn { margin-top: auto; background: var(--accent-blue); color: white; box-shadow: 0 4px 10px rgba(0, 168, 132, 0.4); cursor: pointer; display: flex; }
     .fab-tab-btn:hover { background: #008f6c; transform: scale(1.05); }
 
-    /* CENTERED TILES WORKSPACE */
-    .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
-    .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
+    /* Center Projects Grid Workspace */
+    .tiles-wrapper { flex: 1; display: flex; justify-content: flex-start; align-items: flex-start; padding: 24px; overflow-y: auto; position: relative; background: var(--bg-color); }
+    .tiles-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; }
 
     /* Common Theme-Matched Tile Style */
-    .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); text-decoration: none; flex-shrink: 0; }
-    .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--accent-blue); }
+    .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); user-select: none; }
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--accent-blue); }
+
+    .tile-avatar-center { flex: 1; display: flex; justify-content: center; align-items: center; }
+    .tile-letter-avatar { width: 38px; height: 38px; border-radius: 50%; background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; }
     
-    /* Icon Color Changed to Teal Green */
-    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; color: var(--accent-blue); }
-    .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
+    .tile-content-bottom { display: flex; flex-direction: column; gap: 1px; width: 100%; text-align: center; }
+    .tile-client-name { font-size: 0.8rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px; }
+    .tile-project-no { font-size: 0.68rem; color: var(--subtext-color); font-weight: 600; text-transform: uppercase; }
 
-    .tile-edit-btn { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.35); color: #ffffff; border: none; width: 26px; height: 26px; border-radius: 4px; display: flex; justify-content: center; align-items: center; cursor: pointer; opacity: 0; transition: opacity 0.2s ease, background 0.2s ease; padding: 4px; }
-    .tile-edit-btn svg { width: 14px; height: 14px; stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .tile:hover .tile-edit-btn { opacity: 1; }
-    .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
+    /* Common List View Table Style */
+    .projects-list-table { width: 100%; border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+    .projects-list-table th { background: var(--header-bg); color: var(--subtext-color); text-align: left; padding: 12px 16px; font-size: 0.82rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
+    .projects-list-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-color); cursor: pointer; }
+    .projects-list-table tr:hover td { background: rgba(0, 168, 132, 0.08); }
 
-    #settingsView { display: none; flex: 1; padding: 40px; background: var(--surface-color); overflow-y: auto; }
-    .settings-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; max-width: 500px; margin-top: 20px; }
-    .theme-selector-group { display: flex; gap: 16px; margin-top: 12px; }
-    .theme-option-btn { flex: 1; padding: 14px; border: 2px solid var(--border-color); background: var(--surface-color); color: var(--text-color); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-    .theme-option-btn.active { border-color: var(--accent-blue); background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); }
+    /* DESKTOP-STYLE FORM FILE CARDS */
+    .form-file-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .form-file-card:hover { transform: translateY(-3px); }
+    .form-file-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
+    .form-file-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
 
-    .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); flex-shrink: 0; }
-    .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); font-weight: 600; font-size: 0.95rem; }
+    /* Folder Explorer View Workspace */
+    .folder-explorer-view { display: none; flex: 1; flex-direction: column; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
+    
+    .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; position: relative; }
+    .project-meta-line1 { display: flex; align-items: center; gap: 10px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
+    .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .edit-meta-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: color 0.15s, background 0.15s; margin-left: 4px; }
+    .edit-meta-btn:hover { color: var(--accent-blue); background: rgba(0, 168, 132, 0.12); }
+    .edit-meta-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+    .project-meta-line3 { font-size: 0.82rem; color: var(--text-color); opacity: 0.9; margin-top: 2px; line-height: 1.3; }
+
+    .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; min-height: 300px; }
+
+    .folder-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .folder-card:hover { transform: translateY(-3px); }
+    .folder-card.selected-cut { opacity: 0.4; }
+    .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
+    .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
+    .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
+
+    /* ------------ CHAT WORKSPACE & POP-UPS ------------ */
+    .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
+    .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+    .chat-date-pill { align-self: center; background: #26262a; color: var(--cool-ash); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin: 8px 0; }
+
+    .msg-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; position: relative; }
+    .msg-row.incoming { justify-content: flex-start; }
+    .msg-row.outgoing { justify-content: flex-end; }
+
+    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: #a67c70; color: #ffffff; font-weight: 700; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 18px; }
+    .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
+    .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
+
+    .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
+    .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
+
+    /* WhatsApp Style Image Bubble Overrides */
+    .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
+    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; }
+    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); }
+
+    .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
+    .msg-bubble.outgoing .msg-meta-row { color: #666666; }
+
+    .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; position: relative; }
+    .chat-input-row { display: flex; align-items: center; gap: 8px; }
+    .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
+    
+    .chat-action-btn { background: transparent; border: none; color: var(--cool-ash); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
+    .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Clean Horizontal Teal Green Send Button (No Circle) */
+    .chat-send-btn { background: transparent; border: none; color: var(--accent-blue); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+    .chat-send-btn:hover { transform: scale(1.1); }
+    .chat-send-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
+
+    /* Natural Compact Emoji Picker (No scrollbars/sliders) */
+    .emoji-picker-panel { display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: max-content; margin-bottom: 4px; }
+    .emoji-item { font-size: 1.3rem; text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; }
+    .emoji-item:hover { background: var(--bg-color); }
+
+    .attachment-popover { display: none; gap: 16px; padding: 10px 14px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: max-content; margin-bottom: 4px; }
+    .attach-option-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-color); cursor: pointer; font-weight: 500; }
+    .attach-icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; }
+    .attach-icon-circle svg { width: 20px; height: 20px; stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
+    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
+    .boq-control-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .boq-select, .boq-control-input { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
+
+    .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 900px; margin-top: 12px; }
+    .boq-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
+    .boq-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; font-size: 0.88rem; }
+    .boq-input { width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; outline: none; }
+
+    .boq-add-row-btn { background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); border: 1px dashed var(--accent-blue); width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; margin-top: 14px; transition: background 0.15s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .boq-add-row-btn:hover { background: rgba(0, 168, 132, 0.28); }
+
+    .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 320px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
+    .boq-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; color: var(--subtext-color); }
+    .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--accent-blue); }
+
+    .delete-row-btn { background: transparent; border: none; color: var(--error-red); cursor: pointer; opacity: 0.7; padding: 4px; border-radius: 4px; }
+    .delete-row-btn:hover { opacity: 1; background: rgba(255, 59, 48, 0.15); }
+    .delete-row-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Sub-view Panels */
+    .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
+
+    /* Activity Feed */
+    .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; }
+    .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
     .notifications-header svg { width: 18px; height: 18px; stroke: var(--accent-blue); stroke-width: 2; fill: none; margin-right: 6px; }
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
-    .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
-    .notification-item .time { font-size: 0.75rem; color: var(--subtext-color); margin-top: 6px; }
 
-    /* MODAL STYLING */
+    /* Standard Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
-    .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: center; max-width: 380px; width: 90%; position: relative; border: 1px solid var(--border-color); color: var(--text-color); }
-    .modal-label { display: block; text-align: left; font-size: 0.85rem; color: var(--subtext-color); margin: 12px 0 6px 0; font-weight: 600; }
-    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
-    
-    .icon-selector-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-    .icon-preview-box { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--accent-blue); }
-    .icon-preview-box svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-    .icon-picker-grid { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); max-height: 150px; overflow-y: auto; }
-    .icon-option { width: 100%; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 6px; padding: 8px; }
-    .icon-option svg { width: 22px; height: 22px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
-    .icon-option.selected { background: rgba(0, 168, 132, 0.15); }
-    .icon-option.selected svg { stroke: var(--accent-blue); }
+    .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); border: 1px solid var(--border-color); }
+    .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
+    .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
+    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    textarea.modal-input { resize: vertical; min-height: 65px; font-family: inherit; }
 
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .btn-save { background: var(--accent-blue); color: var(--accent-white); }
-    .btn-delete { background: var(--error-red); color: var(--accent-white); }
+    .btn-save { background: var(--accent-blue); color: white; }
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
-    @media (max-width: 1024px) { .notifications-panel { display: none; } }
+    /* EXCEL-STYLE FULLSCREEN SPREADSHEET FORM STUDIO */
+    .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
+    .excel-toolbar { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+    .excel-tool-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+    .excel-tool-btn:hover { background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); border-color: var(--accent-blue); }
+    .excel-tool-select, .excel-color-picker { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 8px; border-radius: 6px; font-size: 0.82rem; outline: none; }
+
+    .excel-grid-workspace { flex: 1; overflow: auto; padding: 24px; background: var(--bg-color); display: flex; justify-content: flex-start; align-items: flex-start; }
+    .excel-table { border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    .excel-table td, .excel-table th { border: 1px solid var(--border-color); min-width: 120px; height: 38px; padding: 4px 8px; position: relative; font-size: 0.88rem; color: var(--text-color); outline: none; }
+    .excel-table th { background: rgba(0, 168, 132, 0.12); color: var(--accent-blue); font-weight: 700; text-align: center; }
+    .excel-table td.selected-cell { outline: 2px solid var(--accent-blue); z-index: 5; background: rgba(0, 168, 132, 0.08); }
+
+    .excel-btn-element { background: var(--accent-blue); color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
+
+    /* ------------ DYNAMIC POSITIONED CONTEXT MENUS ------------ */
+    .context-menu { position: absolute; z-index: 1000; width: 150px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
+    .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
+    .context-menu-item:hover { background: var(--accent-blue); color: white; }
+    .context-menu-item.danger:hover { background: var(--error-red); color: white; }
+    .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+    @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
   </style>
 </head>
-<body>
+<body onclick="hideContextMenus(); handleOutsideClicks(event);">
 
-  <!-- Hidden SVG Template Library -->
-  <div style="display: none;">
-    <svg id="svg-projects" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-    <svg id="svg-members" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-    <svg id="svg-hr" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
-    <svg id="svg-finance" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-    <svg id="svg-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-  </div>
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <!-- Permanent Header Title: Projects -->
+      <div class="default-header-title" id="defaultHeaderTitle">
+        <h1 id="headerMainTitle">
+          <svg id="headerTitleIcon" style="width:24px; height:24px; stroke:#00a884; stroke-width:2; fill:none;" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span id="headerTitleText">Projects</span>
+        </h1>
+        <select id="yearPicker" class="year-select" onchange="filterProjects()">
+          <option value="2026" selected>2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+      </div>
 
-  <div id="gateModal">
-    <div class="gate-card">
-      <h2>diBadge Site Lock</h2>
-      <p style="color:var(--subtext-color); margin-bottom:12px;">Enter passcode to open site view.</p>
-      <input type="password" id="passInput" placeholder="Enter Access Passcode" />
-      <button onclick="checkPasscode()">Unlock Site</button>
+      <!-- Folder Navigation Header Path with Back Arrow -->
+      <div class="folder-header-nav" id="folderHeaderNav">
+        <button class="header-back-icon" onclick="navigateUpBreadcrumb()" title="Go Back">
+          <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div class="header-breadcrumb-path" id="breadcrumbBar"></div>
+      </div>
     </div>
-  </div>
 
-  <div id="dashboardLayout">
-    <header class="dashboard-header">
-      <h1 id="pageTopHeader">diBadge</h1>
-    </header>
+    <div class="header-center">
+      <input type="text" id="projectSearchInput" class="search-input" placeholder="search projects.." onkeyup="filterProjects()" />
+      
+      <!-- View Options Toggle (Grid / List) -->
+      <div class="view-mode-toggle" id="headerViewToggle">
+        <button class="view-btn active" id="btnViewTile" onclick="switchProjectDisplayMode('grid')" title="Tile Grid View">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </button>
+        <button class="view-btn" id="btnViewList" onclick="switchProjectDisplayMode('list')" title="Detailed List View">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
 
-    <div class="dashboard-body-split">
-      <aside class="left-vertical-tabbar">
-        <button class="tab-btn active" id="tabNavHome" onclick="switchMainTab('home')" title="Home Tiles">
+    <div style="width: 120px;"></div>
+  </header>
+
+  <div class="dashboard-body-split">
+    
+    <!-- Left Navigation Bar -->
+    <aside class="left-vertical-tabbar">
+      <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
+      <div class="main-nav-group" id="mainNavGroup">
+        <!-- 1. Permanent Always-Visible Home Icon -->
+        <a href="index.html" class="tab-btn" id="btnNavHome" title="Home Grid">
           <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        </button>
-        <button class="tab-btn" id="tabNavSettings" onclick="switchMainTab('settings')" title="Organization Settings">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-        </button>
-        <button class="tab-btn fab-tab-btn" onclick="openCreateModal()" title="Create New Tile">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
-      </aside>
+        </a>
 
-      <div class="tiles-wrapper" id="homeView">
-        <div class="tiles-grid" id="tilesGrid"></div>
+        <!-- 2. Suitcase Icon (Projects Grid) -->
+        <button class="tab-btn active" id="btnNavSuitcase" onclick="switchMainViewTab('projects')" title="Project Tiles Grid">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        </button>
+
+        <!-- 3. Forms Icon -->
+        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
+        </button>
+
+        <!-- 4. Schedule Icon -->
+        <button class="tab-btn" id="btnNavSchedule" onclick="switchMainViewTab('schedule')" title="Schedule">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </button>
       </div>
 
-      <div id="settingsView">
-        <h2>Organization Settings</h2>
-        <p style="color:var(--subtext-color); margin-top:4px;">Customize portal preferences and theme options.</p>
+      <!-- PROJECT INNER SUB-MODULE NAVIGATION GROUP -->
+      <div class="project-sub-nav" id="projectSubNav">
+        <!-- 1. Folder Icon -->
+        <button class="tab-btn active" id="btnSubFolder" onclick="switchProjectSubTab('folder')" title="Folders & Files">
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        </button>
 
-        <div class="settings-card">
-          <h3 style="font-size:1rem; margin-bottom:6px;">Appearance Theme</h3>
-          <div class="theme-selector-group">
-            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">Dark Theme</button>
-            <button class="theme-option-btn" id="themeBtnLight" onclick="setAppTheme('light')">Light Theme</button>
+        <!-- 2. Chat Icon -->
+        <button class="tab-btn" id="btnSubChat" onclick="switchProjectSubTab('chat')" title="Project Chat">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
+
+        <!-- 3. Forms Icon -->
+        <button class="tab-btn" id="btnSubForms" onclick="switchProjectSubTab('forms')" title="Forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
+        </button>
+
+        <!-- 4. Bill of Quantity (BOQ Vector Path - Scaled to 22px) -->
+        <button class="tab-btn" id="btnSubBOQ" onclick="switchProjectSubTab('boq')" title="Bill of Quantity (BOQ)">
+          <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">BOQ</text></svg>
+        </button>
+
+        <!-- 5. Expense & BOQ Comparison Icon -->
+        <button class="tab-btn" id="btnSubCompare" onclick="switchProjectSubTab('compare')" title="Expense vs BOQ Comparison">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </button>
+
+        <!-- 6. Claims Icon (Pure Dollar Vector Path - Scaled to 22px) -->
+        <button class="tab-btn" id="btnSubClaims" onclick="switchProjectSubTab('claims')" title="Claims">
+          <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+        </button>
+
+        <!-- 7. Schedule Icon -->
+        <button class="tab-btn" id="btnSubSchedule" onclick="switchProjectSubTab('schedule')" title="Project Schedule & Milestones">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </button>
+      </div>
+
+      <button class="tab-btn fab-tab-btn" id="fabBtn" onclick="handleFabClick()" title="Create Action">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </aside>
+
+    <!-- Center Grid Workspace (Project Tiles Grid or List) -->
+    <main class="tiles-wrapper" id="mainGridWorkspace">
+      <div id="projectDisplayContainer" style="width:100%;"></div>
+    </main>
+
+    <!-- Global Main Level View Panels -->
+    <section class="sub-view-panel" id="panelGlobalForms">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.1rem; font-weight:700;">Forms</h2>
+      </div>
+      <div id="globalFormsContainer" class="tiles-grid"></div>
+    </section>
+
+    <section class="sub-view-panel" id="panelGlobalSchedule">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
+      <p style="color:var(--subtext-color);">Project timeline, calendar schedules, and milestones.</p>
+    </section>
+
+    <!-- Inner Folder Browser View -->
+    <section class="folder-explorer-view" id="folderExplorerWorkspace" oncontextmenu="handleWorkspaceContextMenu(event)">
+      <!-- Project Metadata Header Banner -->
+      <div class="project-meta-banner" id="projectMetaHeader">
+        <div class="project-meta-line1">
+          <span id="metaClientName">Amber Holdings</span>
+          <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
+          
+          <button class="edit-meta-btn" onclick="openEditProjectModal()" title="Edit Project Details">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+        </div>
+        <div class="project-meta-line2">
+          <svg style="width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <span id="metaLocation">North Tower B</span>
+        </div>
+        <div class="project-meta-line3" id="metaRemarks">Site inspection & visual documentation logs.</div>
+      </div>
+
+      <div class="folder-contents-grid" id="innerFolderGrid"></div>
+    </section>
+
+    <!-- FULL CHAT WORKSPACE -->
+    <section class="chat-view-workspace" id="panelChatWorkspace">
+      <div class="chat-messages-container" id="chatThreadContainer">
+        <div class="chat-date-pill">Today</div>
+
+        <!-- Sample Incoming Message 1 -->
+        <div class="msg-row incoming">
+          <div class="msg-avatar">J</div>
+          <div class="msg-body">
+            <span class="msg-sender-name">John</span>
+            <div class="msg-bubble incoming">
+              Hi there!
+              <div class="msg-meta-row"><span>10:04 am</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample Outgoing Message 1 -->
+        <div class="msg-row outgoing">
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              Hello! How can I help you?
+              <div class="msg-meta-row"><span>10:04 am</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample Incoming Message 2 -->
+        <div class="msg-row incoming">
+          <div class="msg-avatar" style="background:#8b5cf6;">M</div>
+          <div class="msg-body">
+            <span class="msg-sender-name">Mary</span>
+            <div class="msg-bubble incoming">
+              I have a question about the certificate.
+              <div class="msg-meta-row"><span>10:04 am</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sample Outgoing Message 2 -->
+        <div class="msg-row outgoing">
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              Sure, go ahead and ask.
+              <div class="msg-meta-row"><span>10:04 am</span></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <aside class="notifications-panel">
-        <div class="notifications-header">
-          <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
-          <span style="font-size:0.75rem; background:rgba(0,168,132,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:10px;">Live</span>
+      <!-- Standard Vector Attachment Popover -->
+      <div class="attachment-popover" id="chatAttachmentPopover">
+        <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
+          <div class="attach-icon-circle" style="background:#e91e63;">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </div>
+          <span>Image</span>
         </div>
-        <div class="notifications-list">
-          <div class="notification-item">
-            <div class="title">Leave Request Submitted</div>
-            <p style="color:var(--subtext-color);">John Doe requested 2 days medical leave.</p>
-            <div class="time">10 mins ago</div>
+        <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
+          <div class="attach-icon-circle" style="background:#9c27b0;">
+            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+          </div>
+          <span>Video</span>
+        </div>
+        <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
+          <div class="attach-icon-circle" style="background:#00a884;">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          </div>
+          <span>Document</span>
+        </div>
+      </div>
+
+      <!-- Compact Natural Emoji Picker (No scrollbars/sliders) -->
+      <div class="emoji-picker-panel" id="chatEmojiPanel">
+        <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+        <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
+        <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
+        <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
+        <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+        <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
+        <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
+        <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
+        <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
+        <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
+        <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
+        <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+      </div>
+
+      <!-- Chat Bottom Input Toolbar -->
+      <div class="chat-bottom-bar">
+        <div class="chat-input-row" id="chatInputBarContainer">
+          <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+          </button>
+          
+          <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
+            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+          </button>
+
+          <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" onkeyup="handleChatInputKey(event)" />
+
+          <!-- Clean Horizontal Teal Green Send Button (No Circle) -->
+          <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
+            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Multiple file selection enabled input -->
+      <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFileSelected(event)" />
+    </section>
+
+    <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelProjectFormsWorkspace">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
+      </div>
+      <div id="projectFormsContainer" class="tiles-grid"></div>
+    </section>
+
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
+      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
+
+      <!-- Currency & Tax Controls Bar -->
+      <div class="boq-top-controls">
+        <div class="boq-control-group">
+          <span>Currency:</span>
+          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+            <option value="$" selected>$ USD</option>
+            <option value="S$">S$ SGD</option>
+            <option value="₹">₹ INR</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+            <option value="¥">¥ JPY</option>
+            <option value="A$">A$ AUD</option>
+          </select>
+        </div>
+
+        <div class="boq-control-group">
+          <span>Tax Rate (%):</span>
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
+        </div>
+      </div>
+
+      <div class="boq-table-card">
+        <table class="boq-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Sl No</th>
+              <th>Item Description</th>
+              <th style="width: 140px;">Quantity</th>
+              <th style="width: 140px;">Unit Price</th>
+              <th style="width: 140px; text-align:right;">Total Price</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="boqTableBody">
+            <!-- Dynamic BOQ Rows rendered here -->
+          </tbody>
+        </table>
+
+        <button class="boq-add-row-btn" onclick="addBOQRow()">
+          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Row Item
+        </button>
+
+        <!-- Calculations Summary Card -->
+        <div class="boq-summary-card">
+          <div class="boq-summary-row">
+            <span>Sub Total:</span>
+            <span id="boqSubTotal">$0.00</span>
+          </div>
+          <div class="boq-summary-row">
+            <span id="boqTaxLabel">Tax / VAT (10%):</span>
+            <span id="boqTax">$0.00</span>
+          </div>
+          <div class="boq-summary-row grand-total">
+            <span>Grand Total:</span>
+            <span id="boqGrandTotal">$0.00</span>
           </div>
         </div>
-      </aside>
-    </div>
+      </div>
+    </section>
+
+    <!-- PROJECT CLAIMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelClaimsWorkspace">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+
+      <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
+        <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
+      </div>
+    </section>
+
+    <!-- Other Inner Sub-View Panels -->
+    <section class="sub-view-panel" id="panelCompareWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
+      <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
+    </section>
+
+    <section class="sub-view-panel" id="panelScheduleWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Project Schedule</h2>
+      <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
+    </section>
+
+    <!-- Right Activity Feed -->
+    <aside class="notifications-panel">
+      <div class="notifications-header">
+        <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
+        <span style="font-size:0.75rem; background:rgba(0,168,132,0.15); color:var(--accent-blue); padding:2px 8px; border-radius:10px;">Live</span>
+      </div>
+      <div class="notifications-list">
+        <div class="notification-item">
+          <div class="title">New Project Initialized</div>
+          <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
+          <div class="time">1 hour ago</div>
+        </div>
+      </div>
+    </aside>
   </div>
 
-  <!-- Tile Properties Modal -->
-  <div class="modal-overlay" id="tileModal">
+  <!-- CONTEXT MENUS (DYNAMIC MOUSE ANCHORED) -->
+  <div class="context-menu" id="projectTileContextMenu">
+    <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
+    <div class="context-menu-item" onclick="editSelectedProjectDetailsFromContext()">Edit Details</div>
+    <div class="context-menu-item" onclick="renameSelectedProjectFromContext()">Rename Project</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
+  </div>
+
+  <div class="context-menu" id="folderContextMenu">
+    <div class="context-menu-item" id="copyContextBtn" onclick="executeContextAction('copy')">Copy</div>
+    <div class="context-menu-item" id="cutContextBtn" onclick="executeContextAction('cut')">Cut</div>
+    <div class="context-menu-item" id="pasteContextBtn" onclick="executeContextAction('paste')" style="display:none;">Paste</div>
+    <div class="context-menu-divider" id="menuDivider1"></div>
+    <div class="context-menu-item" id="renameContextBtn" onclick="executeContextAction('rename')">Rename</div>
+    <div class="context-menu-item danger" id="deleteContextBtn" onclick="executeContextAction('delete')" style="color:var(--error-red);">Delete</div>
+  </div>
+
+  <!-- Create New Project Modal -->
+  <div class="modal-overlay" id="createProjectModal">
     <div class="modal-card">
-      <button class="close-btn" onclick="closeTileModal()">&times;</button>
-      <h3 id="modalHeaderTitle">Tile Properties</h3>
+      <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
+      <h3>Create New Project Tile</h3>
 
-      <label class="modal-label">Tile Name</label>
-      <input type="text" id="modalTileTitle" class="modal-input" placeholder="Enter tile title" />
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="newProjectClient" class="modal-input" />
 
-      <label class="modal-label">Icon</label>
-      <button class="icon-selector-trigger" onclick="toggleIconPicker()">
-        <span>Choose Icon</span>
-        <div class="icon-preview-box" id="selectedIconPreview"></div>
-      </button>
+      <label class="modal-label">Project No</label>
+      <input type="text" id="newProjectNo" class="modal-input" />
 
-      <div class="icon-picker-grid" id="iconPickerGrid">
-        <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
-        <div class="icon-option" onclick="selectIcon('hr')" id="pick-hr"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div>
-        <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect></svg></div>
-      </div>
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="newProjectLocation" class="modal-input" />
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="newProjectRemarks" class="modal-input"></textarea>
 
       <div class="modal-actions">
-        <button class="modal-btn btn-save" onclick="saveTileModal()">Save</button>
-        <button class="modal-btn btn-delete" id="deleteTileBtn" onclick="deleteCurrentTile()">Delete</button>
-        <button class="modal-btn btn-cancel" onclick="closeTileModal()">Cancel</button>
+        <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
+        <button class="modal-btn btn-cancel" onclick="closeCreateProjectModal()">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Edit Project Details Modal -->
+  <div class="modal-overlay" id="editProjectModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeEditProjectModal()">&times;</button>
+      <h3>Edit Project Details</h3>
+
+      <label class="modal-label">Client Name</label>
+      <input type="text" id="editProjectClient" class="modal-input" />
+
+      <label class="modal-label">Project No</label>
+      <input type="text" id="editProjectNo" class="modal-input" />
+
+      <label class="modal-label">Project Location</label>
+      <input type="text" id="editProjectLocation" class="modal-input" />
+
+      <label class="modal-label">Remarks</label>
+      <textarea id="editProjectRemarks" class="modal-input"></textarea>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
+        <button class="modal-btn btn-cancel" onclick="closeEditProjectModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS -->
+  <div class="modal-overlay" id="importGlobalFormModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeImportFormModal()">&times;</button>
+      <h3>Import Form from Global Library</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select an organization form template to assign to this project.</p>
+
+      <div id="globalImportListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; margin-bottom:16px;"></div>
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-cancel" onclick="closeImportFormModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL-SCREEN EXCEL-STYLE SPREADSHEET FORM STUDIO -->
+  <div class="fullscreen-form-creator" id="excelFormStudioOverlay">
+    <div class="dashboard-header" style="height:56px; border-bottom:1px solid var(--border-color); padding:0 20px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button onclick="closeExcelStudio()" style="background:none; border:none; color:var(--text-color); cursor:pointer;" title="Close Studio">
+          <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <h2 style="font-size:1rem; font-weight:700;">diBadge Spreadsheet Form Designer</h2>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
+        <button onclick="saveExcelFormTemplate()" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
+      </div>
+    </div>
+
+    <!-- Excel Formatting Toolbar -->
+    <div class="excel-toolbar">
+      <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
+      
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
+      <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
+
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <!-- Formatting -->
+      <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
+      
+      <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
+        <option value="12px">12px</option>
+        <option value="14px" selected>14px</option>
+        <option value="16px">16px</option>
+        <option value="18px">18px</option>
+        <option value="22px">22px</option>
+      </select>
+
+      <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
+        <option value="left">Align Left</option>
+        <option value="center">Align Center</option>
+        <option value="right">Align Right</option>
+      </select>
+
+      <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
+
+      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+
+      <!-- Interactive Form Controls Insertion -->
+      <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
+      <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
+      <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+    </div>
+
+    <!-- Spreadsheet Grid Canvas -->
+    <div class="excel-grid-workspace">
+      <table class="excel-table" id="excelSheetTable">
+        <tbody id="excelSheetBody"></tbody>
+      </table>
     </div>
   </div>
 
   <script>
-    const SECRET_PASSCODE = "177994";
-    let activeEditTileId = null;
-    let isCreateMode = false;
-    let selectedIconKey = "projects";
+    let activeOpenedProject = null;
+    let editingProjectObj = null;
+    let selectedProjectForContext = null;
+    let folderObjectStack = [];
+    let activeViewMode = 'projects';
+    let currentProjectDisplayMode = 'grid'; // View toggle state: 'grid' or 'list'
 
-    const defaultTiles = [
-      { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', isProtected: true },
-      { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', isProtected: true },
-      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', isProtected: false },
-      { id: 'finance', title: 'Finance', url: 'finance.html', iconKey: 'finance', isProtected: false }
+    let clipboardFolder = null;
+    let isCutOperation = false;
+    let selectedFolderForContext = null;
+
+    // Excel Studio State
+    let excelRowsCount = 8;
+    let excelColsCount = 6;
+    let selectedExcelCell = null;
+
+    let globalFormsList = [
+      { id: 'gf-1', title: 'Organization Master Safety Audit Sheet', category: 'Spreadsheet Form', date: '2026-08-01' },
+      { id: 'gf-2', title: 'Standard Quality Assurance Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
     ];
 
-    function setAppTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('dibadge_web_theme', theme);
-      const darkBtn = document.getElementById('themeBtnDark');
-      const lightBtn = document.getElementById('themeBtnLight');
-      if (darkBtn && lightBtn) {
-        if (theme === 'dark') { darkBtn.classList.add('active'); lightBtn.classList.remove('active'); }
-        else { lightBtn.classList.add('active'); darkBtn.classList.remove('active'); }
+    let projectFormsList = [
+      { id: 'pf-1', title: 'Tower B Foundation Log Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
+    ];
+
+    // Default BOQ Data
+    let currentBOQItems = [
+      { item: 'Foundation Concrete', qty: '25', price: '150' },
+      { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
+    ];
+
+    function getDefaultSubFolders() {
+      return [
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [] },
+        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [] }
+      ];
+    }
+
+    const defaultProjects = [
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders() },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', children: getDefaultSubFolders() },
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders() }
+    ];
+
+    function getProjects() {
+      const stored = localStorage.getItem('dibadge_project_tiles');
+      if (!stored) return defaultProjects;
+      try {
+        const parsed = JSON.parse(stored);
+        return parsed.map(p => {
+          if (!p.children) p.children = getDefaultSubFolders();
+          return p;
+        });
+      } catch(e) {
+        return defaultProjects;
       }
     }
 
-    setAppTheme(localStorage.getItem('dibadge_web_theme') || 'dark');
-
-    function getStoredTiles() {
-      const stored = localStorage.getItem('dibadge_custom_tiles');
-      if (!stored) return defaultTiles;
-      const parsed = JSON.parse(stored);
-      return parsed.map(t => {
-        if (t.id === 'projects' || t.id === 'members') t.isProtected = true;
-        return t;
-      });
+    function saveProjects(array) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
+      filterProjects();
     }
 
-    function setStoredTiles(tilesArray) {
-      localStorage.setItem('dibadge_custom_tiles', JSON.stringify(tilesArray));
-      renderTiles();
-    }
+    /* Switch between Grid View and List View */
+    function switchProjectDisplayMode(mode) {
+      currentProjectDisplayMode = mode;
+      const btnGrid = document.getElementById("btnViewTile");
+      const btnList = document.getElementById("btnViewList");
 
-    function renderTiles() {
-      const tiles = getStoredTiles();
-      const grid = document.getElementById("tilesGrid");
-      if (!grid) return;
-      grid.innerHTML = "";
-
-      tiles.forEach(tile => {
-        const svgTemplate = document.getElementById("svg-" + tile.iconKey);
-        const svgHTML = svgTemplate ? svgTemplate.outerHTML : "";
-
-        const tileElement = document.createElement("a");
-        tileElement.className = "tile";
-        tileElement.id = `tile-${tile.id}`;
-        tileElement.href = tile.url || "#";
-
-        tileElement.innerHTML = `
-          <div class="tile-icon-wrapper" id="icon-${tile.id}">${svgHTML}</div>
-          <div class="tile-title" id="title-${tile.id}">${tile.title}</div>
-          <button class="tile-edit-btn" onclick="openEditModal(event, '${tile.id}', ${!tile.isProtected})" title="Edit Tile">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </button>
-        `;
-
-        grid.appendChild(tileElement);
-      });
-    }
-
-    function switchMainTab(tab) {
-      const homeView = document.getElementById("homeView");
-      const settingsView = document.getElementById("settingsView");
-      const btnHome = document.getElementById("tabNavHome");
-      const btnSettings = document.getElementById("tabNavSettings");
-
-      if (tab === 'home') {
-        homeView.style.display = "flex"; settingsView.style.display = "none";
-        btnHome.classList.add("active"); btnSettings.classList.remove("active");
-      } else {
-        homeView.style.display = "none"; settingsView.style.display = "block";
-        btnHome.classList.remove("active"); btnSettings.classList.add("active");
-      }
-    }
-
-    function checkPasscode() {
-      if (document.getElementById("passInput").value === SECRET_PASSCODE) {
-        localStorage.setItem("dibadge_unlocked", "true");
-        document.getElementById("gateModal").style.display = "none";
-        document.getElementById("dashboardLayout").style.display = "flex";
-        renderTiles();
-      } else { alert("Incorrect passcode."); }
-    }
-
-    if (localStorage.getItem("dibadge_unlocked") === "true") {
-      document.getElementById("gateModal").style.display = "none";
-      document.getElementById("dashboardLayout").style.display = "flex";
-      renderTiles();
-    }
-
-    function toggleIconPicker() {
-      const picker = document.getElementById("iconPickerGrid");
-      picker.style.display = (picker.style.display === "grid") ? "none" : "grid";
-    }
-
-    function selectIcon(iconKey) {
-      selectedIconKey = iconKey;
-      document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
-      const targetOpt = document.getElementById("pick-" + iconKey);
-      if (targetOpt) targetOpt.classList.add('selected');
-      const templateSvg = document.getElementById("svg-" + iconKey);
-      if (templateSvg) document.getElementById("selectedIconPreview").innerHTML = templateSvg.outerHTML;
-      document.getElementById("iconPickerGrid").style.display = "none";
-    }
-
-    function openCreateModal() {
-      isCreateMode = true; activeEditTileId = null;
-      document.getElementById("modalHeaderTitle").innerText = "Create New Tile";
-      document.getElementById("modalTileTitle").value = "";
-      document.getElementById("deleteTileBtn").style.display = "none";
-      selectIcon("projects");
-      document.getElementById("tileModal").style.display = "flex";
-    }
-
-    function openEditModal(event, tileId, isDeletable) {
-      event.preventDefault(); event.stopPropagation();
-      isCreateMode = false; activeEditTileId = tileId;
-      const targetTile = getStoredTiles().find(t => t.id === tileId);
-
-      document.getElementById("modalHeaderTitle").innerText = "Edit Tile Properties";
-      document.getElementById("modalTileTitle").value = targetTile ? targetTile.title : "";
-      selectIcon(targetTile ? targetTile.iconKey : "projects");
-
-      document.getElementById("deleteTileBtn").style.display = isDeletable ? "block" : "none";
-      document.getElementById("tileModal").style.display = "flex";
-    }
-
-    function closeTileModal() { document.getElementById("tileModal").style.display = "none"; }
-
-    function saveTileModal() {
-      const titleInput = document.getElementById("modalTileTitle").value.trim();
-      if (!titleInput) return alert("Please enter a tile name.");
-      let tiles = getStoredTiles();
-
-      // Check duplicate tile name
-      const duplicateExists = tiles.some(t => t.id !== activeEditTileId && t.title.toLowerCase() === titleInput.toLowerCase());
-      if (duplicateExists) {
-        return alert(`A tile named "${titleInput}" already exists. Please choose a unique name.`);
-      }
-
-      if (isCreateMode) {
-        tiles.push({ id: "custom-" + Date.now(), title: titleInput, url: `#`, iconKey: selectedIconKey, isProtected: false });
-      } else if (activeEditTileId) {
-        const idx = tiles.findIndex(t => t.id === activeEditTileId);
-        if (idx !== -1) { 
-          tiles[idx].title = titleInput; 
-          tiles[idx].iconKey = selectedIconKey; 
+      if (btnGrid && btnList) {
+        if (mode === 'grid') {
+          btnGrid.classList.add("active");
+          btnList.classList.remove("active");
+        } else {
+          btnList.classList.add("active");
+          btnGrid.classList.remove("active");
         }
       }
-      setStoredTiles(tiles);
-      closeTileModal();
+      
+      if (activeOpenedProject && activeViewMode === 'folder') {
+        renderFolderView();
+      } else {
+        filterProjects();
+      }
     }
 
-    function deleteCurrentTile() {
-      if (!activeEditTileId) return;
-      setStoredTiles(getStoredTiles().filter(t => t.id !== activeEditTileId));
-      closeTileModal();
+    function filterProjects() {
+      const yearPicker = document.getElementById("yearPicker");
+      const selectedYear = yearPicker ? yearPicker.value : "2026";
+      const searchInputElem = document.getElementById("projectSearchInput");
+      const searchQuery = searchInputElem ? searchInputElem.value.toLowerCase().trim() : "";
+      const displayContainer = document.getElementById("projectDisplayContainer");
+      if (!displayContainer) return;
+      displayContainer.innerHTML = "";
+
+      const projects = getProjects();
+      const filtered = projects.filter(p => {
+        const matchesYear = p.year === selectedYear;
+        const matchesSearch = (p.client && p.client.toLowerCase().includes(searchQuery)) ||
+                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
+                              (p.location && p.location.toLowerCase().includes(searchQuery));
+        return matchesYear && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        displayContainer.innerHTML = `<div style="color: var(--subtext-color); margin-top: 40px; text-align: center;">No projects found for ${selectedYear} matching "${searchQuery}"</div>`;
+        return;
+      }
+
+      if (currentProjectDisplayMode === 'grid') {
+        const grid = document.createElement("div");
+        grid.className = "tiles-grid";
+
+        filtered.forEach(proj => {
+          const clientName = proj.client || 'Client';
+          const firstLetter = clientName.charAt(0).toUpperCase();
+
+          const tileEl = document.createElement("div");
+          tileEl.className = "tile";
+          
+          tileEl.innerHTML = `
+            <div class="tile-avatar-center">
+              <div class="tile-letter-avatar">${firstLetter}</div>
+            </div>
+            <div class="tile-content-bottom">
+              <div class="tile-client-name">${clientName}</div>
+              <div class="tile-project-no">${proj.projectNo || 'NO-ID'}</div>
+            </div>
+          `;
+
+          tileEl.onclick = function(e) {
+            e.stopPropagation();
+            openProjectFolder(proj);
+          };
+
+          tileEl.oncontextmenu = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showProjectTileContextMenu(e, proj);
+          };
+
+          grid.appendChild(tileEl);
+        });
+
+        displayContainer.appendChild(grid);
+      } else {
+        // Detailed List Table View
+        const table = document.createElement("table");
+        table.className = "projects-list-table";
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Project No</th>
+              <th>Client Name</th>
+              <th>Location</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector("tbody");
+        filtered.forEach(proj => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-weight:700; color:var(--accent-blue);">${proj.projectNo || 'NO-ID'}</td>
+            <td style="font-weight:600;">${proj.client || 'N/A'}</td>
+            <td>${proj.location || 'N/A'}</td>
+            <td style="color:var(--subtext-color);">${proj.remarks || '-'}</td>
+          `;
+
+          tr.onclick = function(e) {
+            e.stopPropagation();
+            openProjectFolder(proj);
+          };
+
+          tr.oncontextmenu = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showProjectTileContextMenu(e, proj);
+          };
+
+          tbody.appendChild(tr);
+        });
+
+        displayContainer.appendChild(table);
+      }
     }
+
+    /* Switch Main Level View Tabs - Permanent "Projects" Title Header */
+    function switchMainViewTab(tabKey) {
+      activeViewMode = tabKey;
+      const mainGrid = document.getElementById("mainGridWorkspace");
+      const formsPanel = document.getElementById("panelGlobalForms");
+      const schedulePanel = document.getElementById("panelGlobalSchedule");
+
+      const btnSuitcase = document.getElementById("btnNavSuitcase");
+      const btnForms = document.getElementById("btnNavForms");
+      const btnSchedule = document.getElementById("btnNavSchedule");
+
+      const yearPicker = document.getElementById("yearPicker");
+      const viewToggle = document.getElementById("headerViewToggle");
+
+      [mainGrid, formsPanel, schedulePanel].forEach(el => { if (el) el.style.display = "none"; });
+      [btnSuitcase, btnForms, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
+
+      const searchElem = document.getElementById("projectSearchInput");
+      updateFabVisibility();
+
+      if (tabKey === 'projects') {
+        if (mainGrid) mainGrid.style.display = "flex";
+        if (btnSuitcase) btnSuitcase.classList.add("active");
+        if (searchElem) searchElem.style.display = "";
+        if (yearPicker) yearPicker.style.display = ""; // Show year picker in Projects view
+        if (viewToggle) viewToggle.style.display = "flex";
+        
+        filterProjects();
+      } else if (tabKey === 'forms') {
+        if (formsPanel) formsPanel.style.display = "block";
+        if (btnForms) btnForms.classList.add("active");
+        if (searchElem) searchElem.style.display = "none";
+        if (yearPicker) yearPicker.style.display = "none"; // Hide year picker in Forms view
+        if (viewToggle) viewToggle.style.display = "none";
+        
+        renderFormsListUI('globalFormsContainer', globalFormsList);
+      } else if (tabKey === 'schedule') {
+        if (schedulePanel) schedulePanel.style.display = "block";
+        if (btnSchedule) btnSchedule.classList.add("active");
+        if (searchElem) searchElem.style.display = "none";
+        if (yearPicker) yearPicker.style.display = "";
+        if (viewToggle) viewToggle.style.display = "none";
+      }
+    }
+
+    function updateFabVisibility() {
+      const fab = document.getElementById("fabBtn");
+      if (!fab) return;
+      
+      if (activeViewMode === 'projects' || activeViewMode === 'forms' || (activeOpenedProject && (activeViewMode === 'folder' || activeViewMode === 'forms'))) {
+        fab.style.display = "flex";
+      } else {
+        fab.style.display = "none";
+      }
+    }
+
+    /* DYNAMICALLY ANCHORED CONTEXT MENUS */
+    function showProjectTileContextMenu(e, proj) {
+      hideContextMenus();
+      selectedProjectForContext = proj;
+      const menu = document.getElementById("projectTileContextMenu");
+      if (menu) {
+        menu.style.top = `${e.pageY}px`;
+        menu.style.left = `${e.pageX}px`;
+        menu.style.display = "flex";
+      }
+    }
+
+    function editSelectedProjectDetailsFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+      editingProjectObj = selectedProjectForContext;
+      openEditProjectModal();
+    }
+
+    function renameSelectedProjectFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+      const newName = prompt("Rename client/project name:", selectedProjectForContext.client);
+      if (!newName || !newName.trim()) return;
+
+      selectedProjectForContext.client = newName.trim();
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === selectedProjectForContext.id);
+      if (idx !== -1) {
+        allProjects[idx] = selectedProjectForContext;
+        saveProjects(allProjects);
+      }
+    }
+
+    function openSelectedProjectFromContext() {
+      hideContextMenus();
+      if (selectedProjectForContext) {
+        openProjectFolder(selectedProjectForContext);
+      }
+    }
+
+    function deleteSelectedProjectFromContext() {
+      hideContextMenus();
+      if (!selectedProjectForContext) return;
+
+      const projName = selectedProjectForContext.client || selectedProjectForContext.projectNo;
+      if (confirm(`Are you sure you want to delete project "${projName}"?`)) {
+        let projects = getProjects();
+        projects = projects.filter(p => p.id !== selectedProjectForContext.id);
+        saveProjects(projects);
+        selectedProjectForContext = null;
+        filterProjects();
+      }
+    }
+
+    function openProjectFolder(proj) {
+      activeOpenedProject = proj;
+      folderObjectStack = [proj];
+      activeViewMode = 'folder';
+
+      updateProjectMetaBanner();
+
+      document.getElementById("mainNavGroup").style.display = "none";
+      document.getElementById("projectSubNav").style.display = "flex";
+
+      document.getElementById("defaultHeaderTitle").style.display = "none";
+      document.getElementById("folderHeaderNav").style.display = "flex";
+
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "none";
+
+      const viewToggle = document.getElementById("headerViewToggle");
+      if (viewToggle) viewToggle.style.display = "flex"; // Keep view mode controls active in subfolders
+
+      document.getElementById("mainGridWorkspace").style.display = "none";
+      document.getElementById("panelGlobalForms").style.display = "none";
+      document.getElementById("panelGlobalSchedule").style.display = "none";
+      
+      switchProjectSubTab('folder');
+    }
+
+    function updateProjectMetaBanner() {
+      if (!activeOpenedProject) return;
+      const c = document.getElementById("metaClientName"); if (c) c.innerText = activeOpenedProject.client || "Client N/A";
+      const p = document.getElementById("metaProjectNo"); if (p) p.innerText = activeOpenedProject.projectNo || "NO-ID";
+      const l = document.getElementById("metaLocation"); if (l) l.innerText = activeOpenedProject.location || "Location N/A";
+      const r = document.getElementById("metaRemarks"); if (r) r.innerText = activeOpenedProject.remarks || "No remarks provided.";
+    }
+
+    function openEditProjectModal() {
+      const proj = editingProjectObj || activeOpenedProject;
+      if (!proj) return;
+
+      document.getElementById("editProjectClient").value = proj.client || "";
+      document.getElementById("editProjectNo").value = proj.projectNo || "";
+      document.getElementById("editProjectLocation").value = proj.location || "";
+      document.getElementById("editProjectRemarks").value = proj.remarks || "";
+
+      document.getElementById("editProjectModal").style.display = "flex";
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById("editProjectModal").style.display = "none";
+      editingProjectObj = null;
+    }
+
+    function saveProjectEdits() {
+      const targetProj = editingProjectObj || activeOpenedProject;
+      if (!targetProj) return;
+
+      const client = document.getElementById("editProjectClient").value.trim();
+      const projectNo = document.getElementById("editProjectNo").value.trim();
+      const location = document.getElementById("editProjectLocation").value.trim();
+      const remarks = document.getElementById("editProjectRemarks").value.trim();
+
+      if (!client) return alert("Please enter a client name.");
+      if (!projectNo) return alert("Please enter a project number.");
+
+      const currentYear = targetProj.year;
+      const allProjects = getProjects();
+
+      // Check duplicate project number in the same year
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
+      }
+
+      targetProj.client = client;
+      targetProj.projectNo = projectNo;
+      targetProj.location = location || 'N/A';
+      targetProj.remarks = remarks;
+
+      const idx = allProjects.findIndex(p => p.id === targetProj.id);
+      if (idx !== -1) {
+        allProjects[idx] = targetProj;
+        saveProjects(allProjects);
+      }
+
+      if (activeOpenedProject && activeOpenedProject.id === targetProj.id) {
+        activeOpenedProject = targetProj;
+        updateProjectMetaBanner();
+      }
+
+      closeEditProjectModal();
+      filterProjects();
+    }
+
+    function switchProjectSubTab(tabKey) {
+      activeViewMode = tabKey;
+      const folderWS = document.getElementById("folderExplorerWorkspace");
+      const chatWS = document.getElementById("panelChatWorkspace");
+      const formsWS = document.getElementById("panelProjectFormsWorkspace");
+      const boqWS = document.getElementById("panelBOQWorkspace");
+      const compareWS = document.getElementById("panelCompareWorkspace");
+      const claimsWS = document.getElementById("panelClaimsWorkspace");
+      const scheduleWS = document.getElementById("panelScheduleWorkspace");
+
+      const btnFolder = document.getElementById("btnSubFolder");
+      const btnChat = document.getElementById("btnSubChat");
+      const btnForms = document.getElementById("btnSubForms");
+      const btnBOQ = document.getElementById("btnSubBOQ");
+      const btnCompare = document.getElementById("btnSubCompare");
+      const btnClaims = document.getElementById("btnSubClaims");
+      const btnSchedule = document.getElementById("btnSubSchedule");
+
+      const viewToggle = document.getElementById("headerViewToggle");
+
+      [folderWS, chatWS, formsWS, boqWS, compareWS, claimsWS, scheduleWS].forEach(ws => { if (ws) ws.style.display = "none"; });
+      [btnFolder, btnChat, btnForms, btnBOQ, btnCompare, btnClaims, btnSchedule].forEach(btn => { if (btn) btn.classList.remove("active"); });
+
+      updateFabVisibility();
+
+      if (tabKey === 'folder') {
+        if (folderWS) folderWS.style.display = "flex";
+        if (btnFolder) btnFolder.classList.add("active");
+        if (viewToggle) viewToggle.style.display = "flex";
+        renderFolderView();
+      } else {
+        if (viewToggle) viewToggle.style.display = "none";
+        
+        if (tabKey === 'chat') {
+          if (chatWS) chatWS.style.display = "flex";
+          if (btnChat) btnChat.classList.add("active");
+        } else if (tabKey === 'forms') {
+          if (formsWS) formsWS.style.display = "block";
+          if (btnForms) btnForms.classList.add("active");
+          renderFormsListUI('projectFormsContainer', projectFormsList);
+        } else if (tabKey === 'boq') {
+          if (boqWS) boqWS.style.display = "flex";
+          if (btnBOQ) btnBOQ.classList.add("active");
+          renderBOQTable();
+        } else if (tabKey === 'compare') {
+          if (compareWS) compareWS.style.display = "block";
+          if (btnCompare) btnCompare.classList.add("active");
+        } else if (tabKey === 'claims') {
+          if (claimsWS) claimsWS.style.display = "block";
+          if (btnClaims) btnClaims.classList.add("active");
+        } else if (tabKey === 'schedule') {
+          if (scheduleWS) scheduleWS.style.display = "block";
+          if (btnSchedule) btnSchedule.classList.add("active");
+        }
+      }
+    }
+
+    /* ------------ CHAT SCREEN CONTROLS & OUTSIDE CLICK DISMISSAL ------------ */
+    function toggleEmojiPicker(e) {
+      if (e) e.stopPropagation();
+      const panel = document.getElementById("chatEmojiPanel");
+      const popover = document.getElementById("chatAttachmentPopover");
+      if (popover) popover.style.display = "none";
+      if (panel) {
+        panel.style.display = panel.style.display === "grid" ? "none" : "grid";
+      }
+    }
+
+    function toggleAttachmentPopover(e) {
+      if (e) e.stopPropagation();
+      const popover = document.getElementById("chatAttachmentPopover");
+      const panel = document.getElementById("chatEmojiPanel");
+      if (panel) panel.style.display = "none";
+      if (popover) {
+        popover.style.display = popover.style.display === "flex" ? "none" : "flex";
+      }
+    }
+
+    function handleOutsideClicks(event) {
+      const emojiPanel = document.getElementById("chatEmojiPanel");
+      const attachPopover = document.getElementById("chatAttachmentPopover");
+      const emojiBtn = document.getElementById("emojiToggleBtn");
+      const attachBtn = document.getElementById("attachToggleBtn");
+
+      if (emojiPanel && emojiPanel.style.display === "grid") {
+        if (!emojiPanel.contains(event.target) && emojiBtn && !emojiBtn.contains(event.target)) {
+          emojiPanel.style.display = "none";
+        }
+      }
+
+      if (attachPopover && attachPopover.style.display === "flex") {
+        if (!attachPopover.contains(event.target) && attachBtn && !attachBtn.contains(event.target)) {
+          attachPopover.style.display = "none";
+        }
+      }
+    }
+
+    function insertEmoji(emoji) {
+      const input = document.getElementById("chatMsgInput");
+      if (input) input.value += emoji;
+    }
+
+    function triggerFileInput(acceptType) {
+      const fileInput = document.getElementById("chatHiddenFileInput");
+      if (fileInput) {
+        fileInput.accept = acceptType;
+        fileInput.click();
+      }
+      const popover = document.getElementById("chatAttachmentPopover");
+      if (popover) popover.style.display = "none";
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById("chatMsgInput");
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById("chatThreadContainer");
+      if (!container) return;
+      const msgRow = document.createElement("div");
+      msgRow.className = "msg-row outgoing";
+      msgRow.innerHTML = `
+        <div class="msg-body">
+          <div class="msg-bubble outgoing">
+            ${text}
+            <div class="msg-meta-row"><span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+          </div>
+        </div>
+      `;
+      container.appendChild(msgRow);
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function handleChatInputKey(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    /* WhatsApp Style Multiple Image / File Upload Handler */
+    function handleFileSelected(e) {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      const container = document.getElementById("chatThreadContainer");
+      if (!container) return;
+      
+      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+
+        if (file.type.startsWith("image/")) {
+          const url = URL.createObjectURL(file);
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              <div class="msg-bubble outgoing media-bubble">
+                <img src="${url}" class="msg-media-img" />
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              <div class="msg-bubble outgoing">
+                📄 Attachment: ${file.name}
+                <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+              </div>
+            </div>
+          `;
+        }
+        container.appendChild(msgRow);
+      }
+
+      container.scrollTop = container.scrollHeight;
+      e.target.value = ""; // Reset file input
+    }
+
+    /* ------------ DESKTOP FILE CARD RENDER FOR FORMS ------------ */
+    function renderFormsListUI(containerId, list) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
+        return;
+      }
+
+      list.forEach(form => {
+        const card = document.createElement("div");
+        card.className = "form-file-card";
+        card.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <div class="form-file-name">${form.title}</div>
+        `;
+        
+        // Double-click to open form studio
+        card.ondblclick = function() {
+          alert(`Opening Form: ${form.title}`);
+        };
+
+        container.appendChild(card);
+      });
+    }
+
+    function openImportGlobalFormModal() {
+      const listContainer = document.getElementById("globalImportListContainer");
+      if (!listContainer) return;
+      listContainer.innerHTML = "";
+
+      if (globalFormsList.length === 0) {
+        listContainer.innerHTML = `<div style="color:var(--subtext-color); text-align:center; padding:12px;">No Global Forms available to import.</div>`;
+      } else {
+        globalFormsList.forEach(gf => {
+          const item = document.createElement("div");
+          item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;";
+          item.innerHTML = `
+            <div>
+              <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
+              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category}</div>
+            </div>
+            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
+          `;
+          listContainer.appendChild(item);
+        });
+      }
+
+      document.getElementById("importGlobalFormModal").style.display = "flex";
+    }
+
+    function closeImportFormModal() {
+      document.getElementById("importGlobalFormModal").style.display = "none";
+    }
+
+    function importSelectedForm(globalFormId) {
+      const found = globalFormsList.find(f => f.id === globalFormId);
+      if (found) {
+        const duplicateForm = projectFormsList.some(pf => pf.title.toLowerCase() === found.title.toLowerCase());
+        if (duplicateForm) {
+          return alert(`A form template named "${found.title}" is already imported in this project.`);
+        }
+
+        const importedCopy = JSON.parse(JSON.stringify(found));
+        importedCopy.id = 'pf-' + Date.now();
+        projectFormsList.push(importedCopy);
+        renderFormsListUI('projectFormsContainer', projectFormsList);
+        closeImportFormModal();
+      }
+    }
+
+    /* ------------ EXCEL SPREADSHEET FORM STUDIO LOGIC ------------ */
+    function openExcelStudio() {
+      buildExcelTableGrid();
+      document.getElementById("excelFormStudioOverlay").style.display = "flex";
+    }
+
+    function closeExcelStudio() {
+      document.getElementById("excelFormStudioOverlay").style.display = "none";
+    }
+
+    function buildExcelTableGrid() {
+      const tbody = document.getElementById("excelSheetBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const headerTr = document.createElement("tr");
+      headerTr.innerHTML = `<th>#</th>`;
+      for (let c = 0; c < excelColsCount; c++) {
+        const colLetter = String.fromCharCode(65 + c);
+        headerTr.innerHTML += `<th>${colLetter}</th>`;
+      }
+      tbody.appendChild(headerTr);
+
+      for (let r = 1; r <= excelRowsCount; r++) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<th>${r}</th>`;
+
+        for (let c = 0; c < excelColsCount; c++) {
+          const td = document.createElement("td");
+          td.contentEditable = "true";
+          td.onclick = function(e) { selectExcelCell(e, td); };
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+    }
+
+    function selectExcelCell(e, td) {
+      if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+      selectedExcelCell = td;
+      selectedExcelCell.classList.add("selected-cell");
+    }
+
+    function addExcelRow() {
+      excelRowsCount++;
+      buildExcelTableGrid();
+    }
+
+    function addExcelColumn() {
+      excelColsCount++;
+      buildExcelTableGrid();
+    }
+
+    function formatSelectedCell(action, value) {
+      if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+      if (action === 'bold') {
+        const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+        selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+      } else if (action === 'fontSize') {
+        selectedExcelCell.style.fontSize = value;
+      } else if (action === 'align') {
+        selectedExcelCell.style.textAlign = value;
+      } else if (action === 'color') {
+        selectedExcelCell.style.color = value;
+      }
+    }
+
+    function insertControlToCell(type) {
+      if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+      if (type === 'checkbox') {
+        selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+      } else if (type === 'button') {
+        const btnLabel = prompt("Enter button label:", "Action Button");
+        if (btnLabel) {
+          selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+        }
+      }
+    }
+
+    function mergeExcelCells() {
+      if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+      const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+      if (colspan && parseInt(colspan) > 1) {
+        selectedExcelCell.setAttribute("colspan", colspan);
+      }
+    }
+
+    function saveExcelFormTemplate() {
+      const titleElem = document.getElementById("excelFormTitle");
+      const title = titleElem ? titleElem.value.trim() : "";
+      if (!title) return alert("Please enter a form title.");
+
+      const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
+      if (duplicateForm) {
+        return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
+      }
+
+      globalFormsList.push({
+        id: 'gf-' + Date.now(),
+        title: title,
+        category: 'Spreadsheet Form',
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      renderFormsListUI('globalFormsContainer', globalFormsList);
+      closeExcelStudio();
+    }
+
+    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
+    function evaluateMathExpr(expr) {
+      if (typeof expr === 'number') return expr;
+      if (!expr || typeof expr !== 'string') return 0;
+      try {
+        const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+        if (!cleanExpr) return 0;
+        const result = Function(`'use strict'; return (${cleanExpr})`)();
+        return isNaN(result) ? 0 : result;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function renderBOQTable() {
+      const tbody = document.getElementById("boqTableBody");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+      const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
+      let subTotal = 0;
+
+      currentBOQItems.forEach((row, index) => {
+        const numQty = evaluateMathExpr(row.qty);
+        const numPrice = evaluateMathExpr(row.price);
+        const rowTotal = numQty * numPrice;
+        subTotal += rowTotal;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+          <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+          <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+          <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
+          <td style="text-align:center;">
+            <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const taxAmount = subTotal * (taxRate / 100);
+      const grandTotal = subTotal + taxAmount;
+
+      const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+      const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+      const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+      const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+    }
+
+    function updateBOQData(index, field, value) {
+      if (field === 'qty' || field === 'price') {
+        const evaluated = evaluateMathExpr(value);
+        currentBOQItems[index][field] = evaluated.toString();
+      } else {
+        currentBOQItems[index][field] = value;
+      }
+      renderBOQTable();
+    }
+
+    function addBOQRow() {
+      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+      renderBOQTable();
+    }
+
+    function deleteBOQRow(index) {
+      currentBOQItems.splice(index, 1);
+      renderBOQTable();
+    }
+
+    function getCurrentWorkspaceFolder() {
+      return folderObjectStack[folderObjectStack.length - 1];
+    }
+
+    function renderFolderView() {
+      const breadcrumbContainer = document.getElementById("breadcrumbBar");
+      if (!breadcrumbContainer) return;
+      breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+      folderObjectStack.forEach((node, idx) => {
+        const isLast = idx === folderObjectStack.length - 1;
+        const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+        
+        breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
+        
+        if (isLast) {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+        } else {
+          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+        }
+      });
+
+      const metaHeader = document.getElementById("projectMetaHeader");
+      if (metaHeader) {
+        if (folderObjectStack.length > 1) {
+          metaHeader.style.display = "none";
+        } else {
+          metaHeader.style.display = "flex";
+        }
+      }
+
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      const subGrid = document.getElementById("innerFolderGrid");
+      if (!subGrid) return;
+      subGrid.innerHTML = "";
+
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+
+      if (currentFolderNode.children.length === 0) {
+        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
+        return;
+      }
+
+      if (currentProjectDisplayMode === 'grid') {
+        subGrid.className = "folder-contents-grid";
+        currentFolderNode.children.forEach((folder, idx) => {
+          const folderCard = document.createElement("div");
+          folderCard.className = "folder-card";
+          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+            folderCard.classList.add("selected-cut");
+          }
+
+          folderCard.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <div class="folder-name">${folder.name}</div>
+            <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
+          `;
+
+          folderCard.onclick = (e) => {
+            e.stopPropagation();
+            folderObjectStack.push(folder);
+            renderFolderView();
+          };
+
+          folderCard.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showFolderContextMenu(e, folder, idx);
+          };
+
+          subGrid.appendChild(folderCard);
+        });
+      } else {
+        // Render Subfolders and Files as Detailed List View Table
+        subGrid.className = "";
+        const table = document.createElement("table");
+        table.className = "projects-list-table";
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Items / Details</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+
+        const tbody = table.querySelector("tbody");
+        currentFolderNode.children.forEach((folder, idx) => {
+          const tr = document.createElement("tr");
+          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+            tr.style.opacity = "0.4";
+          }
+
+          const itemCount = folder.children ? folder.children.length + ' Items' : folder.items || '0 Items';
+          tr.innerHTML = `
+            <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+              <svg style="width:18px; height:18px; stroke:var(--accent-blue); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              ${folder.name}
+            </td>
+            <td style="color:var(--subtext-color);">Folder</td>
+            <td style="color:var(--subtext-color);">${itemCount}</td>
+          `;
+
+          tr.onclick = (e) => {
+            e.stopPropagation();
+            folderObjectStack.push(folder);
+            renderFolderView();
+          };
+
+          tr.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showFolderContextMenu(e, folder, idx);
+          };
+
+          tbody.appendChild(tr);
+        });
+
+        subGrid.appendChild(table);
+      }
+    }
+
+    function jumpToBreadcrumbIndex(targetIndex) {
+      if (targetIndex === 0) {
+        activeOpenedProject = null;
+        folderObjectStack = [];
+        activeViewMode = 'projects';
+
+        const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
+        const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
+
+        const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
+        const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
+
+        const searchElem = document.getElementById("projectSearchInput");
+        if (searchElem) searchElem.style.display = "";
+
+        const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
+        views.forEach(vId => {
+          const el = document.getElementById(vId);
+          if (el) el.style.display = "none";
+        });
+
+        switchMainViewTab('projects');
+      } else {
+        folderObjectStack = folderObjectStack.slice(0, targetIndex);
+        switchProjectSubTab('folder');
+      }
+    }
+
+    function navigateUpBreadcrumb() {
+      jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+    }
+
+    /* RIGHT-CLICK CONTEXT MENU HANDLERS */
+    function showFolderContextMenu(e, folder, idx) {
+      hideContextMenus();
+      selectedFolderForContext = { folder, idx };
+      const menu = document.getElementById("folderContextMenu");
+      if (!menu) return;
+      
+      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
+      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
+      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
+      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
+      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
+      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
+
+      menu.style.top = `${e.pageY}px`;
+      menu.style.left = `${e.pageX}px`;
+      menu.style.display = "flex";
+    }
+
+    function handleWorkspaceContextMenu(e) {
+      if (activeOpenedProject && activeViewMode === 'folder') {
+        e.preventDefault();
+        hideContextMenus();
+
+        if (!clipboardFolder) return;
+
+        selectedFolderForContext = null;
+        const menu = document.getElementById("folderContextMenu");
+        if (!menu) return;
+
+        const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
+        const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
+        const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
+        const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
+        const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
+        const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
+
+        menu.style.top = `${e.pageY}px`;
+        menu.style.left = `${e.pageX}px`;
+        menu.style.display = "flex";
+      }
+    }
+
+    function hideContextMenus() {
+      const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+      const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
+    }
+
+    function executeContextAction(action) {
+      hideContextMenus();
+      let currentFolderNode = getCurrentWorkspaceFolder();
+
+      if (action === 'copy') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+        isCutOperation = false;
+        renderFolderView();
+      } 
+      else if (action === 'cut') {
+        if (!selectedFolderForContext) return;
+        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+        clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+        clipboardFolder.sourceParent = currentFolderNode;
+        isCutOperation = true;
+        renderFolderView();
+      } 
+      else if (action === 'paste') {
+        if (!clipboardFolder) return;
+        
+        let targetName = clipboardFolder.name;
+        let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
+        
+        if (duplicateExists) {
+          if (isCutOperation) {
+            return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
+          } else {
+            let copyCounter = 1;
+            let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
+            targetName = `${baseName} - Copy`;
+            
+            while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
+              copyCounter++;
+              targetName = `${baseName} - Copy (${copyCounter})`;
+            }
+          }
+        }
+
+        if (isCutOperation && clipboardFolder.sourceParent) {
+          clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
+        }
+        
+        const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+        newPastedFolder.id = 'f-' + Date.now();
+        newPastedFolder.name = targetName;
+
+        currentFolderNode.children.push(newPastedFolder);
+
+        clipboardFolder = null;
+        isCutOperation = false;
+        persistProjectTree();
+        renderFolderView();
+      } 
+      else if (action === 'rename') {
+        if (!selectedFolderForContext) return;
+        const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+        if (!newName || !newName.trim()) return;
+
+        const trimmed = newName.trim();
+        const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+        }
+
+        currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
+        persistProjectTree();
+        renderFolderView();
+      } 
+      else if (action === 'delete') {
+        if (!selectedFolderForContext) return;
+        if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+          currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+          persistProjectTree();
+          renderFolderView();
+        }
+      }
+    }
+
+    function persistProjectTree() {
+      if (!activeOpenedProject) return;
+      const allProjects = getProjects();
+      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+      if (idx !== -1) {
+        allProjects[idx] = activeOpenedProject;
+        saveProjects(allProjects);
+      }
+    }
+
+    /* FAB BUTTON ROUTER ACTION */
+    function handleFabClick() {
+      if (activeOpenedProject && activeViewMode === 'forms') {
+        openImportGlobalFormModal();
+      } else if (activeViewMode === 'forms') {
+        openExcelStudio();
+      } else if (activeOpenedProject && activeViewMode === 'folder') {
+        const newSubName = prompt("Enter new folder name:");
+        if (!newSubName || !newSubName.trim()) return;
+
+        const trimmed = newSubName.trim();
+        let currentFolderNode = getCurrentWorkspaceFolder();
+        if (!currentFolderNode.children) currentFolderNode.children = [];
+
+        const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+        }
+
+        currentFolderNode.children.push({
+          id: 'f-' + Date.now(),
+          name: trimmed,
+          items: '0 Items',
+          children: []
+        });
+
+        persistProjectTree();
+        renderFolderView();
+      } else if (activeViewMode === 'projects') {
+        openCreateProjectModal();
+      }
+    }
+
+    function openCreateProjectModal() {
+      document.getElementById("newProjectClient").value = "";
+      document.getElementById("newProjectNo").value = "";
+      document.getElementById("newProjectLocation").value = "";
+      document.getElementById("newProjectRemarks").value = "";
+      
+      document.getElementById("createProjectModal").style.display = "flex";
+    }
+
+    function closeCreateProjectModal() {
+      document.getElementById("createProjectModal").style.display = "none";
+    }
+
+    function createNewProject() {
+      const client = document.getElementById("newProjectClient").value.trim();
+      const projectNo = document.getElementById("newProjectNo").value.trim();
+      const location = document.getElementById("newProjectLocation").value.trim();
+      const remarks = document.getElementById("newProjectRemarks").value.trim();
+      
+      const year = document.getElementById("yearPicker").value || "2026";
+
+      if (!client) return alert("Please enter a client name.");
+
+      const projects = getProjects();
+      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Check duplicate project number in the same year
+      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
+      }
+
+      projects.push({
+        id: 'proj-' + Date.now(),
+        client: client,
+        projectNo: targetProjNo,
+        location: location || 'N/A',
+        remarks: remarks,
+        year: year,
+        children: getDefaultSubFolders()
+      });
+
+      saveProjects(projects);
+      filterProjects();
+      closeCreateProjectModal();
+    }
+
+    (function init() {
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+      switchMainViewTab('projects');
+    })();
   </script>
 </body>
 </html>
