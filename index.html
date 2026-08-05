@@ -54,7 +54,11 @@
 
     #dashboardLayout { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
-    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; }
+    
+    /* Header Title Container with Logo */
+    .header-title-box { display: flex; align-items: center; gap: 10px; }
+    .header-logo-svg { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
@@ -146,7 +150,16 @@
 
   <div id="dashboardLayout">
     <header class="dashboard-header">
-      <h1 id="pageTopHeader">diBadge</h1>
+      <div class="header-title-box">
+        <!-- diBadge Matching Logo Vector -->
+        <div class="header-logo-svg">
+          <svg viewBox="0 0 24 24" style="width: 100%; height: 100%;">
+            <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z" fill="#00a884" opacity="0.85"/>
+            <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z" fill="#0b5e59"/>
+          </svg>
+        </div>
+        <h1 id="pageTopHeader">diBadge</h1>
+      </div>
     </header>
 
     <div class="dashboard-body-split">
