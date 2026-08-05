@@ -56,8 +56,8 @@
     .dashboard-header { background: var(--header-bg); color: var(--accent-white); padding: 0 32px; display: flex; justify-content: space-between; align-items: center; height: 64px; z-index: 10; border-bottom: 1px solid var(--border-color); }
     
     /* Header Title Container with Logo */
-    .header-title-box { display: flex; align-items: center; gap: 10px; }
-    .header-logo-svg { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+    .header-title-box { display: flex; align-items: center; gap: 12px; }
+    .header-logo-svg { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; }
     .dashboard-header h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: 0.5px; }
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
@@ -78,7 +78,6 @@
     .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); text-decoration: none; flex-shrink: 0; }
     .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--accent-blue); }
     
-    /* Icon Color Changed to Teal Green */
     .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; color: var(--accent-blue); }
     .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
@@ -151,11 +150,11 @@
   <div id="dashboardLayout">
     <header class="dashboard-header">
       <div class="header-title-box">
-        <!-- diBadge Matching Logo Vector -->
+        <!-- Exact Matching diBadge Logo Vector -->
         <div class="header-logo-svg">
           <svg viewBox="0 0 24 24" style="width: 100%; height: 100%;">
-            <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z" fill="#00a884" opacity="0.85"/>
-            <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z" fill="#0b5e59"/>
+            <path d="M3.18,0.347h4.377c1.2,0 2.18,0.98 2.18,2.185v1.28c0,1.205 -0.98,2.185 -2.18,2.185H3.18V0.347Z" fill="#00a884"/>
+            <path d="M2.807,7.694c0,-2.757 2.236,-4.994 4.993,-4.994h7.75c2.757,0 4.992,2.237 4.992,4.994v12.312c0,1.978 -1.594,3.584 -3.563,3.584H6.347c-1.969,0 -3.54,-1.605 -3.54,-3.584V7.694Z" fill="#0b5e59"/>
           </svg>
         </div>
         <h1 id="pageTopHeader">diBadge</h1>
