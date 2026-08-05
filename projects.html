@@ -150,9 +150,12 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT WORKSPACE & MEDIA PREVIEW BAR ------------ */
-    .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
-    
+    /* ------------ CHAT SPLIT WORKSPACE (CHAT + CHAT DETAILS PANEL) ------------ */
+    .chat-view-workspace { display: none; flex: 1; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
+    .chat-split-container { display: flex; width: 100%; height: 100%; }
+
+    /* Left side: Main Chat Area */
+    .chat-main-pane { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: var(--bg-color); }
     .chat-messages-container { 
       flex: 1; 
       overflow-y: auto; 
@@ -321,12 +324,10 @@
     .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
 
-    /* Clean Horizontal Teal Green Send Button (No Circle) */
     .chat-send-btn { background: transparent; border: none; color: var(--accent-blue); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
     .chat-send-btn:hover { transform: scale(1.1); }
     .chat-send-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
 
-    /* Natural Compact Emoji Picker (No scrollbars/sliders) */
     .emoji-picker-panel { display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: max-content; margin-bottom: 4px; }
     .emoji-item { font-size: 1.3rem; text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; }
     .emoji-item:hover { background: var(--bg-color); }
@@ -335,6 +336,21 @@
     .attach-option-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-color); cursor: pointer; font-weight: 500; }
     .attach-icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; }
     .attach-icon-circle svg { width: 20px; height: 20px; stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Right side: Chat Details Pane */
+    .chat-details-pane { width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; flex-shrink: 0; overflow-y: auto; }
+    .details-section { padding: 16px; border-bottom: 1px solid var(--border-color); }
+    .details-section-title { font-size: 0.85rem; font-weight: 700; color: var(--subtext-color); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .member-list { display: flex; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; }
+    .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 600; }
+    .member-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-blue); color: #fff; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: 700; }
+    
+    .add-member-btn { background: rgba(0, 168, 132, 0.15); color: var(--accent-blue); border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s; }
+    .add-member-btn:hover { background: rgba(0, 168, 132, 0.28); }
+
+    .details-folder-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; padding: 8px 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; }
+    .details-folder-item svg { width: 18px; height: 18px; stroke: var(--accent-blue); fill: none; stroke-width: 2; }
 
     /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
     .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
@@ -405,7 +421,7 @@
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-    @media (max-width: 1024px) { .tiles-grid { grid-template-columns: repeat(3, 1fr); } .notifications-panel { display: none; } }
+    @media (max-width: 1024px) { .notifications-panel { display: none; } }
   </style>
 </head>
 <body onclick="hideContextMenus(); handleOutsideClicks(event);">
@@ -562,132 +578,181 @@
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- FULL CHAT WORKSPACE -->
+    <!-- FULL CHAT WORKSPACE (SPLIT: CHAT AREA + CHAT DETAILS PANE) -->
     <section class="chat-view-workspace" id="panelChatWorkspace">
-      <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
-        <div class="chat-date-pill">Today</div>
+      <div class="chat-split-container">
+        
+        <!-- Left Pane: Chat Main Window -->
+        <div class="chat-main-pane">
+          <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
+            <div class="chat-date-pill">Today</div>
 
-        <!-- Sample Incoming Message 1 -->
-        <div class="msg-row incoming">
-          <div class="msg-avatar">J</div>
-          <div class="msg-body">
-            <span class="msg-sender-name">John</span>
-            <div class="msg-bubble incoming">
-              Hi there!
-              <div class="msg-meta-row"><span>10:04 am</span></div>
+            <!-- Sample Incoming Message 1 -->
+            <div class="msg-row incoming">
+              <div class="msg-avatar">J</div>
+              <div class="msg-body">
+                <span class="msg-sender-name">John</span>
+                <div class="msg-bubble incoming">
+                  Hi there!
+                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sample Outgoing Message 1 -->
+            <div class="msg-row outgoing">
+              <div class="msg-body">
+                <div class="msg-bubble outgoing">
+                  Hello! How can I help you?
+                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sample Incoming Message 2 -->
+            <div class="msg-row incoming">
+              <div class="msg-avatar" style="background:#8b5cf6;">M</div>
+              <div class="msg-body">
+                <span class="msg-sender-name">Mary</span>
+                <div class="msg-bubble incoming">
+                  I have a question about the certificate.
+                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sample Outgoing Message 2 -->
+            <div class="msg-row outgoing">
+              <div class="msg-body">
+                <div class="msg-bubble outgoing">
+                  Sure, go ahead and ask.
+                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Sample Outgoing Message 1 -->
-        <div class="msg-row outgoing">
-          <div class="msg-body">
-            <div class="msg-bubble outgoing">
-              Hello! How can I help you?
-              <div class="msg-meta-row"><span>10:04 am</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sample Incoming Message 2 -->
-        <div class="msg-row incoming">
-          <div class="msg-avatar" style="background:#8b5cf6;">M</div>
-          <div class="msg-body">
-            <span class="msg-sender-name">Mary</span>
-            <div class="msg-bubble incoming">
-              I have a question about the certificate.
-              <div class="msg-meta-row"><span>10:04 am</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sample Outgoing Message 2 -->
-        <div class="msg-row outgoing">
-          <div class="msg-body">
-            <div class="msg-bubble outgoing">
-              Sure, go ahead and ask.
-              <div class="msg-meta-row"><span>10:04 am</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating Scroll to Bottom Arrow Button with Teal Green Background -->
-      <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
-        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-      </button>
-
-      <!-- Lightbox Media Preview Overlay -->
-      <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
-        <div class="lightbox-content-box" onclick="event.stopPropagation()">
-          <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
-          <img id="lightboxImage" src="" alt="Media Preview" />
-        </div>
-      </div>
-
-      <!-- Standard Vector Attachment Popover -->
-      <div class="attachment-popover" id="chatAttachmentPopover">
-        <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
-          <div class="attach-icon-circle" style="background:#e91e63;">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          </div>
-          <span>Image</span>
-        </div>
-        <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
-          <div class="attach-icon-circle" style="background:#9c27b0;">
-            <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-          </div>
-          <span>Video</span>
-        </div>
-        <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
-          <div class="attach-icon-circle" style="background:#00a884;">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          </div>
-          <span>Document</span>
-        </div>
-      </div>
-
-      <!-- Compact Natural Emoji Picker (No scrollbars/sliders) -->
-      <div class="emoji-picker-panel" id="chatEmojiPanel">
-        <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-        <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
-        <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
-        <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
-        <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-        <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
-        <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
-        <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
-        <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
-        <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
-        <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
-        <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-      </div>
-
-      <!-- Chat Bottom Input Toolbar -->
-      <div class="chat-bottom-bar">
-        <!-- Pending Attachment Preview Bar -->
-        <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
-
-        <div class="chat-input-row" id="chatInputBarContainer">
-          <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-          </button>
-          
-          <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
-            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+          <!-- Floating Scroll to Bottom Arrow Button with Teal Green Background -->
+          <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
 
-          <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" onkeyup="handleChatInputKey(event)" />
+          <!-- Lightbox Media Preview Overlay -->
+          <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+            <div class="lightbox-content-box" onclick="event.stopPropagation()">
+              <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
+              <img id="lightboxImage" src="" alt="Media Preview" />
+            </div>
+          </div>
 
-          <!-- Send Button -->
-          <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
-            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
-          </button>
+          <!-- Standard Vector Attachment Popover -->
+          <div class="attachment-popover" id="chatAttachmentPopover">
+            <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
+              <div class="attach-icon-circle" style="background:#e91e63;">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </div>
+              <span>Image</span>
+            </div>
+            <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
+              <div class="attach-icon-circle" style="background:#9c27b0;">
+                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+              </div>
+              <span>Video</span>
+            </div>
+            <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
+              <div class="attach-icon-circle" style="background:#00a884;">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              </div>
+              <span>Document</span>
+            </div>
+          </div>
+
+          <!-- Compact Natural Emoji Picker -->
+          <div class="emoji-picker-panel" id="chatEmojiPanel">
+            <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+            <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
+            <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
+            <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
+            <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+            <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
+            <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
+            <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
+            <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
+            <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
+            <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
+            <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+          </div>
+
+          <!-- Chat Bottom Input Toolbar -->
+          <div class="chat-bottom-bar">
+            <!-- Pending Attachment Preview Bar -->
+            <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
+
+            <div class="chat-input-row" id="chatInputBarContainer">
+              <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              
+              <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
+                <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </button>
+
+              <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" onkeyup="handleChatInputKey(event)" />
+
+              <!-- Send Button -->
+              <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
+                <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFilesStaged(event)" />
         </div>
-      </div>
 
-      <!-- Multiple file selection enabled input -->
-      <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFilesStaged(event)" />
+        <!-- Right Side: Chat Details Pane -->
+        <div class="chat-details-pane">
+          <!-- Members Section -->
+          <div class="details-section">
+            <div class="details-section-title">
+              <span>Group Members</span>
+              <button class="add-member-btn" onclick="addNewMember()">+ Add</button>
+            </div>
+            <div class="member-list" id="chatMemberList">
+              <div class="member-item">
+                <div class="member-avatar">J</div>
+                <span>John (Admin)</span>
+              </div>
+              <div class="member-item">
+                <div class="member-avatar" style="background:#8b5cf6;">M</div>
+                <span>Mary</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Folders Section -->
+          <div class="details-section">
+            <div class="details-section-title"><span>Project Folders</span></div>
+            <div class="details-folder-item">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <span>Site Photos & diCam</span>
+            </div>
+            <div class="details-folder-item">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <span>Safety & Compliance Logs</span>
+            </div>
+          </div>
+
+          <!-- Default Forms Folder Section -->
+          <div class="details-section">
+            <div class="details-section-title"><span>Default Folder</span></div>
+            <div class="details-folder-item" style="border-color: var(--accent-blue); background: rgba(0, 168, 132, 0.08);">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+              <span style="color: var(--accent-blue);">Forms</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </section>
 
     <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
@@ -1400,7 +1465,7 @@
       }
     }
 
-    /* ------------ CHAT SCREEN CONTROLS & STAGED PREVIEWS ------------ */
+    /* ------------ CHAT SCREEN CONTROLS & GROUP MEMBERS ADD LOGIC ------------ */
     function toggleEmojiPicker(e) {
       if (e) e.stopPropagation();
       const panel = document.getElementById("chatEmojiPanel");
@@ -1438,6 +1503,26 @@
           attachPopover.style.display = "none";
         }
       }
+    }
+
+    function addNewMember() {
+      const name = prompt("Enter new member name:");
+      if (!name || !name.trim()) return;
+
+      const trimmedName = name.trim();
+      const memberList = document.getElementById("chatMemberList");
+      if (!memberList) return;
+
+      const firstLetter = trimmedName.charAt(0).toUpperCase();
+      const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+      const item = document.createElement("div");
+      item.className = "member-item";
+      item.innerHTML = `
+        <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
+        <span>${trimmedName}</span>
+      `;
+      memberList.appendChild(item);
     }
 
     function openLightbox(imgSrc) {
@@ -1625,7 +1710,7 @@
 
         // Clear staged buffer
         pendingStagedFiles = [];
-        renderPreviewsBar();
+        renderPendingPreviews();
       }
 
       // 2. Send text if any
@@ -1645,10 +1730,6 @@
       }
 
       scrollToLatestMessage();
-    }
-
-    function renderPreviewsBar() {
-      renderPendingPreviews();
     }
 
     function handleChatInputKey(e) {
