@@ -150,7 +150,7 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT WORKSPACE & MEDIA ALBUM GROUPING ------------ */
+    /* ------------ CHAT WORKSPACE & MEDIA VIEWER LIGHTBOX ------------ */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     
     .chat-messages-container { 
@@ -187,6 +187,48 @@
     .chat-scroll-bottom-btn:hover { background: #008f6c; transform: scale(1.05); }
     .chat-scroll-bottom-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
+    /* Lightbox Modal for Media Viewing */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      cursor: pointer;
+    }
+    .lightbox-content-box {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .lightbox-content-box img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .lightbox-close-btn {
+      position: absolute;
+      top: -40px;
+      right: 0;
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 2rem;
+      cursor: pointer;
+      font-weight: 300;
+    }
+
     .chat-date-pill { align-self: center; background: #26262a; color: var(--cool-ash); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin: 8px 0; }
 
     .msg-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; position: relative; }
@@ -201,17 +243,18 @@
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
-    /* WhatsApp Style Single & Grouped Media Album Styling */
+    /* WhatsApp Style Image Bubble Overrides */
     .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
-    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px; display: block; cursor: pointer; }
-    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); }
+    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; transition: transform 0.15s; }
+    .msg-media-img:hover { transform: scale(1.02); }
+    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
 
     /* WhatsApp Album Grid for Multiple Media */
     .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
     .whatsapp-media-group.single-item { grid-template-columns: 1fr; width: 200px; }
     .whatsapp-media-item-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 6px; }
     .whatsapp-media-item-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
-    .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; }
+    .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; pointer-events: none; }
 
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
     .msg-bubble.outgoing .msg-meta-row { color: #666666; }
@@ -519,6 +562,14 @@
       <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </button>
+
+      <!-- Lightbox Media Preview Overlay -->
+      <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+        <div class="lightbox-content-box" onclick="event.stopPropagation()">
+          <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
+          <img id="lightboxImage" src="" alt="Media Preview" />
+        </div>
+      </div>
 
       <!-- Standard Vector Attachment Popover -->
       <div class="attachment-popover" id="chatAttachmentPopover">
@@ -1289,7 +1340,7 @@
       }
     }
 
-    /* ------------ CHAT SCREEN CONTROLS & OUTSIDE CLICK DISMISSAL ------------ */
+    /* ------------ CHAT SCREEN CONTROLS & MEDIA VIEWER LIGHTBOX ------------ */
     function toggleEmojiPicker(e) {
       if (e) e.stopPropagation();
       const panel = document.getElementById("chatEmojiPanel");
@@ -1326,6 +1377,22 @@
         if (!attachPopover.contains(event.target) && attachBtn && !attachBtn.contains(event.target)) {
           attachPopover.style.display = "none";
         }
+      }
+    }
+
+    function openLightbox(imgSrc) {
+      const lightbox = document.getElementById("lightboxOverlay");
+      const lbImg = document.getElementById("lightboxImage");
+      if (lightbox && lbImg) {
+        lbImg.src = imgSrc;
+        lightbox.style.display = "flex";
+      }
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById("lightboxOverlay");
+      if (lightbox) {
+        lightbox.style.display = "none";
       }
     }
 
@@ -1391,7 +1458,7 @@
       if (e.key === 'Enter') sendChatMessage();
     }
 
-    /* WhatsApp Style Multiple Image / File Upload Handler with Album Grouping */
+    /* WhatsApp Style Multiple Image / File Upload Handler with Album Grouping & Click to Open */
     function handleFileSelected(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
@@ -1411,7 +1478,6 @@
         }
       }
 
-      // Group images into WhatsApp-style album grid if multiple are uploaded together
       if (imageFiles.length > 0) {
         const msgRow = document.createElement("div");
         msgRow.className = "msg-row outgoing";
@@ -1425,7 +1491,7 @@
           if (isSingle) {
             imagesHtml += `
               <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
-                <img src="${url}" class="msg-media-img" />
+                <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
                 <div class="msg-media-time-badge">${currentTimeStr}</div>
               </div>
             `;
@@ -1436,7 +1502,7 @@
             }
             imagesHtml += `
               <div class="whatsapp-media-item-wrap">
-                <img src="${url}" />
+                <img src="${url}" onclick="openLightbox('${url}')" />
                 ${badgeOverlay}
               </div>
             `;
@@ -1464,7 +1530,6 @@
         container.appendChild(msgRow);
       }
 
-      // Handle non-image attachments normally
       otherFiles.forEach(file => {
         const msgRow = document.createElement("div");
         msgRow.className = "msg-row outgoing";
