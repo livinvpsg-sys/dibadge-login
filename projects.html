@@ -150,7 +150,7 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT WORKSPACE ------------ */
+    /* ------------ CHAT WORKSPACE & WHATSAPP IMAGE BUBBLE ------------ */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -168,7 +168,11 @@
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
-    .msg-media-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 4px; cursor: pointer; }
+    /* WhatsApp Style Image Bubble Overrides */
+    .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
+    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; }
+    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); }
+
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
     .msg-bubble.outgoing .msg-meta-row { color: #666666; }
 
@@ -326,7 +330,7 @@
 
         <!-- 3. Forms Icon -->
         <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Forms">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
 
         <!-- 4. Schedule Icon -->
@@ -349,7 +353,7 @@
 
         <!-- 3. Forms Icon -->
         <button class="tab-btn" id="btnSubForms" onclick="switchProjectSubTab('forms')" title="Forms">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
 
         <!-- 4. Bill of Quantity (BOQ Bold Scaled Text Element) -->
@@ -1291,6 +1295,7 @@
       if (e.key === 'Enter') sendChatMessage();
     }
 
+    /* WhatsApp Style Image Message Upload Handler */
     function handleFileSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1300,20 +1305,29 @@
       const msgRow = document.createElement("div");
       msgRow.className = "msg-row outgoing";
       
-      let mediaHtml = `📄 Attachment: ${file.name}`;
+      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
       if (file.type.startsWith("image/")) {
         const url = URL.createObjectURL(file);
-        mediaHtml = `<img src="${url}" class="msg-media-img" />`;
+        msgRow.innerHTML = `
+          <div class="msg-body">
+            <div class="msg-bubble outgoing media-bubble">
+              <img src="${url}" class="msg-media-img" />
+              <div class="msg-media-time-badge">${currentTimeStr}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        msgRow.innerHTML = `
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              📄 Attachment: ${file.name}
+              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+            </div>
+          </div>
+        `;
       }
 
-      msgRow.innerHTML = `
-        <div class="msg-body">
-          <div class="msg-bubble outgoing">
-            ${mediaHtml}
-            <div class="msg-meta-row"><span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
-          </div>
-        </div>
-      `;
       container.appendChild(msgRow);
       container.scrollTop = container.scrollHeight;
     }
