@@ -150,7 +150,7 @@
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
-    /* ------------ CHAT WORKSPACE & SCROLLBAR HIDDEN ------------ */
+    /* ------------ CHAT WORKSPACE & MEDIA ALBUM GROUPING ------------ */
     .chat-view-workspace { display: none; flex: 1; flex-direction: column; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
     
     .chat-messages-container { 
@@ -165,7 +165,7 @@
     }
     .chat-messages-container::-webkit-scrollbar { display: none; }
 
-    /* Floating Scroll Down Arrow Button with Teal Green Background */
+    /* Floating Scroll Down Arrow Button */
     .chat-scroll-bottom-btn {
       position: absolute;
       bottom: 75px;
@@ -201,10 +201,17 @@
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
-    /* WhatsApp Style Image Bubble Overrides */
+    /* WhatsApp Style Single & Grouped Media Album Styling */
     .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
-    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; }
+    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 8px; display: block; cursor: pointer; }
     .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); }
+
+    /* WhatsApp Album Grid for Multiple Media */
+    .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
+    .whatsapp-media-group.single-item { grid-template-columns: 1fr; width: 200px; }
+    .whatsapp-media-item-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 6px; }
+    .whatsapp-media-item-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+    .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; }
 
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--cool-ash); margin-top: 4px; }
     .msg-bubble.outgoing .msg-meta-row { color: #666666; }
@@ -1384,7 +1391,7 @@
       if (e.key === 'Enter') sendChatMessage();
     }
 
-    /* WhatsApp Style Multiple Image / File Upload Handler */
+    /* WhatsApp Style Multiple Image / File Upload Handler with Album Grouping */
     function handleFileSelected(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
@@ -1393,18 +1400,56 @@
       if (!container) return;
       
       const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const imageFiles = [];
+      const otherFiles = [];
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        if (files[i].type.startsWith("image/")) {
+          imageFiles.push(files[i]);
+        } else {
+          otherFiles.push(files[i]);
+        }
+      }
+
+      // Group images into WhatsApp-style album grid if multiple are uploaded together
+      if (imageFiles.length > 0) {
         const msgRow = document.createElement("div");
         msgRow.className = "msg-row outgoing";
 
-        if (file.type.startsWith("image/")) {
+        let imagesHtml = '';
+        const isSingle = imageFiles.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+
+        imageFiles.forEach((file, index) => {
           const url = URL.createObjectURL(file);
+          if (isSingle) {
+            imagesHtml += `
+              <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
+                <img src="${url}" class="msg-media-img" />
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            `;
+          } else {
+            let badgeOverlay = '';
+            if (index === imageFiles.length - 1 && imageFiles.length > 4) {
+              badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
+            }
+            imagesHtml += `
+              <div class="whatsapp-media-item-wrap">
+                <img src="${url}" />
+                ${badgeOverlay}
+              </div>
+            `;
+          }
+        });
+
+        if (!isSingle) {
           msgRow.innerHTML = `
             <div class="msg-body">
               <div class="msg-bubble outgoing media-bubble">
-                <img src="${url}" class="msg-media-img" />
+                <div class="${groupClass}">
+                  ${imagesHtml}
+                </div>
                 <div class="msg-media-time-badge">${currentTimeStr}</div>
               </div>
             </div>
@@ -1412,15 +1457,27 @@
         } else {
           msgRow.innerHTML = `
             <div class="msg-body">
-              <div class="msg-bubble outgoing">
-                📄 Attachment: ${file.name}
-                <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
-              </div>
+              ${imagesHtml}
             </div>
           `;
         }
         container.appendChild(msgRow);
       }
+
+      // Handle non-image attachments normally
+      otherFiles.forEach(file => {
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+        msgRow.innerHTML = `
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              📄 Attachment: ${file.name}
+              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(msgRow);
+      });
 
       scrollToLatestMessage();
       e.target.value = ""; // Reset file input
