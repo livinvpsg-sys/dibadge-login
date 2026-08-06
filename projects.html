@@ -24,7 +24,6 @@
       --soft-border: #e5e5ea;
       --error-red: #ff3b30;
 
-      /* Mapped to DiBadgeTheme (Light ColorScheme) */
       --bg-color: var(--paper-white);
       --text-color: var(--jet-black);
       --surface-color: var(--accent-white);
@@ -32,8 +31,8 @@
       --tabbar-bg: var(--paper-white);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
-      --primary-color: var(--jet-black);
-      --on-primary: var(--accent-white);
+      --primary-color: var(--paper-white); /* Replaced teal with paper-white */
+      --on-primary: var(--jet-black);
 
       --chat-incoming-bg: #222224;
       --chat-incoming-text: #ffffff;
@@ -43,7 +42,6 @@
     }
 
     [data-theme="dark"] {
-      /* Mapped to DiBadgeTheme (Dark ColorScheme) */
       --bg-color: var(--jet-black);
       --text-color: var(--accent-white);
       --surface-color: var(--slate-surface);
@@ -51,7 +49,7 @@
       --tabbar-bg: #050505;
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
-      --primary-color: var(--accent-white);
+      --primary-color: var(--paper-white); /* Replaced teal with paper-white */
       --on-primary: var(--jet-black);
 
       --chat-incoming-bg: #222224;
@@ -71,18 +69,14 @@
     .default-header-title { display: flex; align-items: center; gap: 12px; }
     .default-header-title h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
     
-    /* Header Standard Logo Icon */
-    .header-logo-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); }
-    .header-logo-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-
     .year-select { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
     /* Header Breadcrumb Navigation */
     .folder-header-nav { display: none; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: 600; }
     .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
-    .header-back-icon:hover { background: var(--surface-color); color: var(--primary-color); }
+    .header-back-icon:hover { background: var(--surface-color); color: var(--paper-white); }
     .header-breadcrumb-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .breadcrumb-item { cursor: pointer; color: var(--primary-color); text-decoration: none; }
+    .breadcrumb-item { cursor: pointer; color: var(--paper-white); text-decoration: none; }
     .breadcrumb-item:hover { text-decoration: underline; }
     .breadcrumb-item.active { color: var(--text-color); cursor: default; text-decoration: none; }
 
@@ -94,7 +88,7 @@
     .view-mode-toggle { display: flex; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
     .view-btn { background: transparent; border: none; color: var(--subtext-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
     .view-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .view-btn.active { background: var(--primary-color); color: var(--on-primary); }
+    .view-btn.active { background: var(--paper-white); color: var(--jet-black); }
 
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
@@ -102,12 +96,12 @@
     .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 10; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .tab-btn:hover, .tab-btn.active { background: var(--primary-color); color: var(--on-primary); }
+    .tab-btn:hover, .tab-btn.active { background: var(--paper-white); color: var(--jet-black); }
 
     .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .project-sub-nav { display: none; }
 
-    .fab-tab-btn { margin-top: auto; background: var(--primary-color); color: var(--on-primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; }
+    .fab-tab-btn { margin-top: auto; background: var(--paper-white); color: var(--jet-black); box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; }
     .fab-tab-btn:hover { opacity: 0.9; transform: scale(1.05); }
 
     /* Center Projects Grid Workspace */
@@ -116,7 +110,7 @@
 
     /* Common Theme-Matched Tile Style */
     .tile { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); user-select: none; }
-    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--primary-color); }
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--paper-white); }
 
     .tile-avatar-center { flex: 1; display: flex; justify-content: center; align-items: center; }
     .tile-letter-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--border-color); color: var(--text-color); font-size: 1.1rem; font-weight: 800; display: flex; justify-content: center; align-items: center; }
@@ -145,7 +139,7 @@
     .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: var(--border-color); color: var(--text-color); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
     .edit-meta-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: color 0.15s, background 0.15s; margin-left: 4px; }
-    .edit-meta-btn:hover { color: var(--primary-color); background: var(--border-color); }
+    .edit-meta-btn:hover { color: var(--paper-white); background: var(--border-color); }
     .edit-meta-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
     .project-meta-line2 { font-size: 0.82rem; color: var(--subtext-color); font-weight: 500; display: flex; align-items: center; gap: 6px; }
@@ -186,9 +180,9 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background: var(--primary-color);
+      background: var(--paper-white);
       border: none;
-      color: var(--on-primary);
+      color: var(--jet-black);
       display: none;
       align-items: center;
       justify-content: center;
@@ -333,7 +327,7 @@
     .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
 
-    .chat-send-btn { background: transparent; border: none; color: var(--primary-color); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+    .chat-send-btn { background: transparent; border: none; color: var(--paper-white); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
     .chat-send-btn:hover { transform: scale(1.1); }
     .chat-send-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
 
@@ -353,13 +347,13 @@
     
     .member-list { display: flex; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; }
     .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 600; }
-    .member-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-color); color: var(--on-primary); display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: 700; }
+    .member-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--paper-white); color: var(--jet-black); display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: 700; }
     
     .add-member-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.15s; }
     .add-member-btn:hover { opacity: 0.8; }
 
     .details-folder-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; padding: 8px 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; }
-    .details-folder-item svg { width: 18px; height: 18px; stroke: var(--primary-color); fill: none; stroke-width: 2; }
+    .details-folder-item svg { width: 18px; height: 18px; stroke: var(--paper-white); fill: none; stroke-width: 2; }
 
     /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
     .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
@@ -377,7 +371,7 @@
 
     .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 320px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
     .boq-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; color: var(--subtext-color); }
-    .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--primary-color); }
+    .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--paper-white); }
 
     .delete-row-btn { background: transparent; border: none; color: var(--error-red); cursor: pointer; opacity: 0.7; padding: 4px; border-radius: 4px; }
     .delete-row-btn:hover { opacity: 1; background: var(--border-color); }
@@ -389,7 +383,7 @@
     /* Activity Feed */
     .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
-    .notifications-header svg { width: 18px; height: 18px; stroke: var(--primary-color); stroke-width: 2; fill: none; margin-right: 6px; }
+    .notifications-header svg { width: 18px; height: 18px; stroke: var(--paper-white); stroke-width: 2; fill: none; margin-right: 6px; }
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
 
@@ -403,7 +397,7 @@
 
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .btn-save { background: var(--primary-color); color: var(--on-primary); }
+    .btn-save { background: var(--paper-white); color: var(--jet-black); }
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
@@ -411,22 +405,22 @@
     .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
     .excel-toolbar { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
     .excel-tool-btn { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
-    .excel-tool-btn:hover { background: var(--border-color); color: var(--primary-color); }
+    .excel-tool-btn:hover { background: var(--border-color); color: var(--paper-white); }
     .excel-tool-select, .excel-color-picker { background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 8px; border-radius: 6px; font-size: 0.82rem; outline: none; }
 
     .excel-grid-workspace { flex: 1; overflow: auto; padding: 24px; background: var(--bg-color); display: flex; justify-content: flex-start; align-items: flex-start; }
     .excel-table { border-collapse: collapse; background: var(--surface-color); border: 1px solid var(--border-color); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .excel-table td, .excel-table th { border: 1px solid var(--border-color); min-width: 120px; height: 38px; padding: 4px 8px; position: relative; font-size: 0.88rem; color: var(--text-color); outline: none; }
-    .excel-table th { background: var(--border-color); color: var(--primary-color); font-weight: 700; text-align: center; }
-    .excel-table td.selected-cell { outline: 2px solid var(--primary-color); z-index: 5; background: var(--border-color); }
+    .excel-table th { background: var(--border-color); color: var(--paper-white); font-weight: 700; text-align: center; }
+    .excel-table td.selected-cell { outline: 2px solid var(--paper-white); z-index: 5; background: var(--border-color); }
 
-    .excel-btn-element { background: var(--primary-color); color: var(--on-primary); border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .excel-btn-element { background: var(--paper-white); color: var(--jet-black); border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
     .excel-checkbox-element { width: 18px; height: 18px; cursor: pointer; }
 
     /* ------------ DYNAMIC POSITIONED CONTEXT MENUS ------------ */
     .context-menu { position: absolute; z-index: 1000; width: 150px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; padding: 4px 0; }
     .context-menu-item { padding: 8px 16px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; transition: background 0.15s; }
-    .context-menu-item:hover { background: var(--primary-color); color: var(--on-primary); }
+    .context-menu-item:hover { background: var(--paper-white); color: var(--jet-black); }
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
@@ -483,14 +477,12 @@
     <aside class="left-vertical-tabbar">
       <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
-        <!-- 1. Permanent Always-Visible Home Icon with diBadge Logo -->
+        <!-- 1. Home Icon Replaced with Exact diBadge Logo -->
         <a href="index.html" class="tab-btn" id="btnNavHome" title="Home">
-          <div class="header-logo-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z"></path>
-              <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z"></path>
-            </svg>
-          </div>
+          <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+            <path d="M7.557,0.347h4.377c1.2,0 2.18,0.98 2.18,2.185v1.28c0,1.205 -0.98,2.185 -2.18,2.185h-4.377V0.347Z" fill="currentColor"></path>
+            <path d="M2.807,7.694c0,-2.757 2.236,-4.994 4.993,-4.994h7.75c2.757,0 4.992,2.237 4.992,4.994v12.312c0,1.978 -1.594,3.584 -3.563,3.584H6.347c-1.969,0 -3.54,-1.605 -3.54,-3.584V7.694Z" fill="currentColor"></path>
+          </svg>
         </a>
 
         <!-- 2. Suitcase Icon (Projects Grid) -->
@@ -759,7 +751,7 @@
           <!-- Default Forms Folder Section -->
           <div class="details-section">
             <div class="details-section-title"><span>Default Folder</span></div>
-            <div class="details-folder-item" style="border-color: var(--primary-color); background: var(--border-color);">
+            <div class="details-folder-item" style="border-color: var(--paper-white); background: var(--border-color);">
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
               <span style="color: var(--text-color);">Forms</span>
             </div>
@@ -974,7 +966,7 @@
 
       <div style="display:flex; gap:10px;">
         <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
-        <button onclick="saveExcelFormTemplate()" style="background:var(--primary-color); color:var(--on-primary); border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
+        <button onclick="saveExcelFormTemplate()" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
       </div>
     </div>
 
@@ -1195,7 +1187,7 @@
         filtered.forEach(proj => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td style="font-weight:700; color:var(--primary-color);">${proj.projectNo || 'NO-ID'}</td>
+            <td style="font-weight:700; color:var(--paper-white);">${proj.projectNo || 'NO-ID'}</td>
             <td style="font-weight:600;">${proj.client || 'N/A'}</td>
             <td>${proj.location || 'N/A'}</td>
             <td style="color:var(--subtext-color);">${proj.remarks || '-'}</td>
@@ -1794,7 +1786,7 @@
               <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
               <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category}</div>
             </div>
-            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--primary-color); color:var(--on-primary); border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
+            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
           `;
           listContainer.appendChild(item);
         });
@@ -2106,7 +2098,7 @@
           const itemCount = folder.children ? folder.children.length + ' Items' : folder.items || '0 Items';
           tr.innerHTML = `
             <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
-              <svg style="width:18px; height:18px; stroke:var(--primary-color); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
               ${folder.name}
             </td>
             <td style="color:var(--subtext-color);">Folder</td>
