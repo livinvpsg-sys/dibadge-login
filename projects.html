@@ -31,7 +31,7 @@
       --tabbar-bg: var(--paper-white);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
-      --primary-color: var(--paper-white); /* Replaced teal with paper-white */
+      --primary-color: var(--paper-white);
       --on-primary: var(--jet-black);
 
       --chat-incoming-bg: #222224;
@@ -49,7 +49,7 @@
       --tabbar-bg: #050505;
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
-      --primary-color: var(--paper-white); /* Replaced teal with paper-white */
+      --primary-color: var(--paper-white);
       --on-primary: var(--jet-black);
 
       --chat-incoming-bg: #222224;
@@ -68,7 +68,6 @@
     
     .default-header-title { display: flex; align-items: center; gap: 12px; }
     .default-header-title h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-    
     .year-select { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
 
     /* Header Breadcrumb Navigation */
@@ -101,7 +100,7 @@
     .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .project-sub-nav { display: none; }
 
-    .fab-tab-btn { margin-top: auto; background: var(--paper-white); color: var(--jet-black); box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; }
+    .fab-tab-btn { margin-top: auto; background: var(--paper-white); color: var(--jet-black); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer; display: flex; }
     .fab-tab-btn:hover { opacity: 0.9; transform: scale(1.05); }
 
     /* Center Projects Grid Workspace */
@@ -477,11 +476,11 @@
     <aside class="left-vertical-tabbar">
       <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
-        <!-- 1. Home Icon Replaced with Exact diBadge Logo -->
+        <!-- 1. Permanent Always-Visible Home Icon -->
         <a href="index.html" class="tab-btn" id="btnNavHome" title="Home">
           <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
-            <path d="M7.557,0.347h4.377c1.2,0 2.18,0.98 2.18,2.185v1.28c0,1.205 -0.98,2.185 -2.18,2.185h-4.377V0.347Z" fill="currentColor"></path>
-            <path d="M2.807,7.694c0,-2.757 2.236,-4.994 4.993,-4.994h7.75c2.757,0 4.992,2.237 4.992,4.994v12.312c0,1.978 -1.594,3.584 -3.563,3.584H6.347c-1.969,0 -3.54,-1.605 -3.54,-3.584V7.694Z" fill="currentColor"></path>
+            <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
           </svg>
         </a>
 
