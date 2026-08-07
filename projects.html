@@ -728,7 +728,7 @@
           <div class="details-section">
             <div class="details-section-title">
               <span>Forms</span>
-              <button class="add-member-btn" onclick="openMainProjectFormsScreen()" title="Open Forms Screen">+ Add</button>
+              <button class="add-member-btn" onclick="openChatFormsSelectorModal()" title="Select Form">+ Add</button>
             </div>
             <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
               <!-- Rendered dynamically -->
@@ -858,6 +858,40 @@
         </div>
       </div>
     </aside>
+  </div>
+
+  <!-- CHAT FORMS SELECTOR MODAL (EXACT PROJECT FORMS SCREEN LOOK FOR SELECTION) -->
+  <div class="modal-overlay" id="chatFormsSelectorModal">
+    <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
+      <button class="close-btn" onclick="closeChatFormsSelectorModal()">&times;</button>
+      
+      <!-- Top Title & View Mode Toggle Bar matching reference image -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Forms</h3>
+          <p style="font-size:0.78rem; color:var(--subtext-color);">Select forms to assign to chat details</p>
+        </div>
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <!-- Tile / List View Toggle -->
+          <div class="view-mode-toggle" id="chatFormsViewToggle">
+            <button class="view-btn active" id="btnChatFormTile" onclick="switchChatFormsViewMode('grid')" title="Tile Grid View">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+            <button class="view-btn" id="btnChatFormList" onclick="switchChatFormsViewMode('list')" title="Detailed List View">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Browser Container -->
+      <div id="chatFormsSelectorContainer" style="min-height: 240px; max-height: 360px; overflow-y: auto; margin-bottom: 20px;"></div>
+
+      <!-- Close Action Button -->
+      <div style="display: flex; justify-content: center;">
+        <button class="modal-btn" onclick="closeChatFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 400px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
+      </div>
+    </div>
   </div>
 
   <!-- CHAT FOLDERS & FILES SELECTOR MODAL (MATCHING EXACT REFERENCE WINDOW STYLE WITH TILE/LIST TOGGLE) -->
@@ -1040,6 +1074,7 @@
     let pendingStagedFiles = [];
 
     // Chat modal viewer states
+    let chatFormsViewMode = 'grid';
     let chatFoldersViewMode = 'grid';
     let chatFolderModalStack = [];
     let targetFolderIdxForChatUpload = 0;
@@ -1599,9 +1634,80 @@
       renderChatDetailsSidebar();
     }
 
-    /* ------------ OPEN PROJECT FORMS SCREEN WHEN CLICKING FORMS ADD BUTTON IN CHAT DETAILS ------------ */
-    function openMainProjectFormsScreen() {
-      switchProjectSubTab('forms');
+    /* ------------ CHAT FORMS SELECTOR MODAL (EXACT PROJECT FORMS SCREEN LOOK FOR SELECTION) ------------ */
+    function openChatFormsSelectorModal() {
+      renderChatFormsModalContent();
+      document.getElementById("chatFormsSelectorModal").style.display = "flex";
+    }
+
+    function closeChatFormsSelectorModal() {
+      document.getElementById("chatFormsSelectorModal").style.display = "none";
+    }
+
+    function switchChatFormsViewMode(mode) {
+      chatFormsViewMode = mode;
+      const btnTile = document.getElementById("btnChatFormTile");
+      const btnList = document.getElementById("btnChatFormList");
+      if (btnTile && btnList) {
+        if (mode === 'grid') {
+          btnTile.classList.add("active");
+          btnList.classList.remove("active");
+        } else {
+          btnList.classList.add("active");
+          btnTile.classList.remove("active");
+        }
+      }
+      renderChatFormsModalContent();
+    }
+
+    function renderChatFormsModalContent() {
+      const container = document.getElementById("chatFormsSelectorContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (projectFormsList.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:40px;">No forms available.</div>`;
+        return;
+      }
+
+      if (chatFormsViewMode === 'grid') {
+        const grid = document.createElement("div");
+        grid.className = "tiles-grid";
+        projectFormsList.forEach(form => {
+          const card = document.createElement("div");
+          card.className = "form-file-card";
+          card.style.maxWidth = "130px";
+          card.innerHTML = `
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            <div class="form-file-name">${form.title}</div>
+          `;
+          card.onclick = () => selectFormForChat(form);
+          grid.appendChild(card);
+        });
+        container.appendChild(grid);
+      } else {
+        const table = document.createElement("table");
+        table.className = "projects-list-table";
+        table.innerHTML = `<thead><tr><th>Form Title</th><th>Category</th></tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector("tbody");
+        projectFormsList.forEach(form => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td style="font-weight:600;">${form.title}</td><td style="color:var(--subtext-color);">${form.category || 'Form'}</td>`;
+          tr.onclick = () => selectFormForChat(form);
+          tbody.appendChild(tr);
+        });
+        container.appendChild(table);
+      }
+    }
+
+    function selectFormForChat(form) {
+      const duplicate = chatDetailsAssignedForms.some(f => f.title.toLowerCase() === form.title.toLowerCase());
+      if (duplicate) {
+        return alert("This form is already added.");
+      }
+      chatDetailsAssignedForms.push({ id: 'cdf-' + Date.now(), title: form.title });
+      renderChatDetailsSidebar();
+      closeChatFormsSelectorModal();
     }
 
     /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL (EXACT REFERENCE WINDOW STYLE FOR INTERNAL FILE SELECTION) ------------ */
@@ -1660,8 +1766,8 @@
         if (breadcrumbEl) breadcrumbEl.innerText = `${activeOpenedProject.client || 'Project'} > ... > ${currentNode.name}`;
       } else {
         if (backBtn) backBtn.style.display = "none";
-        if (titleEl) titleEl.innerText = activeOpenedProject.client || "Project Folders";
-        if (breadcrumbEl) breadcrumbEl.innerText = activeOpenedProject.projectNo || "";
+        if (titleEl) titleEl.innerText = activeOpenedProject.client || "Amber Holdings";
+        if (breadcrumbEl) breadcrumbEl.innerText = activeOpenedProject.projectNo || "PRJ-2026-001";
       }
 
       const items = currentNode.children || currentNode.files || [];
@@ -2515,7 +2621,7 @@
 
     function handleFabClick() {
       if (activeOpenedProject && activeViewMode === 'forms') {
-        openMainProjectFormsScreen();
+        openChatFormsSelectorModal();
       } else if (activeViewMode === 'forms') {
         openExcelStudio();
       } else if (activeOpenedProject && activeViewMode === 'folder') {
