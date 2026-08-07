@@ -340,7 +340,7 @@
     .attach-icon-circle svg { width: 20px; height: 20px; stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
     /* Right side: Chat Details Pane */
-    .chat-details-pane { width: 300px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; overflow-y: auto; }
+    .chat-details-pane { width: 320px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; overflow-y: auto; }
     .details-section { padding: 16px; border-bottom: 1px solid var(--border-color); }
     .details-section-title { font-size: 0.85rem; font-weight: 700; color: var(--subtext-color); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     
@@ -351,8 +351,22 @@
     .add-member-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.15s; }
     .add-member-btn:hover { opacity: 0.8; }
 
-    .details-folder-item { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; padding: 8px 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; }
-    .details-folder-item svg { width: 18px; height: 18px; stroke: var(--paper-white); fill: none; stroke-width: 2; }
+    /* Chat Details Forms & Folders Customizations */
+    .chat-form-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; font-weight: 600; padding: 8px 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; }
+    .chat-form-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .chat-remove-item-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: color 0.15s, background 0.15s; }
+    .chat-remove-item-btn:hover { color: var(--error-red); background: var(--border-color); }
+    .chat-remove-item-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    .chat-folder-accordion-wrap { border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); margin-bottom: 6px; overflow: hidden; }
+    .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.15s; }
+    .chat-folder-header:hover { background: var(--border-color); }
+    .chat-folder-files-box { display: none; padding: 6px 10px 10px 30px; display: none; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); background: var(--surface-color); }
+    .chat-file-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-color); }
+    .chat-file-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+
+    .chat-add-files-btn { background: var(--border-color); color: var(--text-color); border: none; width: 100%; padding: 6px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 4px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; transition: opacity 0.15s; }
+    .chat-add-files-btn:hover { opacity: 0.8; }
 
     /* ------------ BILL OF QUANTITY (BOQ) TABLE DESIGN ------------ */
     .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
@@ -734,25 +748,21 @@
             </div>
           </div>
 
-          <!-- Folders Section -->
+          <!-- Forms Section (With FAB on right end) -->
           <div class="details-section">
-            <div class="details-section-title"><span>Project Folders</span></div>
-            <div class="details-folder-item">
-              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              <span>Site Photos & diCam</span>
+            <div class="details-section-title">
+              <span>Forms</span>
+              <button class="add-member-btn" onclick="openImportGlobalFormModal()" title="Import Form from Project Forms">+ Import</button>
             </div>
-            <div class="details-folder-item">
-              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              <span>Safety & Compliance Logs</span>
+            <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
+              <!-- Rendered dynamically -->
             </div>
           </div>
 
-          <!-- Default Forms Folder Section -->
+          <!-- Folders Section (Accordion, no heading label, with 'Add' button allowing multiple file selection) -->
           <div class="details-section">
-            <div class="details-section-title"><span>Default Folder</span></div>
-            <div class="details-folder-item" style="border-color: var(--paper-white); background: var(--border-color);">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-              <span style="color: var(--text-color);">Forms</span>
+            <div id="chatDetailsFoldersContainer">
+              <!-- Rendered dynamically -->
             </div>
           </div>
         </div>
@@ -850,7 +860,7 @@
     </section>
 
     <section class="sub-view-panel" id="panelScheduleWorkspace">
-      <h2 style="font-size:1.1rem; margin-bottom:12px;">Project Schedule</h2>
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
       <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
     </section>
 
@@ -938,17 +948,39 @@
     </div>
   </div>
 
-  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS -->
+  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS / CHAT DETAILS -->
   <div class="modal-overlay" id="importGlobalFormModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeImportFormModal()">&times;</button>
-      <h3>Import Form from Global Library</h3>
-      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select an organization form template to assign to this project.</p>
+      <h3>Import Form from Project Forms</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select a form template to assign to this chat details panel.</p>
 
       <div id="globalImportListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; margin-bottom:16px;"></div>
 
       <div class="modal-actions">
         <button class="modal-btn btn-cancel" onclick="closeImportFormModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTIPLE FILES UPLOAD MODAL FOR CHAT DETAILS FOLDERS -->
+  <div class="modal-overlay" id="chatFolderAddFilesModal">
+    <div class="modal-card">
+      <button class="close-btn" onclick="closeChatFolderAddFilesModal()">&times;</button>
+      <h3>Add Files to Folder</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;" id="targetFolderModalTitle">Select folder and choose files.</p>
+
+      <label class="modal-label">Select Destination Sub-Folder</label>
+      <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:12px;">
+        <!-- Populated dynamically -->
+      </select>
+
+      <label class="modal-label">Choose Files (Multiple allowed)</label>
+      <input type="file" id="chatModalFileInput" class="modal-input" multiple style="padding:6px;" />
+
+      <div class="modal-actions">
+        <button class="modal-btn btn-save" onclick="confirmAddFilesToFolder()">Upload Files</button>
+        <button class="modal-btn btn-cancel" onclick="closeChatFolderAddFilesModal()">Cancel</button>
       </div>
     </div>
   </div>
@@ -1044,6 +1076,11 @@
       { id: 'pf-1', title: 'Tower B Foundation Log Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
     ];
 
+    // Chat Details Specific Assigned Forms & Files Arrays
+    let chatDetailsAssignedForms = [
+      { id: 'cdf-1', title: 'Tower B Foundation Log Sheet' }
+    ];
+
     // Default BOQ Data
     let currentBOQItems = [
       { item: 'Foundation Concrete', qty: '25', price: '150' },
@@ -1052,10 +1089,10 @@
 
     function getDefaultSubFolders() {
       return [
-        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [] },
-        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [] },
-        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [] },
-        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [] }
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [], files: [{name: 'sample_site_record.jpg'}] },
+        { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [], files: [] },
+        { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [], files: [] },
+        { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [], files: [] }
       ];
     }
 
@@ -1072,6 +1109,7 @@
         const parsed = JSON.parse(stored);
         return parsed.map(p => {
           if (!p.children) p.children = getDefaultSubFolders();
+          p.children.forEach(ch => { if (!ch.files) ch.files = []; });
           return p;
         });
       } catch(e) {
@@ -1449,6 +1487,7 @@
         if (tabKey === 'chat') {
           if (chatWS) chatWS.style.display = "flex";
           if (btnChat) btnChat.classList.add("active");
+          renderChatDetailsSidebar();
         } else if (tabKey === 'forms') {
           if (formsWS) formsWS.style.display = "block";
           if (btnForms) btnForms.classList.add("active");
@@ -1470,7 +1509,146 @@
       }
     }
 
-    /* ------------ CHAT SCREEN CONTROLS & GROUP MEMBERS ADD LOGIC ------------ */
+    /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
+    function renderChatDetailsSidebar() {
+      // 1. Render Forms under Chat Details
+      const formsListEl = document.getElementById("chatDetailsFormsList");
+      if (formsListEl) {
+        formsListEl.innerHTML = "";
+        if (chatDetailsAssignedForms.length === 0) {
+          formsListEl.innerHTML = `<div style="font-size:0.8rem; color:var(--subtext-color); padding:4px 0;">No forms assigned.</div>`;
+        } else {
+          chatDetailsAssignedForms.forEach((form, idx) => {
+            const row = document.createElement("div");
+            row.className = "chat-form-item";
+            row.innerHTML = `
+              <span>${form.title}</span>
+              <button class="chat-remove-item-btn" onclick="removeChatAssignedForm(${idx})" title="Remove form">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            `;
+            formsListEl.appendChild(row);
+          });
+        }
+      }
+
+      // 2. Render Folders under Chat Details (accordion style, no heading, files with 'x' and confirm dialog, Add button)
+      const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
+      if (foldersContainer && activeOpenedProject && activeOpenedProject.children) {
+        foldersContainer.innerHTML = "";
+        activeOpenedProject.children.forEach((folder, fIdx) => {
+          const wrap = document.createElement("div");
+          wrap.className = "chat-folder-accordion-wrap";
+
+          let filesHtml = '';
+          if (!folder.files) folder.files = [];
+          if (folder.files.length === 0) {
+            filesHtml = `<div style="font-size:0.78rem; color:var(--subtext-color);">No files inside.</div>`;
+          } else {
+            folder.files.forEach((file, fileIdx) => {
+              const fileName = typeof file === 'string' ? file : (file.name || 'file');
+              filesHtml += `
+                <div class="chat-file-row">
+                  <span>📄 ${fileName}</span>
+                  <button class="chat-remove-item-btn" onclick="confirmRemoveFile(${fIdx}, ${fileIdx})" title="Remove file">
+                    <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            `;
+            });
+          }
+
+          wrap.innerHTML = `
+            <div class="chat-folder-header" onclick="toggleChatFolderAccordion(this)">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <svg style="width:16px; height:16px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>${folder.name}</span>
+              </div>
+              <svg style="width:14px; height:14px; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="chat-folder-files-box">
+              ${filesHtml}
+              <button class="chat-add-files-btn" onclick="openChatFolderAddFilesModal(${fIdx})">+ Add Files</button>
+            </div>
+          `;
+          foldersContainer.appendChild(wrap);
+        });
+      }
+    }
+
+    function toggleChatFolderAccordion(headerElem) {
+      const box = headerElem.nextElementSibling;
+      if (box) {
+        box.style.display = box.style.display === "flex" ? "none" : "flex";
+      }
+    }
+
+    function removeChatAssignedForm(idx) {
+      if (confirm("Remove this form from chat details?")) {
+        chatDetailsAssignedForms.splice(idx, 1);
+        renderChatDetailsSidebar();
+      }
+    }
+
+    function confirmRemoveFile(folderIdx, fileIdx) {
+      if (!activeOpenedProject || !activeOpenedProject.children) return;
+      const folder = activeOpenedProject.children[folderIdx];
+      const fileName = typeof folder.files[fileIdx] === 'string' ? folder.files[fileIdx] : folder.files[fileIdx].name;
+      
+      if (confirm(`Are you sure you want to remove file "${fileName}"?`)) {
+        folder.files.splice(fileIdx, 1);
+        persistProjectTree();
+        renderChatDetailsSidebar();
+      }
+    }
+
+    let targetFolderIndexForAdd = 0;
+    function openChatFolderAddFilesModal(folderIdx) {
+      if (!activeOpenedProject || !activeOpenedProject.children) return;
+      targetFolderIndexForAdd = folderIdx;
+
+      const selectEl = document.getElementById("chatModalFolderSelect");
+      if (selectEl) {
+        selectEl.innerHTML = "";
+        activeOpenedProject.children.forEach((f, idx) => {
+          const opt = document.createElement("option");
+          opt.value = idx;
+          opt.innerText = f.name;
+          if (idx === folderIdx) opt.selected = true;
+          selectEl.appendChild(opt);
+        });
+      }
+
+      document.getElementById("chatModalFileInput").value = "";
+      document.getElementById("chatFolderAddFilesModal").style.display = "flex";
+    }
+
+    function closeChatFolderAddFilesModal() {
+      document.getElementById("chatFolderAddFilesModal").style.display = "none";
+    }
+
+    function confirmAddFilesToFolder() {
+      const selectEl = document.getElementById("chatModalFolderSelect");
+      const fileInput = document.getElementById("chatModalFileInput");
+      if (!selectEl || !fileInput || !activeOpenedProject) return;
+
+      const destFolderIdx = parseInt(selectEl.value);
+      const files = fileInput.files;
+      if (!files || files.length === 0) return alert("Please select at least one file to upload.");
+
+      const folder = activeOpenedProject.children[destFolderIdx];
+      if (!folder.files) folder.files = [];
+
+      for (let i = 0; i < files.length; i++) {
+        folder.files.push(files[i].name);
+      }
+
+      folder.items = `${folder.files.length} Items`;
+      persistProjectTree();
+      closeChatFolderAddFilesModal();
+      renderChatDetailsSidebar();
+    }
+
     function toggleEmojiPicker(e) {
       if (e) e.stopPropagation();
       const panel = document.getElementById("chatEmojiPanel");
@@ -1707,9 +1885,9 @@
               <div class="msg-bubble outgoing">
                 📄 Attachment: ${file.name}
                 <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
-              </div>
             </div>
-          `;
+          </div>
+        `s;
           container.appendChild(msgRow);
         });
 
@@ -1760,7 +1938,6 @@
           <div class="form-file-name">${form.title}</div>
         `;
         
-        // Double-click to open form studio
         card.ondblclick = function() {
           alert(`Opening Form: ${form.title}`);
         };
@@ -1774,18 +1951,18 @@
       if (!listContainer) return;
       listContainer.innerHTML = "";
 
-      if (globalFormsList.length === 0) {
-        listContainer.innerHTML = `<div style="color:var(--subtext-color); text-align:center; padding:12px;">No Global Forms available to import.</div>`;
+      if (projectFormsList.length === 0) {
+        listContainer.innerHTML = `<div style="color:var(--subtext-color); text-align:center; padding:12px;">No Project Forms available to import.</div>`;
       } else {
-        globalFormsList.forEach(gf => {
+        projectFormsList.forEach(pf => {
           const item = document.createElement("div");
           item.style.cssText = "background:var(--bg-color); border:1px solid var(--border-color); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center;";
           item.innerHTML = `
             <div>
-              <div style="font-weight:700; font-size:0.9rem;">${gf.title}</div>
-              <div style="font-size:0.75rem; color:var(--subtext-color);">${gf.category}</div>
+              <div style="font-weight:700; font-size:0.9rem;">${pf.title}</div>
+              <div style="font-size:0.75rem; color:var(--subtext-color);">${pf.category || 'Form'}</div>
             </div>
-            <button onclick="importSelectedForm('${gf.id}')" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
+            <button onclick="importSelectedFormToChat('${pf.id}')" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 12px; border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer;">Import</button>
           `;
           listContainer.appendChild(item);
         });
@@ -1798,18 +1975,15 @@
       document.getElementById("importGlobalFormModal").style.display = "none";
     }
 
-    function importSelectedForm(globalFormId) {
-      const found = globalFormsList.find(f => f.id === globalFormId);
+    function importSelectedFormToChat(pfId) {
+      const found = projectFormsList.find(f => f.id === pfId);
       if (found) {
-        const duplicateForm = projectFormsList.some(pf => pf.title.toLowerCase() === found.title.toLowerCase());
-        if (duplicateForm) {
-          return alert(`A form template named "${found.title}" is already imported in this project.`);
+        const duplicate = chatDetailsAssignedForms.some(f => f.title.toLowerCase() === found.title.toLowerCase());
+        if (duplicate) {
+          return alert(`This form is already added to chat details.`);
         }
-
-        const importedCopy = JSON.parse(JSON.stringify(found));
-        importedCopy.id = 'pf-' + Date.now();
-        projectFormsList.push(importedCopy);
-        renderFormsListUI('projectFormsContainer', projectFormsList);
+        chatDetailsAssignedForms.push({ id: 'cdf-' + Date.now(), title: found.title });
+        renderChatDetailsSidebar();
         closeImportFormModal();
       }
     }
@@ -2051,10 +2225,11 @@
             folderCard.classList.add("selected-cut");
           }
 
+          const itemCount = folder.files ? folder.files.length + ' Items' : folder.items || '0 Items';
           folderCard.innerHTML = `
             <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             <div class="folder-name">${folder.name}</div>
-            <div class="folder-items-count">${folder.children ? folder.children.length + ' Items' : folder.items || '0 Items'}</div>
+            <div class="folder-items-count">${itemCount}</div>
           `;
 
           folderCard.onclick = (e) => {
@@ -2072,7 +2247,6 @@
           subGrid.appendChild(folderCard);
         });
       } else {
-        // Render Subfolders and Files as Detailed List View Table
         subGrid.className = "";
         const table = document.createElement("table");
         table.className = "projects-list-table";
@@ -2094,7 +2268,7 @@
             tr.style.opacity = "0.4";
           }
 
-          const itemCount = folder.children ? folder.children.length + ' Items' : folder.items || '0 Items';
+          const itemCount = folder.files ? folder.files.length + ' Items' : folder.items || '0 Items';
           tr.innerHTML = `
             <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
               <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
@@ -2315,7 +2489,8 @@
           id: 'f-' + Date.now(),
           name: trimmed,
           items: '0 Items',
-          children: []
+          children: [],
+          files: []
         });
 
         persistProjectTree();
@@ -2351,7 +2526,6 @@
       const projects = getProjects();
       const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
 
-      // Check duplicate project number in the same year
       const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
       if (duplicateExists) {
         return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
