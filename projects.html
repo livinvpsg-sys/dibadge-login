@@ -739,7 +739,7 @@
           <div class="details-section">
             <div class="details-section-title">
               <span>Folders</span>
-              <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
+              <button class="add-member-btn" onclick="openChatFoldersSelectorModal()" title="Add Files">+ Add</button>
             </div>
             <div id="chatDetailsFoldersContainer">
               <!-- Rendered dynamically -->
@@ -865,7 +865,7 @@
     <div class="modal-card" style="max-width: 600px; width: 95%;">
       <button class="close-btn" onclick="closeChatFormsSelectorModal()">&times;</button>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
-        <h3>Select Form from Project Home</h3>
+        <h3>Select Form to Add</h3>
         <div class="view-mode-toggle" id="chatFormsViewToggle">
           <button class="view-btn active" id="btnChatFormTile" onclick="switchChatFormsViewMode('grid')" title="Tile Grid View">
             <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -1555,7 +1555,6 @@
             </div>
             <div class="chat-folder-files-box">
               ${filesHtml}
-              <button class="chat-add-files-btn" onclick="openChatFoldersSelectorModalForFolder(${fIdx})">+ Add Files</button>
             </div>
           `;
           foldersContainer.appendChild(wrap);
@@ -1589,32 +1588,7 @@
       }
     }
 
-    function createNewChatSubFolder() {
-      if (!activeOpenedProject) return;
-      const newSubName = prompt("Enter new folder name:");
-      if (!newSubName || !newSubName.trim()) return;
-
-      const trimmed = newSubName.trim();
-      if (!activeOpenedProject.children) activeOpenedProject.children = [];
-
-      const duplicateExists = activeOpenedProject.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
-      if (duplicateExists) {
-        return alert(`A folder named '${trimmed}' already exists. Please choose a different name.`);
-      }
-
-      activeOpenedProject.children.push({
-        id: 'f-' + Date.now(),
-        name: trimmed,
-        items: '0 Items',
-        children: [],
-        files: []
-      });
-
-      persistProjectTree();
-      renderChatDetailsSidebar();
-    }
-
-    /* ------------ CHAT FORMS SELECTOR MODAL (OPENS PROJECT FORMS SCREEN WITH TILE / LIST VIEW) ------------ */
+    /* ------------ CHAT FORMS SELECTOR MODAL (WITH TILE / LIST VIEW) ------------ */
     function openChatFormsSelectorModal() {
       renderChatFormsModalContent();
       document.getElementById("chatFormsSelectorModal").style.display = "flex";
@@ -1690,12 +1664,10 @@
       closeChatFormsSelectorModal();
     }
 
-    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL (OPENS CURRENT PROJECT FOLDERS WITH TILE / LIST VIEW) ------------ */
-    let targetFolderIdxForChatUpload = 0;
-    function openChatFoldersSelectorModalForFolder(fIdx) {
+    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL (WITH TILE / LIST VIEW) ------------ */
+    function openChatFoldersSelectorModal() {
       if (!activeOpenedProject) return;
-      targetFolderIdxForChatUpload = fIdx;
-      chatFolderModalStack = [activeOpenedProject.children[fIdx]];
+      chatFolderModalStack = [activeOpenedProject];
       renderChatFoldersModalContent();
       document.getElementById("chatFoldersSelectorModal").style.display = "flex";
     }
@@ -1744,130 +1716,118 @@
       if (chatFolderModalStack.length > 1) {
         if (backBtn) backBtn.style.display = "inline-block";
         if (titleEl) titleEl.innerText = currentNode.name;
-        if (breadcrumbEl) breadcrumbEl.innerText = `Current Project > ... > ${currentNode.name}`;
+        if (breadcrumbEl) breadcrumbEl.innerText = `Project > ... > ${currentNode.name}`;
       } else {
         if (backBtn) backBtn.style.display = "none";
-        if (titleEl) titleEl.innerText = currentNode.name;
-        if (breadcrumbEl) breadcrumbEl.innerText = `Current Project Folders & Files`;
+        if (titleEl) titleEl.innerText = activeOpenedProject.client || "Project Folders";
+        if (breadcrumbEl) breadcrumbEl.innerText = activeOpenedProject.projectNo || "";
       }
 
       const items = currentNode.children || currentNode.files || [];
       if (items.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:40px;">This folder is empty. Click below to add files.</div>`;
-      } else {
-        if (chatFoldersViewMode === 'grid') {
-          const grid = document.createElement("div");
-          grid.className = "tiles-grid";
-          items.forEach((item) => {
-            const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
-            const card = document.createElement("div");
-            card.className = "folder-card";
-            card.style.maxWidth = "130px";
+        container.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:40px;">This folder is empty.</div>`;
+        return;
+      }
 
-            if (isFolder) {
-              const folderName = item.name || item;
-              const count = item.files ? item.files.length + ' Files' : 'Folder';
-              card.innerHTML = `
-                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                <div class="folder-name">${folderName}</div>
-                <div class="folder-items-count">${count}</div>
-              `;
-              card.onclick = () => {
-                if (item.children || item.files) {
-                  chatFolderModalStack.push(item);
-                  renderChatFoldersModalContent();
-                }
-              };
-            } else {
-              card.innerHTML = `
-                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                <div class="folder-name">${item.name || item}</div>
-                <div class="folder-items-count">File</div>
-              `;
-              card.onclick = () => selectFileForChatFolder(item.name || item);
-            }
-            grid.appendChild(card);
-          });
-          container.appendChild(grid);
-        } else {
-          const table = document.createElement("table");
-          table.className = "projects-list-table";
-          table.innerHTML = `<thead><tr><th>Name</th><th>Type</th></tr></thead><tbody></tbody>`;
-          const tbody = table.querySelector("tbody");
-          items.forEach((item) => {
-            const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
-            const tr = document.createElement("tr");
-            const name = item.name || item;
-            tr.innerHTML = `
-              <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
-                <svg style="width:16px; height:16px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="${isFolder ? 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' : 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'}"></path></svg>
-                ${name}
-              </td>
-              <td style="color:var(--subtext-color);">${isFolder ? 'Folder' : 'File'}</td>
+      if (chatFoldersViewMode === 'grid') {
+        const grid = document.createElement("div");
+        grid.className = "tiles-grid";
+        items.forEach((item, idx) => {
+          const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
+          const card = document.createElement("div");
+          card.className = "folder-card";
+          card.style.maxWidth = "130px";
+
+          if (isFolder) {
+            const folderName = item.name || item;
+            const count = item.files ? item.files.length + ' Files' : 'Folder';
+            card.innerHTML = `
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <div class="folder-name">${folderName}</div>
+              <div class="folder-items-count">${count}</div>
             `;
-            tr.onclick = () => {
-              if (isFolder && (item.children || item.files)) {
+            card.onclick = () => {
+              if (item.children || item.files) {
                 chatFolderModalStack.push(item);
                 renderChatFoldersModalContent();
-              } else if (!isFolder) {
-                selectFileForChatFolder(name);
               }
             };
-            tbody.appendChild(tr);
-          });
-          container.appendChild(table);
-        }
-      }
-
-      // Add a direct File Upload button at the bottom of the modal browser
-      const uploadBar = document.createElement("div");
-      uploadBar.style.cssText = "margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;";
-      uploadBar.innerHTML = `
-        <span style="font-size:0.8rem; color:var(--subtext-color);">Upload new files to this folder:</span>
-        <button class="add-member-btn" onclick="document.getElementById('modalDirectFileInput').click()">+ Choose Files</button>
-      `;
-      container.appendChild(uploadBar);
-
-      // Hidden file input for modal uploads
-      let hiddenInput = document.getElementById("modalDirectFileInput");
-      if (!hiddenInput) {
-        hiddenInput = document.createElement("input");
-        hiddenInput.type = "file";
-        hiddenInput.id = "modalDirectFileInput";
-        hiddenInput.style.display = "none";
-        hiddenInput.multiple = true;
-        hiddenInput.onchange = (e) => handleModalDirectFileUpload(e);
-        document.body.appendChild(hiddenInput);
+          } else {
+            // File item
+            card.innerHTML = `
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <div class="folder-name">${item.name || item}</div>
+              <div class="folder-items-count">File</div>
+            `;
+            card.onclick = () => selectFileForChat(item.name || item);
+          }
+          grid.appendChild(card);
+        });
+        container.appendChild(grid);
+      } else {
+        const table = document.createElement("table");
+        table.className = "projects-list-table";
+        table.innerHTML = `<thead><tr><th>Name</th><th>Type</th></tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector("tbody");
+        items.forEach((item, idx) => {
+          const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
+          const tr = document.createElement("tr");
+          const name = item.name || item;
+          tr.innerHTML = `
+            <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+              <svg style="width:16px; height:16px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="${isFolder ? 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' : 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'}"></path></svg>
+              ${name}
+            </td>
+            <td style="color:var(--subtext-color);">${isFolder ? 'Folder' : 'File'}</td>
+          `;
+          tr.onclick = () => {
+            if (isFolder && (item.children || item.files)) {
+              chatFolderModalStack.push(item);
+              renderChatFoldersModalContent();
+            } else if (!isFolder) {
+              selectFileForChat(name);
+            }
+          };
+          tbody.appendChild(tr);
+        });
+        container.appendChild(table);
       }
     }
 
-    function selectFileForChatFolder(fileName) {
-      if (!activeOpenedProject || !activeOpenedProject.children) return;
-      const folder = activeOpenedProject.children[targetFolderIdxForChatUpload];
-      if (!folder.files) folder.files = [];
-      if (!folder.files.includes(fileName)) {
-        folder.files.push(fileName);
-        folder.items = `${folder.files.length} Items`;
+    function selectFileForChat(fileName) {
+      // Add file to the first project subfolder or active folder as sample attachment action
+      if (activeOpenedProject && activeOpenedProject.children && activeOpenedProject.children.length > 0) {
+        if (!activeOpenedProject.children[0].files) activeOpenedProject.children[0].files = [];
+        activeOpenedProject.children[0].files.push(fileName);
         persistProjectTree();
         renderChatDetailsSidebar();
+        closeChatFoldersSelectorModal();
       }
-      closeChatFoldersSelectorModal();
     }
 
-    function handleModalDirectFileUpload(e) {
-      const files = e.target.files;
-      if (!files || files.length === 0) return;
-      const currentNode = getCurrentChatModalNode();
-      if (!currentNode.files) currentNode.files = [];
+    function createNewChatSubFolder() {
+      if (!activeOpenedProject) return;
+      const newSubName = prompt("Enter new folder name:");
+      if (!newSubName || !newSubName.trim()) return;
 
-      for (let i = 0; i < files.length; i++) {
-        currentNode.files.push(files[i].name);
+      const trimmed = newSubName.trim();
+      if (!activeOpenedProject.children) activeOpenedProject.children = [];
+
+      const duplicateExists = activeOpenedProject.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists. Please choose a different name.`);
       }
-      currentNode.items = `${currentNode.files.length} Items`;
+
+      activeOpenedProject.children.push({
+        id: 'f-' + Date.now(),
+        name: trimmed,
+        items: '0 Items',
+        children: [],
+        files: []
+      });
+
       persistProjectTree();
       renderChatDetailsSidebar();
-      renderChatFoldersModalContent();
-      e.target.value = "";
     }
 
     function toggleEmojiPicker(e) {
