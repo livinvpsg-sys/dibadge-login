@@ -148,8 +148,9 @@
 
     .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; min-height: 300px; }
 
-    .folder-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .folder-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); }
+    .folder-card.selected-card { border-color: var(--paper-white); background: var(--border-color); }
     .folder-card.selected-cut { opacity: 0.4; }
     .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
@@ -862,17 +863,15 @@
     </aside>
   </div>
 
-  <!-- CHAT GLOBAL FORMS SELECTOR MODAL (CLEANED UP APPEARANCE: LEFT-ALIGNED HEADING, NO 'X' ICON, CONDITIONAL IMPORT BUTTON) -->
+  <!-- CHAT GLOBAL FORMS SELECTOR MODAL -->
   <div class="modal-overlay" id="chatGlobalFormsSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
       
-      <!-- Top Title & View Mode Toggle Bar (Left aligned heading, no 'x' close icon) -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
         <div>
           <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); text-align: left; margin-bottom: 0;">Forms</h3>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
-          <!-- Tile / List View Toggle -->
           <div class="view-mode-toggle" id="chatGlobalFormsViewToggle">
             <button class="view-btn active" id="btnChatGlobalFormTile" onclick="switchChatGlobalFormsViewMode('grid')" title="Tile Grid View">
               <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -884,10 +883,8 @@
         </div>
       </div>
 
-      <!-- Main Browser Container -->
       <div id="chatGlobalFormsSelectorContainer" style="min-height: 240px; max-height: 340px; overflow-y: auto; margin-bottom: 20px;"></div>
 
-      <!-- Action Buttons Bar (Import button disabled unless a form is selected) -->
       <div style="display: flex; gap: 12px; justify-content: center;">
         <button id="chatGlobalImportBtn" class="modal-btn" onclick="confirmImportSelectedGlobalForm()" disabled style="background: var(--border-color); color: var(--subtext-color); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px; cursor: not-allowed; transition: all 0.15s;">Import</button>
         <button class="modal-btn" onclick="closeChatGlobalFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
@@ -895,7 +892,7 @@
     </div>
   </div>
 
-  <!-- CHAT FOLDERS & FILES SELECTOR MODAL -->
+  <!-- CHAT FOLDERS & FILES SELECTOR MODAL (WITH CONDITIONAL IMPORT BUTTON) -->
   <div class="modal-overlay" id="chatFoldersSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
       
@@ -919,8 +916,9 @@
 
       <div id="chatFoldersSelectorContainer" style="min-height: 240px; max-height: 360px; overflow-y: auto; margin-bottom: 20px;"></div>
 
-      <div style="display: flex; justify-content: center;">
-        <button class="modal-btn" onclick="closeChatFoldersSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 400px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button id="chatFolderImportBtn" class="modal-btn" onclick="confirmImportSelectedFile()" disabled style="background: var(--border-color); color: var(--subtext-color); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px; cursor: not-allowed; transition: all 0.15s;">Import</button>
+        <button class="modal-btn" onclick="closeChatFoldersSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
       </div>
     </div>
   </div>
@@ -1075,6 +1073,7 @@
     let chatFolderModalStack = [];
     let targetFolderIdxForChatUpload = 0;
     let selectedFormForImport = null;
+    let selectedFileForImport = null;
 
     let excelRowsCount = 8;
     let excelColsCount = 6;
@@ -1631,7 +1630,7 @@
       renderChatDetailsSidebar();
     }
 
-    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL (WITH CONDITIONAL IMPORT BUTTON) ------------ */
+    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
     function openChatGlobalFormsSelectorModal() {
       selectedFormForImport = null;
       renderChatGlobalFormsModalContent();
@@ -1741,17 +1740,20 @@
       closeChatGlobalFormsSelectorModal();
     }
 
-    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL ------------ */
+    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL (WITH CONDITIONAL IMPORT BUTTON) ------------ */
     function openChatFoldersSelectorModalForFolder(fIdx) {
       if (!activeOpenedProject) return;
       targetFolderIdxForChatUpload = fIdx;
       chatFolderModalStack = [activeOpenedProject];
+      selectedFileForImport = null;
       renderChatFoldersModalContent();
+      updateChatFolderImportButtonState();
       document.getElementById("chatFoldersSelectorModal").style.display = "flex";
     }
 
     function closeChatFoldersSelectorModal() {
       document.getElementById("chatFoldersSelectorModal").style.display = "none";
+      selectedFileForImport = null;
     }
 
     function switchChatFoldersViewMode(mode) {
@@ -1777,7 +1779,9 @@
     function chatFoldersNavigateBack() {
       if (chatFolderModalStack.length > 1) {
         chatFolderModalStack.pop();
+        selectedFileForImport = null;
         renderChatFoldersModalContent();
+        updateChatFolderImportButtonState();
       }
     }
 
@@ -1813,8 +1817,15 @@
         items.forEach((item) => {
           const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
           const card = document.createElement("div");
-          card.className = "folder-card";
+          card.className = isFolder ? "folder-card" : "form-file-card";
           card.style.maxWidth = "130px";
+
+          if (!isFolder) {
+            const fileName = item.name || item;
+            if (selectedFileForImport === fileName) {
+              card.classList.add("selected-card");
+            }
+          }
 
           if (isFolder) {
             const folderName = item.name || item;
@@ -1827,16 +1838,23 @@
             card.onclick = () => {
               if (typeof item === 'object' && (item.children || item.files)) {
                 chatFolderModalStack.push(item);
+                selectedFileForImport = null;
                 renderChatFoldersModalContent();
+                updateChatFolderImportButtonState();
               }
             };
           } else {
+            const fileName = item.name || item;
             card.innerHTML = `
               <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <div class="folder-name">${item.name || item}</div>
+              <div class="folder-name">${fileName}</div>
               <div class="folder-items-count">File</div>
             `;
-            card.onclick = () => selectFileForChatFolder(item.name || item);
+            card.onclick = () => {
+              selectedFileForImport = fileName;
+              renderChatFoldersModalContent();
+              updateChatFolderImportButtonState();
+            };
           }
           grid.appendChild(card);
         });
@@ -1850,6 +1868,9 @@
           const isFolder = !item.name || item.children !== undefined || item.files !== undefined || typeof item === 'string';
           const tr = document.createElement("tr");
           const name = item.name || item;
+          if (!isFolder && selectedFileForImport === name) {
+            tr.classList.add("selected-row");
+          }
           tr.innerHTML = `
             <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
               <svg style="width:16px; height:16px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="${isFolder ? 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z' : 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'}"></path></svg>
@@ -1860,9 +1881,13 @@
           tr.onclick = () => {
             if (isFolder && typeof item === 'object' && (item.children || item.files)) {
               chatFolderModalStack.push(item);
+              selectedFileForImport = null;
               renderChatFoldersModalContent();
+              updateChatFolderImportButtonState();
             } else if (!isFolder) {
-              selectFileForChatFolder(name);
+              selectedFileForImport = name;
+              renderChatFoldersModalContent();
+              updateChatFolderImportButtonState();
             }
           };
           tbody.appendChild(tr);
@@ -1871,12 +1896,29 @@
       }
     }
 
-    function selectFileForChatFolder(fileName) {
+    function updateChatFolderImportButtonState() {
+      const importBtn = document.getElementById("chatFolderImportBtn");
+      if (!importBtn) return;
+      if (selectedFileForImport) {
+        importBtn.disabled = false;
+        importBtn.style.background = "var(--paper-white)";
+        importBtn.style.color = "var(--jet-black)";
+        importBtn.style.cursor = "pointer";
+      } else {
+        importBtn.disabled = true;
+        importBtn.style.background = "var(--border-color)";
+        importBtn.style.color = "var(--subtext-color)";
+        importBtn.style.cursor = "not-allowed";
+      }
+    }
+
+    function confirmImportSelectedFile() {
+      if (!selectedFileForImport) return;
       if (!activeOpenedProject || !activeOpenedProject.children) return;
       const folder = activeOpenedProject.children[targetFolderIdxForChatUpload];
       if (!folder.files) folder.files = [];
-      if (!folder.files.includes(fileName)) {
-        folder.files.push(fileName);
+      if (!folder.files.includes(selectedFileForImport)) {
+        folder.files.push(selectedFileForImport);
         folder.items = `${folder.files.length} Files`;
         persistProjectTree();
         renderChatDetailsSidebar();
