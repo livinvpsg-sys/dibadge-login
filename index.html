@@ -247,7 +247,6 @@
     let selectedIconKey = "home";
 
     const defaultTiles = [
-      { id: 'home', title: 'Home', url: 'index.html', iconKey: 'home', isProtected: true },
       { id: 'projects', title: 'Projects', url: 'projects.html', iconKey: 'projects', isProtected: true },
       { id: 'members', title: 'Members', url: 'members.html', iconKey: 'members', isProtected: true },
       { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', isProtected: false }
@@ -271,7 +270,7 @@
       if (!stored) return defaultTiles;
       const parsed = JSON.parse(stored);
       return parsed.map(t => {
-        if (['home', 'projects', 'members'].includes(t.id)) t.isProtected = true;
+        if (['projects', 'members'].includes(t.id)) t.isProtected = true;
         return t;
       });
     }
