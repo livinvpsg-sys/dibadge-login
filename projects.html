@@ -735,8 +735,12 @@
             </div>
           </div>
 
-          <!-- Folders Section (No heading, accordion expandable, files with 'x' confirmation, Add files button) -->
+          <!-- Folders Section (Heading "Folders" with Add button to create a new folder) -->
           <div class="details-section">
+            <div class="details-section-title">
+              <span>Folders</span>
+              <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
+            </div>
             <div id="chatDetailsFoldersContainer">
               <!-- Rendered dynamically -->
             </div>
@@ -944,16 +948,16 @@
     <div class="modal-card">
       <button class="close-btn" onclick="closeChatFolderAddFilesModal()">&times;</button>
       <h3>Add Files to Folder</h3>
-      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Choose destination sub-folder and select multiple files.</p>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Choose destination sub-folder and select multiple files of any type.</p>
 
       <label class="modal-label">Select Sub-Folder</label>
       <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:12px;"></select>
 
-      <label class="modal-label">Choose Files (Multiple allowed)</label>
-      <input type="file" id="chatModalFileInput" class="modal-input" multiple style="padding:6px;" />
+      <label class="modal-label">Choose Files (All file types enabled)</label>
+      <input type="file" id="chatModalFileInput" class="modal-input" multiple accept="*/*" style="padding:6px;" />
 
       <div class="modal-actions">
-        <button class="modal-btn btn-save" onclick="confirmAddFilesToFolder()">Upload Files</button>
+        <button class="modal-btn btn-save" onclick="confirmAddFilesToFolder()">Open & Upload</button>
         <button class="modal-btn btn-cancel" onclick="closeChatFolderAddFilesModal()">Cancel</button>
       </div>
     </div>
@@ -1497,7 +1501,7 @@
         }
       }
 
-      // 2. Render Folders under Chat Details (accordion style, no heading, files with 'x' confirmation, Add files button)
+      // 2. Render Folders under Chat Details (with "Folders" heading, + Add button to create a new folder, accordion expandable files, remove confirmation)
       const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
       if (foldersContainer && activeOpenedProject && activeOpenedProject.children) {
         foldersContainer.innerHTML = "";
@@ -1533,7 +1537,7 @@
             </div>
             <div class="chat-folder-files-box">
               ${filesHtml}
-              <button class="chat-add-files-btn" onclick="openChatFolderAddFilesModal(${fIdx})">+ Add</button>
+              <button class="chat-add-files-btn" onclick="openChatFolderAddFilesModal(${fIdx})">+ Add Files</button>
             </div>
           `;
           foldersContainer.appendChild(wrap);
@@ -1565,6 +1569,31 @@
         persistProjectTree();
         renderChatDetailsSidebar();
       }
+    }
+
+    function createNewChatSubFolder() {
+      if (!activeOpenedProject) return;
+      const newSubName = prompt("Enter new folder name:");
+      if (!newSubName || !newSubName.trim()) return;
+
+      const trimmed = newSubName.trim();
+      if (!activeOpenedProject.children) activeOpenedProject.children = [];
+
+      const duplicateExists = activeOpenedProject.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists. Please choose a different name.`);
+      }
+
+      activeOpenedProject.children.push({
+        id: 'f-' + Date.now(),
+        name: trimmed,
+        items: '0 Items',
+        children: [],
+        files: []
+      });
+
+      persistProjectTree();
+      renderChatDetailsSidebar();
     }
 
     function openChatFolderAddFilesModal(folderIdx) {
