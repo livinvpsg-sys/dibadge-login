@@ -724,7 +724,7 @@
             </div>
           </div>
 
-          <!-- Forms Section (With FAB on right end to import from project forms) -->
+          <!-- Forms Section -->
           <div class="details-section">
             <div class="details-section-title">
               <span>Forms</span>
@@ -735,11 +735,11 @@
             </div>
           </div>
 
-          <!-- Folders Section (Heading "Folders" with Add button to create a new folder) -->
+          <!-- Folders Section -->
           <div class="details-section">
             <div class="details-section-title">
               <span>Folders</span>
-              <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
+              <button class="add-member-btn" onclick="openAddFilesToFolderModalFromChat()" title="Add Files">+ Add</button>
             </div>
             <div id="chatDetailsFoldersContainer">
               <!-- Rendered dynamically -->
@@ -943,18 +943,22 @@
     </div>
   </div>
 
-  <!-- MULTIPLE FILES UPLOAD MODAL FOR CHAT DETAILS FOLDERS -->
+  <!-- MULTIPLE FILES UPLOAD MODAL FOR CHAT DETAILS FOLDERS (MATCHING REFERENCE WINDOW STYLE) -->
   <div class="modal-overlay" id="chatFolderAddFilesModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 460px;">
       <button class="close-btn" onclick="closeChatFolderAddFilesModal()">&times;</button>
-      <h3>Add Files to Folder</h3>
-      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Choose destination sub-folder and select multiple files of any type.</p>
+      <h3 style="margin-bottom: 8px;">Add Files to Folder</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:16px;">Choose destination sub-folder and select multiple files of any type.</p>
 
       <label class="modal-label">Select Sub-Folder</label>
-      <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:12px;"></select>
+      <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:16px;"></select>
 
       <label class="modal-label">Choose Files (All file types enabled)</label>
-      <input type="file" id="chatModalFileInput" class="modal-input" multiple accept="*/*" style="padding:6px;" />
+      <div style="display: flex; gap: 8px; align-items: center; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 10px; margin-bottom: 24px;">
+        <button type="button" onclick="document.getElementById('chatModalFileInput').click()" style="background: #ffffff; color: #0f0f0f; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Choose Files</button>
+        <span id="chatModalFileChosenLabel" style="font-size: 0.85rem; color: var(--subtext-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">No file chosen</span>
+      </div>
+      <input type="file" id="chatModalFileInput" style="display:none;" multiple accept="*/*" onchange="updateChosenFilesLabel(this)" />
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="confirmAddFilesToFolder()">Open & Upload</button>
@@ -1480,7 +1484,6 @@
 
     /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
     function renderChatDetailsSidebar() {
-      // 1. Render Assigned Forms under Chat Details
       const formsListEl = document.getElementById("chatDetailsFormsList");
       if (formsListEl) {
         formsListEl.innerHTML = "";
@@ -1501,7 +1504,6 @@
         }
       }
 
-      // 2. Render Folders under Chat Details (with "Folders" heading, + Add button to create a new folder, accordion expandable files, remove confirmation)
       const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
       if (foldersContainer && activeOpenedProject && activeOpenedProject.children) {
         foldersContainer.innerHTML = "";
@@ -1571,6 +1573,10 @@
       }
     }
 
+    function openAddFilesToFolderModalFromChat() {
+      openChatFolderAddFilesModal(0);
+    }
+
     function createNewChatSubFolder() {
       if (!activeOpenedProject) return;
       const newSubName = prompt("Enter new folder name:");
@@ -1612,11 +1618,26 @@
       }
 
       document.getElementById("chatModalFileInput").value = "";
+      const chosenLabel = document.getElementById("chatModalFileChosenLabel");
+      if (chosenLabel) chosenLabel.innerText = "No file chosen";
+
       document.getElementById("chatFolderAddFilesModal").style.display = "flex";
     }
 
     function closeChatFolderAddFilesModal() {
       document.getElementById("chatFolderAddFilesModal").style.display = "none";
+    }
+
+    function updateChosenFilesLabel(input) {
+      const chosenLabel = document.getElementById("chatModalFileChosenLabel");
+      if (!chosenLabel) return;
+      if (!input.files || input.files.length === 0) {
+        chosenLabel.innerText = "No file chosen";
+      } else if (input.files.length === 1) {
+        chosenLabel.innerText = input.files[0].name;
+      } else {
+        chosenLabel.innerText = `${input.files.length} files chosen`;
+      }
     }
 
     function confirmAddFilesToFolder() {
