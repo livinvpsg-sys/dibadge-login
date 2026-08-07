@@ -361,7 +361,7 @@
     .chat-folder-accordion-wrap { border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); margin-bottom: 6px; overflow: hidden; }
     .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.15s; }
     .chat-folder-header:hover { background: var(--border-color); }
-    .chat-folder-files-box { display: none; padding: 6px 10px 10px 30px; display: none; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); background: var(--surface-color); }
+    .chat-folder-files-box { display: none; padding: 6px 10px 10px 30px; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); background: var(--surface-color); }
     .chat-file-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-color); }
     .chat-file-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
 
@@ -606,7 +606,6 @@
           <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
             <div class="chat-date-pill">Today</div>
 
-            <!-- Sample Incoming Message 1 -->
             <div class="msg-row incoming">
               <div class="msg-avatar">J</div>
               <div class="msg-body">
@@ -618,33 +617,10 @@
               </div>
             </div>
 
-            <!-- Sample Outgoing Message 1 -->
             <div class="msg-row outgoing">
               <div class="msg-body">
                 <div class="msg-bubble outgoing">
                   Hello! How can I help you?
-                  <div class="msg-meta-row"><span>10:04 am</span></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sample Incoming Message 2 -->
-            <div class="msg-row incoming">
-              <div class="msg-avatar" style="background:#8b5cf6;">M</div>
-              <div class="msg-body">
-                <span class="msg-sender-name">Mary</span>
-                <div class="msg-bubble incoming">
-                  I have a question about the certificate.
-                  <div class="msg-meta-row"><span>10:04 am</span></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sample Outgoing Message 2 -->
-            <div class="msg-row outgoing">
-              <div class="msg-body">
-                <div class="msg-bubble outgoing">
-                  Sure, go ahead and ask.
                   <div class="msg-meta-row"><span>10:04 am</span></div>
                 </div>
               </div>
@@ -748,18 +724,18 @@
             </div>
           </div>
 
-          <!-- Forms Section (With FAB on right end) -->
+          <!-- Forms Section (With FAB on right end to import from project forms) -->
           <div class="details-section">
             <div class="details-section-title">
               <span>Forms</span>
-              <button class="add-member-btn" onclick="openImportGlobalFormModal()" title="Import Form from Project Forms">+ Import</button>
+              <button class="add-member-btn" onclick="openImportGlobalFormModal()" title="Import Form">+ Add</button>
             </div>
             <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
               <!-- Rendered dynamically -->
             </div>
           </div>
 
-          <!-- Folders Section (Accordion, no heading label, with 'Add' button allowing multiple file selection) -->
+          <!-- Folders Section (No heading, accordion expandable, files with 'x' confirmation, Add files button) -->
           <div class="details-section">
             <div id="chatDetailsFoldersContainer">
               <!-- Rendered dynamically -->
@@ -948,12 +924,12 @@
     </div>
   </div>
 
-  <!-- IMPORT FROM GLOBAL FORMS MODAL FOR PROJECTS / CHAT DETAILS -->
+  <!-- IMPORT FROM PROJECT FORMS MODAL -->
   <div class="modal-overlay" id="importGlobalFormModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeImportFormModal()">&times;</button>
-      <h3>Import Form from Project Forms</h3>
-      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select a form template to assign to this chat details panel.</p>
+      <h3>Import Form</h3>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Select a form from Project Forms to assign here.</p>
 
       <div id="globalImportListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; margin-bottom:16px;"></div>
 
@@ -968,12 +944,10 @@
     <div class="modal-card">
       <button class="close-btn" onclick="closeChatFolderAddFilesModal()">&times;</button>
       <h3>Add Files to Folder</h3>
-      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;" id="targetFolderModalTitle">Select folder and choose files.</p>
+      <p style="font-size:0.8rem; color:var(--subtext-color); margin-bottom:12px;">Choose destination sub-folder and select multiple files.</p>
 
-      <label class="modal-label">Select Destination Sub-Folder</label>
-      <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:12px;">
-        <!-- Populated dynamically -->
-      </select>
+      <label class="modal-label">Select Sub-Folder</label>
+      <select id="chatModalFolderSelect" class="modal-input" style="margin-bottom:12px;"></select>
 
       <label class="modal-label">Choose Files (Multiple allowed)</label>
       <input type="file" id="chatModalFileInput" class="modal-input" multiple style="padding:6px;" />
@@ -1053,16 +1027,14 @@
     let selectedProjectForContext = null;
     let folderObjectStack = [];
     let activeViewMode = 'projects';
-    let currentProjectDisplayMode = 'grid'; // View toggle state: 'grid' or 'list'
+    let currentProjectDisplayMode = 'grid';
 
     let clipboardFolder = null;
     let isCutOperation = false;
     let selectedFolderForContext = null;
 
-    // Staged / Pending Attachments Array for Chat
     let pendingStagedFiles = [];
 
-    // Excel Studio State
     let excelRowsCount = 8;
     let excelColsCount = 6;
     let selectedExcelCell = null;
@@ -1076,12 +1048,10 @@
       { id: 'pf-1', title: 'Tower B Foundation Log Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
     ];
 
-    // Chat Details Specific Assigned Forms & Files Arrays
     let chatDetailsAssignedForms = [
       { id: 'cdf-1', title: 'Tower B Foundation Log Sheet' }
     ];
 
-    // Default BOQ Data
     let currentBOQItems = [
       { item: 'Foundation Concrete', qty: '25', price: '150' },
       { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
@@ -1089,7 +1059,7 @@
 
     function getDefaultSubFolders() {
       return [
-        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '0 Items', children: [], files: [{name: 'sample_site_record.jpg'}] },
+        { id: 'f-' + Date.now() + '-1', name: 'Site Photos & diCam', items: '1 Items', children: [], files: ['sample_site_record.jpg'] },
         { id: 'f-' + Date.now() + '-2', name: 'Safety & Compliance Logs', items: '0 Items', children: [], files: [] },
         { id: 'f-' + Date.now() + '-3', name: 'Reports & Worksheets', items: '0 Items', children: [], files: [] },
         { id: 'f-' + Date.now() + '-4', name: 'Drawings & Blueprints', items: '0 Items', children: [], files: [] }
@@ -1122,7 +1092,6 @@
       filterProjects();
     }
 
-    /* Switch between Grid View and List View */
     function switchProjectDisplayMode(mode) {
       currentProjectDisplayMode = mode;
       const btnGrid = document.getElementById("btnViewTile");
@@ -1158,8 +1127,8 @@
       const filtered = projects.filter(p => {
         const matchesYear = p.year === selectedYear;
         const matchesSearch = (p.client && p.client.toLowerCase().includes(searchQuery)) ||
-                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
-                              (p.location && p.location.toLowerCase().includes(searchQuery));
+                            (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
+                            (p.location && p.location.toLowerCase().includes(searchQuery));
         return matchesYear && matchesSearch;
       });
 
@@ -1205,7 +1174,6 @@
 
         displayContainer.appendChild(grid);
       } else {
-        // Detailed List Table View
         const table = document.createElement("table");
         table.className = "projects-list-table";
         table.innerHTML = `
@@ -1248,7 +1216,6 @@
       }
     }
 
-    /* Switch Main Level View Tabs - Permanent "Projects" Title Header */
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       const mainGrid = document.getElementById("mainGridWorkspace");
@@ -1272,7 +1239,7 @@
         if (mainGrid) mainGrid.style.display = "flex";
         if (btnSuitcase) btnSuitcase.classList.add("active");
         if (searchElem) searchElem.style.display = "";
-        if (yearPicker) yearPicker.style.display = ""; // Show year picker in Projects view
+        if (yearPicker) yearPicker.style.display = "";
         if (viewToggle) viewToggle.style.display = "flex";
         
         filterProjects();
@@ -1280,7 +1247,7 @@
         if (formsPanel) formsPanel.style.display = "block";
         if (btnForms) btnForms.classList.add("active");
         if (searchElem) searchElem.style.display = "none";
-        if (yearPicker) yearPicker.style.display = "none"; // Hide year picker in Forms view
+        if (yearPicker) yearPicker.style.display = "none";
         if (viewToggle) viewToggle.style.display = "none";
         
         renderFormsListUI('globalFormsContainer', globalFormsList);
@@ -1304,7 +1271,6 @@
       }
     }
 
-    /* DYNAMICALLY ANCHORED CONTEXT MENUS */
     function showProjectTileContextMenu(e, proj) {
       hideContextMenus();
       selectedProjectForContext = proj;
@@ -1376,7 +1342,7 @@
       if (searchElem) searchElem.style.display = "none";
 
       const viewToggle = document.getElementById("headerViewToggle");
-      if (viewToggle) viewToggle.style.display = "flex"; // Keep view mode controls active in subfolders
+      if (viewToggle) viewToggle.style.display = "flex";
 
       document.getElementById("mainGridWorkspace").style.display = "none";
       document.getElementById("panelGlobalForms").style.display = "none";
@@ -1425,7 +1391,6 @@
       const currentYear = targetProj.year;
       const allProjects = getProjects();
 
-      // Check duplicate project number in the same year
       const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
       if (duplicateExists) {
         return alert(`A project with this project number (${projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
@@ -1511,7 +1476,7 @@
 
     /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
     function renderChatDetailsSidebar() {
-      // 1. Render Forms under Chat Details
+      // 1. Render Assigned Forms under Chat Details
       const formsListEl = document.getElementById("chatDetailsFormsList");
       if (formsListEl) {
         formsListEl.innerHTML = "";
@@ -1532,7 +1497,7 @@
         }
       }
 
-      // 2. Render Folders under Chat Details (accordion style, no heading, files with 'x' and confirm dialog, Add button)
+      // 2. Render Folders under Chat Details (accordion style, no heading, files with 'x' confirmation, Add files button)
       const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
       if (foldersContainer && activeOpenedProject && activeOpenedProject.children) {
         foldersContainer.innerHTML = "";
@@ -1552,9 +1517,9 @@
                   <span>📄 ${fileName}</span>
                   <button class="chat-remove-item-btn" onclick="confirmRemoveFile(${fIdx}, ${fileIdx})" title="Remove file">
                     <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-            `;
+                  </button>
+                </div>
+              `;
             });
           }
 
@@ -1568,7 +1533,7 @@
             </div>
             <div class="chat-folder-files-box">
               ${filesHtml}
-              <button class="chat-add-files-btn" onclick="openChatFolderAddFilesModal(${fIdx})">+ Add Files</button>
+              <button class="chat-add-files-btn" onclick="openChatFolderAddFilesModal(${fIdx})">+ Add</button>
             </div>
           `;
           foldersContainer.appendChild(wrap);
@@ -1602,10 +1567,8 @@
       }
     }
 
-    let targetFolderIndexForAdd = 0;
     function openChatFolderAddFilesModal(folderIdx) {
       if (!activeOpenedProject || !activeOpenedProject.children) return;
-      targetFolderIndexForAdd = folderIdx;
 
       const selectEl = document.getElementById("chatModalFolderSelect");
       if (selectEl) {
@@ -1759,7 +1722,6 @@
       }
     }
 
-    /* Stage files into pending buffer instead of sending immediately */
     function handleFilesStaged(e) {
       const files = e.target.files;
       if (!files || files.length === 0) return;
@@ -1768,7 +1730,7 @@
         pendingStagedFiles.push(files[i]);
       }
       renderPendingPreviews();
-      e.target.value = ""; // Reset input
+      e.target.value = "";
     }
 
     function removeStagedFile(index) {
@@ -1808,7 +1770,6 @@
       });
     }
 
-    /* Send Staged Media + Optional Text on Send Button Click */
     function sendChatMessage() {
       const input = document.getElementById("chatMsgInput");
       const text = input ? input.value.trim() : "";
@@ -1820,7 +1781,6 @@
 
       const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-      // 1. Send staged media if any
       if (pendingStagedFiles.length > 0) {
         const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
         const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
@@ -1871,8 +1831,8 @@
             msgRow.innerHTML = `
               <div class="msg-body">
                 ${imagesHtml}
-            </div>
-          `;
+              </div>
+            `;
           }
           container.appendChild(msgRow);
         }
@@ -1885,18 +1845,16 @@
               <div class="msg-bubble outgoing">
                 📄 Attachment: ${file.name}
                 <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+              </div>
             </div>
-          </div>
-        `s;
+          `;
           container.appendChild(msgRow);
         });
 
-        // Clear staged buffer
         pendingStagedFiles = [];
         renderPendingPreviews();
       }
 
-      // 2. Send text if any
       if (text) {
         const msgRow = document.createElement("div");
         msgRow.className = "msg-row outgoing";
@@ -1919,7 +1877,6 @@
       if (e.key === 'Enter') sendChatMessage();
     }
 
-    /* ------------ DESKTOP FILE CARD RENDER FOR FORMS ------------ */
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -1988,7 +1945,6 @@
       }
     }
 
-    /* ------------ EXCEL SPREADSHEET FORM STUDIO LOGIC ------------ */
     function openExcelStudio() {
       buildExcelTableGrid();
       document.getElementById("excelFormStudioOverlay").style.display = "flex";
@@ -2098,7 +2054,6 @@
       closeExcelStudio();
     }
 
-    /* ------------ BILL OF QUANTITY (BOQ) TABLE FUNCTIONS ------------ */
     function evaluateMathExpr(expr) {
       if (typeof expr === 'number') return expr;
       if (!expr || typeof expr !== 'string') return 0;
@@ -2329,7 +2284,6 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    /* RIGHT-CLICK CONTEXT MENU HANDLERS */
     function showFolderContextMenu(e, folder, idx) {
       hideContextMenus();
       selectedFolderForContext = { folder, idx };
@@ -2466,7 +2420,6 @@
       }
     }
 
-    /* FAB BUTTON ROUTER ACTION */
     function handleFabClick() {
       if (activeOpenedProject && activeViewMode === 'forms') {
         openImportGlobalFormModal();
