@@ -123,10 +123,12 @@
     .projects-list-table th { background: var(--header-bg); color: var(--subtext-color); text-align: left; padding: 12px 16px; font-size: 0.82rem; text-transform: uppercase; border-bottom: 1px solid var(--border-color); }
     .projects-list-table td { padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-size: 0.88rem; color: var(--text-color); cursor: pointer; }
     .projects-list-table tr:hover td { background: var(--border-color); }
+    .projects-list-table tr.selected-row td { background: var(--border-color); border-color: var(--paper-white); }
 
     /* DESKTOP-STYLE FORM FILE CARDS */
-    .form-file-card { background: transparent; border: none; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .form-file-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .form-file-card:hover { transform: translateY(-3px); }
+    .form-file-card.selected-card { border-color: var(--paper-white); background: var(--border-color); }
     .form-file-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .form-file-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
 
@@ -728,7 +730,7 @@
           <div class="details-section">
             <div class="details-section-title">
               <span>Forms</span>
-              <button class="add-member-btn" onclick="openChatGlobalFormsSelectorModal()" title="Import from Global Forms">+ Add</button>
+              <button class="add-member-btn" onclick="openChatGlobalFormsSelectorModal()" title="Import Form">+ Add</button>
             </div>
             <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
               <!-- Rendered dynamically -->
@@ -860,16 +862,16 @@
     </aside>
   </div>
 
-  <!-- CHAT GLOBAL FORMS SELECTOR MODAL (EXACT REFERENCE FORM SCREEN LOOK WITH TILE / LIST TOGGLE) -->
+  <!-- CHAT GLOBAL FORMS SELECTOR MODAL (EXACT FORMS SCREEN LOOK WITH SELECTION AND IMPORT BUTTON) -->
   <div class="modal-overlay" id="chatGlobalFormsSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
       <button class="close-btn" onclick="closeChatGlobalFormsSelectorModal()">&times;</button>
       
-      <!-- Top Title & View Mode Toggle Bar matching reference image -->
+      <!-- Top Title & View Mode Toggle Bar -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
         <div>
           <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Forms</h3>
-          <p style="font-size:0.78rem; color:var(--subtext-color);">Select form template from Global Forms to import</p>
+          <p style="font-size:0.78rem; color:var(--subtext-color);">Select a form template and click Import</p>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
           <!-- Tile / List View Toggle -->
@@ -885,28 +887,27 @@
       </div>
 
       <!-- Main Browser Container -->
-      <div id="chatGlobalFormsSelectorContainer" style="min-height: 240px; max-height: 360px; overflow-y: auto; margin-bottom: 20px;"></div>
+      <div id="chatGlobalFormsSelectorContainer" style="min-height: 240px; max-height: 340px; overflow-y: auto; margin-bottom: 20px;"></div>
 
-      <!-- Close Action Button -->
-      <div style="display: flex; justify-content: center;">
-        <button class="modal-btn" onclick="closeChatGlobalFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 400px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
+      <!-- Action Buttons Bar -->
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="modal-btn" onclick="confirmImportSelectedGlobalForm()" style="background: var(--paper-white); color: var(--jet-black); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Import</button>
+        <button class="modal-btn" onclick="closeChatGlobalFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- CHAT FOLDERS & FILES SELECTOR MODAL (EXACT REFERENCE WINDOW STYLE FOR INTERNAL FILE SELECTION) -->
+  <!-- CHAT FOLDERS & FILES SELECTOR MODAL -->
   <div class="modal-overlay" id="chatFoldersSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
       <button class="close-btn" onclick="closeChatFoldersSelectorModal()">&times;</button>
       
-      <!-- Top Title & View Mode Toggle Bar matching reference image -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
         <div>
           <h3 id="chatFoldersModalTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Amber Holdings</h3>
           <p style="font-size:0.78rem; color:var(--subtext-color);" id="chatFoldersModalBreadcrumb">PRJ-2026-001</p>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
-          <!-- Tile / List View Toggle -->
           <div class="view-mode-toggle" id="chatFoldersViewToggle">
             <button class="view-btn active" id="btnChatFolderTile" onclick="switchChatFoldersViewMode('grid')" title="Tile Grid View">
               <svg viewBox="0 0 24 24" style="width:16px;height:16px;"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -919,17 +920,15 @@
         </div>
       </div>
 
-      <!-- Main Browser Container -->
       <div id="chatFoldersSelectorContainer" style="min-height: 240px; max-height: 360px; overflow-y: auto; margin-bottom: 20px;"></div>
 
-      <!-- Close Action Button -->
       <div style="display: flex; justify-content: center;">
         <button class="modal-btn" onclick="closeChatFoldersSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 400px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- CONTEXT MENUS (DYNAMIC MOUSE ANCHORED) -->
+  <!-- CONTEXT MENUS -->
   <div class="context-menu" id="projectTileContextMenu">
     <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
     <div class="context-menu-item" onclick="editSelectedProjectDetailsFromContext()">Edit Details</div>
@@ -1078,6 +1077,7 @@
     let chatFoldersViewMode = 'grid';
     let chatFolderModalStack = [];
     let targetFolderIdxForChatUpload = 0;
+    let selectedFormForImport = null;
 
     let excelRowsCount = 8;
     let excelColsCount = 6;
@@ -1634,14 +1634,16 @@
       renderChatDetailsSidebar();
     }
 
-    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL (OPENS GLOBAL FORMS SELECTION WITH TILE/LIST VIEW) ------------ */
+    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL (REQUIRES SELECTION + IMPORT BUTTON CLICK) ------------ */
     function openChatGlobalFormsSelectorModal() {
+      selectedFormForImport = null;
       renderChatGlobalFormsModalContent();
       document.getElementById("chatGlobalFormsSelectorModal").style.display = "flex";
     }
 
     function closeChatGlobalFormsSelectorModal() {
       document.getElementById("chatGlobalFormsSelectorModal").style.display = "none";
+      selectedFormForImport = null;
     }
 
     function switchChatGlobalFormsViewMode(mode) {
@@ -1677,11 +1679,17 @@
           const card = document.createElement("div");
           card.className = "form-file-card";
           card.style.maxWidth = "130px";
+          if (selectedFormForImport && selectedFormForImport.id === form.id) {
+            card.classList.add("selected-card");
+          }
           card.innerHTML = `
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
             <div class="form-file-name">${form.title}</div>
           `;
-          card.onclick = () => selectGlobalFormForChat(form);
+          card.onclick = () => {
+            selectedFormForImport = form;
+            renderChatGlobalFormsModalContent();
+          };
           grid.appendChild(card);
         });
         container.appendChild(grid);
@@ -1692,25 +1700,34 @@
         const tbody = table.querySelector("tbody");
         globalFormsList.forEach(form => {
           const tr = document.createElement("tr");
+          if (selectedFormForImport && selectedFormForImport.id === form.id) {
+            tr.classList.add("selected-row");
+          }
           tr.innerHTML = `<td style="font-weight:600;">${form.title}</td><td style="color:var(--subtext-color);">${form.category || 'Form'}</td>`;
-          tr.onclick = () => selectGlobalFormForChat(form);
+          tr.onclick = () => {
+            selectedFormForImport = form;
+            renderChatGlobalFormsModalContent();
+          };
           tbody.appendChild(tr);
         });
         container.appendChild(table);
       }
     }
 
-    function selectGlobalFormForChat(form) {
-      const duplicate = chatDetailsAssignedForms.some(f => f.title.toLowerCase() === form.title.toLowerCase());
+    function confirmImportSelectedGlobalForm() {
+      if (!selectedFormForImport) {
+        return alert("Please select a form first.");
+      }
+      const duplicate = chatDetailsAssignedForms.some(f => f.title.toLowerCase() === selectedFormForImport.title.toLowerCase());
       if (duplicate) {
         return alert("This form is already added.");
       }
-      chatDetailsAssignedForms.push({ id: 'cdf-' + Date.now(), title: form.title });
+      chatDetailsAssignedForms.push({ id: 'cdf-' + Date.now(), title: selectedFormForImport.title });
       renderChatDetailsSidebar();
       closeChatGlobalFormsSelectorModal();
     }
 
-    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL (EXACT REFERENCE WINDOW STYLE FOR INTERNAL FILE SELECTION) ------------ */
+    /* ------------ CHAT FOLDERS & FILES SELECTOR MODAL ------------ */
     function openChatFoldersSelectorModalForFolder(fIdx) {
       if (!activeOpenedProject) return;
       targetFolderIdxForChatUpload = fIdx;
