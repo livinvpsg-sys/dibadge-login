@@ -862,16 +862,14 @@
     </aside>
   </div>
 
-  <!-- CHAT GLOBAL FORMS SELECTOR MODAL (EXACT FORMS SCREEN LOOK WITH SELECTION AND IMPORT BUTTON) -->
+  <!-- CHAT GLOBAL FORMS SELECTOR MODAL (CLEANED UP APPEARANCE: LEFT-ALIGNED HEADING, NO 'X' ICON, CONDITIONAL IMPORT BUTTON) -->
   <div class="modal-overlay" id="chatGlobalFormsSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
-      <button class="close-btn" onclick="closeChatGlobalFormsSelectorModal()">&times;</button>
       
-      <!-- Top Title & View Mode Toggle Bar -->
+      <!-- Top Title & View Mode Toggle Bar (Left aligned heading, no 'x' close icon) -->
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
         <div>
-          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Forms</h3>
-          <p style="font-size:0.78rem; color:var(--subtext-color);">Select a form template and click Import</p>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); text-align: left; margin-bottom: 0;">Forms</h3>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
           <!-- Tile / List View Toggle -->
@@ -889,9 +887,9 @@
       <!-- Main Browser Container -->
       <div id="chatGlobalFormsSelectorContainer" style="min-height: 240px; max-height: 340px; overflow-y: auto; margin-bottom: 20px;"></div>
 
-      <!-- Action Buttons Bar -->
+      <!-- Action Buttons Bar (Import button disabled unless a form is selected) -->
       <div style="display: flex; gap: 12px; justify-content: center;">
-        <button class="modal-btn" onclick="confirmImportSelectedGlobalForm()" style="background: var(--paper-white); color: var(--jet-black); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Import</button>
+        <button id="chatGlobalImportBtn" class="modal-btn" onclick="confirmImportSelectedGlobalForm()" disabled style="background: var(--border-color); color: var(--subtext-color); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px; cursor: not-allowed; transition: all 0.15s;">Import</button>
         <button class="modal-btn" onclick="closeChatGlobalFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
       </div>
     </div>
@@ -900,11 +898,10 @@
   <!-- CHAT FOLDERS & FILES SELECTOR MODAL -->
   <div class="modal-overlay" id="chatFoldersSelectorModal">
     <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
-      <button class="close-btn" onclick="closeChatFoldersSelectorModal()">&times;</button>
       
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 20px;">
         <div>
-          <h3 id="chatFoldersModalTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Amber Holdings</h3>
+          <h3 id="chatFoldersModalTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); text-align: left; margin-bottom: 2px;">Amber Holdings</h3>
           <p style="font-size:0.78rem; color:var(--subtext-color);" id="chatFoldersModalBreadcrumb">PRJ-2026-001</p>
         </div>
         <div style="display:flex; align-items:center; gap: 10px;">
@@ -1634,10 +1631,11 @@
       renderChatDetailsSidebar();
     }
 
-    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL (REQUIRES SELECTION + IMPORT BUTTON CLICK) ------------ */
+    /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL (WITH CONDITIONAL IMPORT BUTTON) ------------ */
     function openChatGlobalFormsSelectorModal() {
       selectedFormForImport = null;
       renderChatGlobalFormsModalContent();
+      updateChatGlobalImportButtonState();
       document.getElementById("chatGlobalFormsSelectorModal").style.display = "flex";
     }
 
@@ -1689,6 +1687,7 @@
           card.onclick = () => {
             selectedFormForImport = form;
             renderChatGlobalFormsModalContent();
+            updateChatGlobalImportButtonState();
           };
           grid.appendChild(card);
         });
@@ -1707,6 +1706,7 @@
           tr.onclick = () => {
             selectedFormForImport = form;
             renderChatGlobalFormsModalContent();
+            updateChatGlobalImportButtonState();
           };
           tbody.appendChild(tr);
         });
@@ -1714,10 +1714,24 @@
       }
     }
 
-    function confirmImportSelectedGlobalForm() {
-      if (!selectedFormForImport) {
-        return alert("Please select a form first.");
+    function updateChatGlobalImportButtonState() {
+      const importBtn = document.getElementById("chatGlobalImportBtn");
+      if (!importBtn) return;
+      if (selectedFormForImport) {
+        importBtn.disabled = false;
+        importBtn.style.background = "var(--paper-white)";
+        importBtn.style.color = "var(--jet-black)";
+        importBtn.style.cursor = "pointer";
+      } else {
+        importBtn.disabled = true;
+        importBtn.style.background = "var(--border-color)";
+        importBtn.style.color = "var(--subtext-color)";
+        importBtn.style.cursor = "not-allowed";
       }
+    }
+
+    function confirmImportSelectedGlobalForm() {
+      if (!selectedFormForImport) return;
       const duplicate = chatDetailsAssignedForms.some(f => f.title.toLowerCase() === selectedFormForImport.title.toLowerCase());
       if (duplicate) {
         return alert("This form is already added.");
