@@ -330,6 +330,9 @@
     .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: none; flex-direction: column; gap: 2px; }
     .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
 
+    /* Dimmed style for mentions inside message text */
+    .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.75; }
+
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 8px; position: relative; }
     .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
@@ -726,7 +729,7 @@
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
 
-            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message or @member / @group ..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
+            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message or @member / @ group..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
 
             <!-- Send Button -->
             <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
@@ -1703,7 +1706,10 @@
     groupList.appendChild(item);
   }
 
-  /* Mention / Group Autocomplete logic */
+  /* Mention / Group Autocomplete logic with exact distinction:
+     '@' -> show members
+     '@ ' -> show groups
+  */
   function handleChatInputEvent(e) {
     const input = e.target;
     const val = input.value;
@@ -1716,11 +1722,10 @@
       return;
     }
 
-    // Text right after '@' up to current cursor position / end
-    const query = val.substring(lastAtIdx + 1);
-    // If there's a space right after '@', e.g. "@ "
-    const isGroupMode = query.startsWith(' ');
-    const searchKey = isGroupMode ? query.trim().toLowerCase() : query.toLowerCase();
+    const charAfterAt = val.charAt(lastAtIdx + 1);
+    // If there is a space immediately after @, it's group mode ("@ ")
+    const isGroupMode = (charAfterAt === ' ');
+    const query = isGroupMode ? val.substring(lastAtIdx + 2).toLowerCase() : val.substring(lastAtIdx + 1).toLowerCase();
 
     let itemsToDisplay = [];
 
@@ -1729,16 +1734,16 @@
       const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
       groupElements.forEach(span => {
         const gName = span.innerText.trim();
-        if (gName.toLowerCase().includes(searchKey)) {
+        if (gName.toLowerCase().includes(query)) {
           itemsToDisplay.push({ name: gName, type: 'group', color: '#00a884' });
         }
       });
     } else {
-      // Show group members
+      // Show members
       const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
       memberElements.forEach(span => {
         const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
-        if (mName.toLowerCase().includes(searchKey)) {
+        if (mName.toLowerCase().includes(query)) {
           itemsToDisplay.push({ name: mName, type: 'member', color: '#8b5cf6' });
         }
       });
@@ -1758,7 +1763,7 @@
         <span>${item.name} <small style="color:var(--subtext-color);font-weight:400;font-size:0.7rem;">(${item.type})</small></span>
       `;
       div.onclick = () => {
-        if (isGroupMode) {
+        if (item.type === 'group') {
           input.value = val.substring(0, lastAtIdx) + '@ ' + item.name + ' ';
         } else {
           input.value = val.substring(0, lastAtIdx) + '@' + item.name + ' ';
@@ -1800,7 +1805,6 @@
       msgBody.insertBefore(commentBox, socialBar);
     }
 
-    // Toggle visibility if already has comments, or prompt for a new comment
     if (commentBox.style.display === "flex") {
       const commentText = prompt("Add a comment:");
       if (commentText && commentText.trim()) {
@@ -2301,7 +2305,7 @@
 
   function sendChatMessage() {
     const input = document.getElementById("chatMsgInput");
-    const text = input ? input.value.trim() : "";
+    let text = input ? input.value.trim() : "";
 
     if (!text && pendingStagedFiles.length === 0) return;
 
@@ -2312,20 +2316,38 @@
     const mentionDropdown = document.getElementById("chatMentionDropdown");
     if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    // If message starts with "@ " or contains an explicit group broadcast pattern, treat as group message
+    // Determine if it's a message sent to another group ("@ GroupName ...") or incoming from another group
     let isGroupMessage = false;
-    let groupName = "Site Engineers";
+    let groupName = "";
 
+    const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
+    let allGroups = [];
+    groupElements.forEach(span => allGroups.push(span.innerText.trim()));
+
+    // Check if message starts with '@ ' followed by a valid group name
     if (text.startsWith("@ ")) {
-      isGroupMessage = true;
-      const parts = text.split(" ");
-      if (parts.length > 1) {
-        groupName = parts[1];
+      const potentialGroup = text.substring(2).split(" ")[0];
+      const matchedGroup = allGroups.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || text.toLowerCase().includes('@ ' + g.toLowerCase()));
+      if (matchedGroup) {
+        isGroupMessage = true;
+        groupName = matchedGroup;
       }
     }
 
+    // Dim any mentions inside the text (@Member or @ Group)
+    allGroups.forEach(g => {
+      const regex = new RegExp('@\\s?' + g, 'gi');
+      text = text.replace(regex, `<span class="mention-tag">@${g}</span>`);
+    });
+    const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
+    memberElements.forEach(span => {
+      const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
+      const regex = new RegExp('@' + mName, 'gi');
+      text = text.replace(regex, `<span class="mention-tag">@${mName}</span>`);
+    });
+
     const msgRow = document.createElement("div");
-    msgRow.className = isGroupMessage ? "msg-row incoming" : "msg-row outgoing";
+    msgRow.className = isGroupMessage ? "msg-row outgoing" : "msg-row outgoing"; 
 
     let socialBarHtml = '';
     if (isGroupMessage) {
@@ -2344,9 +2366,7 @@
       `;
     }
 
-    let avatarHtml = isGroupMessage ? `<div class="msg-avatar" style="background:#00a884;">${groupName.charAt(0)}</div>` : '';
-    let senderHeaderHtml = isGroupMessage ? `<span class="msg-sender-name">${groupName}</span>` : '';
-
+    // No heading for bubble when sent to another group (isGroupMessage outgoing has no sender heading header)
     if (pendingStagedFiles.length > 0) {
       const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
       const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
@@ -2360,7 +2380,7 @@
           const url = URL.createObjectURL(file);
           if (isSingle) {
             imagesHtml += `
-              <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'} media-bubble" style="width: 100%;">
+              <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
                 <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
                 <div class="msg-media-time-badge">${currentTimeStr}</div>
               </div>
@@ -2381,10 +2401,8 @@
 
         if (!isSingle) {
           msgRow.innerHTML = `
-            ${avatarHtml}
             <div class="msg-body">
-              ${senderHeaderHtml}
-              <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'} media-bubble">
+              <div class="msg-bubble outgoing media-bubble">
                 <div class="${groupClass}">
                   ${imagesHtml}
                 </div>
@@ -2395,9 +2413,7 @@
           `;
         } else {
           msgRow.innerHTML = `
-            ${avatarHtml}
             <div class="msg-body">
-              ${senderHeaderHtml}
               ${imagesHtml}
               ${socialBarHtml}
             </div>
@@ -2408,12 +2424,10 @@
 
       otherFiles.forEach(file => {
         const fileRow = document.createElement("div");
-        fileRow.className = msgRow.className;
+        fileRow.className = "msg-row outgoing";
         fileRow.innerHTML = `
-          ${avatarHtml}
           <div class="msg-body">
-            ${senderHeaderHtml}
-            <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'}">
+            <div class="msg-bubble outgoing">
               📄 Attachment: ${file.name}
               <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
             </div>
@@ -2429,10 +2443,8 @@
 
     if (text) {
       msgRow.innerHTML = `
-        ${avatarHtml}
         <div class="msg-body">
-          ${senderHeaderHtml}
-          <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'}">
+          <div class="msg-bubble outgoing">
             ${text}
             <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
           </div>
