@@ -302,15 +302,15 @@
     .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
-    .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .msg-bubble { padding: 8px 12px 22px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
     /* WhatsApp Style Image Bubble Overrides */
-    .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
+    .msg-bubble.media-bubble { padding: 4px 4px 22px 4px !important; overflow: hidden; display: inline-block; position: relative; }
     .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; transition: transform 0.15s; }
     .msg-media-img:hover { transform: scale(1.02); }
-    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
+    .msg-media-time-badge { position: absolute; bottom: 4px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
 
     /* WhatsApp Album Grid for Multiple Media */
     .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
@@ -319,12 +319,23 @@
     .whatsapp-media-item-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
     .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; pointer-events: none; }
 
-    .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 4px; }
+    .msg-meta-row { position: absolute; bottom: 4px; right: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--subtext-color); }
+    .msg-comment-btn { background: transparent; border: none; color: var(--subtext-color); font-size: 0.65rem; font-weight: 600; cursor: pointer; padding: 0; transition: color 0.15s; }
+    .msg-comment-btn:hover { color: var(--text-color); text-decoration: underline; }
     
+    .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: flex; flex-direction: column; gap: 2px; }
+    .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
+
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
-    .chat-input-row { display: flex; align-items: center; gap: 8px; }
+    .chat-input-row { display: flex; align-items: center; gap: 8px; position: relative; }
     .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
     
+    /* Mention / Group Autocomplete Dropdown */
+    .chat-mention-dropdown { position: absolute; bottom: 55px; left: 60px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; max-height: 180px; width: 220px; overflow-y: auto; z-index: 1500; }
+    .chat-mention-item { padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+    .chat-mention-item:last-child { border-bottom: none; }
+    .chat-mention-item:hover { background: var(--border-color); }
+
     .chat-action-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
     .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
@@ -615,7 +626,10 @@
                 <span class="msg-sender-name">John</span>
                 <div class="msg-bubble incoming">
                   Hi there!
-                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                  <div class="msg-meta-row">
+                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                    <span>10:04 am</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -624,7 +638,10 @@
               <div class="msg-body">
                 <div class="msg-bubble outgoing">
                   Hello! How can I help you?
-                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                  <div class="msg-meta-row">
+                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                    <span>10:04 am</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -683,6 +700,9 @@
 
           <!-- Chat Bottom Input Toolbar -->
           <div class="chat-bottom-bar">
+            <!-- Mention Autocomplete Dropdown -->
+            <div class="chat-mention-dropdown" id="chatMentionDropdown"></div>
+
             <!-- Pending Attachment Preview Bar -->
             <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
 
@@ -695,7 +715,7 @@
                 <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
               </button>
 
-              <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" onkeyup="handleChatInputKey(event)" />
+              <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
 
               <!-- Send Button -->
               <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
@@ -1672,6 +1692,92 @@
       groupList.appendChild(item);
     }
 
+    /* Mention Autocomplete logic */
+    function handleChatInputEvent(e) {
+      const input = e.target;
+      const val = input.value;
+      const dropdown = document.getElementById("chatMentionDropdown");
+      if (!dropdown) return;
+
+      const lastAtIdx = val.lastIndexOf('@');
+      const lastSpaceIdx = val.lastIndexOf(' ');
+
+      // Check if typing '@...' or 'a ...' (if 'a' was typed and space follows, or starts with 'a ')
+      let query = "";
+      let showTrigger = false;
+
+      if (lastAtIdx !== -1 && lastAtIdx >= lastSpaceIdx) {
+        query = val.substring(lastAtIdx + 1).toLowerCase();
+        showTrigger = true;
+      } else if (val.toLowerCase().startsWith("a ") && lastSpaceIdx === 1) {
+        query = val.substring(2).toLowerCase();
+        showTrigger = true;
+      }
+
+      if (!showTrigger) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      // Collect all group member names
+      const memberItems = document.querySelectorAll("#chatMemberList .member-item span");
+      let names = [];
+      memberItems.forEach(span => {
+        const txt = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
+        names.push(txt);
+      });
+
+      const filteredNames = names.filter(n => n.toLowerCase().includes(query));
+      if (filteredNames.length === 0) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      dropdown.innerHTML = "";
+      filteredNames.forEach(name => {
+        const div = document.createElement("div");
+        div.className = "chat-mention-item";
+        div.innerHTML = `
+          <div class="member-avatar" style="width:22px;height:22px;font-size:0.65rem;">${name.charAt(0).toUpperCase()}</div>
+          <span>${name}</span>
+        `;
+        div.onclick = () => {
+          if (lastAtIdx !== -1 && lastAtIdx >= lastSpaceIdx) {
+            input.value = val.substring(0, lastAtIdx) + '@' + name + ' ';
+          } else {
+            input.value = '@' + name + ' ';
+          }
+          dropdown.style.display = "none";
+          input.focus();
+        };
+        dropdown.appendChild(div);
+      });
+
+      dropdown.style.display = "flex";
+    }
+
+    function openCommentPrompt(btnElem) {
+      const metaRow = btnElem.closest('.msg-meta-row');
+      if (!metaRow) return;
+      const bubble = metaRow.closest('.msg-bubble');
+      if (!bubble) return;
+
+      let commentBox = bubble.querySelector('.msg-comments-display');
+      if (!commentBox) {
+        commentBox = document.createElement('div');
+        commentBox.className = 'msg-comments-display';
+        bubble.insertBefore(commentBox, metaRow);
+      }
+
+      const commentText = prompt("Enter your comment:");
+      if (commentText && commentText.trim()) {
+        const item = document.createElement('div');
+        item.className = 'msg-comment-item';
+        item.innerText = `💬 ${commentText.trim()}`;
+        commentBox.appendChild(item);
+      }
+    }
+
     /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
     function openChatGlobalFormsSelectorModal() {
       selectedFormForImport = null;
@@ -1991,6 +2097,7 @@
     function handleOutsideClicks(event) {
       const emojiPanel = document.getElementById("chatEmojiPanel");
       const attachPopover = document.getElementById("chatAttachmentPopover");
+      const mentionDropdown = document.getElementById("chatMentionDropdown");
       const emojiBtn = document.getElementById("emojiToggleBtn");
       const attachBtn = document.getElementById("attachToggleBtn");
 
@@ -2003,6 +2110,13 @@
       if (attachPopover && attachPopover.style.display === "flex") {
         if (!attachPopover.contains(event.target) && attachBtn && !attachBtn.contains(event.target)) {
           attachPopover.style.display = "none";
+        }
+      }
+
+      if (mentionDropdown && mentionDropdown.style.display === "flex") {
+        const msgInput = document.getElementById("chatMsgInput");
+        if (!mentionDropdown.contains(event.target) && msgInput && !msgInput.contains(event.target)) {
+          mentionDropdown.style.display = "none";
         }
       }
     }
@@ -2136,6 +2250,8 @@
       if (!container) return;
 
       const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const mentionDropdown = document.getElementById("chatMentionDropdown");
+      if (mentionDropdown) mentionDropdown.style.display = "none";
 
       if (pendingStagedFiles.length > 0) {
         const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
@@ -2155,7 +2271,10 @@
               imagesHtml += `
                 <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
                   <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
-                  <div class="msg-media-time-badge">${currentTimeStr}</div>
+                  <div class="msg-meta-row">
+                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                    <span>${currentTimeStr}</span>
+                  </div>
                 </div>
               `;
             } else {
@@ -2178,16 +2297,19 @@
                 <div class="msg-bubble outgoing media-bubble">
                   <div class="${groupClass}">
                     ${imagesHtml}
-                  </div>
-                  <div class="msg-media-time-badge">${currentTimeStr}</div>
+                </div>
+                <div class="msg-meta-row">
+                  <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                  <span>${currentTimeStr}</span>
                 </div>
               </div>
-            `;
+            </div>
+          `;
           } else {
             msgRow.innerHTML = `
               <div class="msg-body">
                 ${imagesHtml}
-              </div>
+            </div>
             `;
           }
           container.appendChild(msgRow);
@@ -2200,7 +2322,10 @@
             <div class="msg-body">
               <div class="msg-bubble outgoing">
                 📄 Attachment: ${file.name}
-                <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+                <div class="msg-meta-row">
+                  <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                  <span>${currentTimeStr}</span>
+                </div>
               </div>
             </div>
           `;
@@ -2218,7 +2343,10 @@
           <div class="msg-body">
             <div class="msg-bubble outgoing">
               ${text}
-              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+              <div class="msg-meta-row">
+                <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                <span>${currentTimeStr}</span>
+              </div>
             </div>
           </div>
         `;
@@ -2735,89 +2863,4 @@
     }
 
     function handleFabClick() {
-      if (activeOpenedProject && activeViewMode === 'forms') {
-        openChatGlobalFormsSelectorModal();
-      } else if (activeViewMode === 'forms') {
-        openExcelStudio();
-      } else if (activeOpenedProject && activeViewMode === 'folder') {
-        const newSubName = prompt("Enter new folder name:");
-        if (!newSubName || !newSubName.trim()) return;
-
-        const trimmed = newSubName.trim();
-        let currentFolderNode = getCurrentWorkspaceFolder();
-        if (!currentFolderNode.children) currentFolderNode.children = [];
-
-        const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
-        if (duplicateExists) {
-          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
-        }
-
-        currentFolderNode.children.push({
-          id: 'f-' + Date.now(),
-          name: trimmed,
-          items: '0 Files',
-          children: [],
-          files: []
-        });
-
-        persistProjectTree();
-        renderFolderView();
-      } else if (activeViewMode === 'projects') {
-        openCreateProjectModal();
-      }
-    }
-
-    function openCreateProjectModal() {
-      document.getElementById("newProjectClient").value = "";
-      document.getElementById("newProjectNo").value = "";
-      document.getElementById("newProjectLocation").value = "";
-      document.getElementById("newProjectRemarks").value = "";
-      
-      document.getElementById("createProjectModal").style.display = "flex";
-    }
-
-    function closeCreateProjectModal() {
-      document.getElementById("createProjectModal").style.display = "none";
-    }
-
-    function createNewProject() {
-      const client = document.getElementById("newProjectClient").value.trim();
-      const projectNo = document.getElementById("newProjectNo").value.trim();
-      const location = document.getElementById("newProjectLocation").value.trim();
-      const remarks = document.getElementById("newProjectRemarks").value.trim();
-      
-      const year = document.getElementById("yearPicker").value || "2026";
-
-      if (!client) return alert("Please enter a client name.");
-
-      const projects = getProjects();
-      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
-      if (duplicateExists) {
-        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
-      }
-
-      projects.push({
-        id: 'proj-' + Date.now(),
-        client: client,
-        projectNo: targetProjNo,
-        location: location || 'N/A',
-        remarks: remarks,
-        year: year,
-        children: getDefaultSubFolders()
-      });
-
-      saveProjects(projects);
-      filterProjects();
-      closeCreateProjectModal();
-    }
-
-    (function init() {
-      const searchElem = document.getElementById("projectSearchInput");
-      if (searchElem) searchElem.style.display = "";
-      switchMainViewTab('projects');
-    })();
-  </script>
-</body>
-</html>
+  I encountered an error doing what you asked. Could you try again?
