@@ -1872,15 +1872,14 @@
       let senderNameHtml = '';
       let socialBarHtml = '';
 
-      // If incoming from another group OR outgoing sent to another group (@ GroupName)
+      // Incoming or Outgoing to another group both get social interactions (thumb & comment counter)
       let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
 
       if (msg.type === 'incoming') {
         avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
         senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
       } else if (msg.targetGroup) {
-        // Outgoing message sent to another group: show sender name header
-        senderNameHtml = `<span class="msg-sender-name">${msg.targetGroup}</span>`;
+        // Outgoing message sent to a group: do NOT show sender header or avatar, just regular outgoing bubble with social bar underneath
       }
 
       if (isGroupInteraction) {
@@ -2463,12 +2462,27 @@
     const mentionDropdown = document.getElementById("chatMentionDropdown");
     if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    // Dim member mentions and group mentions inside text
-    let processedText = rawText;
+    // Check if message targets a group via "@ GroupName"
+    let isOutgoingGroupMessage = false;
+    let targetGroupName = "";
+
     const groups = activeOpenedProject.chatGroups || [];
-    groups.forEach(g => {
-      const regex = new RegExp('@\\s?' + g.name, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${g.name}</span>`);
+    let allGroupNames = groups.map(g => g.name);
+
+    if (rawText.startsWith("@ ")) {
+      const potentialGroup = rawText.substring(2).split(" ")[0];
+      const matchedGroup = allGroupNames.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || rawText.toLowerCase().includes('@ ' + g.toLowerCase()));
+      if (matchedGroup) {
+        isOutgoingGroupMessage = true;
+        targetGroupName = matchedGroup;
+      }
+    }
+
+    // Dim member mentions (@Member) and group mentions (@ Group) in text
+    let processedText = rawText;
+    allGroupNames.forEach(g => {
+      const regex = new RegExp('@\\s?' + g, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${g}</span>`);
     });
     const members = activeOpenedProject.chatMembers || [];
     members.forEach(m => {
@@ -2482,6 +2496,7 @@
     const newMsg = {
       id: 'm-' + Date.now(),
       type: 'outgoing',
+      targetGroup: isOutgoingGroupMessage ? targetGroupName : '',
       text: processedText,
       time: currentTimeStr,
       likes: 0,
