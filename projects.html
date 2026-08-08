@@ -327,11 +327,17 @@
     .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
     .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: none; flex-direction: column; gap: 4px; }
-    .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
-    .comment-input-row { display: flex; gap: 6px; margin-top: 6px; }
-    .comment-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; outline: none; }
-    .comment-send-btn { background: var(--paper-white); color: var(--jet-black); border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
+    /* Comments Modal Popup Styling */
+    .comments-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
+    .comments-modal-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); color: var(--text-color); }
+    .comments-modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
+    .comments-modal-close { background: none; border: none; font-size: 1.3rem; color: var(--subtext-color); cursor: pointer; }
+    .comments-list-area { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; max-height: 300px; }
+    .comment-thread-item { display: flex; flex-direction: column; gap: 2px; font-size: 0.85rem; background: var(--bg-color); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .comment-author-name { font-weight: 700; font-size: 0.78rem; color: var(--chat-sender-name); }
+    .comments-input-area { padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--surface-color); display: flex; gap: 8px; align-items: center; }
+    .comments-input-field { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 20px; font-size: 0.85rem; outline: none; }
+    .comments-send-btn { background: var(--paper-white); color: var(--jet-black); border: none; padding: 6px 14px; border-radius: 16px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
 
     /* Dimmed style for mentions inside message text */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.6; }
@@ -636,6 +642,23 @@
           <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
             <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
+
+          <!-- Comments Modal Popup -->
+          <div class="comments-modal-overlay" id="commentsModalOverlay" onclick="closeCommentsModal()">
+            <div class="comments-modal-card" onclick="event.stopPropagation()">
+              <div class="comments-modal-header">
+                <span>Comments</span>
+                <button class="comments-modal-close" onclick="closeCommentsModal()">&times;</button>
+              </div>
+              <div class="comments-list-area" id="commentsModalList">
+                <!-- Dynamic comments populated here -->
+              </div>
+              <div class="comments-input-area">
+                <input type="text" id="commentsModalInput" class="comments-input-field" placeholder="Write a comment..." onkeyup="handleModalCommentKey(event)" />
+                <button class="comments-send-btn" onclick="submitModalComment()">Send</button>
+              </div>
+            </div>
+          </div>
 
           <!-- Lightbox Media Preview Overlay -->
           <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
@@ -1101,6 +1124,7 @@
     let targetFolderIdxForChatUpload = 0;
     let selectedFormForImport = null;
     let selectedFileForImport = null;
+    let activeCommentMsgId = null;
 
     let excelRowsCount = 8;
     let excelColsCount = 6;
@@ -1816,37 +1840,60 @@
     persistProjectTree();
   }
 
-  function toggleComments(pillElem) {
-    const socialBar = pillElem.closest('.msg-social-bar');
-    if (!socialBar) return;
-    const msgBody = socialBar.closest('.msg-body');
-    if (!msgBody) return;
+  function openCommentsModal(msgId) {
+    activeCommentMsgId = msgId;
+    const overlay = document.getElementById("commentsModalOverlay");
+    const listArea = document.getElementById("commentsModalList");
+    if (!overlay || !listArea || !activeOpenedProject) return;
 
-    let commentBox = msgBody.querySelector('.msg-comments-display');
-    if (!commentBox) return;
-
-    // Toggle comment box visibility on clicking comment icon
-    if (commentBox.style.display === "flex") {
-      commentBox.style.display = "none";
+    listArea.innerHTML = "";
+    const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
+    if (msg && msg.comments && msg.comments.length > 0) {
+      msg.comments.forEach(c => {
+        const item = document.createElement("div");
+        item.className = "comment-thread-item";
+        item.innerHTML = `
+          <span class="comment-author-name">${c.author}</span>
+          <span>${c.text}</span>
+        `;
+        listArea.appendChild(item);
+      });
     } else {
-      commentBox.style.display = "flex";
+      listArea.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:20px;">No comments yet.</div>`;
+    }
+
+    overlay.style.display = "flex";
+    const inputField = document.getElementById("commentsModalInput");
+    if (inputField) {
+      inputField.value = "";
+      inputField.focus();
     }
   }
 
-  function addCommentFromBox(btnElem, msgId) {
-    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
-    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
+  function closeCommentsModal() {
+    const overlay = document.getElementById("commentsModalOverlay");
+    if (overlay) overlay.style.display = "none";
+    activeCommentMsgId = null;
+  }
+
+  function submitModalComment() {
+    const inputField = document.getElementById("commentsModalInput");
+    if (!inputField || !inputField.value.trim() || !activeCommentMsgId || !activeOpenedProject) return;
+
+    const commentText = inputField.value.trim();
+    const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === activeCommentMsgId);
     if (!msg) return;
 
-    const input = btnElem.previousElementSibling;
-    if (!input || !input.value.trim()) return;
-
-    const commentText = input.value.trim();
     if (!msg.comments) msg.comments = [];
-    msg.comments.push(commentText);
+    msg.comments.push({ author: 'You', text: commentText });
 
     persistProjectTree();
     renderChatMessages();
+    openCommentsModal(activeCommentMsgId); // Refresh modal list
+  }
+
+  function handleModalCommentKey(e) {
+    if (e.key === 'Enter') submitModalComment();
   }
 
   function renderChatMessages() {
@@ -1856,7 +1903,7 @@
 
     if (!activeOpenedProject.chatMessages) {
       activeOpenedProject.chatMessages = [
-        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: ['Verified by lead inspector.'] },
+        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John', text: 'Verified by lead inspector.'}] },
         { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
       ];
     }
@@ -1869,7 +1916,6 @@
       let senderNameHtml = '';
       let socialBarHtml = '';
 
-      // Incoming or Outgoing to another group both get thumb up and comment features
       let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
 
       if (msg.type === 'incoming') {
@@ -1880,29 +1926,15 @@
       }
 
       if (isGroupInteraction) {
-        let commentsHtml = '';
-        if (msg.comments && msg.comments.length > 0) {
-          msg.comments.forEach(c => {
-            commentsHtml += `<div class="msg-comment-item">💬 ${c}</div>`;
-          });
-        }
-
         socialBarHtml = `
           <div class="msg-social-bar">
             <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
               <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
               <span class="like-count">${msg.likes || 0}</span>
             </div>
-            <div class="social-action-pill" onclick="toggleComments(this)">
+            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
               <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
-            </div>
-          </div>
-          <div class="msg-comments-display">
-            ${commentsHtml}
-            <div class="comment-input-row">
-              <input type="text" class="comment-input-box" placeholder="Write a comment..." />
-              <button class="comment-send-btn" onclick="addCommentFromBox(this, '${msg.id}')">Post</button>
             </div>
           </div>
         `;
@@ -2405,7 +2437,7 @@
       }
     }
 
-    // Dim member mentions (@Member) and group mentions (@ Group) in text (with dimmer opacity style)
+    // Dim member mentions (@Member) and group mentions (@ Group) in text
     let processedText = rawText;
     allGroupNames.forEach(g => {
       const regex = new RegExp('@\\s?' + g, 'gi');
