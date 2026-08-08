@@ -626,39 +626,6 @@
         <div class="chat-main-pane">
           <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
             <div class="chat-date-pill">Today</div>
-
-            <div class="msg-row incoming">
-              <div class="msg-avatar" style="background:#00a884;">S</div>
-              <div class="msg-body">
-                <span class="msg-sender-name">Site Engineers</span>
-                <div class="msg-bubble incoming">
-                  Foundation check completed for Tower B.
-                  <div class="msg-meta-row"><span>10:04 am</span></div>
-                </div>
-                <div class="msg-social-bar">
-                  <div class="social-action-pill" onclick="handleLikeClick(this)">
-                    <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                    <span class="like-count">4</span>
-                  </div>
-                  <div class="social-action-pill" onclick="toggleComments(this)">
-                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span class="comment-count">1</span>
-                  </div>
-                </div>
-                <div class="msg-comments-display">
-                  <div class="msg-comment-item">💬 Verified by lead inspector.</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="msg-row outgoing">
-              <div class="msg-body">
-                <div class="msg-bubble outgoing">
-                  Hello! How can I help you?
-                  <div class="msg-meta-row"><span>10:05 am</span></div>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- Floating Scroll to Bottom Arrow Button -->
@@ -1851,27 +1818,10 @@
     if (!msgBody) return;
 
     let commentBox = msgBody.querySelector('.msg-comments-display');
-    if (!commentBox) {
-      commentBox = document.createElement('div');
-      commentBox.className = 'msg-comments-display';
-      msgBody.insertBefore(commentBox, socialBar);
-    }
+    if (!commentBox) return;
 
     if (commentBox.style.display === "flex") {
-      const commentText = prompt("Add a comment:");
-      if (commentText && commentText.trim()) {
-        const item = document.createElement('div');
-        item.className = 'msg-comment-item';
-        item.innerText = `💬 ${commentText.trim()}`;
-        commentBox.appendChild(item);
-
-        const countSpan = pillElem.querySelector('.comment-count');
-        if (countSpan) {
-          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
-        }
-      } else {
-        commentBox.style.display = "none";
-      }
+      commentBox.style.display = "none";
     } else {
       const commentText = prompt("Enter your comment:");
       if (commentText && commentText.trim()) {
@@ -1897,7 +1847,7 @@
     if (!activeOpenedProject.chatMessages) {
       activeOpenedProject.chatMessages = [
         { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: ['Verified by lead inspector.'] },
-        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+        { id: 'm-2', type: ' outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
       ];
     }
 
@@ -1909,10 +1859,19 @@
       let senderNameHtml = '';
       let socialBarHtml = '';
 
+      // If incoming from another group OR if it's an outgoing message sent to another group (@ GroupName)
+      let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
+
       if (msg.type === 'incoming') {
         avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
         senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
-        
+      } else if (msg.targetGroup) {
+        // Message sent to another group
+        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${msg.targetGroup.charAt(0)}</div>`;
+        senderNameHtml = `<span class="msg-sender-name">${msg.targetGroup}</span>`;
+      }
+
+      if (isGroupInteraction) {
         let commentsHtml = '';
         if (msg.comments && msg.comments.length > 0) {
           msg.comments.forEach(c => {
@@ -1931,7 +1890,7 @@
               <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
             </div>
           </div>
-          <div class="msg-comments-display" style="${msg.comments && msg.comments.length > 0 ? 'display:flex;' : 'display:none;'}">
+          <div class="msg-comments-display" style="display:none;">
             ${commentsHtml}
           </div>
         `;
@@ -1987,22 +1946,43 @@
     let commentBox = msgBody.querySelector('.msg-comments-display');
     if (!commentBox) return;
 
-    const commentText = prompt("Enter your comment:");
-    if (commentText && commentText.trim()) {
-      if (!msg.comments) msg.comments = [];
-      msg.comments.push(commentText.trim());
+    if (commentBox.style.display === "flex") {
+      const commentText = prompt("Add a comment:");
+      if (commentText && commentText.trim()) {
+        if (!msg.comments) msg.comments = [];
+        msg.comments.push(commentText.trim());
 
-      const item = document.createElement('div');
-      item.className = 'msg-comment-item';
-      item.innerText = `💬 ${commentText.trim()}`;
-      commentBox.appendChild(item);
-      commentBox.style.display = "flex";
+        const item = document.createElement('div');
+        item.className = 'msg-comment-item';
+        item.innerText = `💬 ${commentText.trim()}`;
+        commentBox.appendChild(item);
 
-      const countSpan = pillElem.querySelector('.comment-count');
-      if (countSpan) {
-        countSpan.innerText = msg.comments.length;
+        const countSpan = pillElem.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.innerText = msg.comments.length;
+        }
+        persistProjectTree();
+      } else {
+        commentBox.style.display = "none";
       }
-      persistProjectTree();
+    } else {
+      const commentText = prompt("Enter your comment:");
+      if (commentText && commentText.trim()) {
+        if (!msg.comments) msg.comments = [];
+        msg.comments.push(commentText.trim());
+
+        const item = document.createElement('div');
+        item.className = 'msg-comment-item';
+        item.innerText = `💬 ${commentText.trim()}`;
+        commentBox.appendChild(item);
+
+        const countSpan = pillElem.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.innerText = msg.comments.length;
+        }
+        commentBox.style.display = "flex";
+        persistProjectTree();
+      }
     }
   }
 
@@ -2471,18 +2451,34 @@
     const mentionDropdown = document.getElementById("chatMentionDropdown");
     if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    // Format mentions (@Member or @ Group) to look dim inside the message text
+    // Determine if message targets a group via "@ GroupName"
+    let isOutgoingGroupMessage = false;
+    let targetGroupName = "";
+
+    const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
+    let allGroups = [];
+    groupElements.forEach(span => allGroups.push(span.innerText.trim()));
+
+    if (rawText.startsWith("@ ")) {
+      const potentialGroup = rawText.substring(2).split(" ")[0];
+      const matchedGroup = allGroups.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || rawText.toLowerCase().includes('@ ' + g.toLowerCase()));
+      if (matchedGroup) {
+        isOutgoingGroupMessage = true;
+        targetGroupName = matchedGroup;
+      }
+    }
+
+    // Dim mentions in text: @Member or @ Group
     let processedText = rawText;
-    const groups = activeOpenedProject.chatGroups || [];
-    groups.forEach(g => {
-      const regex = new RegExp('@\\s?' + g.name, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${g.name}</span>`);
+    allGroups.forEach(g => {
+      const regex = new RegExp('@\\s?' + g, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${g}</span>`);
     });
-    const members = activeOpenedProject.chatMembers || [];
-    members.forEach(m => {
-      const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
-      const regex = new RegExp('@' + mClean, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${mClean}</span>`);
+    const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
+    memberElements.forEach(span => {
+      const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
+      const regex = new RegExp('@' + mName, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${mName}</span>`);
     });
 
     if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
@@ -2490,6 +2486,7 @@
     const newMsg = {
       id: 'm-' + Date.now(),
       type: 'outgoing',
+      targetGroup: isOutgoingGroupMessage ? targetGroupName : '',
       text: processedText,
       time: currentTimeStr,
       likes: 0,
