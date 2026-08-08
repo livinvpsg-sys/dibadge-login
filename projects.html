@@ -1163,9 +1163,9 @@
     }
 
     const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders() },
-      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', children: getDefaultSubFolders() },
-      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders() }
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}], chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}] },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Logistics Group'}] },
+      { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Gov Auditors'}] }
     ];
 
     function getProjects() {
@@ -1175,6 +1175,9 @@
         const parsed = JSON.parse(stored);
         return parsed.map(p => {
           if (!p.children) p.children = getDefaultSubFolders();
+          if (!p.chatMessages) p.chatMessages = [];
+          if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
+          if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
           p.children.forEach(ch => { if (!ch.files) ch.files = []; });
           return p;
         });
@@ -1549,6 +1552,7 @@
         if (chatWS) chatWS.style.display = "flex";
         if (btnChat) btnChat.classList.add("active");
         renderChatDetailsSidebar();
+        renderChatMessages();
       } else if (tabKey === 'forms') {
         if (formsWS) formsWS.style.display = "block";
         if (btnForms) btnForms.classList.add("active");
@@ -1572,6 +1576,43 @@
 
   /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
   function renderChatDetailsSidebar() {
+    if (!activeOpenedProject) return;
+
+    // Members
+    const memberList = document.getElementById("chatMemberList");
+    if (memberList) {
+      memberList.innerHTML = "";
+      if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
+      activeOpenedProject.chatMembers.forEach(m => {
+        const item = document.createElement("div");
+        item.className = "member-item";
+        const firstLetter = m.name.charAt(0).toUpperCase();
+        item.innerHTML = `
+          <div class="member-avatar">${firstLetter}</div>
+          <span>${m.name}${m.role ? ' ('+m.role+')' : ''}</span>
+        `;
+        memberList.appendChild(item);
+      });
+    }
+
+    // Groups
+    const groupList = document.getElementById("chatGroupsList");
+    if (groupList) {
+      groupList.innerHTML = "";
+      if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
+      activeOpenedProject.chatGroups.forEach(g => {
+        const item = document.createElement("div");
+        item.className = "member-item";
+        const firstLetter = g.name.charAt(0).toUpperCase();
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+        item.innerHTML = `
+          <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
+          <span>${g.name}</span>
+        `;
+        groupList.appendChild(item);
+      });
+    }
+
     const formsListEl = document.getElementById("chatDetailsFormsList");
     if (formsListEl) {
       formsListEl.innerHTML = "";
@@ -1687,34 +1728,50 @@
   }
 
   function addNewChatGroup() {
+    if (!activeOpenedProject) return;
     const name = prompt("Enter new group name:");
     if (!name || !name.trim()) return;
 
     const trimmedName = name.trim();
-    const groupList = document.getElementById("chatGroupsList");
-    if (!groupList) return;
+    if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [];
+    
+    const duplicateExists = activeOpenedProject.chatGroups.some(g => g.name.toLowerCase() === trimmedName.toLowerCase());
+    if (duplicateExists) {
+      return alert(`Group '${trimmedName}' already exists in this project.`);
+    }
 
-    const firstLetter = trimmedName.charAt(0).toUpperCase();
-    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+    activeOpenedProject.chatGroups.push({ name: trimmedName });
+    persistProjectTree();
+    renderChatDetailsSidebar();
+  }
 
-    const item = document.createElement("div");
-    item.className = "member-item";
-    item.innerHTML = `
-      <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
-      <span>${trimmedName}</span>
-    `;
-    groupList.appendChild(item);
+  function addNewMember() {
+    if (!activeOpenedProject) return;
+    const name = prompt("Enter new member name:");
+    if (!name || !name.trim()) return;
+
+    const trimmedName = name.trim();
+    if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
+
+    const duplicateExists = activeOpenedProject.chatMembers.some(m => m.name.toLowerCase() === trimmedName.toLowerCase());
+    if (duplicateExists) {
+      return alert(`Member '${trimmedName}' already exists in this project.`);
+    }
+
+    activeOpenedProject.chatMembers.push({ name: trimmedName, role: 'Member' });
+    persistProjectTree();
+    renderChatDetailsSidebar();
   }
 
   /* Mention / Group Autocomplete logic:
-     '@' -> members
-     '@ ' -> groups
+     '@' -> members of this project
+     '@ ' -> groups of this project
   */
   function handleChatInputEvent(e) {
     const input = e.target;
     const val = input.value;
     const dropdown = document.getElementById("chatMentionDropdown");
-    if (!dropdown) return;
+    if (!dropdown || !activeOpenedProject) return;
 
     const lastAtIdx = val.lastIndexOf('@');
     if (lastAtIdx === -1) {
@@ -1729,19 +1786,17 @@
     let itemsToDisplay = [];
 
     if (isGroupMode) {
-      const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
-      groupElements.forEach(span => {
-        const gName = span.innerText.trim();
-        if (gName.toLowerCase().includes(query)) {
-          itemsToDisplay.push({ name: gName, type: 'group', color: '#00a884' });
+      const groups = activeOpenedProject.chatGroups || [];
+      groups.forEach(g => {
+        if (g.name.toLowerCase().includes(query)) {
+          itemsToDisplay.push({ name: g.name, type: 'group', color: '#00a884' });
         }
       });
     } else {
-      const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
-      memberElements.forEach(span => {
-        const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
-        if (mName.toLowerCase().includes(query)) {
-          itemsToDisplay.push({ name: mName, type: 'member', color: '#8b5cf6' });
+      const members = activeOpenedProject.chatMembers || [];
+      members.forEach(m => {
+        if (m.name.toLowerCase().includes(query)) {
+          itemsToDisplay.push({ name: m.name, type: 'member', color: '#8b5cf6' });
         }
       });
     }
@@ -1818,23 +1873,136 @@
         commentBox.style.display = "none";
       }
     } else {
-      if (commentBox.children.length === 0) {
-        const commentText = prompt("Enter your comment:");
-        if (commentText && commentText.trim()) {
-          const item = document.createElement('div');
-          item.className = 'msg-comment-item';
-          item.innerText = `💬 ${commentText.trim()}`;
-          commentBox.appendChild(item);
+      const commentText = prompt("Enter your comment:");
+      if (commentText && commentText.trim()) {
+        const item = document.createElement('div');
+        item.className = 'msg-comment-item';
+        item.innerText = `💬 ${commentText.trim()}`;
+        commentBox.appendChild(item);
 
-          const countSpan = pillElem.querySelector('.comment-count');
-          if (countSpan) {
-            countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
-          }
-          commentBox.style.display = "flex";
+        const countSpan = pillElem.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
         }
-      } else {
         commentBox.style.display = "flex";
       }
+    }
+  }
+
+  function renderChatMessages() {
+    const container = document.getElementById("chatThreadContainer");
+    if (!container || !activeOpenedProject) return;
+    container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+
+    if (!activeOpenedProject.chatMessages) {
+      activeOpenedProject.chatMessages = [
+        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: ['Verified by lead inspector.'] },
+        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+      ];
+    }
+
+    activeOpenedProject.chatMessages.forEach(msg => {
+      const msgRow = document.createElement("div");
+      msgRow.className = `msg-row ${msg.type}`;
+
+      let avatarHtml = '';
+      let senderNameHtml = '';
+      let socialBarHtml = '';
+
+      if (msg.type === 'incoming') {
+        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
+        senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
+        
+        let commentsHtml = '';
+        if (msg.comments && msg.comments.length > 0) {
+          msg.comments.forEach(c => {
+            commentsHtml += `<div class="msg-comment-item">💬 ${c}</div>`;
+          });
+        }
+
+        socialBarHtml = `
+          <div class="msg-social-bar">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleStoredLike(this, '${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <span class="like-count">${msg.likes || 0}</span>
+            </div>
+            <div class="social-action-pill" onclick="handleStoredComment(this, '${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+            </div>
+          </div>
+          <div class="msg-comments-display" style="${msg.comments && msg.comments.length > 0 ? 'display:flex;' : 'display:none;'}">
+            ${commentsHtml}
+          </div>
+        `;
+      }
+
+      msgRow.innerHTML = `
+        ${avatarHtml}
+        <div class="msg-body">
+          ${senderNameHtml}
+          <div class="msg-bubble ${msg.type}">
+            ${msg.text}
+            <div class="msg-meta-row"><span>${msg.time}</span></div>
+          </div>
+          ${socialBarHtml}
+        </div>
+      `;
+      container.appendChild(msgRow);
+    });
+    scrollToLatestMessage();
+  }
+
+  function handleStoredLike(pillElem, msgId) {
+    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
+    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
+    if (!msg) return;
+
+    const countSpan = pillElem.querySelector('.like-count');
+    if (msg.liked) {
+      msg.liked = false;
+      msg.likes = (msg.likes || 1) - 1;
+      pillElem.classList.remove('liked');
+      pillElem.style.color = "var(--subtext-color)";
+    } else {
+      msg.liked = true;
+      msg.likes = (msg.likes || 0) + 1;
+      pillElem.classList.add('liked');
+      pillElem.style.color = "#00a884";
+    }
+    countSpan.innerText = msg.likes;
+    persistProjectTree();
+  }
+
+  function handleStoredComment(pillElem, msgId) {
+    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
+    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
+    if (!msg) return;
+
+    const socialBar = pillElem.closest('.msg-social-bar');
+    if (!socialBar) return;
+    const msgBody = socialBar.closest('.msg-body');
+    if (!msgBody) return;
+
+    let commentBox = msgBody.querySelector('.msg-comments-display');
+    if (!commentBox) return;
+
+    const commentText = prompt("Enter your comment:");
+    if (commentText && commentText.trim()) {
+      if (!msg.comments) msg.comments = [];
+      msg.comments.push(commentText.trim());
+
+      const item = document.createElement('div');
+      item.className = 'msg-comment-item';
+      item.innerText = `💬 ${commentText.trim()}`;
+      commentBox.appendChild(item);
+      commentBox.style.display = "flex";
+
+      const countSpan = pillElem.querySelector('.comment-count');
+      if (countSpan) {
+        countSpan.innerText = msg.comments.length;
+      }
+      persistProjectTree();
     }
   }
 
@@ -2182,23 +2350,15 @@
   }
 
   function addNewMember() {
+    if (!activeOpenedProject) return;
     const name = prompt("Enter new member name:");
     if (!name || !name.trim()) return;
 
     const trimmedName = name.trim();
-    const memberList = document.getElementById("chatMemberList");
-    if (!memberList) return;
-
-    const firstLetter = trimmedName.charAt(0).toUpperCase();
-    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
-
-    const item = document.createElement("div");
-    item.className = "member-item";
-    item.innerHTML = `
-      <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
-      <span>${trimmedName}</span>
-    `;
-    memberList.appendChild(item);
+    if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
+    activeOpenedProject.chatMembers.push({ name: trimmedName, role: 'Member' });
+    persistProjectTree();
+    renderChatDetailsSidebar();
   }
 
   function openLightbox(imgSrc) {
@@ -2305,153 +2465,43 @@
     let rawText = input ? input.value.trim() : "";
 
     if (!rawText && pendingStagedFiles.length === 0) return;
-
-    const container = document.getElementById("chatThreadContainer");
-    if (!container) return;
+    if (!activeOpenedProject) return;
 
     const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     const mentionDropdown = document.getElementById("chatMentionDropdown");
     if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    // Determine if message targets a group via "@ GroupName"
-    let isOutgoingGroupMessage = false;
-    let targetGroupName = "";
-
-    const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
-    let allGroups = [];
-    groupElements.forEach(span => allGroups.push(span.innerText.trim()));
-
-    if (rawText.startsWith("@ ")) {
-      const potentialGroup = rawText.substring(2).split(" ")[0];
-      const matchedGroup = allGroups.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || rawText.toLowerCase().includes('@ ' + g.toLowerCase()));
-      if (matchedGroup) {
-        isOutgoingGroupMessage = true;
-        targetGroupName = matchedGroup;
-      }
-    }
-
-    // Dim mentions in text: @Member or @ Group
+    // Format mentions (@Member or @ Group) to look dim inside the message text
     let processedText = rawText;
-    allGroups.forEach(g => {
-      const regex = new RegExp('@\\s?' + g, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${g}</span>`);
+    const groups = activeOpenedProject.chatGroups || [];
+    groups.forEach(g => {
+      const regex = new RegExp('@\\s?' + g.name, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${g.name}</span>`);
     });
-    const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
-    memberElements.forEach(span => {
-      const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
-      const regex = new RegExp('@' + mName, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${mName}</span>`);
+    const members = activeOpenedProject.chatMembers || [];
+    members.forEach(m => {
+      const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
+      const regex = new RegExp('@' + mClean, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${mClean}</span>`);
     });
 
-    const msgRow = document.createElement("div");
-    msgRow.className = "msg-row outgoing";
+    if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+    
+    const newMsg = {
+      id: 'm-' + Date.now(),
+      type: 'outgoing',
+      text: processedText,
+      time: currentTimeStr,
+      likes: 0,
+      comments: []
+    };
 
-    let socialBarHtml = '';
-    if (isOutgoingGroupMessage) {
-      socialBarHtml = `
-        <div class="msg-social-bar">
-          <div class="social-action-pill" onclick="handleLikeClick(this)">
-            <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-            <span class="like-count">0</span>
-          </div>
-          <div class="social-action-pill" onclick="toggleComments(this)">
-            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span class="comment-count">0</span>
-          </div>
-        </div>
-        <div class="msg-comments-display"></div>
-      `;
-    }
-
-    if (pendingStagedFiles.length > 0) {
-      const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
-      const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
-
-      if (imageFiles.length > 0) {
-        let imagesHtml = '';
-        const isSingle = imageFiles.length === 1;
-        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
-
-        imageFiles.forEach((file, idx) => {
-          const url = URL.createObjectURL(file);
-          if (isSingle) {
-            imagesHtml += `
-              <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
-                <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
-                <div class="msg-media-time-badge">${currentTimeStr}</div>
-              </div>
-            `;
-          } else {
-            let badgeOverlay = '';
-            if (idx === imageFiles.length - 1 && imageFiles.length > 4) {
-              badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
-            }
-            imagesHtml += `
-              <div class="whatsapp-media-item-wrap">
-                <img src="${url}" onclick="openLightbox('${url}')" />
-                ${badgeOverlay}
-              </div>
-            `;
-          }
-        });
-
-        if (!isSingle) {
-          msgRow.innerHTML = `
-            <div class="msg-body">
-              <div class="msg-bubble outgoing media-bubble">
-                <div class="${groupClass}">
-                  ${imagesHtml}
-                </div>
-                <div class="msg-media-time-badge">${currentTimeStr}</div>
-              </div>
-              ${socialBarHtml}
-            </div>
-          `;
-        } else {
-          msgRow.innerHTML = `
-            <div class="msg-body">
-              ${imagesHtml}
-              ${socialBarHtml}
-            </div>
-          `;
-        }
-        container.appendChild(msgRow);
-      }
-
-      otherFiles.forEach(file => {
-        const fileRow = document.createElement("div");
-        fileRow.className = "msg-row outgoing";
-        fileRow.innerHTML = `
-          <div class="msg-body">
-            <div class="msg-bubble outgoing">
-              📄 Attachment: ${file.name}
-              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
-            </div>
-            ${socialBarHtml}
-          </div>
-        `;
-        container.appendChild(fileRow);
-      });
-
-      pendingStagedFiles = [];
-      renderPendingPreviews();
-    }
-
-    if (processedText) {
-      msgRow.innerHTML = `
-        <div class="msg-body">
-          <div class="msg-bubble outgoing">
-            ${processedText}
-            <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
-          </div>
-          ${socialBarHtml}
-        </div>
-      `;
-      container.appendChild(msgRow);
-      input.value = "";
-    }
-
-    scrollToLatestMessage();
+    activeOpenedProject.chatMessages.push(newMsg);
+    persistProjectTree();
+    renderChatMessages();
+    input.value = "";
+    pendingStagedFiles = [];
+    renderPendingPreviews();
   }
 
   function handleChatInputKey(e) {
@@ -3030,7 +3080,10 @@
       location: location || 'N/A',
       remarks: remarks,
       year: year,
-      children: getDefaultSubFolders()
+      children: getDefaultSubFolders(),
+      chatMessages: [],
+      chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
+      chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}]
     });
 
     saveProjects(projects);
