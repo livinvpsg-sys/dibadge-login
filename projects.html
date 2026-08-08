@@ -1084,7 +1084,7 @@
       <!-- Interactive Form Controls Insertion -->
       <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
       <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
-      <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+      <button class="excel-tool-btn" onclick="excelMergeCells()">🔲 Merge Cells</button>
     </div>
 
     <!-- Spreadsheet Grid Canvas -->
@@ -2295,19 +2295,19 @@
                 <div class="msg-bubble outgoing media-bubble">
                   <div class="${groupClass}">
                     ${imagesHtml}
-                </div>
-                <div class="msg-meta-row">
-                  <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                  <span>${currentTimeStr}</span>
+                  </div>
+                  <div class="msg-meta-row">
+                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
+                    <span>${currentTimeStr}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          `;
+            `;
           } else {
             msgRow.innerHTML = `
               <div class="msg-body">
                 ${imagesHtml}
-            </div>
+              </div>
             `;
           }
           container.appendChild(msgRow);
@@ -2865,4 +2865,85 @@
         openChatGlobalFormsSelectorModal();
       } else if (activeViewMode === 'forms') {
         openExcelStudio();
-      } else if (activeOpenedProject &&I'm having a hard time fulfilling your request. Can I help you with something else instead?
+      } else if (activeOpenedProject && activeViewMode === 'folder') {
+        const newSubName = prompt("Enter new folder name:");
+        if (!newSubName || !newSubName.trim()) return;
+
+        const trimmed = newSubName.trim();
+        let currentFolderNode = getCurrentWorkspaceFolder();
+        if (!currentFolderNode.children) currentFolderNode.children = [];
+
+        const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+        }
+
+        currentFolderNode.children.push({
+          id: 'f-' + Date.now(),
+          name: trimmed,
+          items: '0 Files',
+          children: [],
+          files: []
+        });
+
+        persistProjectTree();
+        renderFolderView();
+      } else if (activeViewMode === 'projects') {
+        openCreateProjectModal();
+      }
+    }
+
+    function openCreateProjectModal() {
+      document.getElementById("newProjectClient").value = "";
+      document.getElementById("newProjectNo").value = "";
+      document.getElementById("newProjectLocation").value = "";
+      document.getElementById("newProjectRemarks").value = "";
+      
+      document.getElementById("createProjectModal").style.display = "flex";
+    }
+
+    function closeCreateProjectModal() {
+      document.getElementById("createProjectModal").style.display = "none";
+    }
+
+    function createNewProject() {
+      const client = document.getElementById("newProjectClient").value.trim();
+      const projectNo = document.getElementById("newProjectNo").value.trim();
+      const location = document.getElementById("newProjectLocation").value.trim();
+      const remarks = document.getElementById("newProjectRemarks").value.trim();
+      
+      const year = document.getElementById("yearPicker").value || "2026";
+
+      if (!client) return alert("Please enter a client name.");
+
+      const projects = getProjects();
+      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
+      }
+
+      projects.push({
+        id: 'proj-' + Date.now(),
+        client: client,
+        projectNo: targetProjNo,
+        location: location || 'N/A',
+        remarks: remarks,
+        year: year,
+        children: getDefaultSubFolders()
+      });
+
+      saveProjects(projects);
+      filterProjects();
+      closeCreateProjectModal();
+    }
+
+    (function init() {
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+      switchMainViewTab('projects');
+    })();
+  </script>
+</body>
+</html>
