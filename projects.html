@@ -331,7 +331,7 @@
     .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
 
     /* Dimmed style for mentions inside message text */
-    .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.75; }
+    .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.6; }
 
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 8px; position: relative; }
@@ -1821,7 +1821,20 @@
     if (!commentBox) return;
 
     if (commentBox.style.display === "flex") {
-      commentBox.style.display = "none";
+      const commentText = prompt("Add a comment:");
+      if (commentText && commentText.trim()) {
+        const item = document.createElement('div');
+        item.className = 'msg-comment-item';
+        item.innerText = `💬 ${commentText.trim()}`;
+        commentBox.appendChild(item);
+
+        const countSpan = pillElem.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
+        }
+      } else {
+        commentBox.style.display = "none";
+      }
     } else {
       const commentText = prompt("Enter your comment:");
       if (commentText && commentText.trim()) {
@@ -1847,7 +1860,7 @@
     if (!activeOpenedProject.chatMessages) {
       activeOpenedProject.chatMessages = [
         { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: ['Verified by lead inspector.'] },
-        { id: 'm-2', type: ' outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
       ];
     }
 
@@ -1859,15 +1872,14 @@
       let senderNameHtml = '';
       let socialBarHtml = '';
 
-      // If incoming from another group OR if it's an outgoing message sent to another group (@ GroupName)
+      // If incoming from another group OR outgoing sent to another group (@ GroupName)
       let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
 
       if (msg.type === 'incoming') {
         avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
         senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
       } else if (msg.targetGroup) {
-        // Message sent to another group
-        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${msg.targetGroup.charAt(0)}</div>`;
+        // Outgoing message sent to another group: show sender name header
         senderNameHtml = `<span class="msg-sender-name">${msg.targetGroup}</span>`;
       }
 
@@ -2451,34 +2463,18 @@
     const mentionDropdown = document.getElementById("chatMentionDropdown");
     if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    // Determine if message targets a group via "@ GroupName"
-    let isOutgoingGroupMessage = false;
-    let targetGroupName = "";
-
-    const groupElements = document.querySelectorAll("#chatGroupsList .member-item span");
-    let allGroups = [];
-    groupElements.forEach(span => allGroups.push(span.innerText.trim()));
-
-    if (rawText.startsWith("@ ")) {
-      const potentialGroup = rawText.substring(2).split(" ")[0];
-      const matchedGroup = allGroups.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || rawText.toLowerCase().includes('@ ' + g.toLowerCase()));
-      if (matchedGroup) {
-        isOutgoingGroupMessage = true;
-        targetGroupName = matchedGroup;
-      }
-    }
-
-    // Dim mentions in text: @Member or @ Group
+    // Dim member mentions and group mentions inside text
     let processedText = rawText;
-    allGroups.forEach(g => {
-      const regex = new RegExp('@\\s?' + g, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${g}</span>`);
+    const groups = activeOpenedProject.chatGroups || [];
+    groups.forEach(g => {
+      const regex = new RegExp('@\\s?' + g.name, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${g.name}</span>`);
     });
-    const memberElements = document.querySelectorAll("#chatMemberList .member-item span");
-    memberElements.forEach(span => {
-      const mName = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
-      const regex = new RegExp('@' + mName, 'gi');
-      processedText = processedText.replace(regex, `<span class="mention-tag">@${mName}</span>`);
+    const members = activeOpenedProject.chatMembers || [];
+    members.forEach(m => {
+      const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
+      const regex = new RegExp('@' + mClean, 'gi');
+      processedText = processedText.replace(regex, `<span class="mention-tag">@${mClean}</span>`);
     });
 
     if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
@@ -2486,7 +2482,6 @@
     const newMsg = {
       id: 'm-' + Date.now(),
       type: 'outgoing',
-      targetGroup: isOutgoingGroupMessage ? targetGroupName : '',
       text: processedText,
       time: currentTimeStr,
       likes: 0,
