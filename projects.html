@@ -1702,7 +1702,6 @@
       const lastAtIdx = val.lastIndexOf('@');
       const lastSpaceIdx = val.lastIndexOf(' ');
 
-      // Check if typing '@...' or 'a ...' (if 'a' was typed and space follows, or starts with 'a ')
       let query = "";
       let showTrigger = false;
 
@@ -1719,7 +1718,6 @@
         return;
       }
 
-      // Collect all group member names
       const memberItems = document.querySelectorAll("#chatMemberList .member-item span");
       let names = [];
       memberItems.forEach(span => {
@@ -2863,4 +2861,8 @@
     }
 
     function handleFabClick() {
-  I encountered an error doing what you asked. Could you try again?
+      if (activeOpenedProject && activeViewMode === 'forms') {
+        openChatGlobalFormsSelectorModal();
+      } else if (activeViewMode === 'forms') {
+        openExcelStudio();
+      } else if (activeOpenedProject &&I'm having a hard time fulfilling your request. Can I help you with something else instead?
