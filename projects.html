@@ -327,8 +327,11 @@
     .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
     .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: none; flex-direction: column; gap: 2px; }
+    .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: none; flex-direction: column; gap: 4px; }
     .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
+    .comment-input-row { display: flex; gap: 6px; margin-top: 6px; }
+    .comment-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; outline: none; }
+    .comment-send-btn { background: var(--paper-white); color: var(--jet-black); border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; }
 
     /* Dimmed style for mentions inside message text */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.6; }
@@ -336,6 +339,7 @@
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 8px; position: relative; }
     .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
+    .chat-input-box::placeholder { color: var(--subtext-color); }
     
     /* Mention / Group Autocomplete Dropdown */
     .chat-mention-dropdown { position: absolute; bottom: 55px; left: 60px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; max-height: 180px; width: 220px; overflow-y: auto; z-index: 1500; }
@@ -1809,6 +1813,7 @@
       countSpan.innerText = currentLikes + 1;
       pillElem.style.color = "#00a884";
     }
+    persistProjectTree();
   }
 
   function toggleComments(pillElem) {
@@ -1820,36 +1825,28 @@
     let commentBox = msgBody.querySelector('.msg-comments-display');
     if (!commentBox) return;
 
+    // Toggle comment box visibility on clicking comment icon
     if (commentBox.style.display === "flex") {
-      const commentText = prompt("Add a comment:");
-      if (commentText && commentText.trim()) {
-        const item = document.createElement('div');
-        item.className = 'msg-comment-item';
-        item.innerText = `💬 ${commentText.trim()}`;
-        commentBox.appendChild(item);
-
-        const countSpan = pillElem.querySelector('.comment-count');
-        if (countSpan) {
-          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
-        }
-      } else {
-        commentBox.style.display = "none";
-      }
+      commentBox.style.display = "none";
     } else {
-      const commentText = prompt("Enter your comment:");
-      if (commentText && commentText.trim()) {
-        const item = document.createElement('div');
-        item.className = 'msg-comment-item';
-        item.innerText = `💬 ${commentText.trim()}`;
-        commentBox.appendChild(item);
-
-        const countSpan = pillElem.querySelector('.comment-count');
-        if (countSpan) {
-          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
-        }
-        commentBox.style.display = "flex";
-      }
+      commentBox.style.display = "flex";
     }
+  }
+
+  function addCommentFromBox(btnElem, msgId) {
+    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
+    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
+    if (!msg) return;
+
+    const input = btnElem.previousElementSibling;
+    if (!input || !input.value.trim()) return;
+
+    const commentText = input.value.trim();
+    if (!msg.comments) msg.comments = [];
+    msg.comments.push(commentText);
+
+    persistProjectTree();
+    renderChatMessages();
   }
 
   function renderChatMessages() {
@@ -1872,14 +1869,14 @@
       let senderNameHtml = '';
       let socialBarHtml = '';
 
-      // Incoming or Outgoing to another group both get social interactions (thumb & comment counter)
+      // Incoming or Outgoing to another group both get thumb up and comment features
       let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
 
       if (msg.type === 'incoming') {
         avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
         senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
       } else if (msg.targetGroup) {
-        // Outgoing message sent to a group: do NOT show sender header or avatar, just regular outgoing bubble with social bar underneath
+        // Outgoing to group
       }
 
       if (isGroupInteraction) {
@@ -1892,17 +1889,21 @@
 
         socialBarHtml = `
           <div class="msg-social-bar">
-            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleStoredLike(this, '${msg.id}')">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
               <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
               <span class="like-count">${msg.likes || 0}</span>
             </div>
-            <div class="social-action-pill" onclick="handleStoredComment(this, '${msg.id}')">
+            <div class="social-action-pill" onclick="toggleComments(this)">
               <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
               <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
             </div>
           </div>
-          <div class="msg-comments-display" style="display:none;">
+          <div class="msg-comments-display">
             ${commentsHtml}
+            <div class="comment-input-row">
+              <input type="text" class="comment-input-box" placeholder="Write a comment..." />
+              <button class="comment-send-btn" onclick="addCommentFromBox(this, '${msg.id}')">Post</button>
+            </div>
           </div>
         `;
       }
@@ -1921,80 +1922,6 @@
       container.appendChild(msgRow);
     });
     scrollToLatestMessage();
-  }
-
-  function handleStoredLike(pillElem, msgId) {
-    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
-    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
-    if (!msg) return;
-
-    const countSpan = pillElem.querySelector('.like-count');
-    if (msg.liked) {
-      msg.liked = false;
-      msg.likes = (msg.likes || 1) - 1;
-      pillElem.classList.remove('liked');
-      pillElem.style.color = "var(--subtext-color)";
-    } else {
-      msg.liked = true;
-      msg.likes = (msg.likes || 0) + 1;
-      pillElem.classList.add('liked');
-      pillElem.style.color = "#00a884";
-    }
-    countSpan.innerText = msg.likes;
-    persistProjectTree();
-  }
-
-  function handleStoredComment(pillElem, msgId) {
-    if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
-    const msg = activeOpenedProject.chatMessages.find(m => m.id === msgId);
-    if (!msg) return;
-
-    const socialBar = pillElem.closest('.msg-social-bar');
-    if (!socialBar) return;
-    const msgBody = socialBar.closest('.msg-body');
-    if (!msgBody) return;
-
-    let commentBox = msgBody.querySelector('.msg-comments-display');
-    if (!commentBox) return;
-
-    if (commentBox.style.display === "flex") {
-      const commentText = prompt("Add a comment:");
-      if (commentText && commentText.trim()) {
-        if (!msg.comments) msg.comments = [];
-        msg.comments.push(commentText.trim());
-
-        const item = document.createElement('div');
-        item.className = 'msg-comment-item';
-        item.innerText = `💬 ${commentText.trim()}`;
-        commentBox.appendChild(item);
-
-        const countSpan = pillElem.querySelector('.comment-count');
-        if (countSpan) {
-          countSpan.innerText = msg.comments.length;
-        }
-        persistProjectTree();
-      } else {
-        commentBox.style.display = "none";
-      }
-    } else {
-      const commentText = prompt("Enter your comment:");
-      if (commentText && commentText.trim()) {
-        if (!msg.comments) msg.comments = [];
-        msg.comments.push(commentText.trim());
-
-        const item = document.createElement('div');
-        item.className = 'msg-comment-item';
-        item.innerText = `💬 ${commentText.trim()}`;
-        commentBox.appendChild(item);
-
-        const countSpan = pillElem.querySelector('.comment-count');
-        if (countSpan) {
-          countSpan.innerText = msg.comments.length;
-        }
-        commentBox.style.display = "flex";
-        persistProjectTree();
-      }
-    }
   }
 
   /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
@@ -2478,7 +2405,7 @@
       }
     }
 
-    // Dim member mentions (@Member) and group mentions (@ Group) in text
+    // Dim member mentions (@Member) and group mentions (@ Group) in text (with dimmer opacity style)
     let processedText = rawText;
     allGroupNames.forEach(g => {
       const regex = new RegExp('@\\s?' + g, 'gi');
