@@ -727,6 +727,28 @@
             </div>
           </div>
 
+          <!-- Groups Section -->
+          <div class="details-section">
+            <div class="details-section-title">
+              <span>Groups</span>
+              <button class="add-member-btn" onclick="addNewChatGroup()" title="Create New Group">+ Add</button>
+            </div>
+            <div class="member-list" id="chatGroupsList">
+              <div class="member-item">
+                <div class="member-avatar" style="background:#00a884;">S</div>
+                <span>Site Engineers</span>
+              </div>
+              <div class="member-item">
+                <div class="member-avatar" style="background:#e91e63;">M</div>
+                <span>Management Team</span>
+              </div>
+              <div class="member-item">
+                <div class="member-avatar" style="background:#ff9800;">Q</div>
+                <span>Quality Assurance</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Forms Section -->
           <div class="details-section">
             <div class="details-section-title">
@@ -1628,6 +1650,26 @@
 
       persistProjectTree();
       renderChatDetailsSidebar();
+    }
+
+    function addNewChatGroup() {
+      const name = prompt("Enter new group name:");
+      if (!name || !name.trim()) return;
+
+      const trimmedName = name.trim();
+      const groupList = document.getElementById("chatGroupsList");
+      if (!groupList) return;
+
+      const firstLetter = trimmedName.charAt(0).toUpperCase();
+      const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+      const item = document.createElement("div");
+      item.className = "member-item";
+      item.innerHTML = `
+        <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
+        <span>${trimmedName}</span>
+      `;
+      groupList.appendChild(item);
     }
 
     /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
