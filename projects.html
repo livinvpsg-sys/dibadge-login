@@ -294,7 +294,7 @@
 
     .chat-date-pill { align-self: center; background: var(--border-color); color: var(--subtext-color); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin: 8px 0; }
 
-    .msg-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; position: relative; }
+    .msg-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; position: relative; margin-bottom: 6px; }
     .msg-row.incoming { justify-content: flex-start; }
     .msg-row.outgoing { justify-content: flex-end; }
 
@@ -302,15 +302,15 @@
     .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
-    .msg-bubble { padding: 8px 12px 22px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
 
     /* WhatsApp Style Image Bubble Overrides */
-    .msg-bubble.media-bubble { padding: 4px 4px 22px 4px !important; overflow: hidden; display: inline-block; position: relative; }
+    .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
     .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; transition: transform 0.15s; }
     .msg-media-img:hover { transform: scale(1.02); }
-    .msg-media-time-badge { position: absolute; bottom: 4px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
+    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
 
     /* WhatsApp Album Grid for Multiple Media */
     .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
@@ -319,10 +319,14 @@
     .whatsapp-media-item-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
     .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; pointer-events: none; }
 
-    .msg-meta-row { position: absolute; bottom: 4px; right: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--subtext-color); }
-    .msg-comment-btn { background: transparent; border: none; color: var(--subtext-color); font-size: 0.65rem; font-weight: 600; cursor: pointer; padding: 0; transition: color 0.15s; }
-    .msg-comment-btn:hover { color: var(--text-color); text-decoration: underline; }
+    .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 4px; }
     
+    /* LinkedIn-style reaction/comment bar below bubble */
+    .msg-social-bar { display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-left: 4px; font-size: 0.75rem; color: var(--subtext-color); font-weight: 600; }
+    .social-action-pill { display: flex; align-items: center; gap: 4px; background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
+    .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
     .msg-comments-display { margin-top: 6px; border-top: 1px dashed var(--border-color); padding-top: 4px; font-size: 0.75rem; display: flex; flex-direction: column; gap: 2px; }
     .msg-comment-item { color: var(--subtext-color); word-break: break-word; }
 
@@ -620,289 +624,296 @@
           <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
             <div class="chat-date-pill">Today</div>
 
-            <div class="msg-row incoming">
-              <div class="msg-avatar">J</div>
+            <div class="msg-row incoming" data-group-msg="true">
+              <div class="msg-avatar">S</div>
               <div class="msg-body">
-                <span class="msg-sender-name">John</span>
+                <span class="msg-sender-name">Site Engineers</span>
                 <div class="msg-bubble incoming">
-                  Hi there!
-                  <div class="msg-meta-row">
-                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                    <span>10:04 am</span>
+                  Foundation check completed for Tower B.
+                  <div class="msg-meta-row"><span>10:04 am</span></div>
+                </div>
+                <div class="msg-social-bar">
+                  <div class="social-action-pill" onclick="handleLikeClick(this)">
+                    <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                    <span class="like-count">4</span>
+                  </div>
+                  <div class="social-action-pill" onclick="openCommentPrompt(this)">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span class="comment-count">1</span>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="msg-row outgoing">
-              <div class="msg-body">
-                <div class="msg-bubble outgoing">
-                  Hello! How can I help you?
-                  <div class="msg-meta-row">
-                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                    <span>10:04 am</span>
-                  </div>
-                </div>
+                <div class="msg-comments-display">
+                  <div class="msg-comment-item">💬 Verified by lead inspector.</div>
               </div>
             </div>
           </div>
 
-          <!-- Floating Scroll to Bottom Arrow Button -->
-          <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
-            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-
-          <!-- Lightbox Media Preview Overlay -->
-          <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
-            <div class="lightbox-content-box" onclick="event.stopPropagation()">
-              <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
-              <img id="lightboxImage" src="" alt="Media Preview" />
-            </div>
-          </div>
-
-          <!-- Standard Vector Attachment Popover -->
-          <div class="attachment-popover" id="chatAttachmentPopover">
-            <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
-              <div class="attach-icon-circle" style="background:#e91e63;">
-                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <div class="msg-row outgoing">
+            <div class="msg-body">
+              <div class="msg-bubble outgoing">
+                Hello! How can I help you?
+                <div class="msg-meta-row"><span>10:05 am</span></div>
               </div>
-              <span>Image</span>
-            </div>
-            <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
-              <div class="attach-icon-circle" style="background:#9c27b0;">
-                <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-              </div>
-              <span>Video</span>
-            </div>
-            <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
-              <div class="attach-icon-circle" style="background:#00a884;">
-                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              </div>
-              <span>Document</span>
-            </div>
-          </div>
-
-          <!-- Compact Natural Emoji Picker -->
-          <div class="emoji-picker-panel" id="chatEmojiPanel">
-            <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-            <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
-            <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
-            <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
-            <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-            <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
-            <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
-            <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
-            <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
-            <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
-            <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
-            <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-          </div>
-
-          <!-- Chat Bottom Input Toolbar -->
-          <div class="chat-bottom-bar">
-            <!-- Mention Autocomplete Dropdown -->
-            <div class="chat-mention-dropdown" id="chatMentionDropdown"></div>
-
-            <!-- Pending Attachment Preview Bar -->
-            <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
-
-            <div class="chat-input-row" id="chatInputBarContainer">
-              <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-              </button>
-              
-              <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
-                <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-              </button>
-
-              <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message" oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
-
-              <!-- Send Button -->
-              <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
-                <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
-              </button>
-            </div>
-          </div>
-
-          <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFilesStaged(event)" />
-        </div>
-
-        <!-- Right Side: Chat Details Pane -->
-        <div class="chat-details-pane">
-          <!-- Members Section -->
-          <div class="details-section">
-            <div class="details-section-title">
-              <span>Group Members</span>
-              <button class="add-member-btn" onclick="addNewMember()">+ Add</button>
-            </div>
-            <div class="member-list" id="chatMemberList">
-              <div class="member-item">
-                <div class="member-avatar">J</div>
-                <span>John (Admin)</span>
-              </div>
-              <div class="member-item">
-                <div class="member-avatar" style="background:#8b5cf6;">M</div>
-                <span>Mary</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Groups Section -->
-          <div class="details-section">
-            <div class="details-section-title">
-              <span>Groups</span>
-              <button class="add-member-btn" onclick="addNewChatGroup()" title="Create New Group">+ Add</button>
-            </div>
-            <div class="member-list" id="chatGroupsList">
-              <div class="member-item">
-                <div class="member-avatar" style="background:#00a884;">S</div>
-                <span>Site Engineers</span>
-              </div>
-              <div class="member-item">
-                <div class="member-avatar" style="background:#e91e63;">M</div>
-                <span>Management Team</span>
-              </div>
-              <div class="member-item">
-                <div class="member-avatar" style="background:#ff9800;">Q</div>
-                <span>Quality Assurance</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Forms Section -->
-          <div class="details-section">
-            <div class="details-section-title">
-              <span>Forms</span>
-              <button class="add-member-btn" onclick="openChatGlobalFormsSelectorModal()" title="Import Form">+ Add</button>
-            </div>
-            <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
-              <!-- Rendered dynamically -->
-            </div>
-          </div>
-
-          <!-- Folders Section -->
-          <div class="details-section">
-            <div class="details-section-title">
-              <span>Folders</span>
-              <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
-            </div>
-            <div id="chatDetailsFoldersContainer">
-              <!-- Rendered dynamically -->
             </div>
           </div>
         </div>
 
-      </div>
-    </section>
-
-    <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
-    <section class="sub-view-panel" id="panelProjectFormsWorkspace">
-      <div style="margin-bottom:16px;">
-        <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
-        <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
-      </div>
-      <div id="projectFormsContainer" class="tiles-grid"></div>
-    </section>
-
-    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
-    <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
-      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
-
-      <!-- Currency & Tax Controls Bar -->
-      <div class="boq-top-controls">
-        <div class="boq-control-group">
-          <span>Currency:</span>
-          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
-            <option value="$" selected>$ USD</option>
-            <option value="S$">S$ SGD</option>
-            <option value="₹">₹ INR</option>
-            <option value="€">€ EUR</option>
-            <option value="£">£ GBP</option>
-            <option value="¥">¥ JPY</option>
-            <option value="A$">A$ AUD</option>
-          </select>
-        </div>
-
-        <div class="boq-control-group">
-          <span>Tax Rate (%):</span>
-          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
-        </div>
-      </div>
-
-      <div class="boq-table-card">
-        <table class="boq-table">
-          <thead>
-            <tr>
-              <th style="width: 60px;">Sl No</th>
-              <th>Item Description</th>
-              <th style="width: 140px;">Quantity</th>
-              <th style="width: 140px;">Unit Price</th>
-              <th style="width: 140px; text-align:right;">Total Price</th>
-              <th style="width: 40px;"></th>
-            </tr>
-          </thead>
-          <tbody id="boqTableBody">
-            <!-- Dynamic BOQ Rows rendered here -->
-          </tbody>
-        </table>
-
-        <button class="boq-add-row-btn" onclick="addBOQRow()">
-          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Add Row Item
+        <!-- Floating Scroll to Bottom Arrow Button -->
+        <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
 
-        <!-- Calculations Summary Card -->
-        <div class="boq-summary-card">
-          <div class="boq-summary-row">
-            <span>Sub Total:</span>
-            <span id="boqSubTotal">$0.00</span>
+        <!-- Lightbox Media Preview Overlay -->
+        <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+          <div class="lightbox-content-box" onclick="event.stopPropagation()">
+            <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
+            <img id="lightboxImage" src="" alt="Media Preview" />
           </div>
-          <div class="boq-summary-row">
-            <span id="boqTaxLabel">Tax / VAT (10%):</span>
-            <span id="boqTax">$0.00</span>
+        </div>
+
+        <!-- Standard Vector Attachment Popover -->
+        <div class="attachment-popover" id="chatAttachmentPopover">
+          <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
+            <div class="attach-icon-circle" style="background:#e91e63;">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            </div>
+            <span>Image</span>
           </div>
-          <div class="boq-summary-row grand-total">
-            <span>Grand Total:</span>
-            <span id="boqGrandTotal">$0.00</span>
+          <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
+            <div class="attach-icon-circle" style="background:#9c27b0;">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            </div>
+            <span>Video</span>
+          </div>
+          <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
+            <div class="attach-icon-circle" style="background:#00a884;">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            </div>
+            <span>Document</span>
+          </div>
+        </div>
+
+        <!-- Compact Natural Emoji Picker -->
+        <div class="emoji-picker-panel" id="chatEmojiPanel">
+          <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+          <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
+          <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
+          <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
+          <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
+          <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
+          <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
+          <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
+          <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
+          <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
+          <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
+          <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
+        </div>
+
+        <!-- Chat Bottom Input Toolbar -->
+        <div class="chat-bottom-bar">
+          <!-- Mention Autocomplete Dropdown -->
+          <div class="chat-mention-dropdown" id="chatMentionDropdown"></div>
+
+          <!-- Pending Attachment Preview Bar -->
+          <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
+
+          <div class="chat-input-row" id="chatInputBarContainer">
+            <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            </button>
+            
+            <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
+              <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            </button>
+
+            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message or @mention group..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
+
+            <!-- Send Button -->
+            <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
+              <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFilesStaged(event)" />
+      </div>
+
+      <!-- Right Side: Chat Details Pane -->
+      <div class="chat-details-pane">
+        <!-- Members Section -->
+        <div class="details-section">
+          <div class="details-section-title">
+            <span>Group Members</span>
+            <button class="add-member-btn" onclick="addNewMember()">+ Add</button>
+          </div>
+          <div class="member-list" id="chatMemberList">
+            <div class="member-item">
+              <div class="member-avatar">J</div>
+              <span>John (Admin)</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#8b5cf6;">M</div>
+              <span>Mary</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Groups Section -->
+        <div class="details-section">
+          <div class="details-section-title">
+            <span>Groups</span>
+            <button class="add-member-btn" onclick="addNewChatGroup()" title="Create New Group">+ Add</button>
+          </div>
+          <div class="member-list" id="chatGroupsList">
+            <div class="member-item">
+              <div class="member-avatar" style="background:#00a884;">S</div>
+              <span>Site Engineers</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#e91e63;">M</div>
+              <span>Management Team</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#ff9800;">Q</div>
+              <span>Quality Assurance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Forms Section -->
+        <div class="details-section">
+          <div class="details-section-title">
+            <span>Forms</span>
+            <button class="add-member-btn" onclick="openChatGlobalFormsSelectorModal()" title="Import Form">+ Add</button>
+          </div>
+          <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Folders Section -->
+        <div class="details-section">
+          <div class="details-section-title">
+            <span>Folders</span>
+            <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
+          </div>
+          <div id="chatDetailsFoldersContainer">
+            <!-- Rendered dynamically -->
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- PROJECT CLAIMS WORKSPACE PANEL -->
-    <section class="sub-view-panel" id="panelClaimsWorkspace">
-      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+    </div>
+  </section>
 
-      <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
-        <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
+  <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
+  <section class="sub-view-panel" id="panelProjectFormsWorkspace">
+    <div style="margin-bottom:16px;">
+      <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
+      <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
+    </div>
+    <div id="projectFormsContainer" class="tiles-grid"></div>
+  </section>
+
+  <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+  <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
+    <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
+
+    <!-- Currency & Tax Controls Bar -->
+    <div class="boq-top-controls">
+      <div class="boq-control-group">
+        <span>Currency:</span>
+        <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+          <option value="$" selected>$ USD</option>
+          <option value="S$">S$ SGD</option>
+          <option value="₹">₹ INR</option>
+          <option value="€">€ EUR</option>
+          <option value="£">£ GBP</option>
+          <option value="¥">¥ JPY</option>
+          <option value="A$">A$ AUD</option>
+        </select>
       </div>
-    </section>
 
-    <!-- Other Inner Sub-View Panels -->
-    <section class="sub-view-panel" id="panelCompareWorkspace">
-      <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
-      <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
-    </section>
-
-    <section class="sub-view-panel" id="panelScheduleWorkspace">
-      <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
-      <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
-    </section>
-
-    <!-- Right Activity Feed -->
-    <aside class="notifications-panel">
-      <div class="notifications-header">
-        <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
-        <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
+      <div class="boq-control-group">
+        <span>Tax Rate (%):</span>
+        <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
       </div>
-      <div class="notifications-list">
-        <div class="notification-item">
-          <div class="title">New Project Initialized</div>
-          <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
-          <div class="time">1 hour ago</div>
+    </div>
+
+    <div class="boq-table-card">
+      <table class="boq-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Sl No</th>
+            <th>Item Description</th>
+            <th style="width: 140px;">Quantity</th>
+            <th style="width: 140px;">Unit Price</th>
+            <th style="width: 140px; text-align:right;">Total Price</th>
+            <th style="width: 40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="boqTableBody">
+          <!-- Dynamic BOQ Rows rendered here -->
+        </tbody>
+      </table>
+
+      <button class="boq-add-row-btn" onclick="addBOQRow()">
+        <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add Row Item
+      </button>
+
+      <!-- Calculations Summary Card -->
+      <div class="boq-summary-card">
+        <div class="boq-summary-row">
+          <span>Sub Total:</span>
+          <span id="boqSubTotal">$0.00</span>
+        </div>
+        <div class="boq-summary-row">
+          <span id="boqTaxLabel">Tax / VAT (10%):</span>
+          <span id="boqTax">$0.00</span>
+        </div>
+        <div class="boq-summary-row grand-total">
+          <span>Grand Total:</span>
+          <span id="boqGrandTotal">$0.00</span>
         </div>
       </div>
-    </aside>
+    </div>
+  </section>
+
+  <!-- PROJECT CLAIMS WORKSPACE PANEL -->
+  <section class="sub-view-panel" id="panelClaimsWorkspace">
+    <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+
+    <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
+      <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
+    </div>
+  </section>
+
+  <!-- Other Inner Sub-View Panels -->
+  <section class="sub-view-panel" id="panelCompareWorkspace">
+    <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
+    <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
+  </section>
+
+  <section class="sub-view-panel" id="panelScheduleWorkspace">
+    <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
+    <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
+  </section>
+
+  <!-- Right Activity Feed -->
+  <aside class="notifications-panel">
+    <div class="notifications-header">
+      <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
+      <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
+    </div>
+    <div class="notifications-list">
+      <div class="notification-item">
+        <div class="title">New Project Initialized</div>
+        <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
+        <div class="time">1 hour ago</div>
+      </div>
+    </div>
+  </aside>
   </div>
 
   <!-- CHAT GLOBAL FORMS SELECTOR MODAL -->
@@ -1047,52 +1058,52 @@
         <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
         <button onclick="saveExcelFormTemplate()" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
       </div>
-    </div>
+  </div>
 
-    <!-- Excel Formatting Toolbar -->
-    <div class="excel-toolbar">
-      <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
-      
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+  <!-- Excel Formatting Toolbar -->
+  <div class="excel-toolbar">
+    <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
+    
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
-      <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
+    <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
+    <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
 
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <!-- Formatting -->
-      <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
-      
-      <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
-        <option value="12px">12px</option>
-        <option value="14px" selected>14px</option>
-        <option value="16px">16px</option>
-        <option value="18px">18px</option>
-        <option value="22px">22px</option>
-      </select>
+    <!-- Formatting -->
+    <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
+    
+    <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
+      <option value="12px">12px</option>
+      <option value="14px" selected>14px</option>
+      <option value="16px">16px</option>
+      <option value="18px">18px</option>
+      <option value="22px">22px</option>
+    </select>
 
-      <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
-        <option value="left">Align Left</option>
-        <option value="center">Align Center</option>
-        <option value="right">Align Right</option>
-      </select>
+    <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
+      <option value="left">Align Left</option>
+      <option value="center">Align Center</option>
+      <option value="right">Align Right</option>
+    </select>
 
-      <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
+    <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
 
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <!-- Interactive Form Controls Insertion -->
-      <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
-      <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
-      <button class="excel-tool-btn" onclick="excelMergeCells()">🔲 Merge Cells</button>
-    </div>
+    <!-- Interactive Form Controls Insertion -->
+    <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
+    <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
+    <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+  </div>
 
-    <!-- Spreadsheet Grid Canvas -->
-    <div class="excel-grid-workspace">
-      <table class="excel-table" id="excelSheetTable">
-        <tbody id="excelSheetBody"></tbody>
-      </table>
-    </div>
+  <!-- Spreadsheet Grid Canvas -->
+  <div class="excel-grid-workspace">
+    <table class="excel-table" id="excelSheetTable">
+      <tbody id="excelSheetBody"></tbody>
+    </table>
+  </div>
   </div>
 
   <script>
@@ -1209,8 +1220,8 @@
       const filtered = projects.filter(p => {
         const matchesYear = p.year === selectedYear;
         const matchesSearch = (p.client && p.client.toLowerCase().includes(searchQuery)) ||
-                            (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
-                            (p.location && p.location.toLowerCase().includes(searchQuery));
+                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
+                              (p.location && p.location.toLowerCase().includes(searchQuery));
         return matchesYear && matchesSearch;
       });
 
@@ -1718,10 +1729,11 @@
         return;
       }
 
-      const memberItems = document.querySelectorAll("#chatMemberList .member-item span");
+      // Collect group names instead of member names
+      const groupItems = document.querySelectorAll("#chatGroupsList .member-item span");
       let names = [];
-      memberItems.forEach(span => {
-        const txt = span.innerText.replace(/\s*\(Admin\)/gi, "").trim();
+      groupItems.forEach(span => {
+        const txt = span.innerText.trim();
         names.push(txt);
       });
 
@@ -1736,7 +1748,7 @@
         const div = document.createElement("div");
         div.className = "chat-mention-item";
         div.innerHTML = `
-          <div class="member-avatar" style="width:22px;height:22px;font-size:0.65rem;">${name.charAt(0).toUpperCase()}</div>
+          <div class="member-avatar" style="width:22px;height:22px;font-size:0.65rem;background:#00a884;">${name.charAt(0).toUpperCase()}</div>
           <span>${name}</span>
         `;
         div.onclick = () => {
@@ -1754,17 +1766,32 @@
       dropdown.style.display = "flex";
     }
 
-    function openCommentPrompt(btnElem) {
-      const metaRow = btnElem.closest('.msg-meta-row');
-      if (!metaRow) return;
-      const bubble = metaRow.closest('.msg-bubble');
-      if (!bubble) return;
+    function handleLikeClick(pillElem) {
+      const countSpan = pillElem.querySelector('.like-count');
+      if (!countSpan) return;
+      let currentLikes = parseInt(countSpan.innerText) || 0;
+      if (pillElem.classList.contains('liked')) {
+        pillElem.classList.remove('liked');
+        countSpan.innerText = currentLikes - 1;
+        pillElem.style.color = "var(--subtext-color)";
+      } else {
+        pillElem.classList.add('liked');
+        countSpan.innerText = currentLikes + 1;
+        pillElem.style.color = "#00a884";
+      }
+    }
 
-      let commentBox = bubble.querySelector('.msg-comments-display');
+    function openCommentPrompt(pillElem) {
+      const socialBar = pillElem.closest('.msg-social-bar');
+      if (!socialBar) return;
+      const msgBody = socialBar.closest('.msg-body');
+      if (!msgBody) return;
+
+      let commentBox = msgBody.querySelector('.msg-comments-display');
       if (!commentBox) {
         commentBox = document.createElement('div');
         commentBox.className = 'msg-comments-display';
-        bubble.insertBefore(commentBox, metaRow);
+        msgBody.insertBefore(commentBox, socialBar);
       }
 
       const commentText = prompt("Enter your comment:");
@@ -1773,6 +1800,11 @@
         item.className = 'msg-comment-item';
         item.innerText = `💬 ${commentText.trim()}`;
         commentBox.appendChild(item);
+
+        const countSpan = pillElem.querySelector('.comment-count');
+        if (countSpan) {
+          countSpan.innerText = (parseInt(countSpan.innerText) || 0) + 1;
+        }
       }
     }
 
@@ -2040,910 +2072,940 @@
         });
         container.appendChild(table);
       }
+  }
+
+  function updateChatFolderImportButtonState() {
+    const importBtn = document.getElementById("chatFolderImportBtn");
+    if (!importBtn) return;
+    if (selectedFileForImport) {
+      importBtn.disabled = false;
+      importBtn.style.background = "var(--paper-white)";
+      importBtn.style.color = "var(--jet-black)";
+      importBtn.style.cursor = "pointer";
+    } else {
+      importBtn.disabled = true;
+      importBtn.style.background = "var(--border-color)";
+      importBtn.style.color = "var(--subtext-color)";
+      importBtn.style.cursor = "not-allowed";
     }
+  }
 
-    function updateChatFolderImportButtonState() {
-      const importBtn = document.getElementById("chatFolderImportBtn");
-      if (!importBtn) return;
-      if (selectedFileForImport) {
-        importBtn.disabled = false;
-        importBtn.style.background = "var(--paper-white)";
-        importBtn.style.color = "var(--jet-black)";
-        importBtn.style.cursor = "pointer";
-      } else {
-        importBtn.disabled = true;
-        importBtn.style.background = "var(--border-color)";
-        importBtn.style.color = "var(--subtext-color)";
-        importBtn.style.cursor = "not-allowed";
-      }
+  function confirmImportSelectedFile() {
+    if (!selectedFileForImport) return;
+    if (!activeOpenedProject || !activeOpenedProject.children) return;
+    const folder = activeOpenedProject.children[targetFolderIdxForChatUpload];
+    if (!folder.files) folder.files = [];
+    if (!folder.files.includes(selectedFileForImport)) {
+      folder.files.push(selectedFileForImport);
+      folder.items = `${folder.files.length} Files`;
+      persistProjectTree();
+      renderChatDetailsSidebar();
     }
+    closeChatFoldersSelectorModal();
+  }
 
-    function confirmImportSelectedFile() {
-      if (!selectedFileForImport) return;
-      if (!activeOpenedProject || !activeOpenedProject.children) return;
-      const folder = activeOpenedProject.children[targetFolderIdxForChatUpload];
-      if (!folder.files) folder.files = [];
-      if (!folder.files.includes(selectedFileForImport)) {
-        folder.files.push(selectedFileForImport);
-        folder.items = `${folder.files.length} Files`;
-        persistProjectTree();
-        renderChatDetailsSidebar();
-      }
-      closeChatFoldersSelectorModal();
+  function toggleEmojiPicker(e) {
+    if (e) e.stopPropagation();
+    const panel = document.getElementById("chatEmojiPanel");
+    const popover = document.getElementById("chatAttachmentPopover");
+    if (popover) popover.style.display = "none";
+    if (panel) {
+      panel.style.display = panel.style.display === "grid" ? "none" : "grid";
     }
+  }
 
-    function toggleEmojiPicker(e) {
-      if (e) e.stopPropagation();
-      const panel = document.getElementById("chatEmojiPanel");
-      const popover = document.getElementById("chatAttachmentPopover");
-      if (popover) popover.style.display = "none";
-      if (panel) {
-        panel.style.display = panel.style.display === "grid" ? "none" : "grid";
-      }
+  function toggleAttachmentPopover(e) {
+    if (e) e.stopPropagation();
+    const popover = document.getElementById("chatAttachmentPopover");
+    const panel = document.getElementById("chatEmojiPanel");
+    if (panel) panel.style.display = "none";
+    if (popover) {
+      popover.style.display = popover.style.display === "flex" ? "none" : "flex";
     }
+  }
 
-    function toggleAttachmentPopover(e) {
-      if (e) e.stopPropagation();
-      const popover = document.getElementById("chatAttachmentPopover");
-      const panel = document.getElementById("chatEmojiPanel");
-      if (panel) panel.style.display = "none";
-      if (popover) {
-        popover.style.display = popover.style.display === "flex" ? "none" : "flex";
-      }
-    }
+  function handleOutsideClicks(event) {
+    const emojiPanel = document.getElementById("chatEmojiPanel");
+    const attachPopover = document.getElementById("chatAttachmentPopover");
+    const mentionDropdown = document.getElementById("chatMentionDropdown");
+    const emojiBtn = document.getElementById("emojiToggleBtn");
+    const attachBtn = document.getElementById("attachToggleBtn");
 
-    function handleOutsideClicks(event) {
-      const emojiPanel = document.getElementById("chatEmojiPanel");
-      const attachPopover = document.getElementById("chatAttachmentPopover");
-      const mentionDropdown = document.getElementById("chatMentionDropdown");
-      const emojiBtn = document.getElementById("emojiToggleBtn");
-      const attachBtn = document.getElementById("attachToggleBtn");
-
-      if (emojiPanel && emojiPanel.style.display === "grid") {
-        if (!emojiPanel.contains(event.target) && emojiBtn && !emojiBtn.contains(event.target)) {
-          emojiPanel.style.display = "none";
-        }
-      }
-
-      if (attachPopover && attachPopover.style.display === "flex") {
-        if (!attachPopover.contains(event.target) && attachBtn && !attachBtn.contains(event.target)) {
-          attachPopover.style.display = "none";
-        }
-      }
-
-      if (mentionDropdown && mentionDropdown.style.display === "flex") {
-        const msgInput = document.getElementById("chatMsgInput");
-        if (!mentionDropdown.contains(event.target) && msgInput && !msgInput.contains(event.target)) {
-          mentionDropdown.style.display = "none";
-        }
+    if (emojiPanel && emojiPanel.style.display === "grid") {
+      if (!emojiPanel.contains(event.target) && emojiBtn && !emojiBtn.contains(event.target)) {
+        emojiPanel.style.display = "none";
       }
     }
 
-    function addNewMember() {
-      const name = prompt("Enter new member name:");
-      if (!name || !name.trim()) return;
+    if (attachPopover && attachPopover.style.display === "flex") {
+      if (!attachPopover.contains(event.target) && attachBtn && !attachBtn.contains(event.target)) {
+        attachPopover.style.display = "none";
+      }
+    }
 
-      const trimmedName = name.trim();
-      const memberList = document.getElementById("chatMemberList");
-      if (!memberList) return;
+    if (mentionDropdown && mentionDropdown.style.display === "flex") {
+      const msgInput = document.getElementById("chatMsgInput");
+      if (!mentionDropdown.contains(event.target) && msgInput && !msgInput.contains(event.target)) {
+        mentionDropdown.style.display = "none";
+      }
+    }
+  }
 
-      const firstLetter = trimmedName.charAt(0).toUpperCase();
-      const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+  function addNewMember() {
+    const name = prompt("Enter new member name:");
+    if (!name || !name.trim()) return;
 
+    const trimmedName = name.trim();
+    const memberList = document.getElementById("chatMemberList");
+    if (!memberList) return;
+
+    const firstLetter = trimmedName.charAt(0).toUpperCase();
+    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+
+    const item = document.createElement("div");
+    item.className = "member-item";
+    item.innerHTML = `
+      <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
+      <span>${trimmedName}</span>
+    `;
+    memberList.appendChild(item);
+  }
+
+  function openLightbox(imgSrc) {
+    const lightbox = document.getElementById("lightboxOverlay");
+    const lbImg = document.getElementById("lightboxImage");
+    if (lightbox && lbImg) {
+      lbImg.src = imgSrc;
+      lightbox.style.display = "flex";
+    }
+  }
+
+  function closeLightbox() {
+    const lightbox = document.getElementById("lightboxOverlay");
+    if (lightbox) {
+      lightbox.style.display = "none";
+    }
+  }
+
+  function insertEmoji(emoji) {
+    const input = document.getElementById("chatMsgInput");
+    if (input) input.value += emoji;
+  }
+
+  function triggerFileInput(acceptType) {
+    const fileInput = document.getElementById("chatHiddenFileInput");
+    if (fileInput) {
+      fileInput.accept = acceptType;
+      fileInput.click();
+    }
+    const popover = document.getElementById("chatAttachmentPopover");
+    if (popover) popover.style.display = "none";
+  }
+
+  function handleChatScroll() {
+    const container = document.getElementById("chatThreadContainer");
+    const scrollBtn = document.getElementById("chatScrollDownBtn");
+    if (!container || !scrollBtn) return;
+
+    const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceToBottom > 100) {
+      scrollBtn.style.display = "flex";
+    } else {
+      scrollBtn.style.display = "none";
+    }
+  }
+
+  function scrollToLatestMessage() {
+    const container = document.getElementById("chatThreadContainer");
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
+  }
+
+  function handleFilesStaged(e) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      pendingStagedFiles.push(files[i]);
+    }
+    renderPendingPreviews();
+    e.target.value = "";
+  }
+
+  function removeStagedFile(index) {
+    pendingStagedFiles.splice(index, 1);
+    renderPendingPreviews();
+  }
+
+  function renderPendingPreviews() {
+    const bar = document.getElementById("chatPendingPreviewBar");
+    if (!bar) return;
+    bar.innerHTML = "";
+
+    if (pendingStagedFiles.length === 0) {
+      bar.style.display = "none";
+      return;
+    }
+
+    bar.style.display = "flex";
+
+    pendingStagedFiles.forEach((file, index) => {
       const item = document.createElement("div");
-      item.className = "member-item";
-      item.innerHTML = `
-        <div class="member-avatar" style="background:${randomColor};">${firstLetter}</div>
-        <span>${trimmedName}</span>
-      `;
-      memberList.appendChild(item);
-    }
+      item.className = "pending-thumb-item";
 
-    function openLightbox(imgSrc) {
-      const lightbox = document.getElementById("lightboxOverlay");
-      const lbImg = document.getElementById("lightboxImage");
-      if (lightbox && lbImg) {
-        lbImg.src = imgSrc;
-        lightbox.style.display = "flex";
-      }
-    }
-
-    function closeLightbox() {
-      const lightbox = document.getElementById("lightboxOverlay");
-      if (lightbox) {
-        lightbox.style.display = "none";
-      }
-    }
-
-    function insertEmoji(emoji) {
-      const input = document.getElementById("chatMsgInput");
-      if (input) input.value += emoji;
-    }
-
-    function triggerFileInput(acceptType) {
-      const fileInput = document.getElementById("chatHiddenFileInput");
-      if (fileInput) {
-        fileInput.accept = acceptType;
-        fileInput.click();
-      }
-      const popover = document.getElementById("chatAttachmentPopover");
-      if (popover) popover.style.display = "none";
-    }
-
-    function handleChatScroll() {
-      const container = document.getElementById("chatThreadContainer");
-      const scrollBtn = document.getElementById("chatScrollDownBtn");
-      if (!container || !scrollBtn) return;
-
-      const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-      if (distanceToBottom > 100) {
-        scrollBtn.style.display = "flex";
+      if (file.type.startsWith("image/")) {
+        const url = URL.createObjectURL(file);
+        item.innerHTML = `
+          <img src="${url}" />
+          <button class="pending-remove-btn" onclick="removeStagedFile(${index})">&times;</button>
+        `;
       } else {
-        scrollBtn.style.display = "none";
+        item.innerHTML = `
+          <div class="file-name-label">${file.name}</div>
+          <button class="pending-remove-btn" onclick="removeStagedFile(${index})">&times;</button>
+        `;
       }
+      bar.appendChild(item);
+    });
+  }
+
+  function sendChatMessage() {
+    const input = document.getElementById("chatMsgInput");
+    const text = input ? input.value.trim() : "";
+
+    if (!text && pendingStagedFiles.length === 0) return;
+
+    const container = document.getElementById("chatThreadContainer");
+    if (!container) return;
+
+    const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const mentionDropdown = document.getElementById("chatMentionDropdown");
+    if (mentionDropdown) mentionDropdown.style.display = "none";
+
+    // Check if message mentions any group or is from another group
+    let isGroupMessage = false;
+    let groupName = "User";
+    
+    const groupItems = document.querySelectorAll("#chatGroupsList .member-item span");
+    groupItems.forEach(span => {
+      const gName = span.innerText.trim();
+      if (text.includes('@' + gName) || text.toLowerCase().startsWith(gName.toLowerCase())) {
+        isGroupMessage = true;
+        groupName = gName;
+      }
+    });
+
+    const msgRow = document.createElement("div");
+    msgRow.className = isGroupMessage ? "msg-row incoming" : "msg-row outgoing";
+
+    let socialBarHtml = '';
+    if (isGroupMessage) {
+      socialBarHtml = `
+        <div class="msg-social-bar">
+          <div class="social-action-pill" onclick="handleLikeClick(this)">
+            <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            <span class="like-count">0</span>
+          </div>
+          <div class="social-action-pill" onclick="openCommentPrompt(this)">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span class="comment-count">0</span>
+          </div>
+        </div>
+      `;
     }
 
-    function scrollToLatestMessage() {
-      const container = document.getElementById("chatThreadContainer");
-      if (container) {
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-      }
-    }
+    let avatarHtml = isGroupMessage ? `<div class="msg-avatar" style="background:#00a884;">${groupName.charAt(0)}</div>` : '';
+    let senderHeaderHtml = isGroupMessage ? `<span class="msg-sender-name">${groupName}</span>` : '';
 
-    function handleFilesStaged(e) {
-      const files = e.target.files;
-      if (!files || files.length === 0) return;
+    if (pendingStagedFiles.length > 0) {
+      const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
+      const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
 
-      for (let i = 0; i < files.length; i++) {
-        pendingStagedFiles.push(files[i]);
-      }
-      renderPendingPreviews();
-      e.target.value = "";
-    }
+      if (imageFiles.length > 0) {
+        let imagesHtml = '';
+        const isSingle = imageFiles.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
 
-    function removeStagedFile(index) {
-      pendingStagedFiles.splice(index, 1);
-      renderPendingPreviews();
-    }
-
-    function renderPendingPreviews() {
-      const bar = document.getElementById("chatPendingPreviewBar");
-      if (!bar) return;
-      bar.innerHTML = "";
-
-      if (pendingStagedFiles.length === 0) {
-        bar.style.display = "none";
-        return;
-      }
-
-      bar.style.display = "flex";
-
-      pendingStagedFiles.forEach((file, index) => {
-        const item = document.createElement("div");
-        item.className = "pending-thumb-item";
-
-        if (file.type.startsWith("image/")) {
+        imageFiles.forEach((file, idx) => {
           const url = URL.createObjectURL(file);
-          item.innerHTML = `
-            <img src="${url}" />
-            <button class="pending-remove-btn" onclick="removeStagedFile(${index})">&times;</button>
-          `;
-        } else {
-          item.innerHTML = `
-            <div class="file-name-label">${file.name}</div>
-            <button class="pending-remove-btn" onclick="removeStagedFile(${index})">&times;</button>
-          `;
-        }
-        bar.appendChild(item);
-      });
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById("chatMsgInput");
-      const text = input ? input.value.trim() : "";
-
-      if (!text && pendingStagedFiles.length === 0) return;
-
-      const container = document.getElementById("chatThreadContainer");
-      if (!container) return;
-
-      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      const mentionDropdown = document.getElementById("chatMentionDropdown");
-      if (mentionDropdown) mentionDropdown.style.display = "none";
-
-      if (pendingStagedFiles.length > 0) {
-        const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
-        const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
-
-        if (imageFiles.length > 0) {
-          const msgRow = document.createElement("div");
-          msgRow.className = "msg-row outgoing";
-
-          let imagesHtml = '';
-          const isSingle = imageFiles.length === 1;
-          const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
-
-          imageFiles.forEach((file, idx) => {
-            const url = URL.createObjectURL(file);
-            if (isSingle) {
-              imagesHtml += `
-                <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
-                  <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
-                  <div class="msg-meta-row">
-                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                    <span>${currentTimeStr}</span>
-                  </div>
-                </div>
-              `;
-            } else {
-              let badgeOverlay = '';
-              if (idx === imageFiles.length - 1 && imageFiles.length > 4) {
-                badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
-              }
-              imagesHtml += `
-                <div class="whatsapp-media-item-wrap">
-                  <img src="${url}" onclick="openLightbox('${url}')" />
-                  ${badgeOverlay}
-                </div>
-              `;
-            }
-          });
-
-          if (!isSingle) {
-            msgRow.innerHTML = `
-              <div class="msg-body">
-                <div class="msg-bubble outgoing media-bubble">
-                  <div class="${groupClass}">
-                    ${imagesHtml}
-                  </div>
-                  <div class="msg-meta-row">
-                    <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                    <span>${currentTimeStr}</span>
-                  </div>
-                </div>
+          if (isSingle) {
+            imagesHtml += `
+              <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'} media-bubble" style="width: 100%;">
+                <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
               </div>
             `;
           } else {
-            msgRow.innerHTML = `
-              <div class="msg-body">
-                ${imagesHtml}
+            let badgeOverlay = '';
+            if (idx === imageFiles.length - 1 && imageFiles.length > 4) {
+              badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
+            }
+            imagesHtml += `
+              <div class="whatsapp-media-item-wrap">
+                <img src="${url}" onclick="openLightbox('${url}')" />
+                ${badgeOverlay}
               </div>
             `;
           }
-          container.appendChild(msgRow);
-        }
-
-        otherFiles.forEach(file => {
-          const msgRow = document.createElement("div");
-          msgRow.className = "msg-row outgoing";
-          msgRow.innerHTML = `
-            <div class="msg-body">
-              <div class="msg-bubble outgoing">
-                📄 Attachment: ${file.name}
-                <div class="msg-meta-row">
-                  <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                  <span>${currentTimeStr}</span>
-                </div>
-              </div>
-            </div>
-          `;
-          container.appendChild(msgRow);
         });
 
-        pendingStagedFiles = [];
-        renderPendingPreviews();
+        if (!isSingle) {
+          msgRow.innerHTML = `
+            ${avatarHtml}
+            <div class="msg-body">
+              ${senderHeaderHtml}
+              <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'} media-bubble">
+                <div class="${groupClass}">
+                  ${imagesHtml}
+                </div>
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+              ${socialBarHtml}
+            </div>
+          `;
+        } else {
+          msgRow.innerHTML = `
+            ${avatarHtml}
+            <div class="msg-body">
+              ${senderHeaderHtml}
+              ${imagesHtml}
+              ${socialBarHtml}
+            </div>
+          `;
+        }
+        container.appendChild(msgRow);
       }
 
-      if (text) {
-        const msgRow = document.createElement("div");
-        msgRow.className = "msg-row outgoing";
-        msgRow.innerHTML = `
+      otherFiles.forEach(file => {
+        const fileRow = document.createElement("div");
+        fileRow.className = msgRow.className;
+        fileRow.innerHTML = `
+          ${avatarHtml}
           <div class="msg-body">
-            <div class="msg-bubble outgoing">
-              ${text}
-              <div class="msg-meta-row">
-                <button class="msg-comment-btn" onclick="openCommentPrompt(this)">Comment</button>
-                <span>${currentTimeStr}</span>
-              </div>
+            ${senderHeaderHtml}
+            <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'}">
+              📄 Attachment: ${file.name}
+              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
             </div>
+            ${socialBarHtml}
           </div>
         `;
-        container.appendChild(msgRow);
-        input.value = "";
-      }
+        container.appendChild(fileRow);
+      });
 
-      scrollToLatestMessage();
+      pendingStagedFiles = [];
+      renderPendingPreviews();
     }
 
-    function handleChatInputKey(e) {
-      if (e.key === 'Enter') sendChatMessage();
+    if (text) {
+      msgRow.innerHTML = `
+        ${avatarHtml}
+        <div class="msg-body">
+          ${senderHeaderHtml}
+          <div class="msg-bubble ${isGroupMessage ? 'incoming' : 'outgoing'}">
+            ${text}
+            <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+          </div>
+          ${socialBarHtml}
+        </div>
+      `;
+      container.appendChild(msgRow);
+      input.value = "";
     }
 
-    function renderFormsListUI(containerId, list) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      container.innerHTML = "";
+    scrollToLatestMessage();
+  }
 
-      if (list.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
-        return;
+  function handleChatInputKey(e) {
+    if (e.key === 'Enter') sendChatMessage();
+  }
+
+  function renderFormsListUI(containerId, list) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+      container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
+      return;
+    }
+
+    list.forEach(form => {
+      const card = document.createElement("div");
+      card.className = "form-file-card";
+      card.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <div class="form-file-name">${form.title}</div>
+      `;
+      
+      card.ondblclick = function() {
+        alert(`Opening Form: ${form.title}`);
+      };
+
+      container.appendChild(card);
+    });
+  }
+
+  function openExcelStudio() {
+    buildExcelTableGrid();
+    document.getElementById("excelFormStudioOverlay").style.display = "flex";
+  }
+
+  function closeExcelStudio() {
+    document.getElementById("excelFormStudioOverlay").style.display = "none";
+  }
+
+  function buildExcelTableGrid() {
+    const tbody = document.getElementById("excelSheetBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const headerTr = document.createElement("tr");
+    headerTr.innerHTML = `<th>#</th>`;
+    for (let c = 0; c < excelColsCount; c++) {
+      const colLetter = String.fromCharCode(65 + c);
+      headerTr.innerHTML += `<th>${colLetter}</th>`;
+    }
+    tbody.appendChild(headerTr);
+
+    for (let r = 1; r <= excelRowsCount; r++) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<th>${r}</th>`;
+
+      for (let c = 0; c < excelColsCount; c++) {
+        const td = document.createElement("td");
+        td.contentEditable = "true";
+        td.onclick = function(e) { selectExcelCell(e, td); };
+        tr.appendChild(td);
       }
+      tbody.appendChild(tr);
+    }
+  }
 
-      list.forEach(form => {
-        const card = document.createElement("div");
-        card.className = "form-file-card";
-        card.innerHTML = `
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          <div class="form-file-name">${form.title}</div>
+  function selectExcelCell(e, td) {
+    if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+    selectedExcelCell = td;
+    selectedExcelCell.classList.add("selected-cell");
+  }
+
+  function addExcelRow() {
+    excelRowsCount++;
+    buildExcelTableGrid();
+  }
+
+  function addExcelColumn() {
+    excelColsCount++;
+    buildExcelTableGrid();
+  }
+
+  function formatSelectedCell(action, value) {
+    if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+    if (action === 'bold') {
+      const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+      selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+    } else if (action === 'fontSize') {
+      selectedExcelCell.style.fontSize = value;
+    } else if (action === 'align') {
+      selectedExcelCell.style.textAlign = value;
+    } else if (action === 'color') {
+      selectedExcelCell.style.color = value;
+    }
+  }
+
+  function insertControlToCell(type) {
+    if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+    if (type === 'checkbox') {
+      selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+    } else if (type === 'button') {
+      const btnLabel = prompt("Enter button label:", "Action Button");
+      if (btnLabel) {
+        selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+      }
+    }
+  }
+
+  function mergeExcelCells() {
+    if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+    const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+    if (colspan && parseInt(colspan) > 1) {
+      selectedExcelCell.setAttribute("colspan", colspan);
+    }
+  }
+
+  function saveExcelFormTemplate() {
+    const titleElem = document.getElementById("excelFormTitle");
+    const title = titleElem ? titleElem.value.trim() : "";
+    if (!title) return alert("Please enter a form title.");
+
+    const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
+    if (duplicateForm) {
+      return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
+    }
+
+    globalFormsList.push({
+      id: 'gf-' + Date.now(),
+      title: title,
+      category: 'Spreadsheet Form',
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    renderFormsListUI('globalFormsContainer', globalFormsList);
+    closeExcelStudio();
+  }
+
+  function evaluateMathExpr(expr) {
+    if (typeof expr === 'number') return expr;
+    if (!expr || typeof expr !== 'string') return 0;
+    try {
+      const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (!cleanExpr) return 0;
+      const result = Function(`'use strict'; return (${cleanExpr})`)();
+      return isNaN(result) ? 0 : result;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function renderBOQTable() {
+    const tbody = document.getElementById("boqTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+    const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
+    let subTotal = 0;
+
+    currentBOQItems.forEach((row, index) => {
+      const numQty = evaluateMathExpr(row.qty);
+      const numPrice = evaluateMathExpr(row.price);
+      const rowTotal = numQty * numPrice;
+      subTotal += rowTotal;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+        <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
+        <td style="text-align:center;">
+          <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const taxAmount = subTotal * (taxRate / 100);
+    const grandTotal = subTotal + taxAmount;
+
+    const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+    const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+    const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+    const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+  }
+
+  function updateBOQData(index, field, value) {
+    if (field === 'qty' || field === 'price') {
+      const evaluated = evaluateMathExpr(value);
+      currentBOQItems[index][field] = evaluated.toString();
+    } else {
+      currentBOQItems[index][field] = value;
+    }
+    renderBOQTable();
+  }
+
+  function addBOQRow() {
+    currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+    renderBOQTable();
+  }
+
+  function deleteBOQRow(index) {
+    currentBOQItems.splice(index, 1);
+    renderBOQTable();
+  }
+
+  function getCurrentWorkspaceFolder() {
+    return folderObjectStack[folderObjectStack.length - 1];
+  }
+
+  function renderFolderView() {
+    const breadcrumbContainer = document.getElementById("breadcrumbBar");
+    if (!breadcrumbContainer) return;
+    breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+    folderObjectStack.forEach((node, idx) => {
+      const isLast = idx === folderObjectStack.length - 1;
+      const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+      
+      breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
+      
+      if (isLast) {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+      } else {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+      }
+    });
+
+    const metaHeader = document.getElementById("projectMetaHeader");
+    if (metaHeader) {
+      if (folderObjectStack.length > 1) {
+        metaHeader.style.display = "none";
+      } else {
+        metaHeader.style.display = "flex";
+      }
+    }
+
+    const currentFolderNode = getCurrentWorkspaceFolder();
+    const subGrid = document.getElementById("innerFolderGrid");
+    if (!subGrid) return;
+    subGrid.innerHTML = "";
+
+    if (!currentFolderNode.children) currentFolderNode.children = [];
+
+    if (currentFolderNode.children.length === 0) {
+      subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
+      return;
+    }
+
+    if (currentProjectDisplayMode === 'grid') {
+      subGrid.className = "folder-contents-grid";
+      currentFolderNode.children.forEach((folder, idx) => {
+        const folderCard = document.createElement("div");
+        folderCard.className = "folder-card";
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          folderCard.classList.add("selected-cut");
+        }
+
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
+        folderCard.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-items-count">${itemCount}</div>
         `;
-        
-        card.ondblclick = function() {
-          alert(`Opening Form: ${form.title}`);
+
+        folderCard.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
         };
 
-        container.appendChild(card);
+        folderCard.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        subGrid.appendChild(folderCard);
       });
-    }
+    } else {
+      subGrid.className = "";
+      const table = document.createElement("table");
+      table.className = "projects-list-table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Items / Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
 
-    function openExcelStudio() {
-      buildExcelTableGrid();
-      document.getElementById("excelFormStudioOverlay").style.display = "flex";
-    }
-
-    function closeExcelStudio() {
-      document.getElementById("excelFormStudioOverlay").style.display = "none";
-    }
-
-    function buildExcelTableGrid() {
-      const tbody = document.getElementById("excelSheetBody");
-      if (!tbody) return;
-      tbody.innerHTML = "";
-
-      const headerTr = document.createElement("tr");
-      headerTr.innerHTML = `<th>#</th>`;
-      for (let c = 0; c < excelColsCount; c++) {
-        const colLetter = String.fromCharCode(65 + c);
-        headerTr.innerHTML += `<th>${colLetter}</th>`;
-      }
-      tbody.appendChild(headerTr);
-
-      for (let r = 1; r <= excelRowsCount; r++) {
+      const tbody = table.querySelector("tbody");
+      currentFolderNode.children.forEach((folder, idx) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<th>${r}</th>`;
-
-        for (let c = 0; c < excelColsCount; c++) {
-          const td = document.createElement("td");
-          td.contentEditable = "true";
-          td.onclick = function(e) { selectExcelCell(e, td); };
-          tr.appendChild(td);
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          tr.style.opacity = "0.4";
         }
-        tbody.appendChild(tr);
-      }
-    }
 
-    function selectExcelCell(e, td) {
-      if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
-      selectedExcelCell = td;
-      selectedExcelCell.classList.add("selected-cell");
-    }
-
-    function addExcelRow() {
-      excelRowsCount++;
-      buildExcelTableGrid();
-    }
-
-    function addExcelColumn() {
-      excelColsCount++;
-      buildExcelTableGrid();
-    }
-
-    function formatSelectedCell(action, value) {
-      if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
-
-      if (action === 'bold') {
-        const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
-        selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
-      } else if (action === 'fontSize') {
-        selectedExcelCell.style.fontSize = value;
-      } else if (action === 'align') {
-        selectedExcelCell.style.textAlign = value;
-      } else if (action === 'color') {
-        selectedExcelCell.style.color = value;
-      }
-    }
-
-    function insertControlToCell(type) {
-      if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
-
-      if (type === 'checkbox') {
-        selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
-      } else if (type === 'button') {
-        const btnLabel = prompt("Enter button label:", "Action Button");
-        if (btnLabel) {
-          selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
-        }
-      }
-    }
-
-    function mergeExcelCells() {
-      if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
-      const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
-      if (colspan && parseInt(colspan) > 1) {
-        selectedExcelCell.setAttribute("colspan", colspan);
-      }
-    }
-
-    function saveExcelFormTemplate() {
-      const titleElem = document.getElementById("excelFormTitle");
-      const title = titleElem ? titleElem.value.trim() : "";
-      if (!title) return alert("Please enter a form title.");
-
-      const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
-      if (duplicateForm) {
-        return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
-      }
-
-      globalFormsList.push({
-        id: 'gf-' + Date.now(),
-        title: title,
-        category: 'Spreadsheet Form',
-        date: new Date().toISOString().split('T')[0]
-      });
-
-      renderFormsListUI('globalFormsContainer', globalFormsList);
-      closeExcelStudio();
-    }
-
-    function evaluateMathExpr(expr) {
-      if (typeof expr === 'number') return expr;
-      if (!expr || typeof expr !== 'string') return 0;
-      try {
-        const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
-        if (!cleanExpr) return 0;
-        const result = Function(`'use strict'; return (${cleanExpr})`)();
-        return isNaN(result) ? 0 : result;
-      } catch (e) {
-        return 0;
-      }
-    }
-
-    function renderBOQTable() {
-      const tbody = document.getElementById("boqTableBody");
-      if (!tbody) return;
-      tbody.innerHTML = "";
-
-      const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
-      const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
-
-      let subTotal = 0;
-
-      currentBOQItems.forEach((row, index) => {
-        const numQty = evaluateMathExpr(row.qty);
-        const numPrice = evaluateMathExpr(row.price);
-        const rowTotal = numQty * numPrice;
-        subTotal += rowTotal;
-
-        const tr = document.createElement("tr");
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
         tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
-          <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
-          <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
-          <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
-          <td style="text-align:center;">
-            <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            </button>
+          <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+            <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            ${folder.name}
           </td>
+          <td style="color:var(--subtext-color);">Folder</td>
+          <td style="color:var(--subtext-color);">${itemCount}</td>
         `;
+
+        tr.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        tr.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
         tbody.appendChild(tr);
       });
 
-      const taxAmount = subTotal * (taxRate / 100);
-      const grandTotal = subTotal + taxAmount;
-
-      const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
-      const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
-      const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
-      const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+      subGrid.appendChild(table);
     }
+  }
 
-    function updateBOQData(index, field, value) {
-      if (field === 'qty' || field === 'price') {
-        const evaluated = evaluateMathExpr(value);
-        currentBOQItems[index][field] = evaluated.toString();
-      } else {
-        currentBOQItems[index][field] = value;
-      }
-      renderBOQTable();
-    }
+  function jumpToBreadcrumbIndex(targetIndex) {
+    if (targetIndex === 0) {
+      activeOpenedProject = null;
+      folderObjectStack = [];
+      activeViewMode = 'projects';
 
-    function addBOQRow() {
-      currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
-      renderBOQTable();
-    }
+      const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
+      const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
 
-    function deleteBOQRow(index) {
-      currentBOQItems.splice(index, 1);
-      renderBOQTable();
-    }
+      const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
+      const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
 
-    function getCurrentWorkspaceFolder() {
-      return folderObjectStack[folderObjectStack.length - 1];
-    }
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
 
-    function renderFolderView() {
-      const breadcrumbContainer = document.getElementById("breadcrumbBar");
-      if (!breadcrumbContainer) return;
-      breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
-
-      folderObjectStack.forEach((node, idx) => {
-        const isLast = idx === folderObjectStack.length - 1;
-        const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
-        
-        breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
-        
-        if (isLast) {
-          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
-        } else {
-          breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
-        }
+      const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
+      views.forEach(vId => {
+        const el = document.getElementById(vId);
+        if (el) el.style.display = "none";
       });
 
-      const metaHeader = document.getElementById("projectMetaHeader");
-      if (metaHeader) {
-        if (folderObjectStack.length > 1) {
-          metaHeader.style.display = "none";
-        } else {
-          metaHeader.style.display = "flex";
-        }
-      }
-
-      const currentFolderNode = getCurrentWorkspaceFolder();
-      const subGrid = document.getElementById("innerFolderGrid");
-      if (!subGrid) return;
-      subGrid.innerHTML = "";
-
-      if (!currentFolderNode.children) currentFolderNode.children = [];
-
-      if (currentFolderNode.children.length === 0) {
-        subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
-        return;
-      }
-
-      if (currentProjectDisplayMode === 'grid') {
-        subGrid.className = "folder-contents-grid";
-        currentFolderNode.children.forEach((folder, idx) => {
-          const folderCard = document.createElement("div");
-          folderCard.className = "folder-card";
-          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
-            folderCard.classList.add("selected-cut");
-          }
-
-          const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
-          folderCard.innerHTML = `
-            <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-            <div class="folder-name">${folder.name}</div>
-            <div class="folder-items-count">${itemCount}</div>
-          `;
-
-          folderCard.onclick = (e) => {
-            e.stopPropagation();
-            folderObjectStack.push(folder);
-            renderFolderView();
-          };
-
-          folderCard.oncontextmenu = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showFolderContextMenu(e, folder, idx);
-          };
-
-          subGrid.appendChild(folderCard);
-        });
-      } else {
-        subGrid.className = "";
-        const table = document.createElement("table");
-        table.className = "projects-list-table";
-        table.innerHTML = `
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Items / Details</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        `;
-
-        const tbody = table.querySelector("tbody");
-        currentFolderNode.children.forEach((folder, idx) => {
-          const tr = document.createElement("tr");
-          if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
-            tr.style.opacity = "0.4";
-          }
-
-          const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
-          tr.innerHTML = `
-            <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
-              <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              ${folder.name}
-            </td>
-            <td style="color:var(--subtext-color);">Folder</td>
-            <td style="color:var(--subtext-color);">${itemCount}</td>
-          `;
-
-          tr.onclick = (e) => {
-            e.stopPropagation();
-            folderObjectStack.push(folder);
-            renderFolderView();
-          };
-
-          tr.oncontextmenu = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showFolderContextMenu(e, folder, idx);
-          };
-
-          tbody.appendChild(tr);
-        });
-
-        subGrid.appendChild(table);
-      }
+      switchMainViewTab('projects');
+    } else {
+      folderObjectStack = folderObjectStack.slice(0, targetIndex);
+      switchProjectSubTab('folder');
     }
+  }
 
-    function jumpToBreadcrumbIndex(targetIndex) {
-      if (targetIndex === 0) {
-        activeOpenedProject = null;
-        folderObjectStack = [];
-        activeViewMode = 'projects';
+  function navigateUpBreadcrumb() {
+    jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+  }
 
-        const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
-        const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
+  function showFolderContextMenu(e, folder, idx) {
+    hideContextMenus();
+    selectedFolderForContext = { folder, idx };
+    const menu = document.getElementById("folderContextMenu");
+    if (!menu) return;
+    
+    const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
+    const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
+    const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
+    const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
+    const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
+    const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
 
-        const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
-        const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
+    menu.style.top = `${e.pageY}px`;
+    menu.style.left = `${e.pageX}px`;
+    menu.style.display = "flex";
+  }
 
-        const searchElem = document.getElementById("projectSearchInput");
-        if (searchElem) searchElem.style.display = "";
-
-        const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
-        views.forEach(vId => {
-          const el = document.getElementById(vId);
-          if (el) el.style.display = "none";
-        });
-
-        switchMainViewTab('projects');
-      } else {
-        folderObjectStack = folderObjectStack.slice(0, targetIndex);
-        switchProjectSubTab('folder');
-      }
-    }
-
-    function navigateUpBreadcrumb() {
-      jumpToBreadcrumbIndex(folderObjectStack.length - 1);
-    }
-
-    function showFolderContextMenu(e, folder, idx) {
+  function handleWorkspaceContextMenu(e) {
+    if (activeOpenedProject && activeViewMode === 'folder') {
+      e.preventDefault();
       hideContextMenus();
-      selectedFolderForContext = { folder, idx };
+
+      if (!clipboardFolder) return;
+
+      selectedFolderForContext = null;
       const menu = document.getElementById("folderContextMenu");
       if (!menu) return;
-      
-      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
-      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
-      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
-      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
-      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
-      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
+
+      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
+      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
+      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
+      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
+      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
+      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
 
       menu.style.top = `${e.pageY}px`;
       menu.style.left = `${e.pageX}px`;
       menu.style.display = "flex";
     }
+  }
 
-    function handleWorkspaceContextMenu(e) {
-      if (activeOpenedProject && activeViewMode === 'folder') {
-        e.preventDefault();
-        hideContextMenus();
+  function hideContextMenus() {
+    const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+    const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
+  }
 
-        if (!clipboardFolder) return;
+  function executeContextAction(action) {
+    hideContextMenus();
+    let currentFolderNode = getCurrentWorkspaceFolder();
 
-        selectedFolderForContext = null;
-        const menu = document.getElementById("folderContextMenu");
-        if (!menu) return;
-
-        const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
-        const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
-        const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
-        const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
-        const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
-        const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
-
-        menu.style.top = `${e.pageY}px`;
-        menu.style.left = `${e.pageX}px`;
-        menu.style.display = "flex";
-      }
-    }
-
-    function hideContextMenus() {
-      const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
-      const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
-    }
-
-    function executeContextAction(action) {
-      hideContextMenus();
-      let currentFolderNode = getCurrentWorkspaceFolder();
-
-      if (action === 'copy') {
-        if (!selectedFolderForContext) return;
-        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
-        isCutOperation = false;
-        renderFolderView();
-      } 
-      else if (action === 'cut') {
-        if (!selectedFolderForContext) return;
-        clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
-        clipboardFolder.sourceIdx = selectedFolderForContext.idx;
-        clipboardFolder.sourceParent = currentFolderNode;
-        isCutOperation = true;
-        renderFolderView();
-      } 
-      else if (action === 'paste') {
-        if (!clipboardFolder) return;
-        
-        let targetName = clipboardFolder.name;
-        let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
-        
-        if (duplicateExists) {
-          if (isCutOperation) {
-            return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
-          } else {
-            let copyCounter = 1;
-            let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
-            targetName = `${baseName} - Copy`;
-            
-            while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
-              copyCounter++;
-              targetName = `${baseName} - Copy (${copyCounter})`;
-            }
+    if (action === 'copy') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      isCutOperation = false;
+      renderFolderView();
+    } 
+    else if (action === 'cut') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+      clipboardFolder.sourceParent = currentFolderNode;
+      isCutOperation = true;
+      renderFolderView();
+    } 
+    else if (action === 'paste') {
+      if (!clipboardFolder) return;
+      
+      let targetName = clipboardFolder.name;
+      let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
+      
+      if (duplicateExists) {
+        if (isCutOperation) {
+          return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
+        } else {
+          let copyCounter = 1;
+          let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
+          targetName = `${baseName} - Copy`;
+          
+          while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
+            copyCounter++;
+            targetName = `${baseName} - Copy (${copyCounter})`;
           }
         }
-
-        if (isCutOperation && clipboardFolder.sourceParent) {
-          clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
-        }
-        
-        const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
-        newPastedFolder.id = 'f-' + Date.now();
-        newPastedFolder.name = targetName;
-
-        currentFolderNode.children.push(newPastedFolder);
-
-        clipboardFolder = null;
-        isCutOperation = false;
-        persistProjectTree();
-        renderFolderView();
-      } 
-      else if (action === 'rename') {
-        if (!selectedFolderForContext) return;
-        const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
-        if (!newName || !newName.trim()) return;
-
-        const trimmed = newName.trim();
-        const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
-        if (duplicateExists) {
-          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
-        }
-
-        currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
-        persistProjectTree();
-        renderFolderView();
-      } 
-      else if (action === 'delete') {
-        if (!selectedFolderForContext) return;
-        if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
-          currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
-          persistProjectTree();
-          renderFolderView();
-        }
       }
-    }
 
-    function persistProjectTree() {
-      if (!activeOpenedProject) return;
-      const allProjects = getProjects();
-      const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
-      if (idx !== -1) {
-        allProjects[idx] = activeOpenedProject;
-        saveProjects(allProjects);
+      if (isCutOperation && clipboardFolder.sourceParent) {
+        clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
       }
-    }
-
-    function handleFabClick() {
-      if (activeOpenedProject && activeViewMode === 'forms') {
-        openChatGlobalFormsSelectorModal();
-      } else if (activeViewMode === 'forms') {
-        openExcelStudio();
-      } else if (activeOpenedProject && activeViewMode === 'folder') {
-        const newSubName = prompt("Enter new folder name:");
-        if (!newSubName || !newSubName.trim()) return;
-
-        const trimmed = newSubName.trim();
-        let currentFolderNode = getCurrentWorkspaceFolder();
-        if (!currentFolderNode.children) currentFolderNode.children = [];
-
-        const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
-        if (duplicateExists) {
-          return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
-        }
-
-        currentFolderNode.children.push({
-          id: 'f-' + Date.now(),
-          name: trimmed,
-          items: '0 Files',
-          children: [],
-          files: []
-        });
-
-        persistProjectTree();
-        renderFolderView();
-      } else if (activeViewMode === 'projects') {
-        openCreateProjectModal();
-      }
-    }
-
-    function openCreateProjectModal() {
-      document.getElementById("newProjectClient").value = "";
-      document.getElementById("newProjectNo").value = "";
-      document.getElementById("newProjectLocation").value = "";
-      document.getElementById("newProjectRemarks").value = "";
       
-      document.getElementById("createProjectModal").style.display = "flex";
-    }
+      const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+      newPastedFolder.id = 'f-' + Date.now();
+      newPastedFolder.name = targetName;
 
-    function closeCreateProjectModal() {
-      document.getElementById("createProjectModal").style.display = "none";
-    }
+      currentFolderNode.children.push(newPastedFolder);
 
-    function createNewProject() {
-      const client = document.getElementById("newProjectClient").value.trim();
-      const projectNo = document.getElementById("newProjectNo").value.trim();
-      const location = document.getElementById("newProjectLocation").value.trim();
-      const remarks = document.getElementById("newProjectRemarks").value.trim();
-      
-      const year = document.getElementById("yearPicker").value || "2026";
+      clipboardFolder = null;
+      isCutOperation = false;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'rename') {
+      if (!selectedFolderForContext) return;
+      const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+      if (!newName || !newName.trim()) return;
 
-      if (!client) return alert("Please enter a client name.");
-
-      const projects = getProjects();
-      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+      const trimmed = newName.trim();
+      const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
       if (duplicateExists) {
-        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
       }
 
-      projects.push({
-        id: 'proj-' + Date.now(),
-        client: client,
-        projectNo: targetProjNo,
-        location: location || 'N/A',
-        remarks: remarks,
-        year: year,
-        children: getDefaultSubFolders()
+      currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'delete') {
+      if (!selectedFolderForContext) return;
+      if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+        currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+        persistProjectTree();
+        renderFolderView();
+      }
+    }
+  }
+
+  function persistProjectTree() {
+    if (!activeOpenedProject) return;
+    const allProjects = getProjects();
+    const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+    if (idx !== -1) {
+      allProjects[idx] = activeOpenedProject;
+      saveProjects(allProjects);
+    }
+  }
+
+  function handleFabClick() {
+    if (activeOpenedProject && activeViewMode === 'forms') {
+      openChatGlobalFormsSelectorModal();
+    } else if (activeViewMode === 'forms') {
+      openExcelStudio();
+    } else if (activeOpenedProject && activeViewMode === 'folder') {
+      const newSubName = prompt("Enter new folder name:");
+      if (!newSubName || !newSubName.trim()) return;
+
+      const trimmed = newSubName.trim();
+      let currentFolderNode = getCurrentWorkspaceFolder();
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+
+      const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+      }
+
+      currentFolderNode.children.push({
+        id: 'f-' + Date.now(),
+        name: trimmed,
+        items: '0 Files',
+        children: [],
+        files: []
       });
 
-      saveProjects(projects);
-      filterProjects();
-      closeCreateProjectModal();
+      persistProjectTree();
+      renderFolderView();
+    } else if (activeViewMode === 'projects') {
+      openCreateProjectModal();
+    }
+  }
+
+  function openCreateProjectModal() {
+    document.getElementById("newProjectClient").value = "";
+    document.getElementById("newProjectNo").value = "";
+    document.getElementById("newProjectLocation").value = "";
+    document.getElementById("newProjectRemarks").value = "";
+    
+    document.getElementById("createProjectModal").style.display = "flex";
+  }
+
+  function closeCreateProjectModal() {
+    document.getElementById("createProjectModal").style.display = "none";
+  }
+
+  function createNewProject() {
+    const client = document.getElementById("newProjectClient").value.trim();
+    const projectNo = document.getElementById("newProjectNo").value.trim();
+    const location = document.getElementById("newProjectLocation").value.trim();
+    const remarks = document.getElementById("newProjectRemarks").value.trim();
+    
+    const year = document.getElementById("yearPicker").value || "2026";
+
+    if (!client) return alert("Please enter a client name.");
+
+    const projects = getProjects();
+    const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+    if (duplicateExists) {
+      return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
     }
 
-    (function init() {
-      const searchElem = document.getElementById("projectSearchInput");
-      if (searchElem) searchElem.style.display = "";
-      switchMainViewTab('projects');
-    })();
+    projects.push({
+      id: 'proj-' + Date.now(),
+      client: client,
+      projectNo: targetProjNo,
+      location: location || 'N/A',
+      remarks: remarks,
+      year: year,
+      children: getDefaultSubFolders()
+    });
+
+    saveProjects(projects);
+    filterProjects();
+    closeCreateProjectModal();
+  }
+
+  (function init() {
+    const searchElem = document.getElementById("projectSearchInput");
+    if (searchElem) searchElem.style.display = "";
+    switchMainViewTab('projects');
+  })();
   </script>
 </body>
 </html>
