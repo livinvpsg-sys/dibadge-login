@@ -2633,7 +2633,7 @@
       updateMessageContextFloatingBar();
     }
 
-    function updateMessageContextFloatingBar() {
+   function updateMessageContextFloatingBar() {
       const bar = document.getElementById("msgContextFloatingBar");
       if (!bar || selectedMessageIds.length === 0) {
         if (bar) bar.style.display = "none";
@@ -2649,16 +2649,21 @@
       const isMulti = selectedMsgs.length > 1;
       const firstMsg = selectedMsgs[0];
       const isAttachment = firstMsg && ((firstMsg.imageUrls && firstMsg.imageUrls.length > 0) || (firstMsg.files && firstMsg.files.length > 0));
+      
+      // Check if message was sent/tagged to a group (e.g. contains targetGroup)
+      const isGroupMessage = firstMsg && firstMsg.targetGroup && firstMsg.targetGroup.trim() !== "";
 
-      if (isMulti) {
+      if (isMulti || isGroupMessage) {
+        // Multiple messages selected OR sent to a group -> Show Delete only (no reply/edit/copy)
         bar.innerHTML = `
           <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
             <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-            Delete (${selectedMessageIds.length})
+            Delete ${isMulti ? '(' + selectedMessageIds.length + ')' : ''}
           </button>
           <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
         `;
       } else if (isAttachment) {
+        // Single attachment/group media message -> Reply, Delete
         bar.innerHTML = `
           <button class="msg-context-btn" onclick="actionReplyMessage()">
             <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
@@ -2671,6 +2676,7 @@
           <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
         `;
       } else {
+        // Single normal text message -> Reply, Edit, Copy, Delete
         bar.innerHTML = `
           <button class="msg-context-btn" onclick="actionReplyMessage()">Reply</button>
           <button class="msg-context-btn" onclick="actionEditMessage()">Edit</button>
@@ -2680,7 +2686,6 @@
         `;
       }
     }
-
     function clearMessageSelection() {
       selectedMessageIds = [];
       isMessageSelectionMode = false;
