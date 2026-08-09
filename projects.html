@@ -2233,6 +2233,14 @@ function sendChatMessage() {
     persistProjectTree();
     renderChatMessages();
     scrollToLatestMessage();
+
+    // Ensure state synchronization across active references
+    const allProjects = getProjects();
+    const currentProjIdx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+    if (currentProjIdx !== -1) {
+      allProjects[currentProjIdx] = activeOpenedProject;
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+    }
   }
 
   function handleChatInputKey(e) {
