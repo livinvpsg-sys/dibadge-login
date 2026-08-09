@@ -2170,7 +2170,7 @@
     }
   }
 
-  function sendChatMessage() {
+function sendChatMessage() {
     const input = document.getElementById("chatMsgInput");
     let rawText = input ? input.value.trim() : "";
 
@@ -2214,7 +2214,6 @@
 
     let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
 
-    // Single message bubble even with multiple groups mentioned
     activeOpenedProject.chatMessages.push({
       id: 'm-' + Date.now() + '-' + Math.random(),
       type: 'outgoing',
@@ -2234,6 +2233,12 @@
     persistProjectTree();
     renderChatMessages();
     scrollToLatestMessage();
+  }
+
+  function handleChatInputKey(e) {
+    if (e.key === 'Enter') {
+      sendChatMessage();
+    }
   }
 
   function renderChatMessages() {
