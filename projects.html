@@ -2170,72 +2170,105 @@
     }
   }
 
- function sendChatMessage() {
+function sendChatMessage() {
     const input = document.getElementById("chatMsgInput");
     let rawText = input ? input.value.trim() : "";
 
     if (!rawText && pendingStagedFiles.length === 0) return;
-    if (!activeOpenedProject) return;
+    const container = document.getElementById("chatThreadContainer");
+    if (!container) return;
 
     const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const mentionDropdown = document.getElementById("chatMentionDropdown");
-    if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    const groups = activeOpenedProject.chatGroups || [];
-    let allGroupNames = groups.map(g => g.name);
+    if (pendingStagedFiles.length > 0) {
+      const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
+      const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
 
-    let mentionedGroups = [];
-    allGroupNames.forEach(g => {
-      const regex = new RegExp('@\\s?' + g, 'gi');
-      if (regex.test(rawText)) {
-        mentionedGroups.push(g);
+      if (imageFiles.length > 0) {
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+
+        let imagesHtml = '';
+        const isSingle = imageFiles.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+
+        imageFiles.forEach((file, idx) => {
+          const url = URL.createObjectURL(file);
+          if (isSingle) {
+            imagesHtml += `
+              <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
+                <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            `;
+          } else {
+            let badgeOverlay = '';
+            if (idx === imageFiles.length - 1 && imageFiles.length > 4) {
+              badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
+            }
+            imagesHtml += `
+              <div class="whatsapp-media-item-wrap">
+                <img src="${url}" onclick="openLightbox('${url}')" />
+                ${badgeOverlay}
+              </div>
+            `;
+          }
+        });
+
+        if (!isSingle) {
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              <div class="msg-bubble outgoing media-bubble">
+                <div class="${groupClass}">
+                  ${imagesHtml}
+                </div>
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            </div>
+          `;
+        } else {
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              ${imagesHtml}
+            </div>
+          `;
+        }
+        container.appendChild(msgRow);
       }
-    });
 
-    function processMentions(textStr) {
-      let res = textStr;
-      allGroupNames.forEach(g => {
-        const reg = new RegExp('@\\s?' + g, 'gi');
-        res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
+      otherFiles.forEach(file => {
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+        msgRow.innerHTML = `
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              📄 Attachment: ${file.name}
+              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(msgRow);
       });
-      const members = activeOpenedProject.chatMembers || [];
-      members.forEach(m => {
-        const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
-        const reg = new RegExp('@' + mClean, 'gi');
-        res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
-      });
-      return res;
+
+      pendingStagedFiles = [];
+      renderPendingPreviews();
     }
 
-    if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+    if (rawText) {
+      const msgRow = document.createElement("div");
+      msgRow.className = "msg-row outgoing";
+      msgRow.innerHTML = `
+        <div class="msg-body">
+          <div class="msg-bubble outgoing">
+            ${rawText}
+            <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+          </div>
+        </div>
+      `;
+      container.appendChild(msgRow);
+      input.value = "";
+    }
 
-    const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
-    const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
-
-    let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
-
-    // Push new message directly to active object and save
-    const newMsg = {
-      id: 'm-' + Date.now() + '-' + Math.random(),
-      type: 'outgoing',
-      targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
-      text: processMentions(rawText),
-      imageUrls: imageUrls,
-      files: otherFiles.map(f => f.name),
-      time: currentTimeStr,
-      likes: 0,
-      comments: []
-    };
-
-    activeOpenedProject.chatMessages.push(newMsg);
-
-    pendingStagedFiles = [];
-    renderPendingPreviews();
-    if (input) input.value = "";
-
-    // Save and immediately update UI
-    persistProjectTree();
-    renderChatMessages();
     scrollToLatestMessage();
   }
 
