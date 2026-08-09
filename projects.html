@@ -847,116 +847,116 @@
         </div>
 
       </div>
-  </section>
+    </section>
 
-  <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
-  <section class="sub-view-panel" id="panelProjectFormsWorkspace">
-    <div style="margin-bottom:16px;">
-      <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
-      <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
-    </div>
-    <div id="projectFormsContainer" class="tiles-grid"></div>
-  </section>
-
-  <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
-  <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
-    <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
-
-    <!-- Currency & Tax Controls Bar -->
-    <div class="boq-top-controls">
-      <div class="boq-control-group">
-        <span>Currency:</span>
-        <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
-          <option value="$" selected>$ USD</option>
-          <option value="S$">S$ SGD</option>
-          <option value="₹">₹ INR</option>
-          <option value="€">€ EUR</option>
-          <option value="£">£ GBP</option>
-          <option value="¥">¥ JPY</option>
-          <option value="A$">A$ AUD</option>
-        </select>
+    <!-- INNER PROJECT FORMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelProjectFormsWorkspace">
+      <div style="margin-bottom:16px;">
+        <h2 style="font-size:1.15rem; font-weight:700;">Project Specific Forms</h2>
+        <p style="color:var(--subtext-color); font-size:0.85rem;">Forms and field logs active for this project. Click bottom left + button to import from Global Forms.</p>
       </div>
+      <div id="projectFormsContainer" class="tiles-grid"></div>
+    </section>
 
-      <div class="boq-control-group">
-        <span>Tax Rate (%):</span>
-        <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
-      </div>
-    </div>
+    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
+      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
 
-    <div class="boq-table-card">
-      <table class="boq-table">
-        <thead>
-          <tr>
-            <th style="width: 60px;">Sl No</th>
-            <th>Item Description</th>
-            <th style="width: 140px;">Quantity</th>
-            <th style="width: 140px;">Unit Price</th>
-            <th style="width: 140px; text-align:right;">Total Price</th>
-            <th style="width: 40px;"></th>
-          </tr>
-        </thead>
-        <tbody id="boqTableBody">
-          <!-- Dynamic BOQ Rows rendered here -->
-        </tbody>
-      </table>
-
-      <button class="boq-add-row-btn" onclick="addBOQRow()">
-        <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Add Row Item
-      </button>
-
-      <!-- Calculations Summary Card -->
-      <div class="boq-summary-card">
-        <div class="boq-summary-row">
-          <span>Sub Total:</span>
-          <span id="boqSubTotal">$0.00</span>
+      <!-- Currency & Tax Controls Bar -->
+      <div class="boq-top-controls">
+        <div class="boq-control-group">
+          <span>Currency:</span>
+          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+            <option value="$" selected>$ USD</option>
+            <option value="S$">S$ SGD</option>
+            <option value="₹">₹ INR</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+            <option value="¥">¥ JPY</option>
+            <option value="A$">A$ AUD</option>
+          </select>
         </div>
-        <div class="boq-summary-row">
-          <span id="boqTaxLabel">Tax / VAT (10%):</span>
-          <span id="boqTax">$0.00</span>
-        </div>
-        <div class="boq-summary-row grand-total">
-          <span>Grand Total:</span>
-          <span id="boqGrandTotal">$0.00</span>
+
+        <div class="boq-control-group">
+          <span>Tax Rate (%):</span>
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- PROJECT CLAIMS WORKSPACE PANEL -->
-  <section class="sub-view-panel" id="panelClaimsWorkspace">
-    <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+      <div class="boq-table-card">
+        <table class="boq-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Sl No</th>
+              <th>Item Description</th>
+              <th style="width: 140px;">Quantity</th>
+              <th style="width: 140px;">Unit Price</th>
+              <th style="width: 140px; text-align:right;">Total Price</th>
+              <th style="width: 40px;"></th>
+            </tr>
+          </thead>
+          <tbody id="boqTableBody">
+            <!-- Dynamic BOQ Rows rendered here -->
+          </tbody>
+        </table>
 
-    <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
-      <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
-    </div>
-  </section>
+        <button class="boq-add-row-btn" onclick="addBOQRow()">
+          <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Row Item
+        </button>
 
-  <!-- Other Inner Sub-View Panels -->
-  <section class="sub-view-panel" id="panelCompareWorkspace">
-    <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
-    <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
-  </section>
-
-  <section class="sub-view-panel" id="panelScheduleWorkspace">
-    <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
-    <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
-  </section>
-
-  <!-- Right Activity Feed -->
-  <aside class="notifications-panel">
-    <div class="notifications-header">
-      <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
-      <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
-    </div>
-    <div class="notifications-list">
-      <div class="notification-item">
-        <div class="title">New Project Initialized</div>
-        <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
-        <div class="time">1 hour ago</div>
+        <!-- Calculations Summary Card -->
+        <div class="boq-summary-card">
+          <div class="boq-summary-row">
+            <span>Sub Total:</span>
+            <span id="boqSubTotal">$0.00</span>
+          </div>
+          <div class="boq-summary-row">
+            <span id="boqTaxLabel">Tax / VAT (10%):</span>
+            <span id="boqTax">$0.00</span>
+          </div>
+          <div class="boq-summary-row grand-total">
+            <span>Grand Total:</span>
+            <span id="boqGrandTotal">$0.00</span>
+          </div>
+        </div>
       </div>
-    </div>
-  </aside>
+    </section>
+
+    <!-- PROJECT CLAIMS WORKSPACE PANEL -->
+    <section class="sub-view-panel" id="panelClaimsWorkspace">
+      <h2 style="font-size:1.15rem; font-weight:700; margin-bottom:12px;">Claims</h2>
+
+      <div style="background:var(--surface-color); border:1px solid var(--border-color); border-radius:12px; padding:20px; max-width:800px;">
+        <p style="color:var(--subtext-color); text-align:center; padding:20px 0;">No active claims recorded for this project yet.</p>
+      </div>
+    </section>
+
+    <!-- Other Inner Sub-View Panels -->
+    <section class="sub-view-panel" id="panelCompareWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Expense & BOQ Comparison</h2>
+      <p style="color:var(--subtext-color);">Real-time tracking of actual expenses against budget BOQ estimations.</p>
+    </section>
+
+    <section class="sub-view-panel" id="panelScheduleWorkspace">
+      <h2 style="font-size:1.1rem; margin-bottom:12px;">Schedule</h2>
+      <p style="color:var(--subtext-color);">Calendar milestones, tasks, and site timeline tracking.</p>
+    </section>
+
+    <!-- Right Activity Feed -->
+    <aside class="notifications-panel">
+      <div class="notifications-header">
+        <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
+        <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
+      </div>
+      <div class="notifications-list">
+        <div class="notification-item">
+          <div class="title">New Project Initialized</div>
+          <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
+          <div class="time">1 hour ago</div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <!-- CHAT GLOBAL FORMS SELECTOR MODAL -->
@@ -1175,6 +1175,10 @@
     // Telegram style multi-selection tracking
     let isSelectionMode = false;
     let selectedMessageIds = new Set();
+    let longPressTimer = null;
+
+    let currentLightboxImages = [];
+    let currentLightboxIndex = 0;
 
     let excelRowsCount = 8;
     let excelColsCount = 6;
@@ -1213,92 +1217,70 @@
       { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Gov Auditors'}] }
     ];
 
-   function getProjects() {
-    try {
-      const stored = localStorage.getItem('dibadge_project_tiles');
-      if (!stored) {
-        localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+    function getProjects() {
+      try {
+        const stored = localStorage.getItem('dibadge_project_tiles');
+        if (!stored) {
+          localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+          return defaultProjects;
+        }
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return defaultProjects;
+        return parsed.map(p => {
+          if (!p.children) p.children = getDefaultSubFolders();
+          if (!p.chatMessages) p.chatMessages = [];
+          if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
+          if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
+          p.children.forEach(ch => { if (!ch.files) ch.files = []; });
+          return p;
+        });
+      } catch(e) {
+        console.error("Storage error:", e);
         return defaultProjects;
       }
-      const parsed = JSON.parse(stored);
-      if (!Array.isArray(parsed)) return defaultProjects;
-      return parsed.map(p => {
-        if (!p.children) p.children = getDefaultSubFolders();
-        if (!p.chatMessages) p.chatMessages = [];
-        if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
-        if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
-        p.children.forEach(ch => { if (!ch.files) ch.files = []; });
-        return p;
+    }
+
+    function saveProjects(array) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
+      filterProjects();
+    }
+
+    function createNewProject() {
+      const client = document.getElementById("newProjectClient").value.trim();
+      const projectNo = document.getElementById("newProjectNo").value.trim();
+      const location = document.getElementById("newProjectLocation").value.trim();
+      const remarks = document.getElementById("newProjectRemarks").value.trim();
+      
+      const yearPicker = document.getElementById("yearPicker");
+      const year = yearPicker ? yearPicker.value : "2026";
+
+      if (!client) return alert("Please enter a client name.");
+
+      let projects = getProjects();
+      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
+      }
+
+      projects.push({
+        id: 'proj-' + Date.now(),
+        client: client,
+        projectNo: targetProjNo,
+        location: location || 'N/A',
+        remarks: remarks,
+        year: year,
+        children: getDefaultSubFolders(),
+        chatMessages: [],
+        chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
+        chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}]
       });
-    } catch(e) {
-      console.error("Storage error:", e);
-      return defaultProjects;
+
+      saveProjects(projects);
+      closeCreateProjectModal();
+      filterProjects();
     }
-  }
-
-  function saveProjects(array) {
-    localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
-    filterProjects();
-  }
-
-  (function init() {
-    const searchElem = document.getElementById("projectSearchInput");
-    if (searchElem) searchElem.style.display = "";
-    
-    if (!localStorage.getItem('dibadge_project_tiles')) {
-      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
-    }
-    
-    // Ensure the container is visible and projects load up immediately
-    switchMainViewTab('projects');
-  })();
-
-  function createNewProject() {
-    const client = document.getElementById("newProjectClient").value.trim();
-    const projectNo = document.getElementById("newProjectNo").value.trim();
-    const location = document.getElementById("newProjectLocation").value.trim();
-    const remarks = document.getElementById("newProjectRemarks").value.trim();
-    
-    const yearPicker = document.getElementById("yearPicker");
-    const year = yearPicker ? yearPicker.value : "2026";
-
-    if (!client) return alert("Please enter a client name.");
-
-    let projects = getProjects();
-    const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
-
-    const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
-    if (duplicateExists) {
-      return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
-    }
-
-    projects.push({
-      id: 'proj-' + Date.now(),
-      client: client,
-      projectNo: targetProjNo,
-      location: location || 'N/A',
-      remarks: remarks,
-      year: year,
-      children: getDefaultSubFolders(),
-      chatMessages: [],
-      chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
-      chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}]
-    });
-
-    saveProjects(projects);
-    closeCreateProjectModal();
-    filterProjects();
-  }
-
-  (function init() {
-    const searchElem = document.getElementById("projectSearchInput");
-    if (searchElem) searchElem.style.display = "";
-    // Ensure default storage if empty
-    if (!localStorage.getItem('dibadge_project_tiles')) {
-      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
-    }
-    switchMainViewTab('projects');
-  })();
 
     function switchProjectDisplayMode(mode) {
       currentProjectDisplayMode = mode;
@@ -2018,34 +2000,27 @@
     }
 
   // Telegram Multi-Selection and Long-Press Handlers
-  let isSelectionMode = false;
-  let selectedMessageIds = new Set();
-  let longPressTimer = null;
-
   function attachMessageLongPressListener(bubbleElem, msgObj) {
-    let startX = 0, startY = 0;
+    let pressTimer = null;
 
-    bubbleElem.addEventListener('pointerdown', (e) => {
-      startX = e.clientX;
-      startY = e.clientY;
-      longPressTimer = setTimeout(() => {
+    const startPress = () => {
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => {
         enterSelectionMode(msgObj.id);
-      }, 500); // 500ms long press
-    });
+      }, 500); // 500ms long press threshold
+    };
 
-    bubbleElem.addEventListener('pointermove', (e) => {
-      if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
-        clearTimeout(longPressTimer);
-      }
-    });
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+    };
 
-    bubbleElem.addEventListener('pointerup', () => {
-      clearTimeout(longPressTimer);
-    });
+    bubbleElem.addEventListener('pointerdown', startPress);
+    bubbleElem.addEventListener('touchstart', startPress, { passive: true });
 
-    bubbleElem.addEventListener('pointercancel', () => {
-      clearTimeout(longPressTimer);
-    });
+    bubbleElem.addEventListener('pointerup', cancelPress);
+    bubbleElem.addEventListener('mouseleave', cancelPress);
+    bubbleElem.addEventListener('touchend', cancelPress);
+    bubbleElem.addEventListener('touchcancel', cancelPress);
 
     bubbleElem.onclick = (e) => {
       if (isSelectionMode) {
@@ -2381,3 +2356,621 @@
     });
     scrollToLatestMessage();
   }
+
+  function openLightbox(imgSrc, groupImages = null, index = 0) {
+    const lightbox = document.getElementById("lightboxOverlay");
+    const lbImg = document.getElementById("lightboxImage");
+    if (lightbox && lbImg) {
+      currentLightboxImages = groupImages || [imgSrc];
+      currentLightboxIndex = index;
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+      lightbox.style.display = "flex";
+      updateLightboxNavButtons();
+    }
+  }
+
+  function changeLightboxSlide(direction, event) {
+    if (event) event.stopPropagation();
+    if (currentLightboxImages.length <= 1) return;
+    currentLightboxIndex = (currentLightboxIndex + direction + currentLightboxImages.length) % currentLightboxImages.length;
+    const lbImg = document.getElementById("lightboxImage");
+    if (lbImg) {
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+    }
+  }
+
+  function updateLightboxNavButtons() {
+    let prevBtn = document.getElementById("lightboxPrevBtn");
+    let nextBtn = document.getElementById("lightboxNextBtn");
+    const contentBox = document.querySelector(".lightbox-content-box");
+    
+    if (!prevBtn && contentBox) {
+      prevBtn = document.createElement("button");
+      prevBtn.id = "lightboxPrevBtn";
+      prevBtn.innerHTML = "&#10094;";
+      prevBtn.style.cssText = "position:absolute; left:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      prevBtn.onclick = (e) => changeLightboxSlide(-1, e);
+      contentBox.appendChild(prevBtn);
+    }
+
+    if (!nextBtn && contentBox) {
+      nextBtn = document.createElement("button");
+      nextBtn.id = "lightboxNextBtn";
+      nextBtn.innerHTML = "&#10095;";
+      nextBtn.style.cssText = "position:absolute; right:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      nextBtn.onclick = (e) => changeLightboxSlide(1, e);
+      contentBox.appendChild(nextBtn);
+    }
+
+    if (prevBtn && nextBtn) {
+      const showNav = currentLightboxImages.length > 1;
+      prevBtn.style.display = showNav ? "block" : "none";
+      nextBtn.style.display = showNav ? "block" : "none";
+    }
+  }
+
+  function closeLightbox() {
+    const lightbox = document.getElementById("lightboxOverlay");
+    if (lightbox) {
+      lightbox.style.display = "none";
+    }
+  }
+
+  function renderFormsListUI(containerId, list) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+      container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
+      return;
+    }
+
+    list.forEach(form => {
+      const card = document.createElement("div");
+      card.className = "form-file-card";
+      card.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <div class="form-file-name">${form.title}</div>
+      `;
+      
+      card.ondblclick = function() {
+        alert(`Opening Form: ${form.title}`);
+      };
+
+      container.appendChild(card);
+    });
+  }
+
+  function openExcelStudio() {
+    buildExcelTableGrid();
+    document.getElementById("excelFormStudioOverlay").style.display = "flex";
+  }
+
+  function closeExcelStudio() {
+    document.getElementById("excelFormStudioOverlay").style.display = "none";
+  }
+
+  function buildExcelTableGrid() {
+    const tbody = document.getElementById("excelSheetBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const headerTr = document.createElement("tr");
+    headerTr.innerHTML = `<th>#</th>`;
+    for (let c = 0; c < excelColsCount; c++) {
+      const colLetter = String.fromCharCode(65 + c);
+      headerTr.innerHTML += `<th>${colLetter}</th>`;
+    }
+    tbody.appendChild(headerTr);
+
+    for (let r = 1; r <= excelRowsCount; r++) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<th>${r}</th>`;
+
+      for (let c = 0; c < excelColsCount; c++) {
+        const td = document.createElement("td");
+        td.contentEditable = "true";
+        td.onclick = function(e) { selectExcelCell(e, td); };
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function selectExcelCell(e, td) {
+    if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+    selectedExcelCell = td;
+    selectedExcelCell.classList.add("selected-cell");
+  }
+
+  function addExcelRow() {
+    excelRowsCount++;
+    buildExcelTableGrid();
+  }
+
+  function addExcelColumn() {
+    excelColsCount++;
+    buildExcelTableGrid();
+  }
+
+  function formatSelectedCell(action, value) {
+    if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+    if (action === 'bold') {
+      const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+      selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+    } else if (action === 'fontSize') {
+      selectedExcelCell.style.fontSize = value;
+    } else if (action === 'align') {
+      selectedExcelCell.style.textAlign = value;
+    } else if (action === 'color') {
+      selectedExcelCell.style.color = value;
+    }
+  }
+
+  function insertControlToCell(type) {
+    if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+    if (type === 'checkbox') {
+      selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+    } else if (type === 'button') {
+      const btnLabel = prompt("Enter button label:", "Action Button");
+      if (btnLabel) {
+        selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+      }
+    }
+  }
+
+  function mergeExcelCells() {
+    if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+    const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+    if (colspan && parseInt(colspan) > 1) {
+      selectedExcelCell.setAttribute("colspan", colspan);
+    }
+  }
+
+  function saveExcelFormTemplate() {
+    const titleElem = document.getElementById("excelFormTitle");
+    const title = titleElem ? titleElem.value.trim() : "";
+    if (!title) return alert("Please enter a form title.");
+
+    const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
+    if (duplicateForm) {
+      return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
+    }
+
+    globalFormsList.push({
+      id: 'gf-' + Date.now(),
+      title: title,
+      category: 'Spreadsheet Form',
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    renderFormsListUI('globalFormsContainer', globalFormsList);
+    closeExcelStudio();
+  }
+
+  function evaluateMathExpr(expr) {
+    if (typeof expr === 'number') return expr;
+    if (!expr || typeof expr !== 'string') return 0;
+    try {
+      const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (!cleanExpr) return 0;
+      const result = Function(`'use strict'; return (${cleanExpr})`)();
+      return isNaN(result) ? 0 : result;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function renderBOQTable() {
+    const tbody = document.getElementById("boqTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+    const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
+    let subTotal = 0;
+
+    currentBOQItems.forEach((row, index) => {
+      const numQty = evaluateMathExpr(row.qty);
+      const numPrice = evaluateMathExpr(row.price);
+      const rowTotal = numQty * numPrice;
+      subTotal += rowTotal;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+        <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
+        <td style="text-align:center;">
+          <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const taxAmount = subTotal * (taxRate / 100);
+    const grandTotal = subTotal + taxAmount;
+
+    const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+    const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+    const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+    const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+  }
+
+  function updateBOQData(index, field, value) {
+    if (field === 'qty' || field === 'price') {
+      const evaluated = evaluateMathExpr(value);
+      currentBOQItems[index][field] = evaluated.toString();
+    } else {
+      currentBOQItems[index][field] = value;
+    }
+    renderBOQTable();
+  }
+
+  function addBOQRow() {
+    currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+    renderBOQTable();
+  }
+
+  function deleteBOQRow(index) {
+    currentBOQItems.splice(index, 1);
+    renderBOQTable();
+  }
+
+  function getCurrentWorkspaceFolder() {
+    return folderObjectStack[folderObjectStack.length - 1];
+  }
+
+  function renderFolderView() {
+    const breadcrumbContainer = document.getElementById("breadcrumbBar");
+    if (!breadcrumbContainer) return;
+    breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+    folderObjectStack.forEach((node, idx) => {
+      const isLast = idx === folderObjectStack.length - 1;
+      const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+      
+      breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
+      
+      if (isLast) {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+      } else {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+      }
+    });
+
+    const metaHeader = document.getElementById("projectMetaHeader");
+    if (metaHeader) {
+      if (folderObjectStack.length > 1) {
+        metaHeader.style.display = "none";
+      } else {
+        metaHeader.style.display = "flex";
+      }
+    }
+
+    const currentFolderNode = getCurrentWorkspaceFolder();
+    const subGrid = document.getElementById("innerFolderGrid");
+    if (!subGrid) return;
+    subGrid.innerHTML = "";
+
+    if (!currentFolderNode.children) currentFolderNode.children = [];
+
+    if (currentFolderNode.children.length === 0) {
+      subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
+      return;
+    }
+
+    if (currentProjectDisplayMode === 'grid') {
+      subGrid.className = "folder-contents-grid";
+      currentFolderNode.children.forEach((folder, idx) => {
+        const folderCard = document.createElement("div");
+        folderCard.className = "folder-card";
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          folderCard.classList.add("selected-cut");
+        }
+
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
+        folderCard.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-items-count">${itemCount}</div>
+        `;
+
+        folderCard.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        folderCard.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        subGrid.appendChild(folderCard);
+      });
+    } else {
+      subGrid.className = "";
+      const table = document.createElement("table");
+      table.className = "projects-list-table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Items / Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector("tbody");
+      currentFolderNode.children.forEach((folder, idx) => {
+        const tr = document.createElement("tr");
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          tr.style.opacity = "0.4";
+        }
+
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
+        tr.innerHTML = `
+          <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+            <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            ${folder.name}
+          </td>
+          <td style="color:var(--subtext-color);">Folder</td>
+          <td style="color:var(--subtext-color);">${itemCount}</td>
+        `;
+
+        tr.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        tr.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        tbody.appendChild(tr);
+      });
+
+      subGrid.appendChild(table);
+    }
+  }
+
+  function jumpToBreadcrumbIndex(targetIndex) {
+    if (targetIndex === 0) {
+      activeOpenedProject = null;
+      folderObjectStack = [];
+      activeViewMode = 'projects';
+
+      const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
+      const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
+
+      const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
+      const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
+
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+
+      const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
+      views.forEach(vId => {
+        const el = document.getElementById(vId);
+        if (el) el.style.display = "none";
+      });
+
+      switchMainViewTab('projects');
+    } else {
+      folderObjectStack = folderObjectStack.slice(0, targetIndex);
+      switchProjectSubTab('folder');
+    }
+  }
+
+  function navigateUpBreadcrumb() {
+    jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+  }
+
+  function showFolderContextMenu(e, folder, idx) {
+    hideContextMenus();
+    selectedFolderForContext = { folder, idx };
+    const menu = document.getElementById("folderContextMenu");
+    if (!menu) return;
+    
+    const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
+    const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
+    const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
+    const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
+    const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
+    const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
+
+    menu.style.top = `${e.pageY}px`;
+    menu.style.left = `${e.pageX}px`;
+    menu.style.display = "flex";
+  }
+
+  function handleWorkspaceContextMenu(e) {
+    if (activeOpenedProject && activeViewMode === 'folder') {
+      e.preventDefault();
+      hideContextMenus();
+
+      if (!clipboardFolder) return;
+
+      selectedFolderForContext = null;
+      const menu = document.getElementById("folderContextMenu");
+      if (!menu) return;
+
+      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
+      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
+      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
+      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
+      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
+      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
+
+      menu.style.top = `${e.pageY}px`;
+      menu.style.left = `${e.pageX}px`;
+      menu.style.display = "flex";
+    }
+  }
+
+  function hideContextMenus() {
+    const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+    const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
+  }
+
+  function executeContextAction(action) {
+    hideContextMenus();
+    let currentFolderNode = getCurrentWorkspaceFolder();
+
+    if (action === 'copy') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      isCutOperation = false;
+      renderFolderView();
+    } 
+    else if (action === 'cut') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+      clipboardFolder.sourceParent = currentFolderNode;
+      isCutOperation = true;
+      renderFolderView();
+    } 
+    else if (action === 'paste') {
+      if (!clipboardFolder) return;
+      
+      let targetName = clipboardFolder.name;
+      let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
+      
+      if (duplicateExists) {
+        if (isCutOperation) {
+          return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
+        } else {
+          let copyCounter = 1;
+          let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
+          targetName = `${baseName} - Copy`;
+          
+          while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
+            copyCounter++;
+            targetName = `${baseName} - Copy (${copyCounter})`;
+          }
+        }
+      }
+
+      if (isCutOperation && clipboardFolder.sourceParent) {
+        clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
+      }
+      
+      const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+      newPastedFolder.id = 'f-' + Date.now();
+      newPastedFolder.name = targetName;
+
+      currentFolderNode.children.push(newPastedFolder);
+
+      clipboardFolder = null;
+      isCutOperation = false;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'rename') {
+      if (!selectedFolderForContext) return;
+      const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+      if (!newName || !newName.trim()) return;
+
+      const trimmed = newName.trim();
+      const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+      }
+
+      currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'delete') {
+      if (!selectedFolderForContext) return;
+      if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+        currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+        persistProjectTree();
+        renderFolderView();
+      }
+    }
+  }
+
+  function persistProjectTree() {
+    if (!activeOpenedProject) return;
+    const allProjects = getProjects();
+    const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+    if (idx !== -1) {
+      allProjects[idx] = activeOpenedProject;
+      saveProjects(allProjects);
+    }
+  }
+
+  function handleFabClick() {
+    if (activeOpenedProject && activeViewMode === 'forms') {
+      openChatGlobalFormsSelectorModal();
+    } else if (activeViewMode === 'forms') {
+      openExcelStudio();
+    } else if (activeOpenedProject && activeViewMode === 'folder') {
+      const newSubName = prompt("Enter new folder name:");
+      if (!newSubName || !newSubName.trim()) return;
+
+      const trimmed = newSubName.trim();
+      let currentFolderNode = getCurrentWorkspaceFolder();
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+
+      const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+      }
+
+      currentFolderNode.children.push({
+        id: 'f-' + Date.now(),
+        name: trimmed,
+        items: '0 Files',
+        children: [],
+        files: []
+      });
+
+      persistProjectTree();
+      renderFolderView();
+    } else if (activeViewMode === 'projects') {
+      openCreateProjectModal();
+    }
+  }
+
+  function openCreateProjectModal() {
+    document.getElementById("newProjectClient").value = "";
+    document.getElementById("newProjectNo").value = "";
+    document.getElementById("newProjectLocation").value = "";
+    document.getElementById("newProjectRemarks").value = "";
+    
+    document.getElementById("createProjectModal").style.display = "flex";
+  }
+
+  function closeCreateProjectModal() {
+    document.getElementById("createProjectModal").style.display = "none";
+  }
+
+  (function init() {
+    const searchElem = document.getElementById("projectSearchInput");
+    if (searchElem) searchElem.style.display = "";
+    if (!localStorage.getItem('dibadge_project_tiles')) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+    }
+    switchMainViewTab('projects');
+  })();
+  </script>
+</body>
+</html>
