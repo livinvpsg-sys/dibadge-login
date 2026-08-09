@@ -2439,7 +2439,7 @@
       });
     }
 
-   function sendChatMessage() {
+function sendChatMessage() {
     const input = document.getElementById("chatMsgInput");
     let rawText = input ? input.value.trim() : "";
 
@@ -2453,7 +2453,7 @@
     const groups = activeOpenedProject.chatGroups || [];
     let allGroupNames = groups.map(g => g.name);
 
-    // Find all mentioned groups anywhere in the text
+    // Find all mentioned groups in the text
     let mentionedGroups = [];
     allGroupNames.forEach(g => {
       const regex = new RegExp('@\\s?' + g, 'gi');
@@ -2480,80 +2480,144 @@
 
     if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
 
-    if (pendingStagedFiles.length > 0) {
-      pendingStagedFiles.forEach(file => {
-        const isImage = file.type.startsWith("image/");
-        const url = isImage ? URL.createObjectURL(file) : '';
-        
-        if (mentionedGroups.length > 0) {
-          mentionedGroups.forEach(grp => {
-            activeOpenedProject.chatMessages.push({
-              id: 'm-' + Date.now() + '-' + Math.random(),
-              type: 'outgoing',
-              targetGroup: grp,
-              text: `@ <span class="mention-tag">${grp}</span> ${processMentions(rawText)}`,
-              mediaUrl: url,
-              mediaType: isImage ? 'image' : 'file',
-              fileName: file.name,
-              time: currentTimeStr,
-              likes: 0,
-              comments: []
-            });
-          });
-        } else {
-          activeOpenedProject.chatMessages.push({
-            id: 'm-' + Date.now() + '-' + Math.random(),
-            type: 'outgoing',
-            targetGroup: '',
-            text: processMentions(rawText),
-            mediaUrl: url,
-            mediaType: isImage ? 'image' : 'file',
-            fileName: file.name,
-            time: currentTimeStr,
-            likes: 0,
-            comments: []
-          });
-        }
-      });
-      pendingStagedFiles = [];
-      renderPendingPreviews();
-    }
+    // Separate media files
+    const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
+    const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
 
-    if (rawText) {
-      if (mentionedGroups.length > 0) {
-        mentionedGroups.forEach(grp => {
-          activeOpenedProject.chatMessages.push({
-            id: 'm-' + Date.now() + '-' + Math.random(),
-            type: 'outgoing',
-            targetGroup: grp,
-            text: processMentions(rawText),
-            time: currentTimeStr,
-            likes: 0,
-            comments: []
-          });
-        });
-      } else {
-        activeOpenedProject.chatMessages.push({
-          id: 'm-' + Date.now(),
-          type: 'outgoing',
-          targetGroup: '',
-          text: processMentions(rawText),
-          time: currentTimeStr,
-          likes: 0,
-          comments: []
-        });
-      }
-      input.value = "";
-    }
+    const targets = mentionedGroups.length > 0 ? mentionedGroups : [''];
+
+    targets.forEach(targetGroup => {
+      let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
+
+      activeOpenedProject.chatMessages.push({
+        id: 'm-' + Date.now() + '-' + Math.random(),
+        type: 'outgoing',
+        targetGroup: targetGroup,
+        text: processMentions(rawText),
+        imageUrls: imageUrls,
+        files: otherFiles.map(f => f.name),
+        time: currentTimeStr,
+        likes: 0,
+        comments: []
+      });
+    });
+
+    pendingStagedFiles = [];
+    renderPendingPreviews();
+    if (input) input.value = "";
 
     persistProjectTree();
     renderChatMessages();
     scrollToLatestMessage();
   }
-    function handleChatInputKey(e) {
-      if (e.key === 'Enter') sendChatMessage();
+
+  function renderChatMessages() {
+    const container = document.getElementById("chatThreadContainer");
+    if (!container || !activeOpenedProject) return;
+    container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+
+    if (!activeOpenedProject.chatMessages) {
+      activeOpenedProject.chatMessages = [];
     }
 
+    activeOpenedProject.chatMessages.forEach(msg => {
+      const msgRow = document.createElement("div");
+      msgRow.className = `msg-row ${msg.type}`;
+
+      let socialBarHtml = '';
+      let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
+
+      if (isGroupInteraction) {
+        let commentsHtml = '';
+        if (msg.comments && msg.comments.length > 0) {
+          msg.comments.forEach(c => {
+            commentsHtml += `<div class="comment-thread-item"><span class="comment-author-name">${c.author}</span><span>${c.text}</span></div>`;
+          });
+        }
+
+        socialBarHtml = `
+          <div class="msg-social-bar">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <span class="like-count">${msg.likes || 0}</span>
+            </div>
+            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      let contentHtml = '';
+      
+      // Render Images Combined Album Group if any
+      if (msg.imageUrls && msg.imageUrls.length > 0) {
+        const isSingle = msg.imageUrls.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+        let imgsHtml = '';
+        msg.imageUrls.forEach((url, idx) => {
+          let badgeOverlay = '';
+          if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
+            badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
+          }
+          imgsHtml += `
+            <div class="whatsapp-media-item-wrap">
+              <img src="${url}" onclick="openLightbox('${url}')" />
+              ${badgeOverlay}
+            </div>
+          `;
+        });
+
+        if (isSingle) {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" style="width: 100%; margin-bottom: 4px;">
+              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}')" />
+              <div class="msg-media-time-badge">${msg.time}</div>
+            </div>
+          `;
+        } else {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
+              <div class="${groupClass}">${imgsHtml}</div>
+              <div class="msg-media-time-badge">${msg.time}</div>
+            </div>
+          `;
+        }
+      }
+
+      // Render Files if any
+      if (msg.files && msg.files.length > 0) {
+        msg.files.forEach(fName => {
+          contentHtml += `
+            <div class="msg-bubble outgoing" style="margin-bottom: 4px;">
+              📄 Attachment: ${fName}
+              <div class="msg-meta-row"><span>${msg.time}</span></div>
+            </div>
+          `;
+        });
+      }
+
+      // Render Text if any
+      if (msg.text) {
+        contentHtml += `
+          <div class="msg-bubble ${msg.type}">
+            ${msg.text}
+            <div class="msg-meta-row"><span>${msg.time}</span></div>
+          </div>
+        `;
+      }
+
+      msgRow.innerHTML = `
+        <div class="msg-body">
+          ${contentHtml}
+          ${socialBarHtml}
+        </div>
+      `;
+      container.appendChild(msgRow);
+    });
+    scrollToLatestMessage();
+  }
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
