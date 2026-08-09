@@ -2578,30 +2578,34 @@ function sendChatMessage() {
     openCommentsModal(activeCommentMsgId); // Refresh modal view
     inputField.value = "";
   }
-  function renderChatMessages() {
+function renderChatMessages() {
     const container = document.getElementById("chatThreadContainer");
     if (!container || !activeOpenedProject) return;
     container.innerHTML = `<div class="chat-date-pill">Today</div>`;
 
     if (!activeOpenedProject.chatMessages) {
-      activeOpenedProject.chatMessages = [];
+      activeOpenedProject.chatMessages = [
+        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John', text: 'Verified by lead inspector.'}] },
+        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+      ];
     }
 
     activeOpenedProject.chatMessages.forEach(msg => {
       const msgRow = document.createElement("div");
       msgRow.className = `msg-row ${msg.type}`;
 
+      let avatarHtml = '';
+      let senderNameHtml = '';
       let socialBarHtml = '';
-      let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
+
+      let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
+
+      if (msg.type === 'incoming') {
+        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
+        senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
+      }
 
       if (isGroupInteraction) {
-        let commentsHtml = '';
-        if (msg.comments && msg.comments.length > 0) {
-          msg.comments.forEach(c => {
-            commentsHtml += `<div class="comment-thread-item"><span class="comment-author-name">${c.author}</span><span>${c.text}</span></div>`;
-          });
-        }
-
         socialBarHtml = `
           <div class="msg-social-bar">
             <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
@@ -2619,7 +2623,12 @@ function sendChatMessage() {
       let contentHtml = '';
       
       // Render Images Combined Album Group if any
-   msg.imageUrls.forEach((url, idx) => {
+      if (msg.imageUrls && msg.imageUrls.length > 0) {
+        const isSingle = msg.imageUrls.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+        let imgsHtml = '';
+        
+        msg.imageUrls.forEach((url, idx) => {
           let badgeOverlay = '';
           if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
             badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
@@ -2639,7 +2648,16 @@ function sendChatMessage() {
               <div class="msg-media-time-badge">${msg.time}</div>
             </div>
           `;
+        } else {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
+              <div class="${groupClass}">${imgsHtml}</div>
+              <div class="msg-media-time-badge">${msg.time}</div>
+            </div>
+          `;
         }
+      }
+
       // Render Files if any
       if (msg.files && msg.files.length > 0) {
         msg.files.forEach(fName => {
@@ -2663,7 +2681,9 @@ function sendChatMessage() {
       }
 
       msgRow.innerHTML = `
+        ${avatarHtml}
         <div class="msg-body">
+          ${senderNameHtml}
           ${contentHtml}
           ${socialBarHtml}
         </div>
