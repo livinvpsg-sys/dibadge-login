@@ -2484,22 +2484,19 @@ function sendChatMessage() {
     const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
     const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
 
-    const targets = mentionedGroups.length > 0 ? mentionedGroups : [''];
+    let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
 
-    targets.forEach(targetGroup => {
-      let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
-
-      activeOpenedProject.chatMessages.push({
-        id: 'm-' + Date.now() + '-' + Math.random(),
-        type: 'outgoing',
-        targetGroup: targetGroup,
-        text: processMentions(rawText),
-        imageUrls: imageUrls,
-        files: otherFiles.map(f => f.name),
-        time: currentTimeStr,
-        likes: 0,
-        comments: []
-      });
+    // Create a single message object containing all mentioned groups together
+    activeOpenedProject.chatMessages.push({
+      id: 'm-' + Date.now() + '-' + Math.random(),
+      type: 'outgoing',
+      targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
+      text: processMentions(rawText),
+      imageUrls: imageUrls,
+      files: otherFiles.map(f => f.name),
+      time: currentTimeStr,
+      likes: 0,
+      comments: []
     });
 
     pendingStagedFiles = [];
@@ -2511,6 +2508,30 @@ function sendChatMessage() {
     scrollToLatestMessage();
   }
 
+  function submitModalComment() {
+    const inputField = document.getElementById("commentsModalInput");
+    if (!inputField || !inputField.value.trim() || !activeCommentMsgId || !activeOpenedProject) return;
+
+    const commentText = inputField.value.trim();
+    const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === activeCommentMsgId);
+    if (!msg) return;
+
+    // Determine author name with group if it's a group interaction
+    let authorDisplay = 'You';
+    if (msg.targetGroup) {
+      // Pick the first mentioned group or general group context
+      const firstGroup = msg.targetGroup.split(',')[0].trim();
+      authorDisplay = `You (${firstGroup})`;
+    }
+
+    if (!msg.comments) msg.comments = [];
+    msg.comments.push({ author: authorDisplay, text: commentText });
+
+    persistProjectTree();
+    renderChatMessages();
+    openCommentsModal(activeCommentMsgId); // Refresh modal view
+    inputField.value = "";
+  }
   function renderChatMessages() {
     const container = document.getElementById("chatThreadContainer");
     if (!container || !activeOpenedProject) return;
