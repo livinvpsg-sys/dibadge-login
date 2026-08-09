@@ -312,6 +312,10 @@
     .msg-media-img:hover { transform: scale(1.02); }
     .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
 
+    /* Message long-press / selection styles */
+    .msg-bubble { cursor: pointer; user-select: none; }
+    .msg-bubble.selected-msg-highlight { outline: 2px solid var(--paper-white); background-color: var(--border-color) !important; }
+    
     /* WhatsApp Album Grid for Multiple Media */
     .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
     .whatsapp-media-group.single-item { grid-template-columns: 1fr; width: 200px; }
@@ -755,7 +759,14 @@
               </div>
             </div>
           </div>
-
+<!-- Message Context Menu Overlay -->
+  <div class="context-menu" id="messageContextMenu" style="position:absolute; z-index:5000; display:none; flex-direction:column; background:var(--surface-color); border:1px solid var(--border-color); border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.3); padding:4px 0; width: 140px;">
+    <div class="context-menu-item" id="menuOptReply" onclick="handleMsgAction('reply')">Reply</div>
+    <div class="context-menu-item" id="menuOptCopy" onclick="handleMsgAction('copy')">Copy</div>
+    <div class="context-menu-item" id="menuOptEdit" onclick="handleMsgAction('edit')">Edit</div>
+    <div class="context-menu-item danger" id="menuOptDelete" onclick="handleMsgAction('delete')" style="color:var(--error-red);">Delete</div>
+  </div>
+          
           <!-- Groups Section -->
           <div class="details-section">
             <div class="details-section-title">
@@ -1897,93 +1908,253 @@
       if (e.key === 'Enter') submitModalComment();
     }
 
-    function renderChatMessages() {
-      const container = document.getElementById("chatThreadContainer");
-      if (!container || !activeOpenedProject) return;
-      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+   function renderChatMessages() {
+    const container = document.getElementById("chatThreadContainer");
+    if (!container || !activeOpenedProject) return;
+    container.innerHTML = `<div class="chat-date-pill">Today</div>`;
 
-      if (!activeOpenedProject.chatMessages) {
-        activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John', text: 'Verified by lead inspector.'}] },
-          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
-        ];
+    if (!activeOpenedProject.chatMessages) {
+      activeOpenedProject.chatMessages = [
+        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John (Site Engineers)', text: 'Verified by lead inspector.'}] },
+        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+      ];
+    }
+
+    activeOpenedProject.chatMessages.forEach(msg => {
+      const msgRow = document.createElement("div");
+      msgRow.className = `msg-row ${msg.type}`;
+
+      let avatarHtml = '';
+      let senderNameHtml = '';
+      let socialBarHtml = '';
+
+      let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
+
+      if (msg.type === 'incoming') {
+        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
+        senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
       }
 
-      activeOpenedProject.chatMessages.forEach(msg => {
-        const msgRow = document.createElement("div");
-        msgRow.className = `msg-row ${msg.type}`;
+      if (isGroupInteraction) {
+        socialBarHtml = `
+          <div class="msg-social-bar">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <span class="like-count">${msg.likes || 0}</span>
+            </div>
+            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+            </div>
+          </div>
+        `;
+      }
 
-        let avatarHtml = '';
-        let senderNameHtml = '';
-        let socialBarHtml = '';
-
-        let isGroupInteraction = (msg.type === 'incoming' || msg.targetGroup);
-
-        if (msg.type === 'incoming') {
-          avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
-          senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
-        } else if (msg.targetGroup) {
-          // Outgoing to group
-        }
-
-        if (isGroupInteraction) {
-          socialBarHtml = `
-            <div class="msg-social-bar">
-              <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
-                <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                <span class="like-count">${msg.likes || 0}</span>
-              </div>
-              <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
-              </div>
+      let contentHtml = '';
+      
+      // Render Images Combined Album Group if any
+      if (msg.imageUrls && msg.imageUrls.length > 0) {
+        const isSingle = msg.imageUrls.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+        let imgsHtml = '';
+        
+        msg.imageUrls.forEach((url, idx) => {
+          let badgeOverlay = '';
+          if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
+            badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
+          }
+          imgsHtml += `
+            <div class="whatsapp-media-item-wrap">
+              <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
+              ${badgeOverlay}
             </div>
           `;
-        }
+        });
 
-        if (msg.mediaUrl) {
-          // Render media item with time badge
-          let mediaInner = '';
-          if (msg.mediaType === 'image') {
-            mediaInner = `
-              <div class="msg-bubble ${msg.type} media-bubble" style="width: 100%;">
-                <img src="${msg.mediaUrl}" class="msg-media-img" onclick="openLightbox('${msg.mediaUrl}')" />
-                <div class="msg-media-time-badge">${msg.time}</div>
-              </div>
-            `;
-          } else {
-            mediaInner = `
-              <div class="msg-bubble ${msg.type}">
-                📄 Attachment: ${msg.fileName || 'file'}
-                <div class="msg-meta-row"><span>${msg.time}</span></div>
-              </div>
-            `;
-          }
-          msgRow.innerHTML = `
-            ${avatarHtml}
-            <div class="msg-body">
-              ${senderNameHtml}
-              ${mediaInner}
-              ${socialBarHtml}
+        if (isSingle) {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" style="width: 100%; margin-bottom: 4px;">
+              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
+              <div class="msg-media-time-badge">${msg.time}</div>
             </div>
           `;
         } else {
-          msgRow.innerHTML = `
-            ${avatarHtml}
-            <div class="msg-body">
-              ${senderNameHtml}
-              <div class="msg-bubble ${msg.type}">
-                ${msg.text}
-                <div class="msg-meta-row"><span>${msg.time}</span></div>
-              </div>
-              ${socialBarHtml}
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
+              <div class="${groupClass}">${imgsHtml}</div>
+              <div class="msg-media-time-badge">${msg.time}</div>
             </div>
           `;
         }
-        container.appendChild(msgRow);
+      }
+
+      // Render Files if any
+      if (msg.files && msg.files.length > 0) {
+        msg.files.forEach(fName => {
+          contentHtml += `
+            <div class="msg-bubble outgoing" style="margin-bottom: 4px;">
+              📄 Attachment: ${fName}
+              <div class="msg-meta-row"><span>${msg.time}</span></div>
+            </div>
+          `;
+        });
+      }
+
+      // Render Text if any
+      if (msg.text) {
+        contentHtml += `
+          <div class="msg-bubble ${msg.type}">
+            ${msg.text}
+            <div class="msg-meta-row"><span>${msg.time}</span></div>
+          </div>
+        `;
+      }
+
+      msgRow.innerHTML = `
+        ${avatarHtml}
+        <div class="msg-body">
+          ${senderNameHtml}
+          ${contentHtml}
+          ${socialBarHtml}
+        </div>
+      `;
+
+      // Attach long-press event listeners to all generated bubbles inside this row
+      msgRow.querySelectorAll('.msg-bubble').forEach(bubbleElem => {
+        attachMessageLongPressListener(bubbleElem, msg);
       });
-      scrollToLatestMessage();
+
+      container.appendChild(msgRow);
+    });
+    scrollToLatestMessage();
+  }
+
+    let activeLongPressedMsg = null;
+  let activeLongPressedMsgId = null;
+
+  function attachMessageLongPressListener(bubbleElem, msgObj) {
+    let pressTimer = null;
+
+    bubbleElem.addEventListener('mousedown', (e) => {
+      pressTimer = setTimeout(() => {
+        showMsgContextMenu(e, msgObj);
+      }, 600); // 600ms long press
+    });
+
+    bubbleElem.addEventListener('mouseup', () => {
+      clearTimeout(pressTimer);
+    });
+
+    bubbleElem.addEventListener('mouseleave', () => {
+      clearTimeout(pressTimer);
+    });
+
+    // Touch support for mobile/tablets
+    bubbleElem.addEventListener('touchstart', (e) => {
+      pressTimer = setTimeout(() => {
+        showMsgContextMenu(e.touches[0], msgObj);
+      }, 600);
+    });
+
+    bubbleElem.addEventListener('touchend', () => {
+      clearTimeout(pressTimer);
+    });
+  }
+
+  function showMsgContextMenu(e, msgObj) {
+    hideContextMenus();
+    activeLongPressedMsg = msgObj;
+    activeLongPressedMsgId = msgObj.id;
+
+    // Highlight selected bubble
+    document.querySelectorAll('.msg-bubble').forEach(b => b.classList.remove('selected-msg-highlight'));
+    // Find matching bubble in DOM
+    const bubbles = document.querySelectorAll('.msg-bubble');
+    bubbles.forEach(b => {
+      if (b.innerText.includes(msgObj.text || msgObj.fileName || '')) {
+        b.classList.add('selected-msg-highlight');
+      }
+    });
+
+    const menu = document.getElementById("messageContextMenu");
+    if (!menu) return;
+
+    const optReply = document.getElementById("menuOptReply");
+    const optCopy = document.getElementById("menuOptCopy");
+    const optEdit = document.getElementById("menuOptEdit");
+    const optDelete = document.getElementById("menuOptDelete");
+
+    // Reset visibility
+    if (optReply) optReply.style.display = "flex";
+    if (optCopy) optCopy.style.display = "flex";
+    if (optEdit) optEdit.style.display = "flex";
+    if (optDelete) optDelete.style.display = "flex";
+
+    const hasMedia = (msgObj.imageUrls && msgObj.imageUrls.length > 0) || (msgObj.files && msgObj.files.length > 0) || msgObj.mediaUrl;
+    const isGroupMsg = (msgObj.type === 'incoming' || (msgObj.targetGroup && msgObj.targetGroup.trim() !== ''));
+
+    if (hasMedia) {
+      // Attachment or message with attachments: Reply, Delete
+      if (optCopy) optCopy.style.display = "none";
+      if (optEdit) optEdit.style.display = "none";
+    } else if (isGroupMsg) {
+      // Sent to group or incoming group message: Reply, Copy, Delete (Edit not specified for group texts unless standard text)
+    } else {
+      // Standard text message: reply, copy, delete, edit
     }
+
+    menu.style.top = `${e.pageY || e.clientY}px`;
+    menu.style.left = `${e.pageX || e.clientX}px`;
+    menu.style.display = "flex";
+  }
+
+  function handleMsgAction(action) {
+    hideContextMenus();
+    if (!activeLongPressedMsg || !activeOpenedProject) return;
+
+    if (action === 'copy') {
+      const plainText = activeLongPressedMsg.text.replace(/<[^>]*>?/gm, '');
+      navigator.clipboard.writeText(plainText).then(() => {
+        alert("Message copied to clipboard!");
+      });
+    } else if (action === 'edit') {
+      const newText = prompt("Edit message:", activeLongPressedMsg.text.replace(/<[^>]*>?/gm, ''));
+      if (newText !== null && newText.trim() !== '') {
+        activeLongPressedMsg.text = newText.trim();
+        persistProjectTree();
+        renderChatMessages();
+      }
+    } else if (action === 'reply') {
+      const replyInput = document.getElementById("chatMsgInput");
+      if (replyInput) {
+        replyInput.value = `Replying to: "${activeLongPressedMsg.text ? activeLongPressedMsg.text.replace(/<[^>]*>?/gm, '') : 'Attachment'}" - `;
+        replyInput.focus();
+      }
+    } else if (action === 'delete') {
+      let deleteChoice = 'for me';
+      const isGroupMsg = (activeLongPressedMsg.type === 'incoming' || (activeLongPressedMsg.targetGroup && activeLongPressedMsg.targetGroup.trim() !== ''));
+
+      if (isGroupMsg || activeLongPressedMsg.type === 'outgoing') {
+        let promptStr = "Delete message?\n1. Delete for me\n2. Delete for all";
+        let res = prompt(promptStr, "1");
+        if (res === "2") {
+          deleteChoice = 'for all';
+        } else if (res !== "1") {
+          return; // Cancelled
+        }
+      } else {
+        if (!confirm("Delete message for me?")) return;
+      }
+
+      // Remove message from array
+      activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => m.id !== activeLongPressedMsgId);
+      persistProjectTree();
+      renderChatMessages();
+    }
+
+    activeLongPressedMsg = null;
+    activeLongPressedMsgId = null;
+  }
 
     /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
     function openChatGlobalFormsSelectorModal() {
