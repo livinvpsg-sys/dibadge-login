@@ -2170,7 +2170,7 @@
     }
   }
 
-  function sendChatMessage() {
+ function sendChatMessage() {
     const input = document.getElementById("chatMsgInput");
     let rawText = input ? input.value.trim() : "";
 
@@ -2214,7 +2214,8 @@
 
     let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
 
-    activeOpenedProject.chatMessages.push({
+    // Push new message directly to active object and save
+    const newMsg = {
       id: 'm-' + Date.now() + '-' + Math.random(),
       type: 'outgoing',
       targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
@@ -2224,12 +2225,15 @@
       time: currentTimeStr,
       likes: 0,
       comments: []
-    });
+    };
+
+    activeOpenedProject.chatMessages.push(newMsg);
 
     pendingStagedFiles = [];
     renderPendingPreviews();
     if (input) input.value = "";
 
+    // Save and immediately update UI
     persistProjectTree();
     renderChatMessages();
     scrollToLatestMessage();
@@ -2237,6 +2241,7 @@
 
   function handleChatInputKey(e) {
     if (e.key === 'Enter') {
+      e.preventDefault();
       sendChatMessage();
     }
   }
@@ -2247,10 +2252,7 @@
     container.innerHTML = `<div class="chat-date-pill">Today</div>`;
 
     if (!activeOpenedProject.chatMessages) {
-      activeOpenedProject.chatMessages = [
-        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John (Site Engineers)', text: 'Verified by lead inspector.'}] },
-        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
-      ];
+      activeOpenedProject.chatMessages = [];
     }
 
     activeOpenedProject.chatMessages.forEach(msg => {
@@ -2285,7 +2287,6 @@
 
       let contentHtml = '';
       
-      // Render Images Combined Album Group if any
       if (msg.imageUrls && msg.imageUrls.length > 0) {
         const isSingle = msg.imageUrls.length === 1;
         const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
@@ -2321,7 +2322,6 @@
         }
       }
 
-      // Render Files if any
       if (msg.files && msg.files.length > 0) {
         msg.files.forEach(fName => {
           contentHtml += `
@@ -2333,7 +2333,6 @@
         });
       }
 
-      // Render Text if any
       if (msg.text) {
         contentHtml += `
           <div class="msg-bubble ${msg.type}" data-msg-id="${msg.id}">
@@ -2352,7 +2351,6 @@
         </div>
       `;
 
-      // Attach Telegram-style long press handler to each bubble
       msgRow.querySelectorAll('.msg-bubble').forEach(bubbleElem => {
         attachMessageLongPressListener(bubbleElem, msg);
       });
