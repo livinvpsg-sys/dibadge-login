@@ -1214,9 +1214,12 @@
     ];
 
    function getProjects() {
-    const stored = localStorage.getItem('dibadge_project_tiles');
-    if (!stored) return defaultProjects;
     try {
+      const stored = localStorage.getItem('dibadge_project_tiles');
+      if (!stored) {
+        localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+        return defaultProjects;
+      }
       const parsed = JSON.parse(stored);
       if (!Array.isArray(parsed)) return defaultProjects;
       return parsed.map(p => {
@@ -1228,7 +1231,7 @@
         return p;
       });
     } catch(e) {
-      console.error("Error parsing stored projects, falling back to default.", e);
+      console.error("Storage error:", e);
       return defaultProjects;
     }
   }
@@ -1237,6 +1240,18 @@
     localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
     filterProjects();
   }
+
+  (function init() {
+    const searchElem = document.getElementById("projectSearchInput");
+    if (searchElem) searchElem.style.display = "";
+    
+    if (!localStorage.getItem('dibadge_project_tiles')) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+    }
+    
+    // Ensure the container is visible and projects load up immediately
+    switchMainViewTab('projects');
+  })();
 
   function createNewProject() {
     const client = document.getElementById("newProjectClient").value.trim();
