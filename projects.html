@@ -325,6 +325,57 @@
 
 /* Delete Permission Modal */
 .delete-permission-modal {  display: none;  position: fixed;  top: 0; left: 0; width: 100vw; height: 100vh;  background: rgba(0,0,0,0.75);  backdrop-filter: blur(4px);  justify-content: center;  align-items: center;  z-index: 5000; }
+
+    /* WhatsApp Style Quote Box Inside Message Bubble */
+.replied-msg-preview {
+  background: rgba(0, 0, 0, 0.15);
+  border-left: 3px solid var(--paper-white);
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.msg-bubble.incoming .replied-msg-preview {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: #00a884;
+}
+.replied-preview-sender {
+  font-weight: 700;
+  color: var(--chat-sender-name);
+  margin-bottom: 2px;
+}
+.replied-preview-text {
+  color: var(--subtext-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+/* Active Highlight Jump Animation */
+@keyframes highlightFlash {
+  0% { transform: scale(1); background-color: var(--border-color); }
+  50% { transform: scale(1.02); background-color: rgba(255, 255, 255, 0.2); }
+  100% { transform: scale(1); background-color: transparent; }
+}
+.msg-row.highlight-jump .msg-bubble {
+  animation: highlightFlash 1.2s ease;
+}
+
+/* Active Reply Preview Bar Above Input Box */
+.active-reply-preview-banner {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-color);
+  border-left: 4px solid #00a884;
+  padding: 6px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
     
     /* WhatsApp Album Grid for Multiple Media */
     .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
@@ -690,6 +741,15 @@
       <button class="modal-btn btn-cancel" onclick="closeDeletePermissionModal()">Cancel</button>
     </div>
   </div>
+</div>
+
+<!-- Active Reply Preview Bar Inside Input Bar -->
+<div class="active-reply-preview-banner" id="activeReplyPreviewBanner">
+  <div style="display:flex; flex-direction:column; overflow:hidden;">
+    <span id="replyBannerSender" style="font-weight:700; font-size:0.75rem; color:var(--chat-sender-name);"></span>
+    <span id="replyBannerText" style="color:var(--subtext-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px;"></span>
+  </div>
+  <button onclick="cancelActiveReply()" style="background:none; border:none; color:var(--subtext-color); cursor:pointer; font-size:1.1rem; padding:0 4px;">&times;</button>
 </div>
           
           <!-- Lightbox Media Preview Overlay -->
@@ -1253,8 +1313,8 @@
       const filtered = projects.filter(p => {
         const matchesYear = p.year === selectedYear;
         const matchesSearch = (p.client && p.client.toLowerCase().includes(searchQuery)) ||
-                              (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
-                              (p.location && p.location.toLowerCase().includes(searchQuery));
+                            (p.projectNo && p.projectNo.toLowerCase().includes(searchQuery)) ||
+                            (p.location && p.location.toLowerCase().includes(searchQuery));
         return matchesYear && matchesSearch;
       });
 
@@ -1928,130 +1988,6 @@
       if (e.key === 'Enter') submitModalComment();
     }
 
-function renderChatMessages() {
-    const container = document.getElementById("chatThreadContainer");
-    if (!container || !activeOpenedProject) return;
-    container.innerHTML = `<div class="chat-date-pill">Today</div>`;
-
-    if (!activeOpenedProject.chatMessages) {
-      activeOpenedProject.chatMessages = [
-        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John', text: 'Verified by lead inspector.'}] },
-        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
-      ];
-    }
-
-    activeOpenedProject.chatMessages.forEach(msg => {
-      const msgRow = document.createElement("div");
-      let rowClasses = `msg-row ${msg.type}`;
-      
-      const isSelected = selectedMessageIds.includes(msg.id);
-      if (isSelected) rowClasses += " selected";
-      if (isMessageSelectionMode) rowClasses += " selection-mode";
-      
-      msgRow.className = rowClasses;
-
-      // Right-click listener to initiate selection mode / popup options
-      msgRow.oncontextmenu = (e) => handleMessageContextMenu(e, msg.id);
-
-      let avatarHtml = '';
-      let senderNameHtml = '';
-      let socialBarHtml = '';
-
-      let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
-
-      if (msg.type === 'incoming') {
-        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
-        senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
-      }
-
-      if (isGroupInteraction) {
-        socialBarHtml = `
-          <div class="msg-social-bar">
-            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
-              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-              <span class="like-count">${msg.likes || 0}</span>
-            </div>
-            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
-              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
-            </div>
-          </div>
-        `;
-      }
-
-      let contentHtml = '';
-      
-      // Render Images Combined Album Group if any
-      if (msg.imageUrls && msg.imageUrls.length > 0) {
-        const isSingle = msg.imageUrls.length === 1;
-        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
-        let imgsHtml = '';
-        
-        msg.imageUrls.forEach((url, idx) => {
-          let badgeOverlay = '';
-          if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
-            badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
-          }
-          imgsHtml += `
-            <div class="whatsapp-media-item-wrap">
-              <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
-              ${badgeOverlay}
-            </div>
-          `;
-        });
-
-        if (isSingle) {
-          contentHtml += `
-            <div class="msg-bubble outgoing media-bubble" style="width: 100%; margin-bottom: 4px;">
-              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
-              <div class="msg-media-time-badge">${msg.time}</div>
-            </div>
-          `;
-        } else {
-          contentHtml += `
-            <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
-              <div class="${groupClass}">${imgsHtml}</div>
-              <div class="msg-media-time-badge">${msg.time}</div>
-            </div>
-          `;
-        }
-      }
-
-      // Render Files if any
-      if (msg.files && msg.files.length > 0) {
-        msg.files.forEach(fName => {
-          contentHtml += `
-            <div class="msg-bubble outgoing" style="margin-bottom: 4px;">
-              📄 Attachment: ${fName}
-              <div class="msg-meta-row"><span>${msg.time}</span></div>
-            </div>
-          `;
-        });
-      }
-
-      // Render Text if any
-      if (msg.text) {
-        contentHtml += `
-          <div class="msg-bubble ${msg.type}">
-            ${msg.text}
-            <div class="msg-meta-row"><span>${msg.time}</span></div>
-          </div>
-        `;
-      }
-
-      msgRow.innerHTML = `
-        <input type="checkbox" class="msg-selection-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleMessageSelection('${msg.id}', event)" />
-        ${avatarHtml}
-        <div class="msg-body">
-          ${senderNameHtml}
-          ${contentHtml}
-          ${socialBarHtml}
-        </div>
-      `;
-      container.appendChild(msgRow);
-    });
-    scrollToLatestMessage();
-  }
     /* ------------ CHAT GLOBAL FORMS SELECTOR MODAL ------------ */
     function openChatGlobalFormsSelectorModal() {
       selectedFormForImport = null;
@@ -2552,103 +2488,396 @@ function renderChatMessages() {
       });
     }
 
-function sendChatMessage() {
-    const input = document.getElementById("chatMsgInput");
-    let rawText = input ? input.value.trim() : "";
+    let activeReplyTargetMsgId = null;
 
-    if (!rawText && pendingStagedFiles.length === 0) return;
-    if (!activeOpenedProject) return;
+    // Triggered when clicking "Reply" from the floating action bar
+    function actionReplyMessage() {
+      const msgId = selectedMessageIds[0];
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
+      if (!msg) return;
 
-    const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    const mentionDropdown = document.getElementById("chatMentionDropdown");
-    if (mentionDropdown) mentionDropdown.style.display = "none";
+      activeReplyTargetMsgId = msgId;
+      
+      const banner = document.getElementById("activeReplyPreviewBanner");
+      const senderSpan = document.getElementById("replyBannerSender");
+      const textSpan = document.getElementById("replyBannerText");
 
-    const groups = activeOpenedProject.chatGroups || [];
-    let allGroupNames = groups.map(g => g.name);
-
-    // Find all mentioned groups in the text
-    let mentionedGroups = [];
-    allGroupNames.forEach(g => {
-      const regex = new RegExp('@\\s?' + g, 'gi');
-      if (regex.test(rawText)) {
-        mentionedGroups.push(g);
+      if (banner && senderSpan && textSpan) {
+        senderSpan.innerText = msg.type === 'incoming' ? (msg.sender || 'Member') : 'You';
+        textSpan.innerText = msg.text || (msg.imageUrls && msg.imageUrls.length > 0 ? '📷 Image Attachment' : '📄 File Attachment');
+        banner.style.display = "flex";
       }
-    });
 
-    // Helper to dim mentions in text
-    function processMentions(textStr) {
-      let res = textStr;
-      allGroupNames.forEach(g => {
-        const reg = new RegExp('@\\s?' + g, 'gi');
-        res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
-      });
-      const members = activeOpenedProject.chatMembers || [];
-      members.forEach(m => {
-        const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
-        const reg = new RegExp('@' + mClean, 'gi');
-        res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
-      });
-      return res;
+      const input = document.getElementById("chatMsgInput");
+      if (input) input.focus();
+      clearMessageSelection();
     }
 
-    if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+    function cancelActiveReply() {
+      activeReplyTargetMsgId = null;
+      const banner = document.getElementById("activeReplyPreviewBanner");
+      if (banner) banner.style.display = "none";
+    }
 
-    // Separate media files
-    const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
-    const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
+    // Jump/Scroll to original message when clicking the quote box
+    function scrollToMessage(msgId) {
+      const targetRow = document.getElementById(`msg-row-${msgId}`);
+      if (targetRow) {
+        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetRow.classList.add("highlight-jump");
+        setTimeout(() => {
+          targetRow.classList.remove("highlight-jump");
+        }, 1200);
+      }
+    }
 
-    let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
+    function sendChatMessage() {
+      const input = document.getElementById("chatMsgInput");
+      let rawText = input ? input.value.trim() : "";
 
-    // Create a single message object containing all mentioned groups together
-    activeOpenedProject.chatMessages.push({
-      id: 'm-' + Date.now() + '-' + Math.random(),
-      type: 'outgoing',
-      targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
-      text: processMentions(rawText),
-      imageUrls: imageUrls,
-      files: otherFiles.map(f => f.name),
-      time: currentTimeStr,
-      likes: 0,
-      comments: []
-    });
+      if (!rawText && pendingStagedFiles.length === 0) return;
+      if (!activeOpenedProject) return;
 
-    pendingStagedFiles = [];
-    renderPendingPreviews();
-    if (input) input.value = "";
+      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const mentionDropdown = document.getElementById("chatMentionDropdown");
+      if (mentionDropdown) mentionDropdown.style.display = "none";
 
-    persistProjectTree();
-    renderChatMessages();
-    scrollToLatestMessage();
-  }
+      const groups = activeOpenedProject.chatGroups || [];
+      let allGroupNames = groups.map(g => g.name);
+
+      let mentionedGroups = [];
+      allGroupNames.forEach(g => {
+        const regex = new RegExp('@\\s?' + g, 'gi');
+        if (regex.test(rawText)) {
+          mentionedGroups.push(g);
+        }
+      });
+
+      function processMentions(textStr) {
+        let res = textStr;
+        allGroupNames.forEach(g => {
+          const reg = new RegExp('@\\s?' + g, 'gi');
+          res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
+        });
+        const members = activeOpenedProject.chatMembers || [];
+        members.forEach(m => {
+          const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
+          const reg = new RegExp('@' + mClean, 'gi');
+          res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
+        });
+        return res;
+      }
+
+      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+
+      const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
+      const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
+      let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
+
+      activeOpenedProject.chatMessages.push({
+        id: 'm-' + Date.now() + '-' + Math.random(),
+        type: 'outgoing',
+        targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
+        repliedToId: activeReplyTargetMsgId, // Link original message ID
+        text: processMentions(rawText),
+        imageUrls: imageUrls,
+        files: otherFiles.map(f => f.name),
+        time: currentTimeStr,
+        likes: 0,
+        comments: []
+      });
+
+      pendingStagedFiles = [];
+      renderPendingPreviews();
+      if (input) input.value = "";
+      cancelActiveReply();
+
+      persistProjectTree();
+      renderChatMessages();
+      scrollToLatestMessage();
+    }
+
     function handleChatInputKey(e) {
       if (e.key === 'Enter') sendChatMessage();
     }
 
-    function submitModalComment() {
-    const inputField = document.getElementById("commentsModalInput");
-    if (!inputField || !inputField.value.trim() || !activeCommentMsgId || !activeOpenedProject) return;
+    let selectedMessageIds = [];
+    let isMessageSelectionMode = false;
 
-    const commentText = inputField.value.trim();
-    const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === activeCommentMsgId);
-    if (!msg) return;
-
-    // Determine author name with group if it's a group interaction
-    let authorDisplay = 'You';
-    if (msg.targetGroup) {
-      // Pick the first mentioned group or general group context
-      const firstGroup = msg.targetGroup.split(',')[0].trim();
-      authorDisplay = `You (${firstGroup})`;
+    // Trigger selection mode on right-click of a message bubble
+    function handleMessageContextMenu(e, msgId) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!selectedMessageIds.includes(msgId)) {
+        selectedMessageIds.push(msgId);
+      }
+      isMessageSelectionMode = true;
+      renderChatMessages();
+      updateMessageContextFloatingBar();
     }
 
-    if (!msg.comments) msg.comments = [];
-    msg.comments.push({ author: authorDisplay, text: commentText });
+    function toggleMessageSelection(msgId, e) {
+      if (e) e.stopPropagation();
+      const idx = selectedMessageIds.indexOf(msgId);
+      if (idx > -1) {
+        selectedMessageIds.splice(idx, 1);
+      } else {
+        selectedMessageIds.push(msgId);
+      }
+      
+      if (selectedMessageIds.length === 0) {
+        isMessageSelectionMode = false;
+      }
+      renderChatMessages();
+      updateMessageContextFloatingBar();
+    }
 
-    persistProjectTree();
-    renderChatMessages();
-    openCommentsModal(activeCommentMsgId); // Refresh modal view
-    inputField.value = "";
-  }
-    
+    function updateMessageContextFloatingBar() {
+      const bar = document.getElementById("msgContextFloatingBar");
+      if (!bar || selectedMessageIds.length === 0) {
+        if (bar) bar.style.display = "none";
+        return;
+      }
+
+      bar.style.display = "flex";
+      bar.innerHTML = "";
+
+      const messages = activeOpenedProject.chatMessages || [];
+      const selectedMsgs = messages.filter(m => selectedMessageIds.includes(m.id));
+
+      const isMulti = selectedMsgs.length > 1;
+      const firstMsg = selectedMsgs[0];
+      const isAttachment = firstMsg && ((firstMsg.imageUrls && firstMsg.imageUrls.length > 0) || (firstMsg.files && firstMsg.files.length > 0));
+
+      if (isMulti) {
+        bar.innerHTML = `
+          <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete (${selectedMessageIds.length})
+          </button>
+          <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
+        `;
+      } else if (isAttachment) {
+        bar.innerHTML = `
+          <button class="msg-context-btn" onclick="actionReplyMessage()">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+            Reply
+          </button>
+          <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete
+          </button>
+          <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
+        `;
+      } else {
+        bar.innerHTML = `
+          <button class="msg-context-btn" onclick="actionReplyMessage()">Reply</button>
+          <button class="msg-context-btn" onclick="actionEditMessage()">Edit</button>
+          <button class="msg-context-btn" onclick="actionCopyMessage()">Copy</button>
+          <button class="msg-context-btn danger" onclick="promptDeleteMessages()">Delete</button>
+          <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
+        `;
+      }
+    }
+
+    function clearMessageSelection() {
+      selectedMessageIds = [];
+      isMessageSelectionMode = false;
+      renderChatMessages();
+      updateMessageContextFloatingBar();
+    }
+
+    function actionEditMessage() {
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
+      if (!msg) return;
+      const newText = prompt("Edit message:", msg.text);
+      if (newText !== null) {
+        msg.text = newText.trim();
+        persistProjectTree();
+        renderChatMessages();
+      }
+      clearMessageSelection();
+    }
+
+    function actionCopyMessage() {
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
+      if (!msg || !msg.text) return;
+      navigator.clipboard.writeText(msg.text).then(() => {
+        alert("Message copied to clipboard!");
+      });
+      clearMessageSelection();
+    }
+
+    function promptDeleteMessages() {
+      document.getElementById("deletePermissionModal").style.display = "flex";
+    }
+
+    function closeDeletePermissionModal() {
+      document.getElementById("deletePermissionModal").style.display = "none";
+    }
+
+    function executeMessageDeletion(scope) {
+      closeDeletePermissionModal();
+      if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
+
+      if (scope === 'all') {
+        activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.includes(m.id));
+      } else if (scope === 'me') {
+        activeOpenedProject.chatMessages.forEach(m => {
+          if (selectedMessageIds.includes(m.id)) {
+            m.text = "[Message deleted for you]";
+            m.imageUrls = [];
+            m.files = [];
+          }
+        });
+      }
+
+      persistProjectTree();
+      clearMessageSelection();
+      renderChatMessages();
+    }
+
+    function renderChatMessages() {
+      const container = document.getElementById("chatThreadContainer");
+      if (!container || !activeOpenedProject) return;
+      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+
+      if (!activeOpenedProject.chatMessages) {
+        activeOpenedProject.chatMessages = [
+          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John', text: 'Verified by lead inspector.'}] },
+          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+        ];
+      }
+
+      activeOpenedProject.chatMessages.forEach(msg => {
+        const msgRow = document.createElement("div");
+        msgRow.id = `msg-row-${msg.id}`;
+        let rowClasses = `msg-row ${msg.type}`;
+        
+        const isSelected = selectedMessageIds.includes(msg.id);
+        if (isSelected) rowClasses += " selected";
+        if (isMessageSelectionMode) rowClasses += " selection-mode";
+        
+        msgRow.className = rowClasses;
+        msgRow.oncontextmenu = (e) => handleMessageContextMenu(e, msg.id);
+
+        let avatarHtml = '';
+        let senderNameHtml = '';
+        let socialBarHtml = '';
+        let replySnippetHtml = '';
+
+        if (msg.repliedToId) {
+          const originalMsg = activeOpenedProject.chatMessages.find(m => m.id === msg.repliedToId);
+          if (originalMsg) {
+            const origSender = originalMsg.type === 'incoming' ? (originalMsg.sender || 'Member') : 'You';
+            const origText = originalMsg.text || (originalMsg.imageUrls && originalMsg.imageUrls.length > 0 ? '📷 Image' : '📄 File');
+            replySnippetHtml = `
+              <div class="replied-msg-preview" onclick="scrollToMessage('${originalMsg.id}')">
+                <div class="replied-preview-sender">${origSender}</div>
+                <div class="replied-preview-text">${origText}</div>
+              </div>
+            `;
+          }
+        }
+
+        let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
+
+        if (msg.type === 'incoming') {
+          avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
+          senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
+        }
+
+        if (isGroupInteraction) {
+          socialBarHtml = `
+            <div class="msg-social-bar">
+              <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
+                <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                <span class="like-count">${msg.likes || 0}</span>
+              </div>
+              <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+              </div>
+            </div>
+          `;
+        }
+
+        let contentHtml = '';
+        
+        if (msg.imageUrls && msg.imageUrls.length > 0) {
+          const isSingle = msg.imageUrls.length === 1;
+          const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+          let imgsHtml = '';
+          
+          msg.imageUrls.forEach((url, idx) => {
+            let badgeOverlay = '';
+            if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
+              badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
+            }
+            imgsHtml += `
+              <div class="whatsapp-media-item-wrap">
+                <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
+                ${badgeOverlay}
+              </div>
+            `;
+          });
+
+          if (isSingle) {
+            contentHtml += `
+              <div class="msg-bubble outgoing media-bubble" style="width: 100%; margin-bottom: 4px;">
+                ${replySnippetHtml}
+                <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
+                <div class="msg-media-time-badge">${msg.time}</div>
+              </div>
+            `;
+          } else {
+            contentHtml += `
+              <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
+                ${replySnippetHtml}
+                <div class="${groupClass}">${imgsHtml}</div>
+                <div class="msg-media-time-badge">${msg.time}</div>
+              </div>
+            `;
+          }
+        }
+
+        if (msg.files && msg.files.length > 0) {
+          msg.files.forEach(fName => {
+            contentHtml += `
+              <div class="msg-bubble outgoing" style="margin-bottom: 4px;">
+                ${replySnippetHtml}
+                📄 Attachment: ${fName}
+                <div class="msg-meta-row"><span>${msg.time}</span></div>
+              </div>
+            `;
+          });
+        }
+
+        if (msg.text) {
+          contentHtml += `
+            <div class="msg-bubble ${msg.type}">
+              ${replySnippetHtml}
+              ${msg.text}
+              <div class="msg-meta-row"><span>${msg.time}</span></div>
+            </div>
+          `;
+        }
+
+        msgRow.innerHTML = `
+          <input type="checkbox" class="msg-selection-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleMessageSelection('${msg.id}', event)" />
+          ${avatarHtml}
+          <div class="msg-body">
+            ${senderNameHtml}
+            ${contentHtml}
+            ${socialBarHtml}
+          </div>
+        `;
+        container.appendChild(msgRow);
+      });
+      scrollToLatestMessage();
+    }
+
     function renderFormsListUI(containerId, list) {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -2674,160 +2903,6 @@ function sendChatMessage() {
         container.appendChild(card);
       });
     }
-
-    let selectedMessageIds = [];
-let isMessageSelectionMode = false;
-
-// Trigger selection mode on right-click of a message bubble
-function handleMessageContextMenu(e, msgId) {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  if (!selectedMessageIds.includes(msgId)) {
-    selectedMessageIds.push(msgId);
-  }
-  isMessageSelectionMode = true;
-  renderChatMessages();
-  updateMessageContextFloatingBar();
-}
-
-function toggleMessageSelection(msgId, e) {
-  if (e) e.stopPropagation();
-  const idx = selectedMessageIds.indexOf(msgId);
-  if (idx > -1) {
-    selectedMessageIds.splice(idx, 1);
-  } else {
-    selectedMessageIds.push(msgId);
-  }
-  
-  if (selectedMessageIds.length === 0) {
-    isMessageSelectionMode = false;
-  }
-  renderChatMessages();
-  updateMessageContextFloatingBar();
-}
-
-function updateMessageContextFloatingBar() {
-  const bar = document.getElementById("msgContextFloatingBar");
-  if (!bar || selectedMessageIds.length === 0) {
-    if (bar) bar.style.display = "none";
-    return;
-  }
-
-  bar.style.display = "flex";
-  bar.innerHTML = "";
-
-  const messages = activeOpenedProject.chatMessages || [];
-  const selectedMsgs = messages.filter(m => selectedMessageIds.includes(m.id));
-
-  const isMulti = selectedMsgs.length > 1;
-  const firstMsg = selectedMsgs[0];
-  const isAttachment = firstMsg && ((firstMsg.imageUrls && firstMsg.imageUrls.length > 0) || (firstMsg.files && firstMsg.files.length > 0));
-
-  if (isMulti) {
-    // Multiple messages selected -> Show Delete only
-    bar.innerHTML = `
-      <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
-        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        Delete (${selectedMessageIds.length})
-      </button>
-      <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
-    `;
-  } else if (isAttachment) {
-    // Single attachment/group message -> Reply, Delete
-    bar.innerHTML = `
-      <button class="msg-context-btn" onclick="actionReplyMessage()">
-        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
-        Reply
-      </button>
-      <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
-        <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        Delete
-      </button>
-      <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
-    `;
-  } else {
-    // Single text message -> Reply, Edit, Copy, Delete
-    bar.innerHTML = `
-      <button class="msg-context-btn" onclick="actionReplyMessage()">Reply</button>
-      <button class="msg-context-btn" onclick="actionEditMessage()">Edit</button>
-      <button class="msg-context-btn" onclick="actionCopyMessage()">Copy</button>
-      <button class="msg-context-btn danger" onclick="promptDeleteMessages()">Delete</button>
-      <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
-    `;
-  }
-}
-
-function clearMessageSelection() {
-  selectedMessageIds = [];
-  isMessageSelectionMode = false;
-  renderChatMessages();
-  updateMessageContextFloatingBar();
-}
-
-// Action Handlers
-function actionReplyMessage() {
-  const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
-  if (!msg) return;
-  const input = document.getElementById("chatMsgInput");
-  if (input) {
-    input.value = `Replying to "${msg.text || 'Attachment'}": `;
-    input.focus();
-  }
-  clearMessageSelection();
-}
-
-function actionEditMessage() {
-  const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
-  if (!msg) return;
-  const newText = prompt("Edit message:", msg.text);
-  if (newText !== null) {
-    msg.text = newText.trim();
-    persistProjectTree();
-    renderChatMessages();
-  }
-  clearMessageSelection();
-}
-
-function actionCopyMessage() {
-  const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
-  if (!msg || !msg.text) return;
-  navigator.clipboard.writeText(msg.text).then(() => {
-    alert("Message copied to clipboard!");
-  });
-  clearMessageSelection();
-}
-
-function promptDeleteMessages() {
-  document.getElementById("deletePermissionModal").style.display = "flex";
-}
-
-function closeDeletePermissionModal() {
-  document.getElementById("deletePermissionModal").style.display = "none";
-}
-
-function executeMessageDeletion(scope) {
-  closeDeletePermissionModal();
-  if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
-
-  if (scope === 'all') {
-    // Completely remove messages from the chat store
-    activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.includes(m.id));
-  } else if (scope === 'me') {
-    // Mark or hide messages locally for current account view
-    activeOpenedProject.chatMessages.forEach(m => {
-      if (selectedMessageIds.includes(m.id)) {
-        m.text = "[Message deleted for you]";
-        m.imageUrls = [];
-        m.files = [];
-      }
-    });
-  }
-
-  persistProjectTree();
-  clearMessageSelection();
-  renderChatMessages();
-}
 
     function openExcelStudio() {
       buildExcelTableGrid();
@@ -3394,5 +3469,3 @@ function executeMessageDeletion(scope) {
   </script>
 </body>
 </html>
-
-
