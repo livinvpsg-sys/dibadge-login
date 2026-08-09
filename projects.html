@@ -1213,28 +1213,77 @@
       { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Gov Auditors'}] }
     ];
 
-    function getProjects() {
-      const stored = localStorage.getItem('dibadge_project_tiles');
-      if (!stored) return defaultProjects;
-      try {
-        const parsed = JSON.parse(stored);
-        return parsed.map(p => {
-          if (!p.children) p.children = getDefaultSubFolders();
-          if (!p.chatMessages) p.chatMessages = [];
-          if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
-          if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
-          p.children.forEach(ch => { if (!ch.files) ch.files = []; });
-          return p;
-        });
-      } catch(e) {
-        return defaultProjects;
-      }
+   function getProjects() {
+    const stored = localStorage.getItem('dibadge_project_tiles');
+    if (!stored) return defaultProjects;
+    try {
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return defaultProjects;
+      return parsed.map(p => {
+        if (!p.children) p.children = getDefaultSubFolders();
+        if (!p.chatMessages) p.chatMessages = [];
+        if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
+        if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
+        p.children.forEach(ch => { if (!ch.files) ch.files = []; });
+        return p;
+      });
+    } catch(e) {
+      console.error("Error parsing stored projects, falling back to default.", e);
+      return defaultProjects;
+    }
+  }
+
+  function saveProjects(array) {
+    localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
+    filterProjects();
+  }
+
+  function createNewProject() {
+    const client = document.getElementById("newProjectClient").value.trim();
+    const projectNo = document.getElementById("newProjectNo").value.trim();
+    const location = document.getElementById("newProjectLocation").value.trim();
+    const remarks = document.getElementById("newProjectRemarks").value.trim();
+    
+    const yearPicker = document.getElementById("yearPicker");
+    const year = yearPicker ? yearPicker.value : "2026";
+
+    if (!client) return alert("Please enter a client name.");
+
+    let projects = getProjects();
+    const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
+    if (duplicateExists) {
+      return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
     }
 
-    function saveProjects(array) {
-      localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
-      filterProjects();
+    projects.push({
+      id: 'proj-' + Date.now(),
+      client: client,
+      projectNo: targetProjNo,
+      location: location || 'N/A',
+      remarks: remarks,
+      year: year,
+      children: getDefaultSubFolders(),
+      chatMessages: [],
+      chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
+      chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}]
+    });
+
+    saveProjects(projects);
+    closeCreateProjectModal();
+    filterProjects();
+  }
+
+  (function init() {
+    const searchElem = document.getElementById("projectSearchInput");
+    if (searchElem) searchElem.style.display = "";
+    // Ensure default storage if empty
+    if (!localStorage.getItem('dibadge_project_tiles')) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
     }
+    switchMainViewTab('projects');
+  })();
 
     function switchProjectDisplayMode(mode) {
       currentProjectDisplayMode = mode;
