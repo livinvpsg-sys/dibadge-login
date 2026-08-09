@@ -2340,14 +2340,60 @@
       renderChatDetailsSidebar();
     }
 
-    function openLightbox(imgSrc) {
-      const lightbox = document.getElementById("lightboxOverlay");
-      const lbImg = document.getElementById("lightboxImage");
-      if (lightbox && lbImg) {
-        lbImg.src = imgSrc;
-        lightbox.style.display = "flex";
-      }
+   let currentLightboxImages = [];
+  let currentLightboxIndex = 0;
+
+  function openLightbox(imgSrc, groupImages = null, index = 0) {
+    const lightbox = document.getElementById("lightboxOverlay");
+    const lbImg = document.getElementById("lightboxImage");
+    if (lightbox && lbImg) {
+      currentLightboxImages = groupImages || [imgSrc];
+      currentLightboxIndex = index;
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+      lightbox.style.display = "flex";
+      updateLightboxNavButtons();
     }
+  }
+
+  function changeLightboxSlide(direction, event) {
+    if (event) event.stopPropagation();
+    if (currentLightboxImages.length <= 1) return;
+    currentLightboxIndex = (currentLightboxIndex + direction + currentLightboxImages.length) % currentLightboxImages.length;
+    const lbImg = document.getElementById("lightboxImage");
+    if (lbImg) {
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+    }
+  }
+
+  function updateLightboxNavButtons() {
+    let prevBtn = document.getElementById("lightboxPrevBtn");
+    let nextBtn = document.getElementById("lightboxNextBtn");
+    const contentBox = document.querySelector(".lightbox-content-box");
+    
+    if (!prevBtn && contentBox) {
+      prevBtn = document.createElement("button");
+      prevBtn.id = "lightboxPrevBtn";
+      prevBtn.innerHTML = "&#10094;";
+      prevBtn.style.cssText = "position:absolute; left:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      prevBtn.onclick = (e) => changeLightboxSlide(-1, e);
+      contentBox.appendChild(prevBtn);
+    }
+
+    if (!nextBtn && contentBox) {
+      nextBtn = document.createElement("button");
+      nextBtn.id = "lightboxNextBtn";
+      nextBtn.innerHTML = "&#10095;";
+      nextBtn.style.cssText = "position:absolute; right:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      nextBtn.onclick = (e) => changeLightboxSlide(1, e);
+      contentBox.appendChild(nextBtn);
+    }
+
+    if (prevBtn && nextBtn) {
+      const showNav = currentLightboxImages.length > 1;
+      prevBtn.style.display = showNav ? "block" : "none";
+      nextBtn.style.display = showNav ? "block" : "none";
+    }
+  }
 
     function closeLightbox() {
       const lightbox = document.getElementById("lightboxOverlay");
@@ -2573,18 +2619,14 @@ function sendChatMessage() {
       let contentHtml = '';
       
       // Render Images Combined Album Group if any
-      if (msg.imageUrls && msg.imageUrls.length > 0) {
-        const isSingle = msg.imageUrls.length === 1;
-        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
-        let imgsHtml = '';
-        msg.imageUrls.forEach((url, idx) => {
+   msg.imageUrls.forEach((url, idx) => {
           let badgeOverlay = '';
           if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
             badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
           }
           imgsHtml += `
             <div class="whatsapp-media-item-wrap">
-              <img src="${url}" onclick="openLightbox('${url}')" />
+              <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
               ${badgeOverlay}
             </div>
           `;
@@ -2593,20 +2635,11 @@ function sendChatMessage() {
         if (isSingle) {
           contentHtml += `
             <div class="msg-bubble outgoing media-bubble" style="width: 100%; margin-bottom: 4px;">
-              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}')" />
-              <div class="msg-media-time-badge">${msg.time}</div>
-            </div>
-          `;
-        } else {
-          contentHtml += `
-            <div class="msg-bubble outgoing media-bubble" style="margin-bottom: 4px;">
-              <div class="${groupClass}">${imgsHtml}</div>
+              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
               <div class="msg-media-time-badge">${msg.time}</div>
             </div>
           `;
         }
-      }
-
       // Render Files if any
       if (msg.files && msg.files.length > 0) {
         msg.files.forEach(fName => {
