@@ -1101,52 +1101,52 @@
         <button onclick="closeExcelStudio()" style="background:var(--border-color); color:var(--text-color); border:none; padding:6px 14px; border-radius:6px; font-weight:600; cursor:pointer;">Cancel</button>
         <button onclick="saveExcelFormTemplate()" style="background:var(--paper-white); color:var(--jet-black); border:none; padding:6px 18px; border-radius:6px; font-weight:600; cursor:pointer;">Save Form Template</button>
       </div>
-    </div>
+  </div>
 
-    <!-- Excel Formatting Toolbar -->
-    <div class="excel-toolbar">
-      <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
-      
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+  <!-- Excel Formatting Toolbar -->
+  <div class="excel-toolbar">
+    <input type="text" id="excelFormTitle" class="modal-input" placeholder="Form Title..." style="width:220px; padding:5px 10px;" value="Site Safety Inspection Sheet" />
+    
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
-      <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
+    <button class="excel-tool-btn" onclick="addExcelRow()">+ Row</button>
+    <button class="excel-tool-btn" onclick="addExcelColumn()">+ Column</button>
 
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <!-- Formatting -->
-      <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
-      
-      <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
-        <option value="12px">12px</option>
-        <option value="14px" selected>14px</option>
-        <option value="16px">16px</option>
-        <option value="18px">18px</option>
-        <option value="22px">22px</option>
-      </select>
+    <!-- Formatting -->
+    <button class="excel-tool-btn" onclick="formatSelectedCell('bold')" title="Bold Text"><b>B</b></button>
+    
+    <select class="excel-tool-select" onchange="formatSelectedCell('fontSize', this.value)">
+      <option value="12px">12px</option>
+      <option value="14px" selected>14px</option>
+      <option value="16px">16px</option>
+      <option value="18px">18px</option>
+      <option value="22px">22px</option>
+    </select>
 
-      <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
-        <option value="left">Align Left</option>
-        <option value="center">Align Center</option>
-        <option value="right">Align Right</option>
-      </select>
+    <select class="excel-tool-select" onchange="formatSelectedCell('align', this.value)">
+      <option value="left">Align Left</option>
+      <option value="center">Align Center</option>
+      <option value="right">Align Right</option>
+    </select>
 
-      <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
+    <input type="color" id="excelTextColor" class="excel-color-picker" value="#ffffff" title="Text Color" onchange="formatSelectedCell('color', this.value)" />
 
-      <div style="height:20px; width:1px; background:var(--border-color);"></div>
+    <div style="height:20px; width:1px; background:var(--border-color);"></div>
 
-      <!-- Interactive Form Controls Insertion -->
-      <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
-      <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
-      <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
-    </div>
+    <!-- Interactive Form Controls Insertion -->
+    <button class="excel-tool-btn" onclick="insertControlToCell('checkbox')">☑ Checkmark</button>
+    <button class="excel-tool-btn" onclick="insertControlToCell('button')">🔘 Button</button>
+    <button class="excel-tool-btn" onclick="mergeExcelCells()">🔲 Merge Cells</button>
+  </div>
 
-    <!-- Spreadsheet Grid Canvas -->
-    <div class="excel-grid-workspace">
-      <table class="excel-table" id="excelSheetTable">
-        <tbody id="excelSheetBody"></tbody>
-      </table>
-    </div>
+  <!-- Spreadsheet Grid Canvas -->
+  <div class="excel-grid-workspace">
+    <table class="excel-table" id="excelSheetTable">
+      <tbody id="excelSheetBody"></tbody>
+    </table>
+  </div>
   </div>
 
   <script>
@@ -1171,6 +1171,11 @@
     let selectedFormForImport = null;
     let selectedFileForImport = null;
     let activeCommentMsgId = null;
+
+    // Telegram style multi-selection tracking
+    let isSelectionMode = false;
+    let selectedMessageIds = new Set();
+    let longPressTimer = null;
 
     let currentLightboxImages = [];
     let currentLightboxIndex = 0;
@@ -1207,7 +1212,7 @@
     }
 
     const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders(), chatMessages: [{ id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John (Site Engineers)', text: 'Verified by lead inspector.'}] }], chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}], chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}] },
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}], chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}] },
       { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Logistics Group'}] },
       { id: 'proj-3', client: 'Metro Gov Authority', projectNo: 'PRJ-2025-089', location: 'Central Hub', remarks: 'Year-end compliance check', year: '2025', children: getDefaultSubFolders(), chatMessages: [], chatMembers: [{name: 'John', role: 'Admin'}], chatGroups: [{name: 'Gov Auditors'}] }
     ];
@@ -1225,7 +1230,7 @@
           if (!p.children) p.children = getDefaultSubFolders();
           if (!p.chatMessages) p.chatMessages = [];
           if (!p.chatMembers) p.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
-          if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}] ;
+          if (!p.chatGroups) p.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
           p.children.forEach(ch => { if (!ch.files) ch.files = []; });
           return p;
         });
@@ -1665,6 +1670,7 @@
     function renderChatDetailsSidebar() {
       if (!activeOpenedProject) return;
 
+      // Members
       const memberList = document.getElementById("chatMemberList");
       if (memberList) {
         memberList.innerHTML = "";
@@ -1681,6 +1687,7 @@
         });
       }
 
+      // Groups
       const groupList = document.getElementById("chatGroupsList");
       if (groupList) {
         groupList.innerHTML = "";
@@ -1848,6 +1855,10 @@
       renderChatDetailsSidebar();
     }
 
+    /* Mention / Group Autocomplete logic:
+       '@' -> members of this project
+       '@ ' -> groups of this project
+    */
     function handleChatInputEvent(e) {
       const input = e.target;
       const val = input.value;
@@ -1981,367 +1992,1028 @@
 
       persistProjectTree();
       renderChatMessages();
-      openCommentsModal(activeCommentMsgId);
+      openCommentsModal(activeCommentMsgId); // Refresh modal view
     }
 
     function handleModalCommentKey(e) {
       if (e.key === 'Enter') submitModalComment();
     }
 
-    function attachMessageLongPressListener(bubbleElem, msgObj) {
-      let pressTimer = null;
+  // Telegram Multi-Selection and Long-Press Handlers
+  function attachMessageLongPressListener(bubbleElem, msgObj) {
+    let pressTimer = null;
 
-      const startPress = () => {
-        clearTimeout(pressTimer);
-        pressTimer = setTimeout(() => {
-          enterSelectionMode(msgObj.id);
-        }, 500);
-      };
+    const startPress = () => {
+      clearTimeout(pressTimer);
+      pressTimer = setTimeout(() => {
+        enterSelectionMode(msgObj.id);
+      }, 500); // 500ms long press threshold
+    };
 
-      const cancelPress = () => {
-        clearTimeout(pressTimer);
-      };
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+    };
 
-      bubbleElem.addEventListener('pointerdown', startPress);
-      bubbleElem.addEventListener('touchstart', startPress, { passive: true });
-      bubbleElem.addEventListener('pointerup', cancelPress);
-      bubbleElem.addEventListener('mouseleave', cancelPress);
-      bubbleElem.addEventListener('touchend', cancelPress);
-      bubbleElem.addEventListener('touchcancel', cancelPress);
+    bubbleElem.addEventListener('pointerdown', startPress);
+    bubbleElem.addEventListener('touchstart', startPress, { passive: true });
 
-      bubbleElem.onclick = (e) => {
-        if (isSelectionMode) {
-          e.stopPropagation();
-          toggleMessageSelection(msgObj.id, bubbleElem);
-        }
-      };
-    }
+    bubbleElem.addEventListener('pointerup', cancelPress);
+    bubbleElem.addEventListener('mouseleave', cancelPress);
+    bubbleElem.addEventListener('touchend', cancelPress);
+    bubbleElem.addEventListener('touchcancel', cancelPress);
 
-    function enterSelectionMode(msgId) {
-      isSelectionMode = true;
-      selectedMessageIds.clear();
+    bubbleElem.onclick = (e) => {
+      if (isSelectionMode) {
+        e.stopPropagation();
+        toggleMessageSelection(msgObj.id, bubbleElem);
+      }
+    };
+  }
+
+  function enterSelectionMode(msgId) {
+    isSelectionMode = true;
+    selectedMessageIds.clear();
+    selectedMessageIds.add(msgId);
+
+    const topbar = document.getElementById("chatSelectionTopbar");
+    if (topbar) topbar.style.display = "flex";
+
+    updateSelectionUI();
+  }
+
+  function toggleMessageSelection(msgId, bubbleElem) {
+    if (selectedMessageIds.has(msgId)) {
+      selectedMessageIds.delete(msgId);
+      if (selectedMessageIds.size === 0) {
+        clearMessageSelection();
+        return;
+      }
+    } else {
       selectedMessageIds.add(msgId);
+    }
+    updateSelectionUI();
+  }
 
-      const topbar = document.getElementById("chatSelectionTopbar");
-      if (topbar) topbar.style.display = "flex";
-
-      updateSelectionUI();
+  function updateSelectionUI() {
+    const countLabel = document.getElementById("selectedMsgCountLabel");
+    if (countLabel) {
+      countLabel.innerText = `${selectedMessageIds.size} selected`;
     }
 
-    function toggleMessageSelection(msgId, bubbleElem) {
-      if (selectedMessageIds.has(msgId)) {
-        selectedMessageIds.delete(msgId);
-        if (selectedMessageIds.size === 0) {
+    // Toggle highlight class
+    document.querySelectorAll('.msg-bubble').forEach(b => {
+      const mId = b.getAttribute('data-msg-id');
+      if (selectedMessageIds.has(mId)) {
+        b.classList.add('selected-msg-highlight');
+      } else {
+        b.classList.remove('selected-msg-highlight');
+      }
+    });
+
+    // Control individual icon visibility based on selection rules
+    const optReply = document.getElementById("selActionReply");
+    const optEdit = document.getElementById("selActionEdit");
+    const optCopy = document.getElementById("selActionCopy");
+
+    if (selectedMessageIds.size > 1) {
+      if (optReply) optReply.style.display = "none";
+      if (optEdit) optEdit.style.display = "none";
+      if (optCopy) optCopy.style.display = "flex";
+    } else {
+      if (optReply) optReply.style.display = "flex";
+      if (optEdit) optEdit.style.display = "flex";
+      if (optCopy) optCopy.style.display = "flex";
+
+      // Check single selected message specifics
+      const msgId = Array.from(selectedMessageIds)[0];
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
+      if (msg) {
+        const hasMedia = (msg.imageUrls && msg.imageUrls.length > 0) || (msg.files && msg.files.length > 0);
+        if (hasMedia) {
+          if (optCopy) optCopy.style.display = "none";
+          if (optEdit) optEdit.style.display = "none";
+        }
+      }
+    }
+  }
+
+  function clearMessageSelection() {
+    isSelectionMode = false;
+    selectedMessageIds.clear();
+    const topbar = document.getElementById("chatSelectionTopbar");
+    if (topbar) topbar.style.display = "none";
+    document.querySelectorAll('.msg-bubble').forEach(b => b.classList.remove('selected-msg-highlight'));
+  }
+
+  function triggerSelectionAction(action) {
+    if (selectedMessageIds.size === 0 || !activeOpenedProject) return;
+
+    if (action === 'copy') {
+      let texts = [];
+      selectedMessageIds.forEach(id => {
+        const m = activeOpenedProject.chatMessages.find(x => x.id === id);
+        if (m && m.text) texts.push(m.text.replace(/<[^>]*>?/gm, ''));
+      });
+      navigator.clipboard.writeText(texts.join('\n')).then(() => {
+        alert("Selected messages copied!");
+        clearMessageSelection();
+      });
+    } else if (action === 'edit' && selectedMessageIds.size === 1) {
+      const msgId = Array.from(selectedMessageIds)[0];
+      const m = activeOpenedProject.chatMessages.find(x => x.id === msgId);
+      if (m) {
+        const newText = prompt("Edit message:", m.text.replace(/<[^>]*>?/gm, ''));
+        if (newText !== null && newText.trim() !== '') {
+          m.text = newText.trim();
+          persistProjectTree();
+          renderChatMessages();
           clearMessageSelection();
+        }
+      }
+    } else if (action === 'reply' && selectedMessageIds.size === 1) {
+      const msgId = Array.from(selectedMessageIds)[0];
+      const m = activeOpenedProject.chatMessages.find(x => x.id === msgId);
+      if (m) {
+        const replyInput = document.getElementById("chatMsgInput");
+        if (replyInput) {
+          replyInput.value = `Replying to: "${m.text ? m.text.replace(/<[^>]*>?/gm, '') : 'Attachment'}" - `;
+          replyInput.focus();
+          clearMessageSelection();
+        }
+      }
+    } else if (action === 'delete') {
+      let deleteChoice = 'for me';
+      let needsScopePrompt = false;
+
+      selectedMessageIds.forEach(id => {
+        const m = activeOpenedProject.chatMessages.find(x => x.id === id);
+        if (m && (m.type === 'incoming' || (m.targetGroup && m.targetGroup.trim() !== ''))) {
+          needsScopePrompt = true;
+        }
+      });
+
+      if (needsScopePrompt) {
+        let res = prompt("Delete message?\n1. Delete for me\n2. Delete for all", "1");
+        if (res === "2") {
+          deleteChoice = 'for all';
+        } else if (res !== "1") {
           return;
         }
       } else {
-        selectedMessageIds.add(msgId);
+        if (!confirm(`Delete ${selectedMessageIds.size} selected message(s)?`)) return;
       }
-      updateSelectionUI();
+
+      activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.has(m.id));
+      persistProjectTree();
+      renderChatMessages();
+      clearMessageSelection();
     }
+  }
 
-    function updateSelectionUI() {
-      const countLabel = document.getElementById("selectedMsgCountLabel");
-      if (countLabel) {
-        countLabel.innerText = `${selectedMessageIds.size} selected`;
-      }
+ function sendChatMessage() {
+    const input = document.getElementById("chatMsgInput");
+    let rawText = input ? input.value.trim() : "";
 
-      document.querySelectorAll('.msg-bubble').forEach(b => {
-        const mId = b.getAttribute('data-msg-id');
-        if (selectedMessageIds.has(mId)) {
-          b.classList.add('selected-msg-highlight');
+    if (!rawText && pendingStagedFiles.length === 0) return;
+    const container = document.getElementById("chatThreadContainer");
+    if (!container) return;
+
+    const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    if (pendingStagedFiles.length > 0) {
+      const imageFiles = pendingStagedFiles.filter(f => f.type.startsWith("image/"));
+      const otherFiles = pendingStagedFiles.filter(f => !f.type.startsWith("image/"));
+
+      if (imageFiles.length > 0) {
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+
+        let imagesHtml = '';
+        const isSingle = imageFiles.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+
+        imageFiles.forEach((file, idx) => {
+          const url = URL.createObjectURL(file);
+          if (isSingle) {
+            imagesHtml += `
+              <div class="msg-bubble outgoing media-bubble" style="width: 100%;">
+                <img src="${url}" class="msg-media-img" onclick="openLightbox('${url}')" />
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            `;
+          } else {
+            let badgeOverlay = '';
+            if (idx === imageFiles.length - 1 && imageFiles.length > 4) {
+              badgeOverlay = `<div class="whatsapp-album-badge">+${imageFiles.length - 3}</div>`;
+            }
+            imagesHtml += `
+              <div class="whatsapp-media-item-wrap">
+                <img src="${url}" onclick="openLightbox('${url}')" />
+                ${badgeOverlay}
+              </div>
+            `;
+          }
+        });
+
+        if (!isSingle) {
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              <div class="msg-bubble outgoing media-bubble">
+                <div class="${groupClass}">
+                  ${imagesHtml}
+                </div>
+                <div class="msg-media-time-badge">${currentTimeStr}</div>
+              </div>
+            </div>
+          `;
         } else {
-          b.classList.remove('selected-msg-highlight');
+          msgRow.innerHTML = `
+            <div class="msg-body">
+              ${imagesHtml}
+            </div>
+          `;
         }
-      });
-
-      const optReply = document.getElementById("selActionReply");
-      const optEdit = document.getElementById("selActionEdit");
-      const optCopy = document.getElementById("selActionCopy");
-
-      if (selectedMessageIds.size > 1) {
-        if (optReply) optReply.style.display = "none";
-        if (optEdit) optEdit.style.display = "none";
-        if (optCopy) optCopy.style.display = "flex";
-      } else {
-        if (optReply) optReply.style.display = "flex";
-        if (optEdit) optEdit.style.display = "flex";
-        if (optCopy) optCopy.style.display = "flex";
-
-        const msgId = Array.from(selectedMessageIds)[0];
-        const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
-        if (msg) {
-          const hasMedia = (msg.imageUrls && msg.imageUrls.length > 0) || (msg.files && msg.files.length > 0);
-          if (hasMedia) {
-            if (optCopy) optCopy.style.display = "none";
-            if (optEdit) optEdit.style.display = "none";
-          }
-        }
-      }
-    }
-
-    function clearMessageSelection() {
-      isSelectionMode = false;
-      selectedMessageIds.clear();
-      const topbar = document.getElementById("chatSelectionTopbar");
-      if (topbar) topbar.style.display = "none";
-      document.querySelectorAll('.msg-bubble').forEach(b => b.classList.remove('selected-msg-highlight'));
-    }
-
-    function triggerSelectionAction(action) {
-      if (selectedMessageIds.size === 0 || !activeOpenedProject) return;
-
-      if (action === 'copy') {
-        let texts = [];
-        selectedMessageIds.forEach(id => {
-          const m = activeOpenedProject.chatMessages.find(x => x.id === id);
-          if (m && m.text) texts.push(m.text.replace(/<[^>]*>?/gm, ''));
-        });
-        navigator.clipboard.writeText(texts.join('\n')).then(() => {
-          alert("Selected messages copied!");
-          clearMessageSelection();
-        });
-      } else if (action === 'edit' && selectedMessageIds.size === 1) {
-        const msgId = Array.from(selectedMessageIds)[0];
-        const m = activeOpenedProject.chatMessages.find(x => x.id === msgId);
-        if (m) {
-          const newText = prompt("Edit message:", m.text.replace(/<[^>]*>?/gm, ''));
-          if (newText !== null && newText.trim() !== '') {
-            m.text = newText.trim();
-            persistProjectTree();
-            renderChatMessages();
-            clearMessageSelection();
-          }
-        }
-      } else if (action === 'reply' && selectedMessageIds.size === 1) {
-        const msgId = Array.from(selectedMessageIds)[0];
-        const m = activeOpenedProject.chatMessages.find(x => x.id === msgId);
-        if (m) {
-          const replyInput = document.getElementById("chatMsgInput");
-          if (replyInput) {
-            replyInput.value = `Replying to: "${m.text ? m.text.replace(/<[^>]*>?/gm, '') : 'Attachment'}" - `;
-            replyInput.focus();
-            clearMessageSelection();
-          }
-        }
-      } else if (action === 'delete') {
-        let deleteChoice = 'for me';
-        let needsScopePrompt = false;
-
-        selectedMessageIds.forEach(id => {
-          const m = activeOpenedProject.chatMessages.find(x => x.id === id);
-          if (m && (m.type === 'incoming' || (m.targetGroup && m.targetGroup.trim() !== ''))) {
-            needsScopePrompt = true;
-          }
-        });
-
-        if (needsScopePrompt) {
-          let res = prompt("Delete message?\n1. Delete for me\n2. Delete for all", "1");
-          if (res === "2") {
-            deleteChoice = 'for all';
-          } else if (res !== "1") {
-            return;
-          }
-        } else {
-          if (!confirm(`Delete ${selectedMessageIds.size} selected message(s)?`)) return;
-        }
-
-        activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.has(m.id));
-        persistProjectTree();
-        renderChatMessages();
-        clearMessageSelection();
-      }
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById("chatMsgInput");
-      let rawText = input ? input.value.trim() : "";
-
-      if (!rawText && pendingStagedFiles.length === 0) return;
-      if (!activeOpenedProject) return;
-
-      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      const mentionDropdown = document.getElementById("chatMentionDropdown");
-      if (mentionDropdown) mentionDropdown.style.display = "none";
-
-      const groups = activeOpenedProject.chatGroups || [];
-      let allGroupNames = groups.map(g => g.name);
-
-      let mentionedGroups = [];
-      allGroupNames.forEach(g => {
-        const regex = new RegExp('@\\s?' + g, 'gi');
-        if (regex.test(rawText)) {
-          mentionedGroups.push(g);
-        }
-      });
-
-      function processMentions(textStr) {
-        let res = textStr;
-        allGroupNames.forEach(g => {
-          const reg = new RegExp('@\\s?' + g, 'gi');
-          res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
-        });
-        const members = activeOpenedProject.chatMembers || [];
-        members.forEach(m => {
-          const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
-          const reg = new RegExp('@' + mClean, 'gi');
-          res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
-        });
-        return res;
+        container.appendChild(msgRow);
       }
 
-      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
-
-      const imageFiles = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/"));
-      const otherFiles = pendingStagedFiles.filter(f => !f.type || !f.type.startsWith("image/"));
-
-      let imageUrls = imageFiles.map(file => URL.createObjectURL(file));
-
-      activeOpenedProject.chatMessages.push({
-        id: 'm-' + Date.now() + '-' + Math.random(),
-        type: 'outgoing',
-        targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
-        text: processMentions(rawText),
-        imageUrls: imageUrls,
-        files: otherFiles.map(f => f.name),
-        time: currentTimeStr,
-        likes: 0,
-        comments: []
+      otherFiles.forEach(file => {
+        const msgRow = document.createElement("div");
+        msgRow.className = "msg-row outgoing";
+        msgRow.innerHTML = `
+          <div class="msg-body">
+            <div class="msg-bubble outgoing">
+              📄 Attachment: ${file.name}
+              <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(msgRow);
       });
 
       pendingStagedFiles = [];
       renderPendingPreviews();
-      if (input) input.value = "";
-
-      persistProjectTree();
-      renderChatMessages();
-      scrollToLatestMessage();
     }
 
-    function handleChatInputKey(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        sendChatMessage();
-      }
+    if (rawText) {
+      const msgRow = document.createElement("div");
+      msgRow.className = "msg-row outgoing";
+      msgRow.innerHTML = `
+        <div class="msg-body">
+          <div class="msg-bubble outgoing">
+            ${rawText}
+            <div class="msg-meta-row"><span>${currentTimeStr}</span></div>
+          </div>
+        </div>
+      `;
+      container.appendChild(msgRow);
+      input.value = "";
     }
 
-    function renderChatMessages() {
-      const container = document.getElementById("chatThreadContainer");
-      if (!container || !activeOpenedProject) return;
-      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+    scrollToLatestMessage();
+  }
 
-      if (!activeOpenedProject.chatMessages) {
-        activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John (Site Engineers)', text: 'Verified by lead inspector.'}] },
-          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
-        ];
+  function handleChatInputKey(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendChatMessage();
+    }
+  }
+
+  function renderChatMessages() {
+    const container = document.getElementById("chatThreadContainer");
+    if (!container || !activeOpenedProject) return;
+    container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+
+    if (!activeOpenedProject.chatMessages) {
+      activeOpenedProject.chatMessages = [
+        { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 4, comments: [{author: 'John (Site Engineers)', text: 'Verified by lead inspector.'}] },
+        { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [] }
+      ];
+    }
+
+    activeOpenedProject.chatMessages.forEach(msg => {
+      const msgRow = document.createElement("div");
+      msgRow.className = `msg-row ${msg.type}`;
+
+      let avatarHtml = '';
+      let senderNameHtml = '';
+      let socialBarHtml = '';
+
+      let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
+
+      if (msg.type === 'incoming') {
+        avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
+        senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
       }
 
-      activeOpenedProject.chatMessages.forEach(msg => {
-        const msgRow = document.createElement("div");
-        msgRow.className = `msg-row ${msg.type}`;
+      if (isGroupInteraction) {
+        socialBarHtml = `
+          <div class="msg-social-bar">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <span class="like-count">${msg.likes || 0}</span>
+            </div>
+            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+            </div>
+          </div>
+        `;
+      }
 
-        let avatarHtml = '';
-        let senderNameHtml = '';
-        let socialBarHtml = '';
+      let contentHtml = '';
+      
+      // Render Images Combined Album Group if any
+      if (msg.imageUrls && msg.imageUrls.length > 0) {
+        const isSingle = msg.imageUrls.length === 1;
+        const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
+        let imgsHtml = '';
+        
+        msg.imageUrls.forEach((url, idx) => {
+          let badgeOverlay = '';
+          if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
+            badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
+          }
+          imgsHtml += `
+            <div class="whatsapp-media-item-wrap">
+              <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
+              ${badgeOverlay}
+            </div>
+          `;
+        });
 
-        let isGroupInteraction = (msg.type === 'incoming' || (msg.targetGroup && msg.targetGroup.trim() !== ''));
-
-        if (msg.type === 'incoming') {
-          avatarHtml = `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>`;
-          senderNameHtml = `<span class="msg-sender-name">${msg.sender || 'Group'}</span>`;
-        }
-
-        if (isGroupInteraction) {
-          socialBarHtml = `
-            <div class="msg-social-bar">
-              <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(this)">
-                <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                <span class="like-count">${msg.likes || 0}</span>
-              </div>
-              <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
-              </div>
+        if (isSingle) {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" data-msg-id="${msg.id}" style="width: 100%; margin-bottom: 4px;">
+              <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
+              <div class="msg-media-time-badge">${msg.time}</div>
+            </div>
+          `;
+        } else {
+          contentHtml += `
+            <div class="msg-bubble outgoing media-bubble" data-msg-id="${msg.id}" style="margin-bottom: 4px;">
+              <div class="${groupClass}">${imgsHtml}</div>
+              <div class="msg-media-time-badge">${msg.time}</div>
             </div>
           `;
         }
+      }
 
-        let contentHtml = '';
-        
-        if (msg.imageUrls && msg.imageUrls.length > 0) {
-          const isSingle = msg.imageUrls.length === 1;
-          const groupClass = isSingle ? 'whatsapp-media-group single-item' : 'whatsapp-media-group';
-          let imgsHtml = '';
-          
-          msg.imageUrls.forEach((url, idx) => {
-            let badgeOverlay = '';
-            if (!isSingle && idx === msg.imageUrls.length - 1 && msg.imageUrls.length > 4) {
-              badgeOverlay = `<div class="whatsapp-album-badge">+${msg.imageUrls.length - 3}</div>`;
-            }
-            imgsHtml += `
-              <div class="whatsapp-media-item-wrap">
-                <img src="${url}" onclick="openLightbox('${url}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, ${idx})" />
-                ${badgeOverlay}
-              </div>
-            `;
-          });
-
-          if (isSingle) {
-            contentHtml += `
-              <div class="msg-bubble outgoing media-bubble" data-msg-id="${msg.id}" style="width: 100%; margin-bottom: 4px;">
-                <img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}', ${JSON.stringify(msg.imageUrls).replace(/"/g, '&quot;')}, 0)" />
-                <div class="msg-media-time-badge">${msg.time}</div>
-              </div>
-            `;
-          } else {
-            contentHtml += `
-              <div class="msg-bubble outgoing media-bubble" data-msg-id="${msg.id}" style="margin-bottom: 4px;">
-                <div class="${groupClass}">${imgsHtml}</div>
-                <div class="msg-media-time-badge">${msg.time}</div>
-              </div>
-            `;
-          }
-        }
-
-        if (msg.files && msg.files.length > 0) {
-          msg.files.forEach(fName => {
-            contentHtml += `
-              <div class="msg-bubble outgoing" data-msg-id="${msg.id}" style="margin-bottom: 4px;">
-                📄 Attachment: ${fName}
-                <div class="msg-meta-row"><span>${msg.time}</span></div>
-              </div>
-            `;
-          });
-        }
-
-        if (msg.text) {
+      // Render Files if any
+      if (msg.files && msg.files.length > 0) {
+        msg.files.forEach(fName => {
           contentHtml += `
-            <div class="msg-bubble ${msg.type}" data-msg-id="${msg.id}">
-              ${msg.text}
+            <div class="msg-bubble outgoing" data-msg-id="${msg.id}" style="margin-bottom: 4px;">
+              📄 Attachment: ${fName}
               <div class="msg-meta-row"><span>${msg.time}</span></div>
             </div>
           `;
-        }
+        });
+      }
 
-        msgRow.innerHTML = `
-          ${avatarHtml}
-          <div class="msg-body">
-            ${senderNameHtml}
-            ${contentHtml}
-            ${socialBarHtml}
+      // Render Text if any
+      if (msg.text) {
+        contentHtml += `
+          <div class="msg-bubble ${msg.type}" data-msg-id="${msg.id}">
+            ${msg.text}
+            <div class="msg-meta-row"><span>${msg.time}</span></div>
           </div>
         `;
+      }
 
-        msgRow.querySelectorAll('.msg-bubble').forEach(bubbleElem => {
-          attachMessageLongPressListener(bubbleElem, msg);
-        });
+      msgRow.innerHTML = `
+        ${avatarHtml}
+        <div class="msg-body">
+          ${senderNameHtml}
+          ${contentHtml}
+          ${socialBarHtml}
+        </div>
+      `;
 
-        container.appendChild(msgRow);
+      // Attach Telegram-style long press handler to each bubble
+      msgRow.querySelectorAll('.msg-bubble').forEach(bubbleElem => {
+        attachMessageLongPressListener(bubbleElem, msg);
       });
-      scrollToLatestMessage();
+
+      container.appendChild(msgRow);
+    });
+    scrollToLatestMessage();
+  }
+
+  function openLightbox(imgSrc, groupImages = null, index = 0) {
+    const lightbox = document.getElementById("lightboxOverlay");
+    const lbImg = document.getElementById("lightboxImage");
+    if (lightbox && lbImg) {
+      currentLightboxImages = groupImages || [imgSrc];
+      currentLightboxIndex = index;
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+      lightbox.style.display = "flex";
+      updateLightboxNavButtons();
     }
+  }
+
+  function changeLightboxSlide(direction, event) {
+    if (event) event.stopPropagation();
+    if (currentLightboxImages.length <= 1) return;
+    currentLightboxIndex = (currentLightboxIndex + direction + currentLightboxImages.length) % currentLightboxImages.length;
+    const lbImg = document.getElementById("lightboxImage");
+    if (lbImg) {
+      lbImg.src = currentLightboxImages[currentLightboxIndex];
+    }
+  }
+
+  function updateLightboxNavButtons() {
+    let prevBtn = document.getElementById("lightboxPrevBtn");
+    let nextBtn = document.getElementById("lightboxNextBtn");
+    const contentBox = document.querySelector(".lightbox-content-box");
+    
+    if (!prevBtn && contentBox) {
+      prevBtn = document.createElement("button");
+      prevBtn.id = "lightboxPrevBtn";
+      prevBtn.innerHTML = "&#10094;";
+      prevBtn.style.cssText = "position:absolute; left:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      prevBtn.onclick = (e) => changeLightboxSlide(-1, e);
+      contentBox.appendChild(prevBtn);
+    }
+
+    if (!nextBtn && contentBox) {
+      nextBtn = document.createElement("button");
+      nextBtn.id = "lightboxNextBtn";
+      nextBtn.innerHTML = "&#10095;";
+      nextBtn.style.cssText = "position:absolute; right:-60px; top:50%; transform:translateY(-50%); background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer; padding:10px;";
+      nextBtn.onclick = (e) => changeLightboxSlide(1, e);
+      contentBox.appendChild(nextBtn);
+    }
+
+    if (prevBtn && nextBtn) {
+      const showNav = currentLightboxImages.length > 1;
+      prevBtn.style.display = showNav ? "block" : "none";
+      nextBtn.style.display = showNav ? "block" : "none";
+    }
+  }
+
+  function closeLightbox() {
+    const lightbox = document.getElementById("lightboxOverlay");
+    if (lightbox) {
+      lightbox.style.display = "none";
+    }
+  }
+
+  function renderFormsListUI(containerId, list) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+      container.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); text-align:center; padding:40px;">No forms created yet. Click bottom left + button to create or import one.</div>`;
+      return;
+    }
+
+    list.forEach(form => {
+      const card = document.createElement("div");
+      card.className = "form-file-card";
+      card.innerHTML = `
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <div class="form-file-name">${form.title}</div>
+      `;
+      
+      card.ondblclick = function() {
+        alert(`Opening Form: ${form.title}`);
+      };
+
+      container.appendChild(card);
+    });
+  }
+
+  function openExcelStudio() {
+    buildExcelTableGrid();
+    document.getElementById("excelFormStudioOverlay").style.display = "flex";
+  }
+
+  function closeExcelStudio() {
+    document.getElementById("excelFormStudioOverlay").style.display = "none";
+  }
+
+  function buildExcelTableGrid() {
+    const tbody = document.getElementById("excelSheetBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const headerTr = document.createElement("tr");
+    headerTr.innerHTML = `<th>#</th>`;
+    for (let c = 0; c < excelColsCount; c++) {
+      const colLetter = String.fromCharCode(65 + c);
+      headerTr.innerHTML += `<th>${colLetter}</th>`;
+    }
+    tbody.appendChild(headerTr);
+
+    for (let r = 1; r <= excelRowsCount; r++) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<th>${r}</th>`;
+
+      for (let c = 0; c < excelColsCount; c++) {
+        const td = document.createElement("td");
+        td.contentEditable = "true";
+        td.onclick = function(e) { selectExcelCell(e, td); };
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  }
+
+  function selectExcelCell(e, td) {
+    if (selectedExcelCell) selectedExcelCell.classList.remove("selected-cell");
+    selectedExcelCell = td;
+    selectedExcelCell.classList.add("selected-cell");
+  }
+
+  function addExcelRow() {
+    excelRowsCount++;
+    buildExcelTableGrid();
+  }
+
+  function addExcelColumn() {
+    excelColsCount++;
+    buildExcelTableGrid();
+  }
+
+  function formatSelectedCell(action, value) {
+    if (!selectedExcelCell) return alert("Click any cell in the sheet first to format it.");
+
+    if (action === 'bold') {
+      const currentFontWeight = window.getComputedStyle(selectedExcelCell).fontWeight;
+      selectedExcelCell.style.fontWeight = (currentFontWeight === '700' || currentFontWeight === 'bold') ? '400' : '700';
+    } else if (action === 'fontSize') {
+      selectedExcelCell.style.fontSize = value;
+    } else if (action === 'align') {
+      selectedExcelCell.style.textAlign = value;
+    } else if (action === 'color') {
+      selectedExcelCell.style.color = value;
+    }
+  }
+
+  function insertControlToCell(type) {
+    if (!selectedExcelCell) return alert("Select a cell to insert a form element.");
+
+    if (type === 'checkbox') {
+      selectedExcelCell.innerHTML = `<input type="checkbox" class="excel-checkbox-element" /> <span style="font-size:0.85rem;">Check Box</span>`;
+    } else if (type === 'button') {
+      const btnLabel = prompt("Enter button label:", "Action Button");
+      if (btnLabel) {
+        selectedExcelCell.innerHTML = `<button class="excel-btn-element" onclick="alert('${btnLabel} clicked!')">${btnLabel}</button>`;
+      }
+    }
+  }
+
+  function mergeExcelCells() {
+    if (!selectedExcelCell) return alert("Select a cell to expand/merge.");
+    const colspan = prompt("Merge across how many columns? (e.g. 2, 3)", "2");
+    if (colspan && parseInt(colspan) > 1) {
+      selectedExcelCell.setAttribute("colspan", colspan);
+    }
+  }
+
+  function saveExcelFormTemplate() {
+    const titleElem = document.getElementById("excelFormTitle");
+    const title = titleElem ? titleElem.value.trim() : "";
+    if (!title) return alert("Please enter a form title.");
+
+    const duplicateForm = globalFormsList.some(gf => gf.title.toLowerCase() === title.toLowerCase());
+    if (duplicateForm) {
+      return alert(`A form template named "${title}" already exists. Please choose a unique name.`);
+    }
+
+    globalFormsList.push({
+      id: 'gf-' + Date.now(),
+      title: title,
+      category: 'Spreadsheet Form',
+      date: new Date().toISOString().split('T')[0]
+    });
+
+    renderFormsListUI('globalFormsContainer', globalFormsList);
+    closeExcelStudio();
+  }
+
+  function evaluateMathExpr(expr) {
+    if (typeof expr === 'number') return expr;
+    if (!expr || typeof expr !== 'string') return 0;
+    try {
+      const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+      if (!cleanExpr) return 0;
+      const result = Function(`'use strict'; return (${cleanExpr})`)();
+      return isNaN(result) ? 0 : result;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function renderBOQTable() {
+    const tbody = document.getElementById("boqTableBody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+    const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+
+    let subTotal = 0;
+
+    currentBOQItems.forEach((row, index) => {
+      const numQty = evaluateMathExpr(row.qty);
+      const numPrice = evaluateMathExpr(row.price);
+      const rowTotal = numQty * numPrice;
+      subTotal += rowTotal;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
+        <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
+        <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
+        <td style="text-align:center;">
+          <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const taxAmount = subTotal * (taxRate / 100);
+    const grandTotal = subTotal + taxAmount;
+
+    const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+    const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+    const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+    const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+  }
+
+  function updateBOQData(index, field, value) {
+    if (field === 'qty' || field === 'price') {
+      const evaluated = evaluateMathExpr(value);
+      currentBOQItems[index][field] = evaluated.toString();
+    } else {
+      currentBOQItems[index][field] = value;
+    }
+    renderBOQTable();
+  }
+
+  function addBOQRow() {
+    currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+    renderBOQTable();
+  }
+
+  function deleteBOQRow(index) {
+    currentBOQItems.splice(index, 1);
+    renderBOQTable();
+  }
+
+  function getCurrentWorkspaceFolder() {
+    return folderObjectStack[folderObjectStack.length - 1];
+  }
+
+  function renderFolderView() {
+    const breadcrumbContainer = document.getElementById("breadcrumbBar");
+    if (!breadcrumbContainer) return;
+    breadcrumbContainer.innerHTML = `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(0)">Projects</span>`;
+
+    folderObjectStack.forEach((node, idx) => {
+      const isLast = idx === folderObjectStack.length - 1;
+      const displayName = node.client ? `${node.client} (${node.projectNo})` : node.name;
+      
+      breadcrumbContainer.innerHTML += ` <span style="color:var(--subtext-color); font-weight:400;">></span> `;
+      
+      if (isLast) {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item active">${displayName}</span>`;
+      } else {
+        breadcrumbContainer.innerHTML += `<span class="breadcrumb-item" onclick="jumpToBreadcrumbIndex(${idx + 1})">${displayName}</span>`;
+      }
+    });
+
+    const metaHeader = document.getElementById("projectMetaHeader");
+    if (metaHeader) {
+      if (folderObjectStack.length > 1) {
+        metaHeader.style.display = "none";
+      } else {
+        metaHeader.style.display = "flex";
+      }
+    }
+
+    const currentFolderNode = getCurrentWorkspaceFolder();
+    const subGrid = document.getElementById("innerFolderGrid");
+    if (!subGrid) return;
+    subGrid.innerHTML = "";
+
+    if (!currentFolderNode.children) currentFolderNode.children = [];
+
+    if (currentFolderNode.children.length === 0) {
+      subGrid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--subtext-color); margin-top: 40px; text-align: center;">Folder is empty. Right-click or press + to add content.</div>`;
+      return;
+    }
+
+    if (currentProjectDisplayMode === 'grid') {
+      subGrid.className = "folder-contents-grid";
+      currentFolderNode.children.forEach((folder, idx) => {
+        const folderCard = document.createElement("div");
+        folderCard.className = "folder-card";
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          folderCard.classList.add("selected-cut");
+        }
+
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
+        folderCard.innerHTML = `
+          <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          <div class="folder-name">${folder.name}</div>
+          <div class="folder-items-count">${itemCount}</div>
+        `;
+
+        folderCard.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        folderCard.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        subGrid.appendChild(folderCard);
+      });
+    } else {
+      subGrid.className = "";
+      const table = document.createElement("table");
+      table.className = "projects-list-table";
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Items / Details</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+
+      const tbody = table.querySelector("tbody");
+      currentFolderNode.children.forEach((folder, idx) => {
+        const tr = document.createElement("tr");
+        if (clipboardFolder && clipboardFolder.id === folder.id && isCutOperation) {
+          tr.style.opacity = "0.4";
+        }
+
+        const itemCount = folder.files ? folder.files.length + ' Files' : folder.items || '0 Files';
+        tr.innerHTML = `
+          <td style="font-weight:600; display:flex; align-items:center; gap:8px;">
+            <svg style="width:18px; height:18px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            ${folder.name}
+          </td>
+          <td style="color:var(--subtext-color);">Folder</td>
+          <td style="color:var(--subtext-color);">${itemCount}</td>
+        `;
+
+        tr.onclick = (e) => {
+          e.stopPropagation();
+          folderObjectStack.push(folder);
+          renderFolderView();
+        };
+
+        tr.oncontextmenu = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          showFolderContextMenu(e, folder, idx);
+        };
+
+        tbody.appendChild(tr);
+      });
+
+      subGrid.appendChild(table);
+    }
+  }
+
+  function jumpToBreadcrumbIndex(targetIndex) {
+    if (targetIndex === 0) {
+      activeOpenedProject = null;
+      folderObjectStack = [];
+      activeViewMode = 'projects';
+
+      const pSubNav = document.getElementById("projectSubNav"); if (pSubNav) pSubNav.style.display = "none";
+      const mNavGroup = document.getElementById("mainNavGroup"); if (mNavGroup) mNavGroup.style.display = "flex";
+
+      const fHeaderNav = document.getElementById("folderHeaderNav"); if (fHeaderNav) fHeaderNav.style.display = "none";
+      const dHeaderTitle = document.getElementById("defaultHeaderTitle"); if (dHeaderTitle) dHeaderTitle.style.display = "flex";
+
+      const searchElem = document.getElementById("projectSearchInput");
+      if (searchElem) searchElem.style.display = "";
+
+      const views = ["folderExplorerWorkspace", "panelChatWorkspace", "panelProjectFormsWorkspace", "panelBOQWorkspace", "panelCompareWorkspace", "panelClaimsWorkspace", "panelScheduleWorkspace"];
+      views.forEach(vId => {
+        const el = document.getElementById(vId);
+        if (el) el.style.display = "none";
+      });
+
+      switchMainViewTab('projects');
+    } else {
+      folderObjectStack = folderObjectStack.slice(0, targetIndex);
+      switchProjectSubTab('folder');
+    }
+  }
+
+  function navigateUpBreadcrumb() {
+    jumpToBreadcrumbIndex(folderObjectStack.length - 1);
+  }
+
+  function showFolderContextMenu(e, folder, idx) {
+    hideContextMenus();
+    selectedFolderForContext = { folder, idx };
+    const menu = document.getElementById("folderContextMenu");
+    if (!menu) return;
+    
+    const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "flex";
+    const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "flex";
+    const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = clipboardFolder ? "flex" : "none";
+    const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "flex";
+    const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "flex";
+    const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "block";
+
+    menu.style.top = `${e.pageY}px`;
+    menu.style.left = `${e.pageX}px`;
+    menu.style.display = "flex";
+  }
+
+  function handleWorkspaceContextMenu(e) {
+    if (activeOpenedProject && activeViewMode === 'folder') {
+      e.preventDefault();
+      hideContextMenus();
+
+      if (!clipboardFolder) return;
+
+      selectedFolderForContext = null;
+      const menu = document.getElementById("folderContextMenu");
+      if (!menu) return;
+
+      const copyBtn = document.getElementById("copyContextBtn"); if (copyBtn) copyBtn.style.display = "none";
+      const cutBtn = document.getElementById("cutContextBtn"); if (cutBtn) cutBtn.style.display = "none";
+      const pasteBtn = document.getElementById("pasteContextBtn"); if (pasteBtn) pasteBtn.style.display = "flex";
+      const renameBtn = document.getElementById("renameContextBtn"); if (renameBtn) renameBtn.style.display = "none";
+      const deleteBtn = document.getElementById("deleteContextBtn"); if (deleteBtn) deleteBtn.style.display = "none";
+      const div1 = document.getElementById("menuDivider1"); if (div1) div1.style.display = "none";
+
+      menu.style.top = `${e.pageY}px`;
+      menu.style.left = `${e.pageX}px`;
+      menu.style.display = "flex";
+    }
+  }
+
+  function hideContextMenus() {
+    const a = document.getElementById("projectTileContextMenu"); if (a) a.style.display = "none";
+    const b = document.getElementById("folderContextMenu"); if (b) b.style.display = "none";
+  }
+
+  function executeContextAction(action) {
+    hideContextMenus();
+    let currentFolderNode = getCurrentWorkspaceFolder();
+
+    if (action === 'copy') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      isCutOperation = false;
+      renderFolderView();
+    } 
+    else if (action === 'cut') {
+      if (!selectedFolderForContext) return;
+      clipboardFolder = JSON.parse(JSON.stringify(selectedFolderForContext.folder));
+      clipboardFolder.sourceIdx = selectedFolderForContext.idx;
+      clipboardFolder.sourceParent = currentFolderNode;
+      isCutOperation = true;
+      renderFolderView();
+    } 
+    else if (action === 'paste') {
+      if (!clipboardFolder) return;
+      
+      let targetName = clipboardFolder.name;
+      let duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase());
+      
+      if (duplicateExists) {
+        if (isCutOperation) {
+          return alert(`A folder named "${targetName}" already exists in this destination. Please rename or remove the existing folder first.`);
+        } else {
+          let copyCounter = 1;
+          let baseName = targetName.replace(/\s-\sCopy(\s\(\d+\))?$/i, "");
+          targetName = `${baseName} - Copy`;
+          
+          while (currentFolderNode.children.some(child => child.name.toLowerCase() === targetName.toLowerCase())) {
+            copyCounter++;
+            targetName = `${baseName} - Copy (${copyCounter})`;
+          }
+        }
+      }
+
+      if (isCutOperation && clipboardFolder.sourceParent) {
+        clipboardFolder.sourceParent.children.splice(clipboardFolder.sourceIdx, 1);
+      }
+      
+      const newPastedFolder = JSON.parse(JSON.stringify(clipboardFolder));
+      newPastedFolder.id = 'f-' + Date.now();
+      newPastedFolder.name = targetName;
+
+      currentFolderNode.children.push(newPastedFolder);
+
+      clipboardFolder = null;
+      isCutOperation = false;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'rename') {
+      if (!selectedFolderForContext) return;
+      const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
+      if (!newName || !newName.trim()) return;
+
+      const trimmed = newName.trim();
+      const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+      }
+
+      currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
+      persistProjectTree();
+      renderFolderView();
+    } 
+    else if (action === 'delete') {
+      if (!selectedFolderForContext) return;
+      if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+        currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
+        persistProjectTree();
+        renderFolderView();
+      }
+    }
+  }
+
+  function persistProjectTree() {
+    if (!activeOpenedProject) return;
+    const allProjects = getProjects();
+    const idx = allProjects.findIndex(p => p.id === activeOpenedProject.id);
+    if (idx !== -1) {
+      allProjects[idx] = activeOpenedProject;
+      saveProjects(allProjects);
+    }
+  }
+
+  function handleFabClick() {
+    if (activeOpenedProject && activeViewMode === 'forms') {
+      openChatGlobalFormsSelectorModal();
+    } else if (activeViewMode === 'forms') {
+      openExcelStudio();
+    } else if (activeOpenedProject && activeViewMode === 'folder') {
+      const newSubName = prompt("Enter new folder name:");
+      if (!newSubName || !newSubName.trim()) return;
+
+      const trimmed = newSubName.trim();
+      let currentFolderNode = getCurrentWorkspaceFolder();
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+
+      const duplicateExists = currentFolderNode.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A folder named '${trimmed}' already exists in this location. Please choose a different name.`);
+      }
+
+      currentFolderNode.children.push({
+        id: 'f-' + Date.now(),
+        name: trimmed,
+        items: '0 Files',
+        children: [],
+        files: []
+      });
+
+      persistProjectTree();
+      renderFolderView();
+    } else if (activeViewMode === 'projects') {
+      openCreateProjectModal();
+    }
+  }
+
+  function openCreateProjectModal() {
+    document.getElementById("newProjectClient").value = "";
+    document.getElementById("newProjectNo").value = "";
+    document.getElementById("newProjectLocation").value = "";
+    document.getElementById("newProjectRemarks").value = "";
+    
+    document.getElementById("createProjectModal").style.display = "flex";
+  }
+
+  function closeCreateProjectModal() {
+    document.getElementById("createProjectModal").style.display = "none";
+  }
+
+  (function init() {
+    const searchElem = document.getElementById("projectSearchInput");
+    if (searchElem) searchElem.style.display = "";
+    if (!localStorage.getItem('dibadge_project_tiles')) {
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(defaultProjects));
+    }
+    switchMainViewTab('projects');
+  })();
   </script>
 </body>
 </html>
