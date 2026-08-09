@@ -2439,89 +2439,117 @@
       });
     }
 
-    function sendChatMessage() {
-      const input = document.getElementById("chatMsgInput");
-      let rawText = input ? input.value.trim() : "";
+   function sendChatMessage() {
+    const input = document.getElementById("chatMsgInput");
+    let rawText = input ? input.value.trim() : "";
 
-      if (!rawText && pendingStagedFiles.length === 0) return;
-      if (!activeOpenedProject) return;
+    if (!rawText && pendingStagedFiles.length === 0) return;
+    if (!activeOpenedProject) return;
 
-      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      const mentionDropdown = document.getElementById("chatMentionDropdown");
-      if (mentionDropdown) mentionDropdown.style.display = "none";
+    const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const mentionDropdown = document.getElementById("chatMentionDropdown");
+    if (mentionDropdown) mentionDropdown.style.display = "none";
 
-      // Check if message targets a group via "@ GroupName"
-      let isOutgoingGroupMessage = false;
-      let targetGroupName = "";
+    const groups = activeOpenedProject.chatGroups || [];
+    let allGroupNames = groups.map(g => g.name);
 
-      const groups = activeOpenedProject.chatGroups || [];
-      let allGroupNames = groups.map(g => g.name);
-
-      if (rawText.startsWith("@ ")) {
-        const potentialGroup = rawText.substring(2).split(" ")[0];
-        const matchedGroup = allGroupNames.find(g => g.toLowerCase() === potentialGroup.toLowerCase() || rawText.toLowerCase().includes('@ ' + g.toLowerCase()));
-        if (matchedGroup) {
-          isOutgoingGroupMessage = true;
-          targetGroupName = matchedGroup;
-        }
+    // Find all mentioned groups anywhere in the text
+    let mentionedGroups = [];
+    allGroupNames.forEach(g => {
+      const regex = new RegExp('@\\s?' + g, 'gi');
+      if (regex.test(rawText)) {
+        mentionedGroups.push(g);
       }
+    });
 
-      // Dim member mentions (@Member) and group mentions (@ Group) in text
-      let processedText = rawText;
+    // Helper to dim mentions in text
+    function processMentions(textStr) {
+      let res = textStr;
       allGroupNames.forEach(g => {
-        const regex = new RegExp('@\\s?' + g, 'gi');
-        processedText = processedText.replace(regex, `<span class="mention-tag">@${g}</span>`);
+        const reg = new RegExp('@\\s?' + g, 'gi');
+        res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
       });
       const members = activeOpenedProject.chatMembers || [];
       members.forEach(m => {
         const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
-        const regex = new RegExp('@' + mClean, 'gi');
-        processedText = processedText.replace(regex, `<span class="mention-tag">@${mClean}</span>`);
+        const reg = new RegExp('@' + mClean, 'gi');
+        res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
       });
+      return res;
+    }
 
-      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+    if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
 
-      if (pendingStagedFiles.length > 0) {
-        pendingStagedFiles.forEach(file => {
-          const isImage = file.type.startsWith("image/");
-          const url = isImage ? URL.createObjectURL(file) : '';
-          const newMsg = {
+    if (pendingStagedFiles.length > 0) {
+      pendingStagedFiles.forEach(file => {
+        const isImage = file.type.startsWith("image/");
+        const url = isImage ? URL.createObjectURL(file) : '';
+        
+        if (mentionedGroups.length > 0) {
+          mentionedGroups.forEach(grp => {
+            activeOpenedProject.chatMessages.push({
+              id: 'm-' + Date.now() + '-' + Math.random(),
+              type: 'outgoing',
+              targetGroup: grp,
+              text: `@ <span class="mention-tag">${grp}</span> ${processMentions(rawText)}`,
+              mediaUrl: url,
+              mediaType: isImage ? 'image' : 'file',
+              fileName: file.name,
+              time: currentTimeStr,
+              likes: 0,
+              comments: []
+            });
+          });
+        } else {
+          activeOpenedProject.chatMessages.push({
             id: 'm-' + Date.now() + '-' + Math.random(),
             type: 'outgoing',
-            targetGroup: isOutgoingGroupMessage ? targetGroupName : '',
-            text: '',
+            targetGroup: '',
+            text: processMentions(rawText),
             mediaUrl: url,
             mediaType: isImage ? 'image' : 'file',
             fileName: file.name,
             time: currentTimeStr,
             likes: 0,
             comments: []
-          };
-          activeOpenedProject.chatMessages.push(newMsg);
-        });
-        pendingStagedFiles = [];
-        renderPendingPreviews();
-      }
+          });
+        }
+      });
+      pendingStagedFiles = [];
+      renderPendingPreviews();
+    }
 
-      if (rawText) {
-        const newMsg = {
+    if (rawText) {
+      if (mentionedGroups.length > 0) {
+        mentionedGroups.forEach(grp => {
+          activeOpenedProject.chatMessages.push({
+            id: 'm-' + Date.now() + '-' + Math.random(),
+            type: 'outgoing',
+            targetGroup: grp,
+            text: processMentions(rawText),
+            time: currentTimeStr,
+            likes: 0,
+            comments: []
+          });
+        });
+      } else {
+        activeOpenedProject.chatMessages.push({
           id: 'm-' + Date.now(),
           type: 'outgoing',
-          targetGroup: isOutgoingGroupMessage ? targetGroupName : '',
-          text: processedText,
+          targetGroup: '',
+          text: processMentions(rawText),
           time: currentTimeStr,
           likes: 0,
           comments: []
-        };
-        activeOpenedProject.chatMessages.push(newMsg);
-        input.value = "";
+        });
       }
-
-      persistProjectTree();
-      renderChatMessages();
-      scrollToLatestMessage();
+      input.value = "";
     }
 
+    persistProjectTree();
+    renderChatMessages();
+    scrollToLatestMessage();
+  }
     function handleChatInputKey(e) {
       if (e.key === 'Enter') sendChatMessage();
     }
