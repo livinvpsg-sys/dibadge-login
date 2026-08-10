@@ -1732,32 +1732,36 @@ function saveProjectEdits() {
         customFields: {} 
       };
 
-      // Directly grab values from the DOM inputs in order of appearance
+      // Directly read values from the elements in the DOM container by index
       const container = document.getElementById("dynamicEditProjectFormFields");
       const inputElems = container ? container.querySelectorAll("input, textarea") : [];
 
-      let firstVal = inputElems.length > 0 ? inputElems[0].value.trim() : (targetProj.client || "");
-      let secondVal = inputElems.length > 1 ? inputElems[1].value.trim() : (targetProj.projectNo || "");
-
-      updatedData.client = firstVal;
-      updatedData.projectNo = secondVal;
-
-      // Loop through sections to populate locations, remarks, and custom fields correctly
       projectFormSections.forEach((sec, idx) => {
-        const valElem = document.getElementById(sec.valueId);
+        const valElem = inputElems[idx];
         const val = valElem ? valElem.value.trim() : "";
         
-        const labelLower = sec.label.toLowerCase();
-        if (labelLower.includes('location')) {
+        if (sec.id === 'client' || idx === 0) {
+          updatedData.client = val;
+        } else if (sec.id === 'no' || idx === 1) {
+          updatedData.projectNo = val;
+        } else if (sec.id === 'loc' || idx === 2) {
           updatedData.location = val || 'N/A';
-        } else if (labelLower.includes('remark')) {
+        } else if (sec.id === 'rem' || idx === 3) {
           updatedData.remarks = val;
-        } else if (sec.id !== 'client' && sec.id !== 'no' && idx >= 2) {
+        } else {
           updatedData.customFields[sec.label] = val;
         }
       });
 
-      // Check if at least one letter/character exists
+      // Absolute safety fallbacks using DOM elements directly
+      if (!updatedData.client && inputElems.length > 0) {
+        updatedData.client = inputElems[0].value.trim();
+      }
+      if (!updatedData.projectNo && inputElems.length > 1) {
+        updatedData.projectNo = inputElems[1].value.trim();
+      }
+
+      // Check if at least one letter/number exists
       const hasLetter = (str) => /[a-zA-Z0-9]/.test(str);
 
       if (!hasLetter(updatedData.client)) {
