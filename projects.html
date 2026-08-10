@@ -1705,103 +1705,7 @@ textarea.underline-modal-input {
 
       bannerContainer.innerHTML = htmlContent;
     }
-
-  function openEditProjectModal() {
-      const proj = editingProjectObj || activeOpenedProject;
-      if (!proj) return;
-
-      document.getElementById("editProjectClient").value = proj.client || "";
-      document.getElementById("editProjectNo").value = proj.projectNo || "";
-      document.getElementById("editProjectLocation").value = proj.location || "";
-      document.getElementById("editProjectRemarks").value = proj.remarks || "";
-
-      document.getElementById("editProjectModal").style.display = "flex";
-    }
-
-    function closeEditProjectModal() {
-      document.getElementById("editProjectModal").style.display = "none";
-      editingProjectObj = null;
-    }
-
-function saveProjectEdits() {
-      const targetProj = editingProjectObj || activeOpenedProject;
-      if (!targetProj) return;
-
-      let updatedData = { 
-        ...targetProj, 
-        customFields: {} 
-      };
-
-      const container = document.getElementById("dynamicEditProjectFormFields");
-      const inputElems = container ? Array.from(container.querySelectorAll("input, textarea")) : [];  
-      
-      const valuesByLabel = {};
-      inputElems.forEach(el => {
-        if (el.dataset.fieldLabel) {
-          valuesByLabel[el.dataset.fieldLabel] = el.value.trim();
-        }
-      });
-
-      projectFormSections.forEach((sec) => {
-        const val = valuesByLabel[sec.label] ?? "";
-        const labelLower = sec.label.toLowerCase();
-
-        if (labelLower.includes('client')) {
-          updatedData.client = val;
-        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
-          updatedData.projectNo = val;
-        } else if (labelLower.includes('location')) {
-          updatedData.location = val || 'N/A';
-        } else if (labelLower.includes('remark')) {
-          updatedData.remarks = val;
-        } else {
-          updatedData.customFields[sec.label] = val;
-        }
-      });
-
-      // Fallback if labels don't explicitly contain keywords
-      if (!updatedData.client && projectFormSections.length > 0) {
-        updatedData.client = valuesByLabel[projectFormSections[0].label] || targetProj.client || "";
-      }
-      if (!updatedData.projectNo && projectFormSections.length > 1) {
-        updatedData.projectNo = valuesByLabel[projectFormSections[1].label] || targetProj.projectNo || "";
-      }
-
-     const hasLetter = (str) => /[^\s]/.test(str); // any non-whitespace character
-
-      if (!hasLetter(updatedData.client)) {
-        showCustomAlert("Please enter a client name.");
-        return;
-      }
-      if (!hasLetter(updatedData.projectNo)) {
-        showCustomAlert("Please enter a project number.");
-        return;
-      }
-
-      const currentYear = targetProj.year;
-      const allProjects = getProjects();
-
-      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === updatedData.projectNo.toLowerCase());
-      if (duplicateExists) {
-        showCustomAlert(`A project with this project number (${updatedData.projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
-        return;
-      }
-
-      const idx = allProjects.findIndex(p => p.id === targetProj.id);
-      if (idx !== -1) {
-        allProjects[idx] = updatedData;
-        saveProjects(allProjects);
-      }
-
-      if (activeOpenedProject && activeOpenedProject.id === targetProj.id) {
-        activeOpenedProject = updatedData;
-        updateProjectMetaBanner();
-      }
-
-      closeEditProjectModal();
-      filterProjects();
-    }
-    
+  
     function switchProjectSubTab(tabKey) {
       activeViewMode = tabKey;
       const folderWS = document.getElementById("folderExplorerWorkspace");
@@ -1950,42 +1854,67 @@ function saveProjectEdits() {
       document.getElementById("editProjectModal").style.display = "flex";
     }
 
-    function saveProjectEdits() {
+  function saveProjectEdits() {
       const targetProj = editingProjectObj || activeOpenedProject;
       if (!targetProj) return;
 
-      let updatedData = { ...targetProj };
-      let clientVal = "";
-      let projectNoVal = "";
+      let updatedData = { 
+        ...targetProj, 
+        customFields: {} 
+      };
 
-      projectFormSections.forEach(sec => {
-        const valElem = document.getElementById(sec.valueId);
-        const val = valElem ? valElem.value.trim() : "";
-        if (sec.id === 'client') {
-          clientVal = val;
+      const container = document.getElementById("dynamicEditProjectFormFields");
+      const inputElems = container ? Array.from(container.querySelectorAll("input, textarea")) : [];  
+      
+      const valuesByLabel = {};
+      inputElems.forEach(el => {
+        if (el.dataset.fieldLabel) {
+          valuesByLabel[el.dataset.fieldLabel] = el.value.trim();
+        }
+      });
+
+      projectFormSections.forEach((sec) => {
+        const val = valuesByLabel[sec.label] ?? "";
+        const labelLower = sec.label.toLowerCase();
+
+        if (labelLower.includes('client')) {
           updatedData.client = val;
-        } else if (sec.id === 'no') {
-          projectNoVal = val;
+        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
           updatedData.projectNo = val;
-        } else if (sec.id === 'loc') {
+        } else if (labelLower.includes('location')) {
           updatedData.location = val || 'N/A';
-        } else if (sec.id === 'rem') {
+        } else if (labelLower.includes('remark')) {
           updatedData.remarks = val;
         } else {
-          if (!updatedData.customFields) updatedData.customFields = {};
           updatedData.customFields[sec.label] = val;
         }
       });
 
-      if (!clientVal) return alert("Please enter a client name.");
-      if (!projectNoVal) return alert("Please enter a project number.");
+      if (!updatedData.client && projectFormSections.length > 0) {
+        updatedData.client = valuesByLabel[projectFormSections[0].label] || targetProj.client || "";
+      }
+      if (!updatedData.projectNo && projectFormSections.length > 1) {
+        updatedData.projectNo = valuesByLabel[projectFormSections[1].label] || targetProj.projectNo || "";
+      }
+
+      const hasLetter = (str) => /[^\s]/.test(str);
+
+      if (!hasLetter(updatedData.client)) {
+        showCustomAlert("Please enter a client name.");
+        return;
+      }
+      if (!hasLetter(updatedData.projectNo)) {
+        showCustomAlert("Please enter a project number.");
+        return;
+      }
 
       const currentYear = targetProj.year;
       const allProjects = getProjects();
 
-      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNoVal.toLowerCase());
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === updatedData.projectNo.toLowerCase());
       if (duplicateExists) {
-        return alert(`A project with this project number (${projectNoVal}) already exists for ${currentYear}. Please use a unique project number.`);
+        showCustomAlert(`A project with this project number (${updatedData.projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
+        return;
       }
 
       const idx = allProjects.findIndex(p => p.id === targetProj.id);
@@ -2713,18 +2642,6 @@ function saveProjectEdits() {
           mentionDropdown.style.display = "none";
         }
       }
-    }
-
-    function addNewMember() {
-      if (!activeOpenedProject) return;
-      const name = prompt("Enter new member name:");
-      if (!name || !name.trim()) return;
-
-      const trimmedName = name.trim();
-      if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
-      activeOpenedProject.chatMembers.push({ name: trimmedName, role: 'Member' });
-      persistProjectTree();
-      renderChatDetailsSidebar();
     }
 
   let currentLightboxImages = [];
