@@ -1732,36 +1732,30 @@ function saveProjectEdits() {
         customFields: {} 
       };
 
-      let clientVal = "";
-      let projectNoVal = "";
+      // Directly grab values from the DOM inputs in order of appearance
+      const container = document.getElementById("dynamicEditProjectFormFields");
+      const inputElems = container ? container.querySelectorAll("input, textarea") : [];
 
+      let firstVal = inputElems.length > 0 ? inputElems[0].value.trim() : (targetProj.client || "");
+      let secondVal = inputElems.length > 1 ? inputElems[1].value.trim() : (targetProj.projectNo || "");
+
+      updatedData.client = firstVal;
+      updatedData.projectNo = secondVal;
+
+      // Loop through sections to populate locations, remarks, and custom fields correctly
       projectFormSections.forEach((sec, idx) => {
         const valElem = document.getElementById(sec.valueId);
         const val = valElem ? valElem.value.trim() : "";
         
-        // Grab values from the first two fields as default Client and Project No if not specifically matched
-        if (idx === 0) clientVal = val;
-        if (idx === 1) projectNoVal = val;
-
         const labelLower = sec.label.toLowerCase();
-        if (labelLower.includes('client')) {
-          clientVal = val;
-          updatedData.client = val;
-        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
-          projectNoVal = val;
-          updatedData.projectNo = val;
-        } else if (labelLower.includes('location')) {
+        if (labelLower.includes('location')) {
           updatedData.location = val || 'N/A';
         } else if (labelLower.includes('remark')) {
           updatedData.remarks = val;
-        } else {
+        } else if (sec.id !== 'client' && sec.id !== 'no' && idx >= 2) {
           updatedData.customFields[sec.label] = val;
         }
       });
-
-      // Ensure fallbacks are applied if properties weren't mapped
-      if (!updatedData.client) updatedData.client = clientVal;
-      if (!updatedData.projectNo) updatedData.projectNo = projectNoVal;
 
       // Check if at least one letter/character exists
       const hasLetter = (str) => /[a-zA-Z0-9]/.test(str);
@@ -1798,6 +1792,7 @@ function saveProjectEdits() {
       closeEditProjectModal();
       filterProjects();
     }
+    
     function switchProjectSubTab(tabKey) {
       activeViewMode = tabKey;
       const folderWS = document.getElementById("folderExplorerWorkspace");
