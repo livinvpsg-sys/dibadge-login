@@ -982,7 +982,7 @@ textarea.underline-modal-input {
         <span id="boqLastUpdatedLabel" style="font-size:0.75rem; color:var(--subtext-color);">Last updated: --</span>
       </div>
 
-      <!-- Currency & Tax Controls Bar -->
+    <!-- Currency, Tax Rate, and Profit % Controls Bar -->
       <div class="boq-top-controls">
         <div class="boq-control-group">
           <span>Currency:</span>
@@ -1000,6 +1000,11 @@ textarea.underline-modal-input {
         <div class="boq-control-group">
           <span>Tax Rate (%):</span>
           <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="updateBOQTimestampAndRender()" />
+        </div>
+
+        <div class="boq-control-group">
+          <span>Profit (%):</span>
+          <input type="number" id="boqProfitPercentInput" class="boq-control-input" value="0" min="0" max="100" style="width: 70px;" oninput="onProfitPercentChanged()" />
         </div>
       </div>
 
@@ -1025,11 +1030,15 @@ textarea.underline-modal-input {
           Add Row Item
         </button>
 
-        <!-- Calculations Summary Card -->
+      <!-- Calculations Summary Card -->
         <div class="boq-summary-card">
           <div class="boq-summary-row">
             <span>Sub Total:</span>
             <span id="boqSubTotal">$0.00</span>
+          </div>
+          <div class="boq-summary-row" style="align-items: center;">
+            <span>Profit:</span>
+            <input type="text" id="boqProfitInputVal" class="boq-input" value="0.00" style="width: 120px; text-align: right; padding: 2px 6px;" oninput="onProfitValueChanged()" />
           </div>
           <div class="boq-summary-row">
             <span id="boqTaxLabel">Tax / VAT (10%):</span>
@@ -1040,7 +1049,6 @@ textarea.underline-modal-input {
             <span id="boqGrandTotal">$0.00</span>
           </div>
         </div>
-      </div>
     </section>
 
     <!-- PROJECT CLAIMS WORKSPACE PANEL -->
@@ -3352,6 +3360,38 @@ textarea.underline-modal-input {
         return 0;
       }
     }
+
+    // Triggered when user edits the Profit percentage input box at the top
+    function onProfitPercentChanged() {
+      const subTotal = parseFloat(window._boqCachedSubTotal) || 0;
+      const profitPctInput = document.getElementById("boqProfitPercentInput");
+      const profitValInput = document.getElementById("boqProfitInputVal");
+
+      const pct = profitPctInput ? parseFloat(profitPctInput.value) || 0 : 0;
+      const calculatedProfitVal = subTotal * (pct / 100);
+
+      if (profitValInput) {
+        profitValInput.value = calculatedProfitVal.toFixed(2);
+      }
+
+      updateBOQTimestampAndRender();
+    }
+
+    // Triggered when user edits the typeable Profit value box below Sub Total
+    function onProfitValueChanged() {
+      const subTotal = parseFloat(window._boqCachedSubTotal) || 0;
+      const profitPctInput = document.getElementById("boqProfitPercentInput");
+      const profitValInput = document.getElementById("boqProfitInputVal");
+
+      const val = profitValInput ? parseFloat(profitValInput.value) || 0 : 0;
+      
+      if (subTotal > 0 && profitPctInput) {
+        const calculatedPct = (val / subTotal) * 100;
+        profitPctInput.value = calculatedPct.toFixed(2);
+      }
+
+      updateBOQTimestampAndRender();
+    }
     
     function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
@@ -3360,6 +3400,7 @@ textarea.underline-modal-input {
 
       const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
       const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+      const profitValInput = document.getElementById("boqProfitInputVal");
 
       let subTotal = 0;
 
@@ -3385,22 +3426,30 @@ textarea.underline-modal-input {
         tbody.appendChild(tr);
       });
 
-      const taxAmount = subTotal * (taxRate / 100);
-      const grandTotal = subTotal + taxAmount;
+      // Cache subtotal for percentage calculations
+      window._boqCachedSubTotal = subTotal;
+
+      let profitAmount = profitValInput ? parseFloat(profitValInput.value) || 0 : 0;
+      
+      // Base amount taxable including Subtotal + Profit (or Subtotal alone depending on workflow)
+      const taxableBase = subTotal + profitAmount;
+      const taxAmount = taxableBase * (taxRate / 100);
+      const grandTotal = taxableBase + taxAmount;
 
       const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
       const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
       const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
       const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
     }
-
-  function updateBOQTimestampAndRender() {
+    
+function updateBOQTimestampAndRender() {
       const label = document.getElementById("boqLastUpdatedLabel");
       if (label) {
         const now = new Date();
         const dateStr = now.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        label.innerText = `Last updated: ${dateStr}, ${timeStr} (GMT +8:00)`;
+        const timeZoneStr = /\((.*)\)/.exec(now.toLocaleTimeString('en-us', { timeZoneName: 'short' }))?.[1] || '';
+        label.innerText = `Last updated: ${dateStr}, ${timeStr} (${timeZoneStr})`;
       }
       renderBOQTable();
     }
