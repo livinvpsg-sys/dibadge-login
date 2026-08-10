@@ -3413,6 +3413,11 @@ function renderBOQTable() {
       currentBOQItems.forEach((row, index) => {
         const numQty = evaluateMathExpr(row.qty);
         const numPrice = evaluateMathExpr(row.price);
+        
+        // Format to 2 decimal places (or keep clean if whole number)
+        const displayQty = Number.isInteger(numQty) ? numQty : numQty.toFixed(2);
+        const displayPrice = Number.isInteger(numPrice) ? numPrice : numPrice.toFixed(2);
+
         const rowTotal = numQty * numPrice;
         subTotal += rowTotal;
 
@@ -3425,13 +3430,13 @@ function renderBOQTable() {
           <td style="vertical-align: top;"><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
           <td style="vertical-align: top;">
             <div style="display:flex; flex-direction:column;">
-              <input type="text" class="boq-input" value="${numQty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
+              <input type="text" class="boq-input" value="${displayQty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
               ${hasQtyExpr ? `<span class="boq-cell-subtext">eq: ${row.qty}</span>` : ''}
             </div>
           </td>
           <td style="vertical-align: top;">
             <div style="display:flex; flex-direction:column;">
-              <input type="text" class="boq-input" value="${numPrice}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
+              <input type="text" class="boq-input" value="${displayPrice}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
               ${hasPriceExpr ? `<span class="boq-cell-subtext">eq: ${row.price}</span>` : ''}
             </div>
           </td>
