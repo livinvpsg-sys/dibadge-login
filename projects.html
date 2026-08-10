@@ -1571,7 +1571,7 @@ textarea.underline-modal-input {
 
  let pendingProjectDeleteCallback = null;
 
-    function deleteSelectedProjectFromContext() {
+  function deleteSelectedProjectFromContext() {
       hideContextMenus();
       if (!selectedProjectForContext) return;
 
@@ -3506,14 +3506,27 @@ textarea.underline-modal-input {
         persistProjectTree();
         renderFolderView();
       } 
-      else if (action === 'delete') {
-        if (!selectedFolderForContext) return;
-        if (confirm(`Delete folder "${selectedFolderForContext.folder.name}"?`)) {
+     else if (action === 'delete') {
+      if (!selectedFolderForContext) return;
+      
+      const folderName = selectedFolderForContext.folder.name;
+      const titleElem = document.getElementById("customDeleteProjectTitle");
+      const msgElem = document.getElementById("customDeleteProjectMessage");
+      const modal = document.getElementById("customDeleteProjectModal");
+
+      if (titleElem && msgElem && modal) {
+        titleElem.innerText = "Delete Folder?";
+        msgElem.innerText = `Delete folder "${folderName}"?`;
+        
+        pendingProjectDeleteCallback = function() {
           currentFolderNode.children.splice(selectedFolderForContext.idx, 1);
           persistProjectTree();
           renderFolderView();
-        }
+        };
+
+        modal.style.display = "flex";
       }
+    }
     }
 
     function persistProjectTree() {
