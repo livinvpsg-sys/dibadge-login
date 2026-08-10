@@ -92,10 +92,11 @@
     .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
 
     /* Left Navigation Bar */
-    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 10; }
+  .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 10; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .tab-btn:hover, .tab-btn.active { background: var(--paper-white); color: var(--jet-black); }
+    .tab-btn:hover { background: var(--slate-surface); color: #ffffff; }
+    .tab-btn.active { background: var(--slate-surface); color: #ffffff; }
 
     .main-nav-group, .project-sub-nav { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .project-sub-nav { display: none; }
@@ -631,15 +632,14 @@ textarea.underline-modal-input {
 
   <div class="dashboard-body-split">
     
-    <!-- Left Navigation Bar -->
+<!-- Left Navigation Bar -->
     <aside class="left-vertical-tabbar">
       <!-- MAIN PAGE LEVEL NAVIGATION GROUP -->
       <div class="main-nav-group" id="mainNavGroup">
         <!-- 1. Permanent Always-Visible Home Icon -->
         <a href="index.html" class="tab-btn" id="btnNavHome" title="Home">
           <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
-            <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
         </a>
 
@@ -676,17 +676,17 @@ textarea.underline-modal-input {
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line><line x1="8" y1="8" x2="11" y2="8"></line></svg>
         </button>
 
-        <!-- 4. Bill of Quantity (BOQ Vector Path - Scaled to 22px) -->
+        <!-- 4. Bill of Quantity -->
         <button class="tab-btn" id="btnSubBOQ" onclick="switchProjectSubTab('boq')" title="Bill of Quantity (BOQ)">
           <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">BOQ</text></svg>
         </button>
 
-        <!-- 5. Expense & BOQ Comparison Icon -->
+        <!-- 5. Expense vs BOQ Comparison Icon -->
         <button class="tab-btn" id="btnSubCompare" onclick="switchProjectSubTab('compare')" title="Expense vs BOQ Comparison">
           <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </button>
 
-        <!-- 6. Claims Icon (Pure Dollar Vector Path - Scaled to 22px) -->
+        <!-- 6. Claims Icon -->
         <button class="tab-btn" id="btnSubClaims" onclick="switchProjectSubTab('claims')" title="Claims">
           <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
         </button>
