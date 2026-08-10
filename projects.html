@@ -155,6 +155,26 @@
     .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
+.underline-modal-input {
+  width: 100%;
+  padding: 8px 2px;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-color);
+  border-radius: 0;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.underline-modal-input:focus {
+  border-bottom-color: var(--paper-white);
+}
+textarea.underline-modal-input {
+  resize: vertical;
+  min-height: 50px;
+  font-family: inherit;
+}
 
     /* ------------ CHAT WORKSPACE & SPLIT PANE ------------ */
     .chat-view-workspace { display: none; flex: 1; height: 100%; background: var(--bg-color); position: relative; overflow: hidden; }
@@ -3580,7 +3600,7 @@ let projectFormSections = [
       renderManageSectionsList();
     }
 
-    function renderCreateProjectFormFields() {
+function renderCreateProjectFormFields() {
       const container = document.getElementById("dynamicProjectFormFields");
       if (!container) return;
       container.innerHTML = "";
@@ -3594,13 +3614,13 @@ let projectFormSections = [
         if (sec.type === 'textarea') {
           const ta = document.createElement("textarea");
           ta.id = sec.valueId;
-          ta.className = "modal-input";
+          ta.className = "underline-modal-input";
           container.appendChild(ta);
         } else {
           const input = document.createElement("input");
           input.type = "text";
           input.id = sec.valueId;
-          input.className = "modal-input";
+          input.className = "underline-modal-input";
           container.appendChild(input);
         }
       });
