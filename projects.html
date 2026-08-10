@@ -535,6 +535,12 @@ textarea.underline-modal-input {
     .delete-row-btn { background: transparent; border: none; color: var(--error-red); cursor: pointer; opacity: 0.7; padding: 4px; border-radius: 4px; }
     .delete-row-btn:hover { opacity: 1; background: var(--border-color); }
     .delete-row-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+.boq-cell-subtext {
+      font-size: 0.72rem;
+      color: var(--subtext-color);
+      margin-top: 3px;
+      padding-left: 2px;
+    }
 
     /* Sub-view Panels */
     .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
@@ -1036,8 +1042,8 @@ textarea.underline-modal-input {
             <span>Sub Total:</span>
             <span id="boqSubTotal">$0.00</span>
           </div>
-          <div class="boq-summary-row" style="align-items: center;">
-            <span>Profit:</span>
+         <div class="boq-summary-row" style="align-items: center;">
+            <span id="boqProfitLabel">Profit (0%):</span>
             <input type="text" id="boqProfitInputVal" class="boq-input" value="0.00" style="width: 120px; text-align: right; padding: 2px 6px;" oninput="onProfitValueChanged()" />
           </div>
           <div class="boq-summary-row">
@@ -3393,7 +3399,7 @@ textarea.underline-modal-input {
       updateBOQTimestampAndRender();
     }
     
-    function renderBOQTable() {
+  function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
       if (!tbody) return;
       tbody.innerHTML = "";
@@ -3410,14 +3416,28 @@ textarea.underline-modal-input {
         const rowTotal = numQty * numPrice;
         subTotal += rowTotal;
 
+        // Check if raw value contains operators/parentheses to show equation subtext
+        const hasQtyExpr = /[+\-*/()]/.test(row.qty);
+        const hasPriceExpr = /[+\-*/()]/.test(row.price);
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
-          <td><input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" /></td>
-          <td><input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" /></td>
-          <td style="text-align:right; font-weight:700;">${currency}${rowTotal.toFixed(2)}</td>
-          <td style="text-align:center;">
+          <td>
+            <div style="display:flex; flex-direction:column;">
+              <input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
+              ${hasQtyExpr ? `<span class="boq-cell-subtext">val: ${numQty}</span>` : ''}
+            </div>
+          </td>
+          <td>
+            <div style="display:flex; flex-direction:column;">
+              <input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
+              ${hasPriceExpr ? `<span class="boq-cell-subtext">val: ${numPrice}</span>` : ''}
+            </div>
+          </td>
+          <td style="text-align:right; font-weight:700; vertical-align:middle;">${currency}${rowTotal.toFixed(2)}</td>
+          <td style="text-align:center; vertical-align:middle;">
             <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
               <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
@@ -3426,15 +3446,16 @@ textarea.underline-modal-input {
         tbody.appendChild(tr);
       });
 
-      // Cache subtotal for percentage calculations
       window._boqCachedSubTotal = subTotal;
 
       let profitAmount = profitValInput ? parseFloat(profitValInput.value) || 0 : 0;
-      
-      // Base amount taxable including Subtotal + Profit (or Subtotal alone depending on workflow)
       const taxableBase = subTotal + profitAmount;
       const taxAmount = taxableBase * (taxRate / 100);
       const grandTotal = taxableBase + taxAmount;
+
+      const profitPct = document.getElementById("boqProfitPercentInput") ? parseFloat(document.getElementById("boqProfitPercentInput").value) || 0 : 0;
+      const profitLbl = document.getElementById("boqProfitLabel"); 
+      if (profitLbl) profitLbl.innerText = `Profit (${profitPct}%):`;
 
       const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
       const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
@@ -3456,10 +3477,9 @@ function updateBOQTimestampAndRender() {
       renderBOQTable();
     }
 
-    function updateBOQData(index, field, value) {
+  function updateBOQData(index, field, value) {
       if (field === 'qty' || field === 'price') {
-        const evaluated = evaluateMathExpr(value);
-        currentBOQItems[index][field] = evaluated.toString();
+        currentBOQItems[index][field] = value.trim();
       } else {
         currentBOQItems[index][field] = value;
       }
