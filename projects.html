@@ -1113,7 +1113,7 @@
     </div>
   </div>
 
-  <!-- Manage Project Sections Modal -->
+<!-- Manage Project Sections Modal -->
   <div class="modal-overlay" id="manageSectionsModal">
     <div class="modal-card" style="max-width: 420px;">
       <button class="close-btn" onclick="closeManageSectionsModal()">&times;</button>
@@ -3472,12 +3472,99 @@
       }
     }
 
-    function openCreateProjectModal() {
-      document.getElementById("newProjectClient").value = "";
-      document.getElementById("newProjectNo").value = "";
-      document.getElementById("newProjectLocation").value = "";
-      document.getElementById("newProjectRemarks").value = "";
-      
+let projectFormSections = [
+      { id: 'client', label: 'Client Name', type: 'text', valueId: 'newProjectClient' },
+      { id: 'no', label: 'Project No', type: 'text', valueId: 'newProjectNo' },
+      { id: 'loc', label: 'Project Location', type: 'text', valueId: 'newProjectLocation' },
+      { id: 'rem', label: 'Remarks', type: 'textarea', valueId: 'newProjectRemarks' }
+    ];
+
+    function openManageSectionsModal() {
+      renderManageSectionsList();
+      document.getElementById("manageSectionsModal").style.display = "flex";
+    }
+
+    function closeManageSectionsModal() {
+      document.getElementById("manageSectionsModal").style.display = "none";
+      renderCreateProjectFormFields();
+    }
+
+    function renderManageSectionsList() {
+      const container = document.getElementById("sectionsListContainer");
+      if (!container) return;
+      container.innerHTML = "";
+
+      projectFormSections.forEach((sec, idx) => {
+        const item = document.createElement("div");
+        item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--bg-color); padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); font-size:0.88rem;";
+        item.innerHTML = `
+          <span><b>${sec.label}</b> (${sec.type})</span>
+          <div style="display:flex; gap:6px;">
+            <button class="chat-remove-item-btn" onclick="editProjectSection(${idx})" title="Edit section">✏️</button>
+            <button class="chat-remove-item-btn" onclick="deleteProjectSection(${idx})" title="Delete section">❌</button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function addNewProjectSection() {
+      const input = document.getElementById("newSectionInput");
+      if (!input || !input.value.trim()) return;
+      const label = input.value.trim();
+      const id = 'sec-' + Date.now();
+      const valueId = 'val-' + id;
+
+      projectFormSections.push({ id, label, type: 'text', valueId });
+      input.value = "";
+      renderManageSectionsList();
+    }
+
+    function editProjectSection(idx) {
+      const sec = projectFormSections[idx];
+      const newLabel = prompt("Edit section label:", sec.label);
+      if (newLabel && newLabel.trim()) {
+        sec.label = newLabel.trim();
+        renderManageSectionsList();
+      }
+    }
+
+    function deleteProjectSection(idx) {
+      if (projectFormSections.length <= 1) {
+        return alert("You must keep at least one form section.");
+      }
+      projectFormSections.splice(idx, 1);
+      renderManageSectionsList();
+    }
+
+    function renderCreateProjectFormFields() {
+      const container = document.getElementById("dynamicProjectFormFields");
+      if (!container) return;
+      container.innerHTML = "";
+
+      projectFormSections.forEach(sec => {
+        const labelEl = document.createElement("label");
+        labelEl.className = "modal-label";
+        labelEl.innerText = sec.label;
+        container.appendChild(labelEl);
+
+        if (sec.type === 'textarea') {
+          const ta = document.createElement("textarea");
+          ta.id = sec.valueId;
+          ta.className = "modal-input";
+          container.appendChild(ta);
+        } else {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.id = sec.valueId;
+          input.className = "modal-input";
+          container.appendChild(input);
+        }
+      });
+    }
+    
+   function openCreateProjectModal() {
+      renderCreateProjectFormFields();
       document.getElementById("createProjectModal").style.display = "flex";
     }
 
