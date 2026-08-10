@@ -1854,6 +1854,14 @@ textarea.underline-modal-input {
       document.getElementById("editProjectModal").style.display = "flex";
     }
 
+    function closeEditProjectModal() {
+      const modal = document.getElementById("editProjectModal");
+      if (modal) {
+        modal.style.display = "none";
+      }
+      editingProjectObj = null;
+    }
+
   function saveProjectEdits() {
       const targetProj = editingProjectObj || activeOpenedProject;
       if (!targetProj) return;
