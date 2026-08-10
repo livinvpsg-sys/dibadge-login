@@ -1732,37 +1732,41 @@ function saveProjectEdits() {
         customFields: {} 
       };
 
-      // Read values directly from all inputs/textareas present in the modal form
       const container = document.getElementById("dynamicEditProjectFormFields");
-      const inputElems = container ? container.querySelectorAll("input, textarea") : [];
+      const inputElems = container ? Array.from(container.querySelectorAll("input, textarea")) : [];  
+      
+      const valuesByLabel = {};
+      inputElems.forEach(el => {
+        if (el.dataset.fieldLabel) {
+          valuesByLabel[el.dataset.fieldLabel] = el.value.trim();
+        }
+      });
 
-      projectFormSections.forEach((sec, idx) => {
-        const valElem = inputElems[idx];
-        const val = valElem ? valElem.value.trim() : "";
-        
+      projectFormSections.forEach((sec) => {
+        const val = valuesByLabel[sec.label] ?? "";
         const labelLower = sec.label.toLowerCase();
-        if (labelLower.includes('client') || idx === 0) {
+
+        if (labelLower.includes('client')) {
           updatedData.client = val;
-        } else if (labelLower.includes('project no') || labelLower.includes('project number') || idx === 1) {
+        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
           updatedData.projectNo = val;
-        } else if (labelLower.includes('location') || idx === 2) {
+        } else if (labelLower.includes('location')) {
           updatedData.location = val || 'N/A';
-        } else if (labelLower.includes('remark') || idx === 3) {
+        } else if (labelLower.includes('remark')) {
           updatedData.remarks = val;
         } else {
           updatedData.customFields[sec.label] = val;
         }
       });
 
-      // Fallbacks if mapped properties are empty
-      if (!updatedData.client && inputElems.length > 0) {
-        updatedData.client = inputElems[0].value.trim();
+      // Fallback if labels don't explicitly contain keywords
+      if (!updatedData.client && projectFormSections.length > 0) {
+        updatedData.client = valuesByLabel[projectFormSections[0].label] || targetProj.client || "";
       }
-      if (!updatedData.projectNo && inputElems.length > 1) {
-        updatedData.projectNo = inputElems[1].value.trim();
+      if (!updatedData.projectNo && projectFormSections.length > 1) {
+        updatedData.projectNo = valuesByLabel[projectFormSections[1].label] || targetProj.projectNo || "";
       }
 
-      // Check if at least one letter/number exists
       const hasLetter = (str) => /[a-zA-Z0-9]/.test(str);
 
       if (!hasLetter(updatedData.client)) {
@@ -1900,7 +1904,7 @@ function saveProjectEdits() {
       }
     }
 
-    function renderEditProjectFormFields() {
+  function renderEditProjectFormFields() {
       const container = document.getElementById("dynamicEditProjectFormFields");
       if (!container) return;
       container.innerHTML = "";
@@ -1925,6 +1929,7 @@ function saveProjectEdits() {
           ta.id = sec.valueId;
           ta.className = "underline-modal-input";
           ta.value = val;
+          ta.dataset.fieldLabel = sec.label; // Tag input with label
           container.appendChild(ta);
         } else {
           const input = document.createElement("input");
@@ -1932,6 +1937,7 @@ function saveProjectEdits() {
           input.id = sec.valueId;
           input.className = "underline-modal-input";
           input.value = val;
+          input.dataset.fieldLabel = sec.label; // Tag input with label
           container.appendChild(input);
         }
       });
@@ -3929,12 +3935,14 @@ function renderCreateProjectFormFields() {
           const ta = document.createElement("textarea");
           ta.id = sec.valueId;
           ta.className = "underline-modal-input";
+          ta.dataset.fieldLabel = sec.label;
           container.appendChild(ta);
         } else {
           const input = document.createElement("input");
           input.type = "text";
           input.id = sec.valueId;
           input.className = "underline-modal-input";
+          input.dataset.fieldLabel = sec.label;
           container.appendChild(input);
         }
       });
