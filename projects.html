@@ -3448,7 +3448,9 @@ function updateBOQTimestampAndRender() {
         const now = new Date();
         const dateStr = now.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
         const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const timeZoneStr = /\((.*)\)/.exec(now.toLocaleTimeString('en-us', { timeZoneName: 'short' }))?.[1] || '';
+        const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const timeZoneStr = now.toLocaleTimeString('en-us', { timeZoneName: 'short' }).split(' ').pop();
+        
         label.innerText = `Last updated: ${dateStr}, ${timeStr} (${timeZoneStr})`;
       }
       renderBOQTable();
