@@ -1203,7 +1203,13 @@ textarea.underline-modal-input {
   <div class="modal-overlay" id="editProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeEditProjectModal()">&times;</button>
-      <h3 style="text-align: center; margin-bottom: 16px;">Edit Project Details</h3>
+      
+      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
+        <h3 style="margin-bottom: 0;">Edit Project Details</h3>
+        <button onclick="openManageSectionsModal()" style="background:transparent; border:none; cursor:pointer; color:var(--subtext-color); display:flex; align-items:center;" title="Manage Sections">
+          <svg style="width:18px; height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        </button>
+      </div>
 
       <div id="dynamicEditProjectFormFields">
         <label class="modal-label">Client Name</label>
@@ -1219,7 +1225,7 @@ textarea.underline-modal-input {
         <textarea id="editProjectRemarks" class="underline-modal-input"></textarea>
       </div>
 
-      <div class="modal-actions">
+  <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
         <button class="modal-btn btn-cancel" onclick="closeEditProjectModal()">Cancel</button>
       </div>
@@ -1812,6 +1818,103 @@ textarea.underline-modal-input {
       } else if (e.key === 'Escape') {
         closeCustomRenameModal();
       }
+    }
+
+    function renderEditProjectFormFields() {
+      const container = document.getElementById("dynamicEditProjectFormFields");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const proj = editingProjectObj || activeOpenedProject || {};
+
+      projectFormSections.forEach(sec => {
+        const labelEl = document.createElement("label");
+        labelEl.className = "modal-label";
+        labelEl.innerText = sec.label;
+        container.appendChild(labelEl);
+
+        let val = "";
+        if (sec.id === 'client') val = proj.client || "";
+        else if (sec.id === 'no') val = proj.projectNo || "";
+        else if (sec.id === 'loc') val = proj.location || "";
+        else if (sec.id === 'rem') val = proj.remarks || "";
+        else if (proj.customFields) val = proj.customFields[sec.label] || "";
+
+        if (sec.type === 'textarea') {
+          const ta = document.createElement("textarea");
+          ta.id = sec.valueId;
+          ta.className = "underline-modal-input";
+          ta.value = val;
+          container.appendChild(ta);
+        } else {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.id = sec.valueId;
+          input.className = "underline-modal-input";
+          input.value = val;
+          container.appendChild(input);
+        }
+      });
+    }
+
+    function openEditProjectModal() {
+      const proj = editingProjectObj || activeOpenedProject;
+      if (!proj) return;
+      renderEditProjectFormFields();
+      document.getElementById("editProjectModal").style.display = "flex";
+    }
+
+    function saveProjectEdits() {
+      const targetProj = editingProjectObj || activeOpenedProject;
+      if (!targetProj) return;
+
+      let updatedData = { ...targetProj };
+      let clientVal = "";
+      let projectNoVal = "";
+
+      projectFormSections.forEach(sec => {
+        const valElem = document.getElementById(sec.valueId);
+        const val = valElem ? valElem.value.trim() : "";
+        if (sec.id === 'client') {
+          clientVal = val;
+          updatedData.client = val;
+        } else if (sec.id === 'no') {
+          projectNoVal = val;
+          updatedData.projectNo = val;
+        } else if (sec.id === 'loc') {
+          updatedData.location = val || 'N/A';
+        } else if (sec.id === 'rem') {
+          updatedData.remarks = val;
+        } else {
+          if (!updatedData.customFields) updatedData.customFields = {};
+          updatedData.customFields[sec.label] = val;
+        }
+      });
+
+      if (!clientVal) return alert("Please enter a client name.");
+      if (!projectNoVal) return alert("Please enter a project number.");
+
+      const currentYear = targetProj.year;
+      const allProjects = getProjects();
+
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNoVal.toLowerCase());
+      if (duplicateExists) {
+        return alert(`A project with this project number (${projectNoVal}) already exists for ${currentYear}. Please use a unique project number.`);
+      }
+
+      const idx = allProjects.findIndex(p => p.id === targetProj.id);
+      if (idx !== -1) {
+        allProjects[idx] = updatedData;
+        saveProjects(allProjects);
+      }
+
+      if (activeOpenedProject && activeOpenedProject.id === targetProj.id) {
+        activeOpenedProject = updatedData;
+        updateProjectMetaBanner();
+      }
+
+      closeEditProjectModal();
+      filterProjects();
     }
 
     /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
