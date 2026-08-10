@@ -1083,14 +1083,9 @@
 
  <!-- Create New Project Modal -->
   <div class="modal-overlay" id="createProjectModal">
-    <div class="modal-card">
+  <div class="modal-card">
       <button class="close-btn" onclick="closeCreateProjectModal()">&times;</button>
-      <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 16px;">
-        <h3 style="margin-bottom: 0;">Create New Project Tile</h3>
-        <button onclick="openManageSectionsModal()" style="background:transparent; border:none; cursor:pointer; color:var(--subtext-color); display:flex; align-items:center;" title="Manage Sections">
-          <svg style="width:18px; height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-        </button>
-      </div>
+      <h3 style="text-align: center; margin-bottom: 16px;">Create New Project Tile</h3>
 
       <div id="dynamicProjectFormFields">
         <label class="modal-label">Client Name</label>
@@ -1106,7 +1101,7 @@
         <textarea id="newProjectRemarks" class="modal-input"></textarea>
       </div>
 
-      <div class="modal-actions">
+     <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="createNewProject()">Create Project</button>
         <button class="modal-btn btn-cancel" onclick="closeCreateProjectModal()">Cancel</button>
       </div>
@@ -3489,21 +3484,73 @@ let projectFormSections = [
       renderCreateProjectFormFields();
     }
 
-    function renderManageSectionsList() {
+ function renderManageSectionsList() {
       const container = document.getElementById("sectionsListContainer");
       if (!container) return;
       container.innerHTML = "";
 
       projectFormSections.forEach((sec, idx) => {
         const item = document.createElement("div");
-        item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--bg-color); padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); font-size:0.88rem;";
-        item.innerHTML = `
-          <span><b>${sec.label}</b> (${sec.type})</span>
-          <div style="display:flex; gap:6px;">
-            <button class="chat-remove-item-btn" onclick="editProjectSection(${idx})" title="Edit section">✏️</button>
-            <button class="chat-remove-item-btn" onclick="deleteProjectSection(${idx})" title="Delete section">❌</button>
-          </div>
+        item.draggable = true;
+        item.dataset.index = idx;
+        item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:var(--bg-color); padding:6px 12px; border-radius:6px; border:1px solid var(--border-color); font-size:0.88rem; gap: 8px; cursor: grab; user-select: none;";
+        
+        // Drag Events
+        item.ondragstart = (e) => {
+          e.dataTransfer.setData('text/plain', idx);
+          item.style.opacity = '0.4';
+        };
+        item.ondragend = (e) => {
+          item.style.opacity = '1';
+        };
+        item.ondragover = (e) => {
+          e.preventDefault();
+        };
+        item.ondrop = (e) => {
+          e.preventDefault();
+          const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+          const toIdx = idx;
+          if (fromIdx !== toIdx) {
+            const movedItem = projectFormSections.splice(fromIdx, 1)[0];
+            projectFormSections.splice(toIdx, 0, movedItem);
+            renderManageSectionsList();
+          }
+        };
+
+        // Drag Handle / Indicator Icon
+        const dragHandle = document.createElement("span");
+        dragHandle.innerHTML = "☰";
+        dragHandle.style.cssText = "cursor: grab; color: var(--subtext-color); font-size: 1.1rem; padding-right: 4px;";
+
+        // Inline editable input field for section name
+        const inputField = document.createElement("input");
+        inputField.type = "text";
+        inputField.value = sec.label;
+        inputField.className = "modal-input";
+        inputField.style.cssText = "flex: 1; padding: 6px 10px; font-size: 0.88rem; background: var(--surface-color);";
+        inputField.onchange = (e) => {
+          const newVal = e.target.value.trim();
+          if (newVal) {
+            projectFormSections[idx].label = newVal;
+          }
+        };
+
+        // Delete basket vector icon button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "chat-remove-item-btn";
+        deleteBtn.title = "Delete section";
+        deleteBtn.style.cssText = "background: transparent; border: none; color: var(--error-red); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 4px; transition: background 0.15s;";
+        deleteBtn.innerHTML = `
+          <svg style="width:18px; height:18px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
         `;
+        deleteBtn.onclick = () => deleteProjectSection(idx);
+
+        item.appendChild(dragHandle);
+        item.appendChild(inputField);
+        item.appendChild(deleteBtn);
         container.appendChild(item);
       });
     }
@@ -3518,15 +3565,6 @@ let projectFormSections = [
       projectFormSections.push({ id, label, type: 'text', valueId });
       input.value = "";
       renderManageSectionsList();
-    }
-
-    function editProjectSection(idx) {
-      const sec = projectFormSections[idx];
-      const newLabel = prompt("Edit section label:", sec.label);
-      if (newLabel && newLabel.trim()) {
-        sec.label = newLabel.trim();
-        renderManageSectionsList();
-      }
     }
 
     function deleteProjectSection(idx) {
