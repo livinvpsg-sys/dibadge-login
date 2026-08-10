@@ -1111,12 +1111,11 @@ textarea.underline-modal-input {
   </div>
 
   <!-- CONTEXT MENUS -->
+<!-- CONTEXT MENUS -->
   <div class="context-menu" id="projectTileContextMenu">
-    <div class="context-menu-item" onclick="openSelectedProjectFromContext()">Open Project</div>
-    <div class="context-menu-item" onclick="editSelectedProjectDetailsFromContext()">Edit Details</div>
-    <div class="context-menu-item" onclick="renameSelectedProjectFromContext()">Rename Project</div>
+    <div class="context-menu-item" onclick="editSelectedProjectDetailsFromContext()">Edit</div>
     <div class="context-menu-divider"></div>
-    <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete Project</div>
+    <div class="context-menu-item danger" onclick="deleteSelectedProjectFromContext()" style="color:var(--error-red);">Delete</div>
   </div>
 
   <div class="context-menu" id="folderContextMenu">
@@ -1177,23 +1176,25 @@ textarea.underline-modal-input {
     </div>
   </div>
 
-  <!-- Edit Project Details Modal -->
+<!-- Edit Project Details Modal -->
   <div class="modal-overlay" id="editProjectModal">
     <div class="modal-card">
       <button class="close-btn" onclick="closeEditProjectModal()">&times;</button>
-      <h3>Edit Project Details</h3>
+      <h3 style="text-align: center; margin-bottom: 16px;">Edit Project Details</h3>
 
-      <label class="modal-label">Client Name</label>
-      <input type="text" id="editProjectClient" class="modal-input" />
+      <div id="dynamicEditProjectFormFields">
+        <label class="modal-label">Client Name</label>
+        <input type="text" id="editProjectClient" class="underline-modal-input" />
 
-      <label class="modal-label">Project No</label>
-      <input type="text" id="editProjectNo" class="modal-input" />
+        <label class="modal-label">Project No</label>
+        <input type="text" id="editProjectNo" class="underline-modal-input" />
 
-      <label class="modal-label">Project Location</label>
-      <input type="text" id="editProjectLocation" class="modal-input" />
+        <label class="modal-label">Project Location</label>
+        <input type="text" id="editProjectLocation" class="underline-modal-input" />
 
-      <label class="modal-label">Remarks</label>
-      <textarea id="editProjectRemarks" class="modal-input"></textarea>
+        <label class="modal-label">Remarks</label>
+        <textarea id="editProjectRemarks" class="underline-modal-input"></textarea>
+      </div>
 
       <div class="modal-actions">
         <button class="modal-btn btn-save" onclick="saveProjectEdits()">Save Changes</button>
@@ -1538,7 +1539,7 @@ textarea.underline-modal-input {
       }
     }
 
-    function showProjectTileContextMenu(e, proj) {
+  function showProjectTileContextMenu(e, proj) {
       hideContextMenus();
       selectedProjectForContext = proj;
       const menu = document.getElementById("projectTileContextMenu");
@@ -1554,28 +1555,6 @@ textarea.underline-modal-input {
       if (!selectedProjectForContext) return;
       editingProjectObj = selectedProjectForContext;
       openEditProjectModal();
-    }
-
-    function renameSelectedProjectFromContext() {
-      hideContextMenus();
-      if (!selectedProjectForContext) return;
-      const newName = prompt("Rename client/project name:", selectedProjectForContext.client);
-      if (!newName || !newName.trim()) return;
-
-      selectedProjectForContext.client = newName.trim();
-      const allProjects = getProjects();
-      const idx = allProjects.findIndex(p => p.id === selectedProjectForContext.id);
-      if (idx !== -1) {
-        allProjects[idx] = selectedProjectForContext;
-        saveProjects(allProjects);
-      }
-    }
-
-    function openSelectedProjectFromContext() {
-      hideContextMenus();
-      if (selectedProjectForContext) {
-        openProjectFolder(selectedProjectForContext);
-      }
     }
 
     function deleteSelectedProjectFromContext() {
@@ -1626,7 +1605,7 @@ textarea.underline-modal-input {
       const r = document.getElementById("metaRemarks"); if (r) r.innerText = activeOpenedProject.remarks || "No remarks provided.";
     }
 
-    function openEditProjectModal() {
+  function openEditProjectModal() {
       const proj = editingProjectObj || activeOpenedProject;
       if (!proj) return;
 
