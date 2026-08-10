@@ -1723,39 +1723,61 @@ textarea.underline-modal-input {
       editingProjectObj = null;
     }
 
-    function saveProjectEdits() {
+   function saveProjectEdits() {
       const targetProj = editingProjectObj || activeOpenedProject;
       if (!targetProj) return;
 
-      const client = document.getElementById("editProjectClient").value.trim();
-      const projectNo = document.getElementById("editProjectNo").value.trim();
-      const location = document.getElementById("editProjectLocation").value.trim();
-      const remarks = document.getElementById("editProjectRemarks").value.trim();
+      let updatedData = { ...targetProj };
+      let clientVal = "";
+      let projectNoVal = "";
 
-      if (!client) return alert("Please enter a client name.");
-      if (!projectNo) return alert("Please enter a project number.");
+      projectFormSections.forEach(sec => {
+        const valElem = document.getElementById(sec.valueId);
+        const val = valElem ? valElem.value.trim() : "";
+        const labelLower = sec.label.toLowerCase();
+
+        if (labelLower.includes('client')) {
+          clientVal = val;
+          updatedData.client = val;
+        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
+          projectNoVal = val;
+          updatedData.projectNo = val;
+        } else if (labelLower.includes('location')) {
+          updatedData.location = val || 'N/A';
+        } else if (labelLower.includes('remark')) {
+          updatedData.remarks = val;
+        } else {
+          if (!updatedData.customFields) updatedData.customFields = {};
+          updatedData.customFields[sec.label] = val;
+        }
+      });
+
+      if (!clientVal) {
+        showCustomAlert("Please enter a client name.");
+        return;
+      }
+      if (!projectNoVal) {
+        showCustomAlert("Please enter a project number.");
+        return;
+      }
 
       const currentYear = targetProj.year;
       const allProjects = getProjects();
 
-      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNo.toLowerCase());
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNoVal.toLowerCase());
       if (duplicateExists) {
-        return alert(`A project with this project number (${projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
+        showCustomAlert(`A project with this project number (${projectNoVal}) already exists for ${currentYear}. Please use a unique project number.`);
+        return;
       }
-
-      targetProj.client = client;
-      targetProj.projectNo = projectNo;
-      targetProj.location = location || 'N/A';
-      targetProj.remarks = remarks;
 
       const idx = allProjects.findIndex(p => p.id === targetProj.id);
       if (idx !== -1) {
-        allProjects[idx] = targetProj;
+        allProjects[idx] = updatedData;
         saveProjects(allProjects);
       }
 
       if (activeOpenedProject && activeOpenedProject.id === targetProj.id) {
-        activeOpenedProject = targetProj;
+        activeOpenedProject = updatedData;
         updateProjectMetaBanner();
       }
 
