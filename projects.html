@@ -1723,7 +1723,7 @@ textarea.underline-modal-input {
       editingProjectObj = null;
     }
 
-  function saveProjectEdits() {
+ function saveProjectEdits() {
       const targetProj = editingProjectObj || activeOpenedProject;
       if (!targetProj) return;
 
@@ -1732,13 +1732,15 @@ textarea.underline-modal-input {
         customFields: {} 
       };
 
-      projectFormSections.forEach(sec => {
+      let inputValues = [];
+      projectFormSections.forEach((sec, idx) => {
         const valElem = document.getElementById(sec.valueId);
         const val = valElem ? valElem.value.trim() : "";
-        
-        if (sec.id === 'client') {
+        inputValues.push({ label: sec.label, val: val, id: sec.id });
+
+        if (sec.id === 'client' || idx === 0) {
           updatedData.client = val;
-        } else if (sec.id === 'no') {
+        } else if (sec.id === 'no' || idx === 1) {
           updatedData.projectNo = val;
         } else if (sec.id === 'loc') {
           updatedData.location = val || 'N/A';
@@ -1749,10 +1751,11 @@ textarea.underline-modal-input {
         }
       });
 
-      // Fallback check to ensure client name is never blank if first section has text
-      if (!updatedData.client && projectFormSections.length > 0) {
-        const firstValElem = document.getElementById(projectFormSections[0].valueId);
-        if (firstValElem) updatedData.client = firstValElem.value.trim();
+      if (!updatedData.client && inputValues.length > 0) {
+        updatedData.client = inputValues[0].val;
+      }
+      if (!updatedData.projectNo && inputValues.length > 1) {
+        updatedData.projectNo = inputValues[1].val;
       }
 
       if (!updatedData.client) {
