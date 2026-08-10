@@ -1723,40 +1723,43 @@ textarea.underline-modal-input {
       editingProjectObj = null;
     }
 
-   function saveProjectEdits() {
+  function saveProjectEdits() {
       const targetProj = editingProjectObj || activeOpenedProject;
       if (!targetProj) return;
 
-      let updatedData = { ...targetProj };
-      let clientVal = "";
-      let projectNoVal = "";
+      let updatedData = { 
+        ...targetProj, 
+        customFields: {} 
+      };
 
       projectFormSections.forEach(sec => {
         const valElem = document.getElementById(sec.valueId);
         const val = valElem ? valElem.value.trim() : "";
-        const labelLower = sec.label.toLowerCase();
-
-        if (labelLower.includes('client')) {
-          clientVal = val;
+        
+        if (sec.id === 'client') {
           updatedData.client = val;
-        } else if (labelLower.includes('project no') || labelLower.includes('project number')) {
-          projectNoVal = val;
+        } else if (sec.id === 'no') {
           updatedData.projectNo = val;
-        } else if (labelLower.includes('location')) {
+        } else if (sec.id === 'loc') {
           updatedData.location = val || 'N/A';
-        } else if (labelLower.includes('remark')) {
+        } else if (sec.id === 'rem') {
           updatedData.remarks = val;
         } else {
-          if (!updatedData.customFields) updatedData.customFields = {};
           updatedData.customFields[sec.label] = val;
         }
       });
 
-      if (!clientVal) {
+      // Fallback check to ensure client name is never blank if first section has text
+      if (!updatedData.client && projectFormSections.length > 0) {
+        const firstValElem = document.getElementById(projectFormSections[0].valueId);
+        if (firstValElem) updatedData.client = firstValElem.value.trim();
+      }
+
+      if (!updatedData.client) {
         showCustomAlert("Please enter a client name.");
         return;
       }
-      if (!projectNoVal) {
+      if (!updatedData.projectNo) {
         showCustomAlert("Please enter a project number.");
         return;
       }
@@ -1764,9 +1767,9 @@ textarea.underline-modal-input {
       const currentYear = targetProj.year;
       const allProjects = getProjects();
 
-      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === projectNoVal.toLowerCase());
+      const duplicateExists = allProjects.some(p => p.id !== targetProj.id && p.year === currentYear && p.projectNo.toLowerCase() === updatedData.projectNo.toLowerCase());
       if (duplicateExists) {
-        showCustomAlert(`A project with this project number (${projectNoVal}) already exists for ${currentYear}. Please use a unique project number.`);
+        showCustomAlert(`A project with this project number (${updatedData.projectNo}) already exists for ${currentYear}. Please use a unique project number.`);
         return;
       }
 
@@ -3936,37 +3939,57 @@ function renderCreateProjectFormFields() {
       document.getElementById("createProjectModal").style.display = "none";
     }
 
-    function createNewProject() {
-      const client = document.getElementById("newProjectClient").value.trim();
-      const projectNo = document.getElementById("newProjectNo").value.trim();
-      const location = document.getElementById("newProjectLocation").value.trim();
-      const remarks = document.getElementById("newProjectRemarks").value.trim();
-      
-      const year = document.getElementById("yearPicker").value || "2026";
-
-      if (!client) return alert("Please enter a client name.");
-
-      const projects = getProjects();
-      const targetProjNo = projectNo || `PRJ-${year}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const duplicateExists = projects.some(p => p.year === year && p.projectNo.toLowerCase() === targetProjNo.toLowerCase());
-      if (duplicateExists) {
-        return alert(`A project with this project number (${targetProjNo}) already exists for ${year}. Please use a unique project number.`);
-      }
-
-      projects.push({
+function createNewProject() {
+      let projectData = {
         id: 'proj-' + Date.now(),
-        client: client,
-        projectNo: targetProjNo,
-        location: location || 'N/A',
-        remarks: remarks,
-        year: year,
+        year: document.getElementById("yearPicker").value || "2026",
         children: getDefaultSubFolders(),
         chatMessages: [],
         chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
-        chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}]
+        chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}],
+        customFields: {}
+      };
+
+      projectFormSections.forEach(sec => {
+        const valElem = document.getElementById(sec.valueId);
+        const val = valElem ? valElem.value.trim() : "";
+        
+        if (sec.id === 'client') {
+          projectData.client = val;
+        } else if (sec.id === 'no') {
+          projectData.projectNo = val;
+        } else if (sec.id === 'loc') {
+          projectData.location = val || 'N/A';
+        } else if (sec.id === 'rem') {
+          projectData.remarks = val;
+        } else {
+          projectData.customFields[sec.label] = val;
+        }
       });
 
+      // Fallback check if first section acts as client name when sections are reordered/renamed
+      if (!projectData.client && projectFormSections.length > 0) {
+        const firstValElem = document.getElementById(projectFormSections[0].valueId);
+        if (firstValElem) projectData.client = firstValElem.value.trim();
+      }
+
+      if (!projectData.client) {
+        showCustomAlert("Please enter a client name.");
+        return;
+      }
+
+      const projects = getProjects();
+      if (!projectData.projectNo) {
+        projectData.projectNo = `PRJ-${projectData.year}-${Math.floor(100 + Math.random() * 900)}`;
+      }
+
+      const duplicateExists = projects.some(p => p.year === projectData.year && p.projectNo.toLowerCase() === projectData.projectNo.toLowerCase());
+      if (duplicateExists) {
+        showCustomAlert(`A project with this project number (${projectData.projectNo}) already exists for ${projectData.year}. Please use a unique project number.`);
+        return;
+      }
+
+      projects.push(projectData);
       saveProjects(projects);
       filterProjects();
       closeCreateProjectModal();
