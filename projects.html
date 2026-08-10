@@ -511,6 +511,19 @@
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
+    <!-- Custom Folder Name Input Modal -->
+<div class="modal-overlay" id="customFolderModal">
+  <div class="modal-card" style="max-width: 380px;">
+    <h3>Enter new folder name</h3>
+    <label class="modal-label">Folder Name</label>
+    <input type="text" id="customFolderNameInput" class="modal-input" placeholder="e.g. Document Logs" onkeyup="handleFolderModalKey(event)" />
+    <div class="modal-actions">
+      <button class="modal-btn btn-save" onclick="submitCustomFolderModal()">Save</button>
+      <button class="modal-btn btn-cancel" onclick="closeCustomFolderModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+    
     /* EXCEL-STYLE FULLSCREEN SPREADSHEET FORM STUDIO */
     .fullscreen-form-creator { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-color); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
     .excel-toolbar { background: var(--surface-color); border-bottom: 1px solid var(--border-color); padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
@@ -1789,29 +1802,71 @@
       }
     }
 
+ let folderModalCallback = null;
+
+    function openCustomFolderModal(callback) {
+      folderModalCallback = callback;
+      const modal = document.getElementById("customFolderModal");
+      const input = document.getElementById("customFolderNameInput");
+      if (modal && input) {
+        input.value = "";
+        modal.style.display = "flex";
+        input.focus();
+      }
+    }
+
+    function closeCustomFolderModal() {
+      const modal = document.getElementById("customFolderModal");
+      if (modal) modal.style.display = "none";
+      folderModalCallback = null;
+    }
+
+    function submitCustomFolderModal() {
+      const input = document.getElementById("customFolderNameInput");
+      if (!input) return;
+      const folderName = input.value.trim();
+      if (!folderName) {
+        alert("Please enter a folder name.");
+        return;
+      }
+      
+      if (folderModalCallback) {
+        folderModalCallback(folderName);
+      }
+      closeCustomFolderModal();
+    }
+
+    function handleFolderModalKey(e) {
+      if (e.key === 'Enter') {
+        submitCustomFolderModal();
+      } else if (e.key === 'Escape') {
+        closeCustomFolderModal();
+      }
+    }
+
     function createNewChatSubFolder() {
       if (!activeOpenedProject) return;
-      const newSubName = prompt("Enter new folder name:");
-      if (!newSubName || !newSubName.trim()) return;
+      
+      openCustomFolderModal(function(newSubName) {
+        const trimmed = newSubName.trim();
+        if (!activeOpenedProject.children) activeOpenedProject.children = [];
 
-      const trimmed = newSubName.trim();
-      if (!activeOpenedProject.children) activeOpenedProject.children = [];
+        const duplicateExists = activeOpenedProject.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
+        if (duplicateExists) {
+          return alert(`A folder named '${trimmed}' already exists. Please choose a different name.`);
+        }
 
-      const duplicateExists = activeOpenedProject.children.some(child => child.name.toLowerCase() === trimmed.toLowerCase());
-      if (duplicateExists) {
-        return alert(`A folder named '${trimmed}' already exists. Please choose a different name.`);
-      }
+        activeOpenedProject.children.push({
+          id: 'f-' + Date.now(),
+          name: trimmed,
+          items: '0 Files',
+          children: [],
+          files: []
+        });
 
-      activeOpenedProject.children.push({
-        id: 'f-' + Date.now(),
-        name: trimmed,
-        items: '0 Files',
-        children: [],
-        files: []
+        persistProjectTree();
+        renderChatDetailsSidebar();
       });
-
-      persistProjectTree();
-      renderChatDetailsSidebar();
     }
 
     function addNewChatGroup() {
