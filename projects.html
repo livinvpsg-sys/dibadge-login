@@ -1732,7 +1732,7 @@ function saveProjectEdits() {
         customFields: {} 
       };
 
-      // Directly read values from the elements in the DOM container by index
+      // Read values directly from all inputs/textareas present in the modal form
       const container = document.getElementById("dynamicEditProjectFormFields");
       const inputElems = container ? container.querySelectorAll("input, textarea") : [];
 
@@ -1740,20 +1740,21 @@ function saveProjectEdits() {
         const valElem = inputElems[idx];
         const val = valElem ? valElem.value.trim() : "";
         
-        if (sec.id === 'client' || idx === 0) {
+        const labelLower = sec.label.toLowerCase();
+        if (labelLower.includes('client') || idx === 0) {
           updatedData.client = val;
-        } else if (sec.id === 'no' || idx === 1) {
+        } else if (labelLower.includes('project no') || labelLower.includes('project number') || idx === 1) {
           updatedData.projectNo = val;
-        } else if (sec.id === 'loc' || idx === 2) {
+        } else if (labelLower.includes('location') || idx === 2) {
           updatedData.location = val || 'N/A';
-        } else if (sec.id === 'rem' || idx === 3) {
+        } else if (labelLower.includes('remark') || idx === 3) {
           updatedData.remarks = val;
         } else {
           updatedData.customFields[sec.label] = val;
         }
       });
 
-      // Absolute safety fallbacks using DOM elements directly
+      // Fallbacks if mapped properties are empty
       if (!updatedData.client && inputElems.length > 0) {
         updatedData.client = inputElems[0].value.trim();
       }
