@@ -497,17 +497,18 @@ textarea.underline-modal-input {
     .add-member-btn:hover { opacity: 0.8; }
 
     /* Chat Details Forms & Folders Customizations */
-    .chat-form-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; font-weight: 600; padding: 8px 10px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 6px; }
+ .chat-form-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; font-weight: 600; padding: 6px 4px; background: transparent; border: none; border-radius: 0; margin-bottom: 4px; color: var(--text-color); }
     .chat-form-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    
     .chat-remove-item-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: color 0.15s, background 0.15s; }
     .chat-remove-item-btn:hover { color: var(--error-red); background: var(--border-color); }
     .chat-remove-item-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; }
 
-    .chat-folder-accordion-wrap { border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); margin-bottom: 6px; overflow: hidden; }
-    .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.15s; }
-    .chat-folder-header:hover { background: var(--border-color); }
-    .chat-folder-files-box { display: none; padding: 6px 10px 10px 30px; flex-direction: column; gap: 6px; border-top: 1px solid var(--border-color); background: var(--surface-color); }
-    .chat-file-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--text-color); }
+    .chat-folder-accordion-wrap { border: none; border-radius: 0; background: transparent; margin-bottom: 4px; overflow: hidden; }
+    .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: color 0.15s; color: var(--text-color); }
+    .chat-folder-header:hover { color: var(--paper-white); }
+    .chat-folder-files-box { display: none; padding: 4px 4px 8px 24px; flex-direction: column; gap: 6px; border-top: none; background: transparent; }
+    .chat-file-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.83rem; color: var(--subtext-color); }
     .chat-file-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
 
     .chat-add-files-btn { background: var(--border-color); color: var(--text-color); border: none; width: 100%; padding: 6px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 4px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; transition: opacity 0.15s; }
@@ -1941,7 +1942,7 @@ textarea.underline-modal-input {
     }
 
     /* ------------ CHAT SCREEN CONTROLS & CHAT DETAILS SIDEBAR RENDERING ------------ */
-    function renderChatDetailsSidebar() {
+  function renderChatDetailsSidebar() {
       if (!activeOpenedProject) return;
 
       // Members
@@ -1979,6 +1980,7 @@ textarea.underline-modal-input {
         });
       }
 
+      // Forms
       const formsListEl = document.getElementById("chatDetailsFormsList");
       if (formsListEl) {
         formsListEl.innerHTML = "";
@@ -1988,8 +1990,12 @@ textarea.underline-modal-input {
           chatDetailsAssignedForms.forEach((form, idx) => {
             const row = document.createElement("div");
             row.className = "chat-form-item";
+            const firstLetter = form.title.charAt(0).toUpperCase();
             row.innerHTML = `
-              <span>${form.title}</span>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="member-avatar" style="background:#0284c7; width:28px; height:28px; font-size:0.75rem;">${firstLetter}</div>
+                <span>${form.title}</span>
+              </div>
               <button class="chat-remove-item-btn" onclick="removeChatAssignedForm(${idx})" title="Remove form">
                 <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
@@ -1999,6 +2005,7 @@ textarea.underline-modal-input {
         }
       }
 
+      // Folders
       const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
       if (foldersContainer && activeOpenedProject && activeOpenedProject.children) {
         foldersContainer.innerHTML = "";
@@ -2024,10 +2031,12 @@ textarea.underline-modal-input {
             });
           }
 
+          const firstFolderLetter = folder.name.charAt(0).toUpperCase();
+
           wrap.innerHTML = `
             <div class="chat-folder-header" onclick="toggleChatFolderAccordion(this)">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <svg style="width:16px; height:16px; stroke:var(--paper-white); fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="member-avatar" style="background:#d97706; width:28px; height:28px; font-size:0.75rem;">${firstFolderLetter}</div>
                 <span>${folder.name}</span>
               </div>
               <svg style="width:14px; height:14px; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
