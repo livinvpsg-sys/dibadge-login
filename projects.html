@@ -712,6 +712,18 @@ textarea.underline-modal-input {
       </div>
     </div>
   </div>
+
+<!-- Custom Rename Modal -->
+  <div class="modal-overlay" id="customRenameModal">
+    <div class="modal-card" style="max-width: 380px;">
+      <h3 style="text-align: center; margin-bottom: 16px;" id="customRenameTitle">Rename Folder</h3>
+      <input type="text" id="customRenameInput" class="underline-modal-input" onkeyup="handleRenameModalKey(event)" />
+      <div class="modal-actions" style="margin-top: 24px;">
+        <button class="modal-btn btn-save" onclick="submitCustomRenameModal()">Save</button>
+        <button class="modal-btn btn-cancel" onclick="closeCustomRenameModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
     
     <!-- Center Grid Workspace (Project Tiles Grid or List) -->
     <main class="tiles-wrapper" id="mainGridWorkspace">
@@ -1122,7 +1134,6 @@ textarea.underline-modal-input {
     </div>
   </div>
 
-  <!-- CONTEXT MENUS -->
 <!-- CONTEXT MENUS -->
   <div class="context-menu" id="projectTileContextMenu">
     <div class="context-menu-item" onclick="editSelectedProjectDetailsFromContext()">Edit</div>
@@ -1757,6 +1768,49 @@ textarea.underline-modal-input {
           if (scheduleWS) scheduleWS.style.display = "block";
           if (btnSchedule) btnSchedule.classList.add("active");
         }
+      }
+    }
+
+    let pendingRenameCallback = null;
+
+    function openCustomRenameModal(currentValue, callback) {
+      pendingRenameCallback = callback;
+      const modal = document.getElementById("customRenameModal");
+      const input = document.getElementById("customRenameInput");
+      if (modal && input) {
+        input.value = currentValue || "";
+        modal.style.display = "flex";
+        input.focus();
+        input.select();
+      }
+    }
+
+    function closeCustomRenameModal() {
+      const modal = document.getElementById("customRenameModal");
+      if (modal) modal.style.display = "none";
+      pendingRenameCallback = null;
+    }
+
+    function submitCustomRenameModal() {
+      const input = document.getElementById("customFolderNameInput"); // or customRenameInput
+      const renameInput = document.getElementById("customRenameInput");
+      if (!renameInput) return;
+      const newVal = renameInput.value.trim();
+      if (!newVal) {
+        alert("Please enter a valid name.");
+        return;
+      }
+      if (pendingRenameCallback) {
+        pendingRenameCallback(newVal);
+      }
+      closeCustomRenameModal();
+    }
+
+    function handleRenameModalKey(e) {
+      if (e.key === 'Enter') {
+        submitCustomRenameModal();
+      } else if (e.key === 'Escape') {
+        closeCustomRenameModal();
       }
     }
 
@@ -3491,11 +3545,10 @@ textarea.underline-modal-input {
         persistProjectTree();
         renderFolderView();
       } 
-      else if (action === 'rename') {
-        if (!selectedFolderForContext) return;
-        const newName = prompt("Rename folder:", selectedFolderForContext.folder.name);
-        if (!newName || !newName.trim()) return;
-
+     else if (action === 'rename') {
+      if (!selectedFolderForContext) return;
+      
+      openCustomRenameModal(selectedFolderForContext.folder.name, function(newName) {
         const trimmed = newName.trim();
         const duplicateExists = currentFolderNode.children.some((child, i) => i !== selectedFolderForContext.idx && child.name.toLowerCase() === trimmed.toLowerCase());
         if (duplicateExists) {
@@ -3505,7 +3558,8 @@ textarea.underline-modal-input {
         currentFolderNode.children[selectedFolderForContext.idx].name = trimmed;
         persistProjectTree();
         renderFolderView();
-      } 
+      });
+    }
      else if (action === 'delete') {
       if (!selectedFolderForContext) return;
       
