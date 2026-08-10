@@ -3546,8 +3546,7 @@ function renderManageSectionsList() {
         const item = document.createElement("div");
         item.draggable = true;
         item.dataset.index = idx;
-        item.className = "section-manage-row";
-        item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:transparent; padding:8px 4px; border-bottom:1px solid var(--border-color); gap:10px; cursor:grab; user-select:none;";
+        item.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:transparent; padding:6px 4px; gap:10px; cursor:grab; user-select:none;";
         
         // Drag Events
         item.ondragstart = (e) => {
@@ -3572,12 +3571,11 @@ function renderManageSectionsList() {
         dragHandle.innerHTML = "☰";
         dragHandle.style.cssText = "cursor:grab; color:var(--subtext-color); font-size:1.1rem;";
 
-        // Inline editable input field with underline style
+        // Inline editable input field without underline
         const inputField = document.createElement("input");
         inputField.type = "text";
         inputField.value = sec.label;
-        inputField.className = "underline-modal-input";
-        inputField.style.cssText = "flex:1; padding:4px 2px; border:none; border-bottom:1px solid var(--border-color); background:transparent; color:var(--text-color); outline:none; font-size:0.9rem;";
+        inputField.style.cssText = "flex:1; padding:4px 6px; border:none; background:transparent; color:var(--text-color); outline:none; font-size:0.9rem;";
         inputField.onchange = (e) => {
           const newVal = e.target.value.trim();
           if (newVal) projectFormSections[idx].label = newVal;
