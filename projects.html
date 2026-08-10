@@ -1654,12 +1654,56 @@ textarea.underline-modal-input {
       switchProjectSubTab('folder');
     }
 
-    function updateProjectMetaBanner() {
+   function updateProjectMetaBanner() {
       if (!activeOpenedProject) return;
-      const c = document.getElementById("metaClientName"); if (c) c.innerText = activeOpenedProject.client || "Client N/A";
-      const p = document.getElementById("metaProjectNo"); if (p) p.innerText = activeOpenedProject.projectNo || "NO-ID";
-      const l = document.getElementById("metaLocation"); if (l) l.innerText = activeOpenedProject.location || "Location N/A";
-      const r = document.getElementById("metaRemarks"); if (r) r.innerText = activeOpenedProject.remarks || "No remarks provided.";
+      
+      const bannerContainer = document.getElementById("projectMetaHeader");
+      if (!bannerContainer) return;
+
+      let htmlContent = `
+        <div class="project-meta-line1">
+          <span id="metaClientName">${activeOpenedProject.client || 'Client N/A'}</span>
+          <span class="project-meta-badge" id="metaProjectNo">${activeOpenedProject.projectNo || 'NO-ID'}</span>
+          <button class="edit-meta-btn" onclick="openEditProjectModal()" title="Edit Project Details">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          </button>
+        </div>
+      `;
+
+      projectFormSections.forEach(sec => {
+        if (sec.id === 'client' || sec.id === 'no') return; // already shown in top line badge
+
+        let val = "";
+        if (sec.id === 'loc') {
+          val = activeOpenedProject.location || "";
+          if (val && val !== 'N/A') {
+            htmlContent += `
+              <div class="project-meta-line2">
+                <svg style="width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span>${val}</span>
+              </div>
+            `;
+          }
+        } else if (sec.id === 'rem') {
+          val = activeOpenedProject.remarks || "";
+          if (val) {
+            htmlContent += `<div class="project-meta-line3">${val}</div>`;
+          }
+        } else {
+          // Custom dynamic sections
+          if (activeOpenedProject.customFields && activeOpenedProject.customFields[sec.label]) {
+            val = activeOpenedProject.customFields[sec.label];
+            htmlContent += `
+              <div class="project-meta-line2" style="margin-top:2px;">
+                <span style="font-size:0.75rem; color:var(--subtext-color); text-transform:uppercase;">${sec.label}:</span>
+                <span style="font-size:0.82rem;">${val}</span>
+              </div>
+            `;
+          }
+        }
+      });
+
+      bannerContainer.innerHTML = htmlContent;
     }
 
   function openEditProjectModal() {
@@ -3721,9 +3765,35 @@ let projectFormSections = [
       document.getElementById("manageSectionsModal").style.display = "flex";
     }
 
-    function closeManageSectionsModal() {
+  function closeManageSectionsModal() {
       document.getElementById("manageSectionsModal").style.display = "none";
-      renderCreateProjectFormFields();
+      if (document.getElementById("createProjectModal").style.display === "flex") {
+        renderCreateProjectFormFields();
+      } else if (document.getElementById("editProjectModal").style.display === "flex") {
+        renderEditProjectFormFields(); // Immediately refreshes fields on the edit screen!
+      }
+    }
+
+    // Helper custom theme alert modal function
+    function showCustomAlert(message) {
+      const titleElem = document.getElementById("customDeleteProjectTitle");
+      const msgElem = document.getElementById("customDeleteProjectMessage");
+      const modal = document.getElementById("customDeleteProjectModal");
+
+      if (titleElem && msgElem && modal) {
+        titleElem.innerText = "Notice";
+        msgElem.innerText = message;
+        
+        // Hide delete button and only show a single 'OK' button in the center
+        const btnContainer = modal.querySelector(".modal-card > div:last-child");
+        if (btnContainer) {
+          btnContainer.innerHTML = `<button class="modal-btn btn-save" style="width: auto; padding: 6px 24px;" onclick="closeCustomDeleteProjectModal()">OK</button>`;
+        }
+
+        modal.style.display = "flex";
+      } else {
+        alert(message); // Fallback
+      }
     }
 
 function renderManageSectionsList() {
