@@ -70,6 +70,41 @@
     .fab-tab-btn { margin-top: auto; background: var(--paper-white); color: var(--jet-black); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
     .fab-tab-btn:hover { opacity: 0.9; transform: scale(1.05); background: var(--paper-white) !important; color: var(--jet-black) !important; }
 
+    .underline-modal-input {
+      width: 100%;
+      padding: 8px 2px;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-color);
+      border-radius: 0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .underline-modal-input:focus {
+      border-bottom-color: var(--paper-white);
+    }
+    
+    .underline-icon-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 2px;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-color);
+      border-radius: 0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .underline-icon-trigger:focus {
+      border-bottom-color: var(--paper-white);
+    }
+
     /* CENTERED TILES WORKSPACE */
     .tiles-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px; overflow-y: auto; position: relative; }
     .tiles-grid { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 20px; max-width: 1000px; width: 100%; margin: auto; }
@@ -203,26 +238,25 @@
     </div>
   </div>
   
-  <!-- Tile Properties Modal -->
+<!-- Tile Properties Modal -->
   <div class="modal-overlay" id="tileModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 480px;">
       <button class="close-btn" onclick="closeTileModal()">&times;</button>
-      <h3 id="modalHeaderTitle">Tile Properties</h3>
+      <h3 id="modalHeaderTitle" style="text-align: center; margin-bottom: 16px;">Tile Properties</h3>
 
       <label class="modal-label">Tile Name</label>
-      <input type="text" id="modalTileTitle" class="modal-input" placeholder="Enter tile title" />
+      <input type="text" id="modalTileTitle" class="underline-modal-input" placeholder="Enter tile title" />
 
-      <label class="modal-label">Icon</label>
-      <button class="icon-selector-trigger" onclick="toggleIconPicker()">
-        <span>Choose Icon</span>
+      <label class="modal-label" style="margin-top: 16px;">Icon</label>
+      <button class="underline-icon-trigger" onclick="toggleIconPicker()">
+        <span style="color: var(--subtext-color);">Choose Icon</span>
         <div class="icon-preview-box" id="selectedIconPreview"></div>
       </button>
 
       <div class="icon-picker-grid" id="iconPickerGrid">
         <div class="icon-option" onclick="selectIcon('home')" id="pick-home">
           <svg viewBox="0 0 24 24">
-            <path d="M5.5 3.5h3.8c1.9 0 3.5 1.5 3.5 3.5v1.2c0 1.9-1.6 3.5-3.5 3.5H5.5V3.5z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M3.5 10.5h11.2c3 0 5.5 2.5 5.5 5.5s-2.5 5.5-5.5 5.5H3.5V10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
         </div>
         <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
@@ -231,9 +265,9 @@
         <div class="icon-option" onclick="selectIcon('finance')" id="pick-finance"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg></div>
       </div>
 
-      <div class="modal-actions">
+      <div class="modal-actions" style="margin-top: 24px;">
         <button class="modal-btn btn-save" onclick="saveTileModal()">Save</button>
-        <button class="modal-btn btn-delete" id="deleteTileBtn" onclick="deleteCurrentTile()">Delete</button>
+        <button class="modal-btn btn-delete" id="deleteTileBtn" onclick="deleteCurrentTile()" style="display:none;">Delete</button>
         <button class="modal-btn btn-cancel" onclick="closeTileModal()">Cancel</button>
       </div>
     </div>
