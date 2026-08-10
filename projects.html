@@ -975,15 +975,18 @@ textarea.underline-modal-input {
       <div id="projectFormsContainer" class="tiles-grid"></div>
     </section>
 
-    <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
+ <!-- BILL OF QUANTITY (BOQ) WORKSPACE PANEL -->
     <section class="sub-view-panel" id="panelBOQWorkspace" style="display:none; flex-direction:column; align-items:flex-start;">
-      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity (BOQ)</h2>
+      <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px;">
+        <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity</h2>
+        <span id="boqLastUpdatedLabel" style="font-size:0.75rem; color:var(--subtext-color);">Last updated: --</span>
+      </div>
 
       <!-- Currency & Tax Controls Bar -->
       <div class="boq-top-controls">
         <div class="boq-control-group">
           <span>Currency:</span>
-          <select id="boqCurrencySelect" class="boq-select" onchange="renderBOQTable()">
+          <select id="boqCurrencySelect" class="boq-select" onchange="updateBOQTimestampAndRender()">
             <option value="$" selected>$ USD</option>
             <option value="S$">S$ SGD</option>
             <option value="₹">₹ INR</option>
@@ -996,7 +999,7 @@ textarea.underline-modal-input {
 
         <div class="boq-control-group">
           <span>Tax Rate (%):</span>
-          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="renderBOQTable()" />
+          <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="updateBOQTimestampAndRender()" />
         </div>
       </div>
 
@@ -1749,10 +1752,10 @@ textarea.underline-modal-input {
           if (formsWS) formsWS.style.display = "block";
           if (btnForms) btnForms.classList.add("active");
           renderFormsListUI('projectFormsContainer', projectFormsList);
-        } else if (tabKey === 'boq') {
+       } else if (tabKey === 'boq') {
           if (boqWS) boqWS.style.display = "flex";
           if (btnBOQ) btnBOQ.classList.add("active");
-          renderBOQTable();
+          updateBOQTimestampAndRender();
         } else if (tabKey === 'compare') {
           if (compareWS) compareWS.style.display = "block";
           if (btnCompare) btnCompare.classList.add("active");
@@ -3349,7 +3352,7 @@ textarea.underline-modal-input {
         return 0;
       }
     }
-
+    
     function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
       if (!tbody) return;
@@ -3391,6 +3394,17 @@ textarea.underline-modal-input {
       const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
     }
 
+  function updateBOQTimestampAndRender() {
+      const label = document.getElementById("boqLastUpdatedLabel");
+      if (label) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        label.innerText = `Last updated: ${dateStr}, ${timeStr} (GMT +8:00)`;
+      }
+      renderBOQTable();
+    }
+
     function updateBOQData(index, field, value) {
       if (field === 'qty' || field === 'price') {
         const evaluated = evaluateMathExpr(value);
@@ -3398,19 +3412,19 @@ textarea.underline-modal-input {
       } else {
         currentBOQItems[index][field] = value;
       }
-      renderBOQTable();
+      updateBOQTimestampAndRender();
     }
 
     function addBOQRow() {
       currentBOQItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
-      renderBOQTable();
+      updateBOQTimestampAndRender();
     }
 
     function deleteBOQRow(index) {
       currentBOQItems.splice(index, 1);
-      renderBOQTable();
+      updateBOQTimestampAndRender();
     }
-
+    
     function getCurrentWorkspaceFolder() {
       return folderObjectStack[folderObjectStack.length - 1];
     }
