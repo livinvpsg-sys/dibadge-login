@@ -3399,7 +3399,7 @@ textarea.underline-modal-input {
       updateBOQTimestampAndRender();
     }
     
-  function renderBOQTable() {
+function renderBOQTable() {
       const tbody = document.getElementById("boqTableBody");
       if (!tbody) return;
       tbody.innerHTML = "";
@@ -3416,28 +3416,27 @@ textarea.underline-modal-input {
         const rowTotal = numQty * numPrice;
         subTotal += rowTotal;
 
-        // Check if raw value contains operators/parentheses to show equation subtext
         const hasQtyExpr = /[+\-*/()]/.test(row.qty);
         const hasPriceExpr = /[+\-*/()]/.test(row.price);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
-          <td>
+          <td style="vertical-align: top; padding-top: 14px;">${index + 1}</td>
+          <td style="vertical-align: top;"><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+          <td style="vertical-align: top;">
             <div style="display:flex; flex-direction:column;">
-              <input type="text" class="boq-input" value="${row.qty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
-              ${hasQtyExpr ? `<span class="boq-cell-subtext">val: ${numQty}</span>` : ''}
+              <input type="text" class="boq-input" value="${numQty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
+              ${hasQtyExpr ? `<span class="boq-cell-subtext">eq: ${row.qty}</span>` : ''}
             </div>
           </td>
-          <td>
+          <td style="vertical-align: top;">
             <div style="display:flex; flex-direction:column;">
-              <input type="text" class="boq-input" value="${row.price}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
-              ${hasPriceExpr ? `<span class="boq-cell-subtext">val: ${numPrice}</span>` : ''}
+              <input type="text" class="boq-input" value="${numPrice}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
+              ${hasPriceExpr ? `<span class="boq-cell-subtext">eq: ${row.price}</span>` : ''}
             </div>
           </td>
-          <td style="text-align:right; font-weight:700; vertical-align:middle;">${currency}${rowTotal.toFixed(2)}</td>
-          <td style="text-align:center; vertical-align:middle;">
+          <td style="text-align:right; font-weight:700; vertical-align:top; padding-top: 14px;">${currency}${rowTotal.toFixed(2)}</td>
+          <td style="text-align:center; vertical-align:top; padding-top: 10px;">
             <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
               <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
