@@ -254,11 +254,6 @@
       </button>
 
       <div class="icon-picker-grid" id="iconPickerGrid">
-        <div class="icon-option" onclick="selectIcon('home')" id="pick-home">
-          <svg viewBox="0 0 24 24">
-            <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
-          </svg>
-        </div>
         <div class="icon-option" onclick="selectIcon('projects')" id="pick-projects"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></div>
         <div class="icon-option" onclick="selectIcon('members')" id="pick-members"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg></div>
         <div class="icon-option" onclick="selectIcon('hr')" id="pick-hr"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg></div>
@@ -273,6 +268,18 @@
     </div>
   </div>
 
+<!-- Custom Tile Delete Confirmation Modal -->
+  <div class="modal-overlay" id="customDeleteTileModal">
+    <div class="modal-card" style="max-width: 360px; text-align: center;">
+      <h3 style="margin-bottom: 12px; font-size: 1.05rem;" id="customDeleteTileTitle">Delete Tile?</h3>
+      <p id="customDeleteTileMessage" style="color: var(--subtext-color); font-size: 0.9rem; margin-bottom: 20px;"></p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="modal-btn" style="background: var(--error-red); color: white;" onclick="confirmDeleteTileAction()">Delete</button>
+        <button class="modal-btn btn-cancel" onclick="closeCustomDeleteTileModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     const SECRET_PASSCODE = "177994";
     let activeEditTileId = null;
@@ -432,10 +439,41 @@
       closeTileModal();
     }
 
+   let pendingTileDeleteCallback = null;
+
     function deleteCurrentTile() {
       if (!activeEditTileId) return;
-      setStoredTiles(getStoredTiles().filter(t => t.id !== activeEditTileId));
-      closeTileModal();
+      const targetTile = getStoredTiles().find(t => t.id === activeEditTileId);
+      const tileName = targetTile ? targetTile.title : "this tile";
+
+      const titleElem = document.getElementById("customDeleteTileTitle");
+      const msgElem = document.getElementById("customDeleteTileMessage");
+      const modal = document.getElementById("customDeleteTileModal");
+
+      if (titleElem && msgElem && modal) {
+        titleElem.innerText = "Delete Tile?";
+        msgElem.innerText = `Are you sure you want to delete tile "${tileName}"?`;
+        
+        pendingTileDeleteCallback = function() {
+          setStoredTiles(getStoredTiles().filter(t => t.id !== activeEditTileId));
+          closeCustomDeleteTileModal();
+          closeTileModal();
+        };
+
+        modal.style.display = "flex";
+      }
+    }
+
+    function confirmDeleteTileAction() {
+      if (pendingTileDeleteCallback) {
+        pendingTileDeleteCallback();
+      }
+    }
+
+    function closeCustomDeleteTileModal() {
+      const modal = document.getElementById("customDeleteTileModal");
+      if (modal) modal.style.display = "none";
+      pendingTileDeleteCallback = null;
     }
   </script>
 </body>
