@@ -392,12 +392,12 @@
       document.getElementById("iconPickerGrid").style.display = "none";
     }
 
-    function openCreateModal() {
+  function openCreateModal() {
       isCreateMode = true; activeEditTileId = null;
       document.getElementById("modalHeaderTitle").innerText = "Create New Tile";
       document.getElementById("modalTileTitle").value = "";
       document.getElementById("deleteTileBtn").style.display = "none";
-      selectIcon("home");
+      selectIcon("projects"); 
       document.getElementById("tileModal").style.display = "flex";
     }
 
