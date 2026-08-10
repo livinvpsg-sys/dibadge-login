@@ -1767,7 +1767,7 @@ function saveProjectEdits() {
         updatedData.projectNo = valuesByLabel[projectFormSections[1].label] || targetProj.projectNo || "";
       }
 
-      const hasLetter = (str) => /[a-zA-Z0-9]/.test(str);
+     const hasLetter = (str) => /[^\s]/.test(str); // any non-whitespace character
 
       if (!hasLetter(updatedData.client)) {
         showCustomAlert("Please enter a client name.");
