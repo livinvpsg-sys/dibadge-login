@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diBadge | Bill of Quantity</title>
+  
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
 
+  <style>
+    :root {
+      --jet-black: #0f0f0f;
+      --paper-white: #f8f9fa;
+      --slate-surface: #1e1e1e;
+      --accent-white: #ffffff;
+      --muted-gray: #8e8e93;
+      --cool-ash: #a1a1a6;
+      --soft-border: #e5e5ea;
+      --error-red: #ff3b30;
+
+      --bg-color: var(--paper-white);
+      --text-color: var(--jet-black);
+      --surface-color: var(--accent-white);
+      --header-bg: var(--paper-white);
+      --border-color: var(--soft-border);
+      --subtext-color: var(--cool-ash);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: var(--jet-black);
+      --text-color: var(--accent-white);
+      --surface-color: var(--slate-surface);
+      --header-bg: #050505;
+      --border-color: #2c2c2e;
+      --subtext-color: var(--muted-gray);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+    .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
+    .header-back-icon:hover { background: var(--surface-color); }
+
+    .boq-workspace-container { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; align-items: flex-start; }
+    
+    .boq-top-controls { display: flex; gap: 16px; align-items: center; margin-top: 12px; width: 100%; max-width: 900px; flex-wrap: wrap; }
+    .boq-control-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .boq-select, .boq-control-input { background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; outline: none; }
+
+    .boq-table-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 100%; max-width: 900px; margin-top: 12px; }
+    .boq-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .boq-table th { font-size: 0.82rem; font-weight: 700; color: var(--subtext-color); border-bottom: 2px solid var(--border-color); padding: 10px 12px; text-transform: uppercase; }
+    .boq-table td { border-bottom: 1px solid var(--border-color); padding: 10px 12px; font-size: 0.88rem; }
+    .boq-input { width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; outline: none; }
+
+    .boq-add-row-btn { background: var(--border-color); color: var(--text-color); border: 1px dashed var(--text-color); width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; margin-top: 14px; transition: opacity 0.15s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+    .boq-add-row-btn:hover { opacity: 0.8; }
+
+    .boq-summary-card { margin-top: 20px; align-self: flex-end; width: 320px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; }
+    .boq-summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; font-weight: 600; color: var(--subtext-color); }
+    .boq-summary-row.grand-total { border-top: 1px solid var(--border-color); padding-top: 8px; font-size: 1.05rem; font-weight: 800; color: var(--paper-white); }
+
+    .delete-row-btn { background: transparent; border: none; color: var(--error-red); cursor: pointer; opacity: 0.7; padding: 4px; border-radius: 4px; }
+    .delete-row-btn:hover { opacity: 1; background: var(--border-color); }
+    .delete-row-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .boq-cell-subtext { font-size: 0.72rem; color: var(--subtext-color); margin-top: 3px; padding-left: 2px; }
+  </style>
+</head>
+<body>
+
+  <header class="dashboard-header">
+    <button class="header-back-icon" onclick="goBackToProject()" title="Back to Project">
+      <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <h1 id="boqHeaderTitle" style="font-size: 1.15rem; font-weight: 600;">Bill of Quantity</h1>
+    <div style="width: 24px;"></div>
+  </header>
+
+  <div class="boq-workspace-container">
+    <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px;">
+      <span id="boqLastUpdatedLabel" style="font-size:0.75rem; color:var(--subtext-color);">Last updated: --</span>
+    </div>
+
+    <!-- Currency, Tax Rate, and Profit % Controls Bar -->
+    <div class="boq-top-controls">
+      <div class="boq-control-group">
+        <span>Currency:</span>
+        <select id="boqCurrencySelect" class="boq-select" onchange="updateBOQTimestampAndRender()">
+          <option value="$" selected>$ USD</option>
+          <option value="S$">S$ SGD</option>
+          <option value="₹">₹ INR</option>
+          <option value="€">€ EUR</option>
+          <option value="£">£ GBP</option>
+          <option value="¥">¥ JPY</option>
+          <option value="A$">A$ AUD</option>
+        </select>
+      </div>
+
+      <div class="boq-control-group">
+        <span>Tax Rate (%):</span>
+        <input type="number" id="boqTaxRateInput" class="boq-control-input" value="10" min="0" max="100" style="width: 70px;" onchange="updateBOQTimestampAndRender()" />
+      </div>
+
+      <div class="boq-control-group">
+        <span>Profit (%):</span>
+        <input type="number" id="boqProfitPercentInput" class="boq-control-input" value="0" min="0" max="100" style="width: 70px;" oninput="onProfitPercentChanged()" />
+      </div>
+    </div>
+
+    <div class="boq-table-card">
+      <table class="boq-table">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Sl No</th>
+            <th>Item Description</th>
+            <th style="width: 140px;">Quantity</th>
+            <th style="width: 140px;">Unit Price</th>
+            <th style="width: 140px; text-align:right;">Total Price</th>
+            <th style="width: 40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="boqTableBody"></tbody>
+      </table>
+
+      <button class="boq-add-row-btn" onclick="addBOQRow()">
+        <svg style="width:16px; height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Add Row Item
+      </button>
+
+      <div class="boq-summary-card">
+        <div class="boq-summary-row">
+          <span>Sub Total:</span>
+          <span id="boqSubTotal">$0.00</span>
+        </div>
+        <div class="boq-summary-row" style="align-items: center;">
+          <span id="boqProfitLabel">Profit (0%):</span>
+          <input type="text" id="boqProfitInputVal" class="boq-input" value="0.00" style="width: 120px; text-align: right; padding: 2px 6px;" oninput="onProfitValueChanged()" />
+        </div>
+        <div class="boq-summary-row">
+          <span id="boqTaxLabel">Tax / VAT (10%):</span>
+          <span id="boqTax">$0.00</span>
+        </div>
+        <div class="boq-summary-row grand-total">
+          <span>Grand Total:</span>
+          <span id="boqGrandTotal">$0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('id');
+
+    function getProjectsStorage() {
+      const stored = localStorage.getItem('dibadge_project_tiles');
+      if (!stored) return [];
+      try { return JSON.parse(stored); } catch(e) { return []; }
+    }
+
+    let allProjects = getProjectsStorage();
+    let currentBOQProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+
+    if (currentBOQProject) {
+      document.getElementById("boqHeaderTitle").innerText = `${currentBOQProject.client || 'Project'} — Bill of Quantity`;
+      if (!currentBOQProject.boqItems) {
+        currentBOQProject.boqItems = [
+          { item: 'Foundation Concrete', qty: '25', price: '150' },
+          { item: 'Steel Reinforcement Bars', qty: '10', price: '850' }
+        ];
+      }
+      updateBOQTimestampAndRender();
+    }
+
+    function persistBOQChanges() {
+      if (!currentBOQProject) return;
+      const projects = getProjectsStorage();
+      const idx = projects.findIndex(p => p.id === currentBOQProject.id);
+      if (idx !== -1) {
+        projects[idx] = currentBOQProject;
+        localStorage.setItem('dibadge_project_tiles', JSON.stringify(projects));
+      }
+    }
+
+    function evaluateMathExpr(expr) {
+      if (typeof expr === 'number') return expr;
+      if (!expr || typeof expr !== 'string') return 0;
+      try {
+        const cleanExpr = expr.replace(/[^0-9+\-*/().]/g, '');
+        if (!cleanExpr) return 0;
+        const result = Function(`'use strict'; return (${cleanExpr})`)();
+        return isNaN(result) ? 0 : result;
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    function onProfitPercentChanged() {
+      const subTotal = parseFloat(window._boqCachedSubTotal) || 0;
+      const profitPctInput = document.getElementById("boqProfitPercentInput");
+      const profitValInput = document.getElementById("boqProfitInputVal");
+
+      const pct = profitPctInput ? parseFloat(profitPctInput.value) || 0 : 0;
+      const calculatedProfitVal = subTotal * (pct / 100);
+
+      if (profitValInput) {
+        profitValInput.value = calculatedProfitVal.toFixed(2);
+      }
+      updateBOQTimestampAndRender();
+    }
+
+    function onProfitValueChanged() {
+      const subTotal = parseFloat(window._boqCachedSubTotal) || 0;
+      const profitPctInput = document.getElementById("boqProfitPercentInput");
+      const profitValInput = document.getElementById("boqProfitInputVal");
+
+      const val = profitValInput ? parseFloat(profitValInput.value) || 0 : 0;
+      if (subTotal > 0 && profitPctInput) {
+        const calculatedPct = (val / subTotal) * 100;
+        profitPctInput.value = calculatedPct.toFixed(2);
+      }
+      updateBOQTimestampAndRender();
+    }
+
+    function renderBOQTable() {
+      const tbody = document.getElementById("boqTableBody");
+      if (!tbody || !currentBOQProject) return;
+      tbody.innerHTML = "";
+
+      const currency = document.getElementById("boqCurrencySelect") ? document.getElementById("boqCurrencySelect").value : "$";
+      const taxRate = document.getElementById("boqTaxRateInput") ? parseFloat(document.getElementById("boqTaxRateInput").value) || 0 : 10;
+      const profitValInput = document.getElementById("boqProfitInputVal");
+
+      let subTotal = 0;
+
+      currentBOQProject.boqItems.forEach((row, index) => {
+        const numQty = evaluateMathExpr(row.qty);
+        const numPrice = evaluateMathExpr(row.price);
+        
+        const displayQty = Number.isInteger(numQty) ? numQty : numQty.toFixed(2);
+        const displayPrice = Number.isInteger(numPrice) ? numPrice : numPrice.toFixed(2);
+
+        const rowTotal = numQty * numPrice;
+        subTotal += rowTotal;
+
+        const hasQtyExpr = /[+\-*/()]/.test(row.qty);
+        const hasPriceExpr = /[+\-*/()]/.test(row.price);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="vertical-align: top; padding-top: 14px;">${index + 1}</td>
+          <td style="vertical-align: top;"><input type="text" class="boq-input" value="${row.item}" onchange="updateBOQData(${index}, 'item', this.value)" /></td>
+          <td style="vertical-align: top;">
+            <div style="display:flex; flex-direction:column;">
+              <input type="text" class="boq-input" value="${displayQty}" placeholder="e.g. 10+5" onchange="updateBOQData(${index}, 'qty', this.value)" />
+              ${hasQtyExpr ? `<span class="boq-cell-subtext">eq: ${row.qty}</span>` : ''}
+            </div>
+          </td>
+          <td style="vertical-align: top;">
+            <div style="display:flex; flex-direction:column;">
+              <input type="text" class="boq-input" value="${displayPrice}" placeholder="e.g. 100/2" onchange="updateBOQData(${index}, 'price', this.value)" />
+              ${hasPriceExpr ? `<span class="boq-cell-subtext">eq: ${row.price}</span>` : ''}
+            </div>
+          </td>
+          <td style="text-align:right; font-weight:700; vertical-align:top; padding-top: 14px;">${currency}${rowTotal.toFixed(2)}</td>
+          <td style="text-align:center; vertical-align:top; padding-top: 10px;">
+            <button class="delete-row-btn" onclick="deleteBOQRow(${index})" title="Delete row">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      window._boqCachedSubTotal = subTotal;
+
+      let profitAmount = profitValInput ? parseFloat(profitValInput.value) || 0 : 0;
+      const taxableBase = subTotal + profitAmount;
+      const taxAmount = taxableBase * (taxRate / 100);
+      const grandTotal = taxableBase + taxAmount;
+
+      const profitPct = document.getElementById("boqProfitPercentInput") ? parseFloat(document.getElementById("boqProfitPercentInput").value) || 0 : 0;
+      const profitLbl = document.getElementById("boqProfitLabel"); 
+      if (profitLbl) profitLbl.innerText = `Profit (${profitPct}%):`;
+
+      const subElem = document.getElementById("boqSubTotal"); if (subElem) subElem.innerText = `${currency}${subTotal.toFixed(2)}`;
+      const taxLbl = document.getElementById("boqTaxLabel"); if (taxLbl) taxLbl.innerText = `Tax / VAT (${taxRate}%):`;
+      const taxVal = document.getElementById("boqTax"); if (taxVal) taxVal.innerText = `${currency}${taxAmount.toFixed(2)}`;
+      const grandElem = document.getElementById("boqGrandTotal"); if (grandElem) grandElem.innerText = `${currency}${grandTotal.toFixed(2)}`;
+      
+      persistBOQChanges();
+    }
+
+    function updateBOQTimestampAndRender() {
+      const label = document.getElementById("boqLastUpdatedLabel");
+      if (label) {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeZoneStr = now.toLocaleTimeString('en-us', { timeZoneName: 'short' }).split(' ').pop();
+        label.innerText = `Last updated: ${dateStr}, ${timeStr} (${timeZoneStr})`;
+      }
+      renderBOQTable();
+    }
+
+    function updateBOQData(index, field, value) {
+      if (field === 'qty' || field === 'price') {
+        currentBOQProject.boqItems[index][field] = value.trim();
+      } else {
+        currentBOQProject.boqItems[index][field] = value;
+      }
+      updateBOQTimestampAndRender();
+    }
+
+    function addBOQRow() {
+      currentBOQProject.boqItems.push({ item: 'New Material / Service', qty: '1', price: '0' });
+      updateBOQTimestampAndRender();
+    }
+
+    function deleteBOQRow(index) {
+      currentBOQProject.boqItems.splice(index, 1);
+      updateBOQTimestampAndRender();
+    }
+
+    function goBackToProject() {
+      window.location.href = `../projects?id=${projectId}`;
+    }
+  </script>
+</body>
+</html>
