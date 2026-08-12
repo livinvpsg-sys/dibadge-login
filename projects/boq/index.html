@@ -45,7 +45,8 @@
 
     .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
     .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
-    .header-back-icon:hover { background: var(--surface-color); }
+    .header-back-icon:hover { background: var(--surface-color); color: var(--paper-white); }
+    .header-breadcrumb-title { font-size: 1.05rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 8px; }
 
     .boq-workspace-container { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; align-items: flex-start; }
     
@@ -74,16 +75,21 @@
 </head>
 <body>
 
+  <!-- Header -->
   <header class="dashboard-header">
-    <button class="header-back-icon" onclick="goBackToProject()" title="Back to Project">
-      <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    </button>
-    <h1 id="boqHeaderTitle" style="font-size: 1.15rem; font-weight: 600;">Bill of Quantity</h1>
-    <div style="width: 24px;"></div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="header-back-icon" onclick="goBackToProject()" title="Back to Projects">
+        <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="header-breadcrumb-title">
+        Projects <span style="color: var(--subtext-color); font-weight: 400;">></span> <span id="headerProjectName">Amber Holdings (PRJ-2026-001)</span>
+      </div>
+    </div>
   </header>
 
   <div class="boq-workspace-container">
     <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 4px;">
+      <h2 style="font-size:1.15rem; font-weight:700;">Bill of Quantity</h2>
       <span id="boqLastUpdatedLabel" style="font-size:0.75rem; color:var(--subtext-color);">Last updated: --</span>
     </div>
 
@@ -168,7 +174,7 @@
     let currentBOQProject = allProjects.find(p => p.id === projectId) || allProjects[0];
 
     if (currentBOQProject) {
-      document.getElementById("boqHeaderTitle").innerText = `${currentBOQProject.client || 'Project'} — Bill of Quantity`;
+      document.getElementById("headerProjectName").innerText = `${currentBOQProject.client || 'Amber Holdings'} (${currentBOQProject.projectNo || 'PRJ-2026-001'})`;
       if (!currentBOQProject.boqItems) {
         currentBOQProject.boqItems = [
           { item: 'Foundation Concrete', qty: '25', price: '150' },
@@ -329,7 +335,7 @@
     }
 
     function goBackToProject() {
-      window.location.href = `../projects?id=${projectId}`;
+      window.location.href = `/projects?id=${projectId}`;
     }
   </script>
 </body>
