@@ -87,6 +87,25 @@
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
+    /* LinkedIn-style reaction/comment bar below bubble */
+    .msg-social-bar { display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-left: 4px; font-size: 0.75rem; color: var(--subtext-color); font-weight: 600; }
+    .social-action-pill { display: flex; align-items: center; gap: 4px; background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
+    .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .social-action-pill.liked { color: #00a884; }
+
+    /* Comments Modal Popup Styling */
+    .comments-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
+    .comments-modal-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); color: var(--text-color); }
+    .comments-modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
+    .comments-modal-close { background: none; border: none; font-size: 1.3rem; color: var(--subtext-color); cursor: pointer; }
+    .comments-list-area { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; max-height: 300px; }
+    .comment-thread-item { display: flex; flex-direction: column; gap: 2px; font-size: 0.85rem; background: var(--bg-color); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+    .comment-author-name { font-weight: 700; font-size: 0.78rem; color: var(--chat-sender-name); }
+    .comments-input-area { padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--surface-color); display: flex; gap: 8px; align-items: center; }
+    .comments-input-field { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 20px; font-size: 0.85rem; outline: none; }
+    .comments-send-btn { background: var(--paper-white); color: var(--jet-black); border: none; padding: 6px 14px; border-radius: 16px; font-size: 0.80rem; font-weight: 600; cursor: pointer; }
+
     /* Chat Input Bar */
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 10px; position: relative; }
@@ -222,6 +241,21 @@
     </div>
   </section>
 
+  <!-- Comments Modal Popup -->
+  <div class="comments-modal-overlay" id="commentsModalOverlay" onclick="closeCommentsModal()">
+    <div class="comments-modal-card" onclick="event.stopPropagation()">
+      <div class="comments-modal-header">
+        <span>Comments</span>
+        <button class="comments-modal-close" onclick="closeCommentsModal()">&times;</button>
+      </div>
+      <div class="comments-list-area" id="commentsModalList"></div>
+      <div class="comments-input-area">
+        <input type="text" id="commentsModalInput" class="comments-input-field" placeholder="Write a comment..." onkeyup="handleModalCommentKey(event)" />
+        <button class="comments-send-btn" onclick="submitModalComment()">Send</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
@@ -232,24 +266,23 @@
       try { return JSON.parse(stored); } catch(e) { return []; }
     }
 
-  let allProjects = getProjectsStorage();
-let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+    let allProjects = getProjectsStorage();
+    let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+    let activeCommentMsgId = null;
 
-if (!activeOpenedProject) {
-  // No matching project found (e.g. empty/missing localStorage) -
-  // fall back to a default project so the chat still works.
-  activeOpenedProject = {
-    id: projectId || ('PRJ-' + Date.now()),
-    client: 'Amber Holdings',
-    projectNo: 'PRJ-2026-001',
-    chatMembers: [],
-    chatGroups: [],
-    chatMessages: [],
-    children: []
-  };
-  allProjects.push(activeOpenedProject);
-  localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
-}
+    if (!activeOpenedProject) {
+      activeOpenedProject = {
+        id: projectId || ('PRJ-' + Date.now()),
+        client: 'Amber Holdings',
+        projectNo: 'PRJ-2026-001',
+        chatMembers: [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}],
+        chatGroups: [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}],
+        chatMessages: [],
+        children: []
+      };
+      allProjects.push(activeOpenedProject);
+      localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+    }
 
     if (activeOpenedProject) {
       document.getElementById("headerProjectName").innerText = `${activeOpenedProject.client || 'Amber Holdings'} (${activeOpenedProject.projectNo || 'PRJ-2026-001'})`;
@@ -326,8 +359,8 @@ if (!activeOpenedProject) {
 
       if (!activeOpenedProject.chatMessages) {
         activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am' },
-          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am' }
+          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 2, comments: [{author: 'John', text: 'Verified.'}], liked: false },
+          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [], liked: false }
         ];
       }
 
@@ -338,6 +371,19 @@ if (!activeOpenedProject) {
         let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
         let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
 
+        let socialBarHtml = `
+          <div class="msg-social-bar">
+            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(event, '${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <span class="like-count">${msg.likes || 0}</span>
+            </div>
+            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+            </div>
+          </div>
+        `;
+
         msgRow.innerHTML = `
           ${avatarHtml}
           <div class="msg-body">
@@ -346,11 +392,81 @@ if (!activeOpenedProject) {
               ${msg.text}
               <div class="msg-meta-row"><span>${msg.time}</span></div>
             </div>
+            ${socialBarHtml}
           </div>
         `;
         container.appendChild(msgRow);
       });
       container.scrollTop = container.scrollHeight;
+    }
+
+    function handleLikeClick(event, msgId) {
+      event.stopPropagation();
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
+      if (!msg) return;
+
+      if (msg.liked) {
+        msg.liked = false;
+        msg.likes = Math.max(0, (msg.likes || 1) - 1);
+      } else {
+        msg.liked = true;
+        msg.likes = (msg.likes || 0) + 1;
+      }
+      persistProjectTree();
+      renderChatMessages();
+    }
+
+    function openCommentsModal(msgId) {
+      activeCommentMsgId = msgId;
+      const overlay = document.getElementById("commentsModalOverlay");
+      const listArea = document.getElementById("commentsModalList");
+      if (!overlay || !listArea || !activeOpenedProject) return;
+
+      listArea.innerHTML = "";
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
+      if (msg && msg.comments && msg.comments.length > 0) {
+        msg.comments.forEach(c => {
+          listArea.innerHTML += `
+            <div class="comment-thread-item">
+              <span class="comment-author-name">${c.author}</span>
+              <span>${c.text}</span>
+            </div>
+          `;
+        });
+      } else {
+        listArea.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:20px;">No comments yet.</div>`;
+      }
+
+      overlay.style.display = "flex";
+      const inputField = document.getElementById("commentsModalInput");
+      if (inputField) {
+        inputField.value = "";
+        inputField.focus();
+      }
+    }
+
+    function closeCommentsModal() {
+      document.getElementById("commentsModalOverlay").style.display = "none";
+      activeCommentMsgId = null;
+    }
+
+    function submitModalComment() {
+      const inputField = document.getElementById("commentsModalInput");
+      if (!inputField || !inputField.value.trim() || !activeCommentMsgId || !activeOpenedProject) return;
+
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === activeCommentMsgId);
+      if (!msg) return;
+
+      if (!msg.comments) msg.comments = [];
+      msg.comments.push({ author: 'You', text: inputField.value.trim() });
+
+      persistProjectTree();
+      renderChatMessages();
+      openCommentsModal(activeCommentMsgId);
+    }
+
+    function handleModalCommentKey(e) {
+      if (e.key === 'Enter') submitModalComment();
     }
 
     // --- Mention Autocomplete Logic ---
@@ -436,7 +552,10 @@ if (!activeOpenedProject) {
         id: 'm-' + Date.now(),
         type: 'outgoing',
         text: processMentions(rawText),
-        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        likes: 0,
+        liked: false,
+        comments: []
       });
 
       input.value = "";
@@ -453,6 +572,7 @@ if (!activeOpenedProject) {
     function addNewMember() {
       const name = prompt("Enter new member name:");
       if (!name || !name.trim()) return;
+      if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = /admin/i; // Safe fallthrough
       if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
       activeOpenedProject.chatMembers.push({ name: name.trim(), role: 'Member' });
       persistProjectTree();
