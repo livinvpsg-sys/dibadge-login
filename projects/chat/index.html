@@ -144,6 +144,16 @@
 
     .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
     .chat-folder-header svg { width: 14px; height: 14px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
+
+    /* Chat Message Selection & Context Toolbar */
+    .msg-row.selected .msg-bubble { outline: 2px solid var(--paper-white); background-color: var(--border-color) !important; }
+    .msg-selection-checkbox { position: absolute; top: 10px; left: -28px; width: 18px; height: 18px; cursor: pointer; display: none; }
+    .msg-row.selection-mode .msg-selection-checkbox { display: block; }
+    .msg-context-floating-bar { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 24px; padding: 6px 16px; display: none; align-items: center; gap: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); z-index: 2500; }
+    .msg-context-btn { background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
+    .msg-context-btn:hover { background: var(--border-color); }
+    .msg-context-btn.danger { color: var(--error-red); }
+    
   </style>
 </head>
 <body>
@@ -167,6 +177,20 @@
       <!-- Left Pane: Main Chat Thread -->
       <div class="chat-main-pane">
         <div class="chat-messages-container" id="chatThreadContainer">
+          <!-- Floating Message Context Action Toolbar -->
+          <div class="msg-context-floating-bar" id="msgContextFloatingBar"></div>
+
+          <!-- Delete Permission Dialog Modal -->
+          <div class="delete-permission-modal" id="deletePermissionModal">
+            <div class="modal-card" style="max-width: 360px; text-align: center; background: var(--surface-color); padding: 24px; border-radius: 12px; border: 1px solid var(--border-color);">
+              <h3 style="margin-bottom: 12px; font-size: 1rem; color: var(--text-color);">Delete message?</h3>
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+                <button class="modal-btn btn-save" onclick="executeMessageDeletion('all')" style="background: var(--paper-white); color: var(--jet-black); padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete for everyone</button>
+                <button class="modal-btn" onclick="executeMessageDeletion('me')" style="background: var(--border-color); color: var(--text-color); padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Delete for me</button>
+                <button class="modal-btn btn-cancel" onclick="closeDeletePermissionModal()" style="background: transparent; color: var(--subtext-color); padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Cancel</button>
+              </div>
+            </div>
+          </div>
           <div class="chat-date-pill">Today</div>
         </div>
 
@@ -352,6 +376,9 @@
       }
     }
 
+  let selectedMessageIds = [];
+    let isMessageSelectionMode = false;
+
     function renderChatMessages() {
       const container = document.getElementById("chatThreadContainer");
       if (!container || !activeOpenedProject) return;
@@ -366,12 +393,20 @@
 
       activeOpenedProject.chatMessages.forEach(msg => {
         const msgRow = document.createElement("div");
-        msgRow.className = `msg-row ${msg.type}`;
+        msgRow.id = `msg-row-${msg.id}`;
+        let rowClasses = `msg-row ${msg.type}`;
         
+        const isSelected = selectedMessageIds.includes(msg.id);
+        if (isSelected) rowClasses += " selected";
+        if (isMessageSelectionMode) rowClasses += " selection-mode";
+        
+        msgRow.className = rowClasses;
+        msgRow.oncontextmenu = (e) => handleMessageContextMenu(e, msg.id);
+
         let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
         let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
 
-        // Show social action bar ONLY if the message was sent/tagged to a group
+        // Show social action bar ONLY if the message was sent to a group
         let socialBarHtml = '';
         if (msg.targetGroup && msg.targetGroup.trim() !== "") {
           socialBarHtml = `
@@ -389,6 +424,7 @@
         }
 
         msgRow.innerHTML = `
+          <input type="checkbox" class="msg-selection-checkbox" ${isSelected ? 'checked' : ''} onclick="toggleMessageSelection('${msg.id}', event)" />
           ${avatarHtml}
           <div class="msg-body">
             ${senderNameHtml}
@@ -404,69 +440,118 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    function handleLikeClick(event, msgId) {
-      event.stopPropagation();
-      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
-      if (!msg) return;
-
-      if (msg.liked) {
-        msg.liked = false;
-        msg.likes = Math.max(0, (msg.likes || 1) - 1);
-      } else {
-        msg.liked = true;
-        msg.likes = (msg.likes || 0) + 1;
+    function handleMessageContextMenu(e, msgId) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!selectedMessageIds.includes(msgId)) {
+        selectedMessageIds.push(msgId);
       }
-      persistProjectTree();
+      isMessageSelectionMode = true;
       renderChatMessages();
+      updateMessageContextFloatingBar();
     }
 
-    function openCommentsModal(msgId) {
-      activeCommentMsgId = msgId;
-      const overlay = document.getElementById("commentsModalOverlay");
-      const listArea = document.getElementById("commentsModalList");
-      if (!overlay || !listArea || !activeOpenedProject) return;
+    function toggleMessageSelection(msgId, e) {
+      if (e) e.stopPropagation();
+      const idx = selectedMessageIds.indexOf(msgId);
+      if (idx > -1) {
+        selectedMessageIds.splice(idx, 1);
+      } else {
+        selectedMessageIds.push(msgId);
+      }
+      if (selectedMessageIds.length === 0) {
+        isMessageSelectionMode = false;
+      }
+      renderChatMessages();
+      updateMessageContextFloatingBar();
+    }
 
-      listArea.innerHTML = "";
-      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === msgId);
-      if (msg && msg.comments && msg.comments.length > 0) {
-        msg.comments.forEach(c => {
-          listArea.innerHTML += `
-            <div class="comment-thread-item">
-              <span class="comment-author-name">${c.author}</span>
-              <span>${c.text}</span>
-            </div>
-          `;
+    function updateMessageContextFloatingBar() {
+      const bar = document.getElementById("msgContextFloatingBar");
+      if (!bar || selectedMessageIds.length === 0) {
+        if (bar) bar.style.display = "none";
+        return;
+      }
+
+      bar.style.display = "flex";
+      bar.innerHTML = "";
+
+      const messages = activeOpenedProject.chatMessages || [];
+      const selectedMsgs = messages.filter(m => selectedMessageIds.includes(m.id));
+      const isMulti = selectedMsgs.length > 1;
+      const firstMsg = selectedMsgs[0];
+      const isGroupMessage = firstMsg && firstMsg.targetGroup && firstMsg.targetGroup.trim() !== "";
+
+      if (isMulti || isGroupMessage) {
+        bar.innerHTML = `
+          <button class="msg-context-btn danger" onclick="promptDeleteMessages()">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete ${isMulti ? '(' + selectedMessageIds.length + ')' : ''}
+          </button>
+          <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
+        `;
+      } else {
+        bar.innerHTML = `
+          <button class="msg-context-btn" onclick="actionEditMessage()">Edit</button>
+          <button class="msg-context-btn" onclick="actionCopyMessage()">Copy</button>
+          <button class="msg-context-btn danger" onclick="promptDeleteMessages()">Delete</button>
+          <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
+        `;
+      }
+    }
+
+    function clearMessageSelection() {
+      selectedMessageIds = [];
+      isMessageSelectionMode = false;
+      renderChatMessages();
+      updateMessageContextFloatingBar();
+    }
+
+    function actionEditMessage() {
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
+      if (!msg) return;
+      const newText = prompt("Edit message:", msg.text);
+      if (newText !== null) {
+        msg.text = newText.trim();
+        persistProjectTree();
+        renderChatMessages();
+      }
+      clearMessageSelection();
+    }
+
+    function actionCopyMessage() {
+      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === selectedMessageIds[0]);
+      if (!msg || !msg.text) return;
+      navigator.clipboard.writeText(msg.text).then(() => {
+        alert("Message copied to clipboard!");
+      });
+      clearMessageSelection();
+    }
+
+    function promptDeleteMessages() {
+      document.getElementById("deletePermissionModal").style.display = "flex";
+    }
+
+    function closeDeletePermissionModal() {
+      document.getElementById("deletePermissionModal").style.display = "none";
+    }
+
+    function executeMessageDeletion(scope) {
+      closeDeletePermissionModal();
+      if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
+
+      if (scope === 'all') {
+        activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.includes(m.id));
+      } else if (scope === 'me') {
+        activeOpenedProject.chatMessages.forEach(m => {
+          if (selectedMessageIds.includes(m.id)) {
+            m.text = "[Message deleted for you]";
+          }
         });
-      } else {
-        listArea.innerHTML = `<div style="text-align:center; color:var(--subtext-color); padding:20px;">No comments yet.</div>`;
       }
-
-      overlay.style.display = "flex";
-      const inputField = document.getElementById("commentsModalInput");
-      if (inputField) {
-        inputField.value = "";
-        inputField.focus();
-      }
-    }
-
-    function closeCommentsModal() {
-      document.getElementById("commentsModalOverlay").style.display = "none";
-      activeCommentMsgId = null;
-    }
-
-    function submitModalComment() {
-      const inputField = document.getElementById("commentsModalInput");
-      if (!inputField || !inputField.value.trim() || !activeCommentMsgId || !activeOpenedProject) return;
-
-      const msg = (activeOpenedProject.chatMessages || []).find(m => m.id === activeCommentMsgId);
-      if (!msg) return;
-
-      if (!msg.comments) msg.comments = [];
-      msg.comments.push({ author: 'You', text: inputField.value.trim() });
-
       persistProjectTree();
+      clearMessageSelection();
       renderChatMessages();
-      openCommentsModal(activeCommentMsgId);
     }
 
     function handleModalCommentKey(e) {
