@@ -54,143 +54,19 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* Header Line */
+    /* Header Bar */
     .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
     .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: background 0.15s; }
     .header-back-icon:hover { background: var(--surface-color); color: var(--paper-white); }
+    .header-breadcrumb-title { font-size: 1.05rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 8px; }
 
-    /* ------------ CHAT WORKSPACE & SPLIT PANE ------------ */
+    /* Workspace Layout */
     .chat-view-workspace { display: flex; flex: 1; height: calc(100vh - 64px); background: var(--bg-color); position: relative; overflow: hidden; }
-    .chat-split-container { display: flex; width: 100%; height: 100%; gap: 12px; background: var(--bg-color); padding: 10px; }
+    .chat-split-container { display: flex; width: 100%; height: 100%; gap: 12px; background: var(--bg-color); padding: 12px; }
 
-    /* Left side: Main Chat Area */
+    /* Left side: Main Chat Window */
     .chat-main-pane { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
-    .chat-messages-container { 
-      flex: 1; 
-      overflow-y: auto; 
-      padding: 20px 24px; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 12px; 
-    }
-
-    /* Floating Scroll Down Arrow Button */
-    .chat-scroll-bottom-btn {
-      position: absolute;
-      bottom: 75px;
-      right: 24px;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: var(--paper-white);
-      border: none;
-      color: var(--jet-black);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      z-index: 20;
-      transition: transform 0.15s, opacity 0.15s;
-    }
-    .chat-scroll-bottom-btn:hover { opacity: 0.9; transform: scale(1.05); }
-    .chat-scroll-bottom-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* Lightbox Modal for Media Viewing */
-    .lightbox-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(5px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-      cursor: pointer;
-    }
-    .lightbox-content-box {
-      position: relative;
-      max-width: 90vw;
-      max-height: 90vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .lightbox-content-box img {
-      max-width: 90vw;
-      max-height: 90vh;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .lightbox-close-btn {
-      position: absolute;
-      top: -40px;
-      right: 0;
-      background: none;
-      border: none;
-      color: #ffffff;
-      font-size: 2rem;
-      cursor: pointer;
-      font-weight: 300;
-    }
-
-    /* Pending Attachment Preview Bar Above Input */
-    .chat-pending-preview-bar {
-      display: none;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--bg-color);
-      border-top: 1px solid var(--border-color);
-      overflow-x: auto;
-      align-items: center;
-      max-height: 110px;
-      flex-shrink: 0;
-    }
-    .pending-thumb-item {
-      position: relative;
-      width: 70px;
-      height: 70px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-      flex-shrink: 0;
-      background: var(--surface-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .pending-thumb-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .pending-thumb-item .file-name-label {
-      font-size: 0.65rem;
-      padding: 4px;
-      text-align: center;
-      word-break: break-all;
-      color: var(--text-color);
-    }
-    .pending-remove-btn {
-      position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 18px;
-      height: 18px;
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      font-size: 0.7rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
+    .chat-messages-container { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
 
     .chat-date-pill { align-self: center; background: var(--border-color); color: var(--subtext-color); font-size: 0.72rem; font-weight: 600; padding: 4px 14px; border-radius: 12px; margin: 8px 0; }
 
@@ -205,384 +81,187 @@
     .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
-
-    /* WhatsApp Style Image Bubble Overrides */
-    .msg-bubble.media-bubble { padding: 4px !important; overflow: hidden; display: inline-block; position: relative; }
-    .msg-media-img { width: 100%; max-height: 260px; object-fit: cover; border-radius: 10px; display: block; cursor: pointer; transition: transform 0.15s; }
-    .msg-media-img:hover { transform: scale(1.02); }
-    .msg-media-time-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.55); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 7px; border-radius: 10px; backdrop-filter: blur(2px); pointer-events: none; }
-
-    /* Chat Message Selection Styles */
-    .msg-row.selected .msg-bubble { outline: 2px solid var(--paper-white); background-color: var(--border-color) !important; }
-    .msg-selection-checkbox { position: absolute; top: 10px; left: -28px; width: 18px; height: 18px; cursor: pointer; display: none; }
-    .msg-row.selection-mode .msg-selection-checkbox { display: block; }
-
-    /* Floating Message Context Toolbar */
-    .msg-context-floating-bar { position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%); background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 24px; padding: 6px 16px; display: none; align-items: center; gap: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); z-index: 2500; }
-    .msg-context-btn { background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
-    .msg-context-btn:hover { background: var(--border-color); }
-    .msg-context-btn.danger { color: var(--error-red); }
-
-    /* Delete Permission Modal */
-    .delete-permission-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 5000; }
-
-    /* WhatsApp Style Quote Box Inside Message Bubble */
-    .replied-msg-preview {
-      background: rgba(0, 0, 0, 0.15);
-      border-left: 3px solid var(--paper-white);
-      padding: 4px 8px;
-      margin-bottom: 6px;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .msg-bubble.incoming .replied-msg-preview {
-      background: rgba(255, 255, 255, 0.08);
-      border-left-color: #00a884;
-    }
-    .replied-preview-sender {
-      font-weight: 700;
-      color: var(--chat-sender-name);
-      margin-bottom: 2px;
-    }
-    .replied-preview-text {
-      color: var(--subtext-color);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 240px;
-    }
-
-    /* Active Highlight Jump Animation */
-    @keyframes highlightFlash {
-      0% { transform: scale(1); background-color: var(--border-color); }
-      50% { transform: scale(1.02); background-color: rgba(255, 255, 255, 0.2); }
-      100% { transform: scale(1); background-color: transparent; }
-    }
-    .msg-row.highlight-jump .msg-bubble {
-      animation: highlightFlash 1.2s ease;
-    }
-
-    /* Active Reply Preview Bar Above Input Box */
-    .active-reply-preview-banner {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg-color);
-      border-left: 4px solid #00a884;
-      padding: 6px 12px;
-      margin-bottom: 4px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-    }
-      
-    /* WhatsApp Album Grid for Multiple Media */
-    .whatsapp-media-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; width: 240px; }
-    .whatsapp-media-group.single-item { grid-template-columns: 1fr; width: 200px; }
-    .whatsapp-media-item-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; border-radius: 6px; }
-    .whatsapp-media-item-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
-    .whatsapp-album-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0, 0, 0, 0.6); color: #ffffff; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; backdrop-filter: blur(2px); display: flex; align-items: center; gap: 4px; pointer-events: none; }
-
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 4px; }
-     
-    /* LinkedIn-style reaction/comment bar below bubble */
-    .msg-social-bar { display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-left: 4px; font-size: 0.75rem; color: var(--subtext-color); font-weight: 600; }
-    .social-action-pill { display: flex; align-items: center; gap: 4px; background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s, color 0.15s; }
-    .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
-    .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* Comments Modal Popup Styling */
-    .comments-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
-    .comments-modal-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); color: var(--text-color); }
-    .comments-modal-header { padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 0.95rem; }
-    .comments-modal-close { background: none; border: none; font-size: 1.3rem; color: var(--subtext-color); cursor: pointer; }
-    .comments-list-area { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; max-height: 300px; }
-    .comment-thread-item { display: flex; flex-direction: column; gap: 2px; font-size: 0.85rem; background: var(--bg-color); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
-    .comment-author-name { font-weight: 700; font-size: 0.78rem; color: var(--chat-sender-name); }
-    .comments-input-area { padding: 12px 16px; border-top: 1px solid var(--border-color); background: var(--surface-color); display: flex; gap: 8px; align-items: center; }
-    .comments-input-field { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 20px; font-size: 0.85rem; outline: none; }
-    .comments-input-field::placeholder { color: var(--subtext-color); }
-    .comments-send-btn { background: var(--paper-white); color: var(--jet-black); border: none; padding: 6px 14px; border-radius: 16px; font-size: 0.80rem; font-weight: 600; cursor: pointer; }
-
-    /* Dimmed style for mentions inside message text */
-    .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.6; }
-
-    .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 10px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
-    .chat-input-row { display: flex; align-items: center; gap: 8px; position: relative; }
-    .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; }
+    /* Chat Input Bar */
+    .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
+    .chat-input-row { display: flex; align-items: center; gap: 10px; position: relative; }
+    .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 16px; border-radius: 20px; font-size: 0.9rem; outline: none; }
     .chat-input-box::placeholder { color: var(--subtext-color); }
-      
-    /* Mention / Group Autocomplete Dropdown */
-    .chat-mention-dropdown { position: absolute; bottom: 55px; left: 60px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; max-height: 180px; width: 220px; overflow-y: auto; z-index: 1500; }
-    .chat-mention-item { padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
-    .chat-mention-item:last-child { border-bottom: none; }
-    .chat-mention-item:hover { background: var(--border-color); }
-
+    
     .chat-action-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
     .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
 
     .chat-send-btn { background: transparent; border: none; color: var(--paper-white); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
     .chat-send-btn:hover { transform: scale(1.1); }
-    .chat-send-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: none; }
+    .chat-send-btn svg { width: 20px; height: 20px; fill: currentColor; stroke: none; }
 
-    .emoji-picker-panel { display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 12px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: max-content; margin-bottom: 4px; }
-    .emoji-item { font-size: 1.3rem; text-align: center; cursor: pointer; padding: 4px; border-radius: 6px; }
-    .emoji-item:hover { background: var(--bg-color); }
-
-    .attachment-popover { display: none; gap: 16px; padding: 10px 14px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: max-content; margin-bottom: 4px; }
-    .attach-option-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-color); cursor: pointer; font-weight: 500; }
-    .attach-icon-circle { width: 42px; height: 42px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; }
-    .attach-icon-circle svg { width: 20px; height: 20px; stroke: #ffffff; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* Right side: Chat Details Pane */
-    .chat-details-pane { width: 320px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; overflow-y: auto; }
-    .details-section { padding: 16px; border-bottom: 1px solid var(--border-color); }
-    .details-section-title { font-size: 0.85rem; font-weight: 700; color: var(--subtext-color); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    /* Right Side: Chat Details Pane */
+    .chat-details-pane { width: 300px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; display: flex; flex-direction: column; height: 100%; flex-shrink: 0; overflow-y: auto; }
+    .details-section { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+    .details-section-title { font-size: 0.75rem; font-weight: 700; color: var(--subtext-color); text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
      
-    .member-list { display: flex; flex-direction: column; gap: 8px; max-height: 160px; overflow-y: auto; }
-    .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; font-weight: 600; }
-    .member-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--paper-white); color: var(--jet-black); display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: 700; }
+    .member-list { display: flex; flex-direction: column; gap: 8px; }
+    .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .member-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--paper-white); color: var(--jet-black); display: flex; justify-content: center; align-items: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
      
-    .add-member-btn { background: var(--border-color); color: var(--text-color); border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.15s; }
-    .add-member-btn:hover { opacity: 0.8; }
+    .add-member-btn { background: transparent; color: var(--subtext-color); border: none; font-size: 0.72rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+    .add-member-btn:hover { color: var(--text-color); }
 
-    .chat-form-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; font-weight: 600; padding: 6px 4px; background: transparent; border: none; border-radius: 0; margin-bottom: 4px; color: var(--text-color); }
-    .chat-form-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-    
-    .chat-remove-item-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; padding: 2px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: color 0.15s, background 0.15s; }
-    .chat-remove-item-btn:hover { color: var(--error-red); background: var(--border-color); }
-    .chat-remove-item-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+    .chat-form-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; font-weight: 600; padding: 4px 0; color: var(--text-color); }
+    .chat-remove-item-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; font-size: 1.1rem; }
+    .chat-remove-item-btn:hover { color: var(--error-red); }
 
-    .chat-folder-accordion-wrap { border: none; border-radius: 0; background: transparent; margin-bottom: 4px; overflow: hidden; }
-    .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; cursor: pointer; font-size: 0.88rem; font-weight: 600; transition: color 0.15s; color: var(--text-color); }
-    .chat-folder-header:hover { color: var(--paper-white); }
-    .chat-folder-files-box { display: none; padding: 4px 4px 8px 24px; flex-direction: column; gap: 6px; border-top: none; background: transparent; }
-    .chat-file-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.83rem; color: var(--subtext-color); }
-    .chat-file-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
-
-    .chat-add-files-btn { background: var(--border-color); color: var(--text-color); border: none; width: 100%; padding: 6px; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 4px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; transition: opacity 0.15s; }
-    .chat-add-files-btn:hover { opacity: 0.8; }
+    .chat-folder-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-color); }
+    .chat-folder-header svg { width: 14px; height: 14px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
   </style>
 </head>
-<body onclick="handleOutsideClicks(event)">
+<body>
 
   <!-- Header -->
   <header class="dashboard-header">
-    <button class="header-back-icon" onclick="goBackToProject()" title="Back to Project">
-      <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    </button>
-    <h1 id="chatHeaderTitle" style="font-size: 1.15rem; font-weight: 600;">Project Chat Workspace</h1>
-    <div style="width: 24px;"></div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="header-back-icon" onclick="goBackToProject()" title="Back to Projects">
+        <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="header-breadcrumb-title" id="headerBreadcrumb">
+        Projects <span style="color: var(--subtext-color); font-weight: 400;">></span> <span id="headerProjectName">Amber Holdings (PRJ-2026-001)</span>
+      </div>
+    </div>
   </header>
 
-  <!-- FULL CHAT WORKSPACE -->
-  <section class="chat-view-workspace" id="panelChatWorkspace">
+  <!-- Workspace Section -->
+  <section class="chat-view-workspace">
     <div class="chat-split-container">
       
-      <!-- Left Pane: Chat Main Window -->
+      <!-- Left Pane: Main Chat Thread -->
       <div class="chat-main-pane">
-        <div class="chat-messages-container" id="chatThreadContainer" onscroll="handleChatScroll()">
+        <div class="chat-messages-container" id="chatThreadContainer">
           <div class="chat-date-pill">Today</div>
         </div>
 
-        <!-- Floating Scroll to Bottom Arrow Button -->
-        <button class="chat-scroll-bottom-btn" id="chatScrollDownBtn" onclick="scrollToLatestMessage()" title="Scroll to latest message">
-          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </button>
-
-        <!-- Comments Modal Popup -->
-        <div class="comments-modal-overlay" id="commentsModalOverlay" onclick="closeCommentsModal()">
-          <div class="comments-modal-card" onclick="event.stopPropagation()">
-            <div class="comments-modal-header">
-              <span>Comments</span>
-              <button class="comments-modal-close" onclick="closeCommentsModal()">&times;</button>
-            </div>
-            <div class="comments-list-area" id="commentsModalList"></div>
-            <div class="comments-input-area">
-              <input type="text" id="commentsModalInput" class="comments-input-field" placeholder="Write a comment..." onkeyup="handleModalCommentKey(event)" />
-              <button class="comments-send-btn" onclick="submitModalComment()">Send</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Floating Message Context Action Toolbar -->
-        <div class="msg-context-floating-bar" id="msgContextFloatingBar"></div>
-
-        <!-- Delete Permission Dialog Modal -->
-        <div class="delete-permission-modal" id="deletePermissionModal">
-          <div class="modal-card" style="max-width: 360px; text-align: center;">
-            <h3 style="margin-bottom: 12px; font-size: 1rem;">Delete message?</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
-              <button class="modal-btn btn-save" onclick="executeMessageDeletion('all')">Delete for everyone</button>
-              <button class="modal-btn" onclick="executeMessageDeletion('me')" style="background: var(--border-color); color: var(--text-color);">Delete for me</button>
-              <button class="modal-btn btn-cancel" onclick="closeDeletePermissionModal()">Cancel</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Active Reply Preview Bar Inside Input Bar -->
-        <div class="active-reply-preview-banner" id="activeReplyPreviewBanner">
-          <div style="display:flex; flex-direction:column; overflow:hidden;">
-            <span id="replyBannerSender" style="font-weight:700; font-size:0.75rem; color:var(--chat-sender-name);"></span>
-            <span id="replyBannerText" style="color:var(--subtext-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:260px;"></span>
-          </div>
-          <button onclick="cancelActiveReply()" style="background:none; border:none; color:var(--subtext-color); cursor:pointer; font-size:1.1rem; padding:0 4px;">&times;</button>
-        </div>
-        
-        <!-- Lightbox Media Preview Overlay -->
-        <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
-          <div class="lightbox-content-box" onclick="event.stopPropagation()">
-            <button class="lightbox-close-btn" onclick="closeLightbox()">&times;</button>
-            <img id="lightboxImage" src="" alt="Media Preview" />
-          </div>
-        </div>
-
-        <!-- Standard Vector Attachment Popover -->
-        <div class="attachment-popover" id="chatAttachmentPopover">
-          <div class="attach-option-btn" onclick="triggerFileInput('image/*')">
-            <div class="attach-icon-circle" style="background:#e91e63;">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-            </div>
-            <span>Image</span>
-          </div>
-          <div class="attach-option-btn" onclick="triggerFileInput('video/*')">
-            <div class="attach-icon-circle" style="background:#9c27b0;">
-              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-            </div>
-            <span>Video</span>
-          </div>
-          <div class="attach-option-btn" onclick="triggerFileInput('*/*')">
-            <div class="attach-icon-circle" style="background:#00a884;">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-            </div>
-            <span>Document</span>
-          </div>
-        </div>
-
-        <!-- Compact Natural Emoji Picker -->
-        <div class="emoji-picker-panel" id="chatEmojiPanel">
-          <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-          <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
-          <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
-          <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
-          <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-          <span class="emoji-item" onclick="insertEmoji('👏')">👏</span>
-          <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
-          <span class="emoji-item" onclick="insertEmoji('📋')">📋</span>
-          <span class="emoji-item" onclick="insertEmoji('📁')">📁</span>
-          <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
-          <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
-          <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-        </div>
-
-        <!-- Chat Bottom Input Toolbar -->
+        <!-- Chat Input Bar -->
         <div class="chat-bottom-bar">
-          <div class="chat-mention-dropdown" id="chatMentionDropdown"></div>
-          <div class="chat-pending-preview-bar" id="chatPendingPreviewBar"></div>
-
-          <div class="chat-input-row" id="chatInputBarContainer">
-            <button class="chat-action-btn" id="emojiToggleBtn" onclick="toggleEmojiPicker(event)" title="Emoji">
+          <div class="chat-input-row">
+            <button class="chat-action-btn" title="Emoji">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
             </button>
-            <button class="chat-action-btn" id="attachToggleBtn" onclick="toggleAttachmentPopover(event)" title="Attach File">
+            <button class="chat-action-btn" title="Attach File">
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
-            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
-            <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send Message">
+            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message here..." onkeyup="if(event.key==='Enter') sendChatMessage()" />
+            <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
               <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
             </button>
           </div>
         </div>
-
-        <input type="file" id="chatHiddenFileInput" style="display:none;" multiple onchange="handleFilesStaged(event)" />
       </div>
 
-      <!-- Right Side: Chat Details Pane -->
+      <!-- Right Side: Project Management Sidebar -->
       <div class="chat-details-pane">
+        
+        <!-- Group Members Section -->
         <div class="details-section">
           <div class="details-section-title">
             <span>Group Members</span>
             <button class="add-member-btn" onclick="addNewMember()">+ Add</button>
           </div>
-          <div class="member-list" id="chatMemberList"></div>
+          <div class="member-list" id="chatMemberList">
+            <div class="member-item">
+              <div class="member-avatar">J</div>
+              <span>John (Admin)</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#8b5cf6;">M</div>
+              <span>Mary (Member)</span>
+            </div>
+          </div>
         </div>
 
+        <!-- Groups Section -->
         <div class="details-section">
           <div class="details-section-title">
             <span>Groups</span>
-            <button class="add-member-btn" onclick="addNewChatGroup()" title="Create New Group">+ Add</button>
+            <button class="add-member-btn" onclick="addNewGroup()">+ Add</button>
           </div>
-          <div class="member-list" id="chatGroupsList"></div>
+          <div class="member-list" id="chatGroupsList">
+            <div class="member-item">
+              <div class="member-avatar" style="background:#d97706;">S</div>
+              <span>Site Engineers</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#0284c7;">M</div>
+              <span>Management Team</span>
+            </div>
+            <div class="member-item">
+              <div class="member-avatar" style="background:#64748b;">Q</div>
+              <span>Quality Assurance</span>
+            </div>
+          </div>
         </div>
 
+        <!-- Forms Section -->
         <div class="details-section">
           <div class="details-section-title">
             <span>Forms</span>
-            <button class="add-member-btn" onclick="openChatGlobalFormsSelectorModal()" title="Import Form">+ Add</button>
+            <button class="add-member-btn">+ Add</button>
           </div>
-          <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:4px;"></div>
+          <div id="chatDetailsFormsList" style="display:flex; flex-direction:column; gap:6px;">
+            <div class="chat-form-item">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#0284c7; width:24px; height:24px; font-size:0.65rem;">T</div>
+                <span style="font-size:0.82rem;">Tower B Foundation Log Sheet</span>
+              </div>
+              <button class="chat-remove-item-btn">&times;</button>
+            </div>
+          </div>
         </div>
 
-        <div class="details-section">
+        <!-- Folders Section -->
+        <div class="details-section" style="border-bottom: none;">
           <div class="details-section-title">
             <span>Folders</span>
-            <button class="add-member-btn" onclick="createNewChatSubFolder()" title="Create New Folder">+ Add</button>
+            <button class="add-member-btn">+ Add</button>
           </div>
-          <div id="chatDetailsFoldersContainer"></div>
+          <div id="chatDetailsFoldersContainer" style="display:flex; flex-direction:column; gap:4px;">
+            <div class="chat-folder-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">S</div>
+                <span>Site Photos & diCam</span>
+              </div>
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="chat-folder-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">S</div>
+                <span>Safety & Compliance Logs</span>
+              </div>
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="chat-folder-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">R</div>
+                <span>Reports & Worksheets</span>
+              </div>
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="chat-folder-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">D</div>
+                <span>Drawings & Blueprints</span>
+              </div>
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
         </div>
+
       </div>
 
     </div>
   </section>
 
-  <!-- Modals -->
-  <div class="modal-overlay" id="chatGlobalFormsSelectorModal">
-    <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
-      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); text-align: left; margin-bottom: 20px;">Forms</h3>
-      <div id="chatGlobalFormsSelectorContainer" style="min-height: 240px; max-height: 340px; overflow-y: auto; margin-bottom: 20px;"></div>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button id="chatGlobalImportBtn" class="modal-btn" onclick="confirmImportSelectedGlobalForm()" disabled style="background: var(--border-color); color: var(--subtext-color); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px; cursor: not-allowed;">Import</button>
-        <button class="modal-btn" onclick="closeChatGlobalFormsSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="chatFoldersSelectorModal">
-    <div class="modal-card" style="max-width: 700px; width: 95%; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
-      <h3 id="chatFoldersModalTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); text-align: left; margin-bottom: 2px;">Amber Holdings</h3>
-      <div id="chatFoldersSelectorContainer" style="min-height: 240px; max-height: 360px; overflow-y: auto; margin-bottom: 20px;"></div>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button id="chatFolderImportBtn" class="modal-btn" onclick="confirmImportSelectedFile()" disabled style="background: var(--border-color); color: var(--subtext-color); border: none; max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px; cursor: not-allowed;">Import</button>
-        <button class="modal-btn" onclick="closeChatFoldersSelectorModal()" style="background: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color); max-width: 200px; padding: 10px; font-weight: 600; border-radius: 6px;">Close</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    let selectedMessageIds = [];
-    let isMessageSelectionMode = false;
-    let activeReplyTargetMsgId = null;
-    let activeCommentMsgId = null;
-    let pendingStagedFiles = [];
-
-    let chatGlobalFormsViewMode = 'grid';
-    let chatFoldersViewMode = 'grid';
-    let chatFolderModalStack = [];
-    let targetFolderIdxForChatUpload = 0;
-    let selectedFormForImport = null;
-    let selectedFileForImport = null;
-
-    let globalFormsList = [
-      { id: 'gf-1', title: 'Organization Master Safety Audit Sheet', category: 'Spreadsheet Form', date: '2026-08-01' },
-      { id: 'gf-2', title: 'Standard Quality Assurance Sheet', category: 'Spreadsheet Form', date: '2026-08-02' }
-    ];
-
-    let chatDetailsAssignedForms = [
-      { id: 'cdf-1', title: 'Tower B Foundation Log Sheet' }
-    ];
-
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
 
@@ -596,8 +275,7 @@
     let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
 
     if (activeOpenedProject) {
-      document.getElementById("chatHeaderTitle").innerText = `${activeOpenedProject.client || 'Project'} — Chat Workspace`;
-      renderChatDetailsSidebar();
+      document.getElementById("headerProjectName").innerText = `${activeOpenedProject.client || 'Amber Holdings'} (${activeOpenedProject.projectNo || 'PRJ-2026-001'})`;
       renderChatMessages();
     }
 
@@ -615,97 +293,47 @@
       window.location.href = `/projects?id=${projectId}`;
     }
 
-    // --- Sidebar Render Loops & Handlers ---
-    function renderChatDetailsSidebar() {
-      if (!activeOpenedProject) return;
+    function renderChatMessages() {
+      const container = document.getElementById("chatThreadContainer");
+      if (!container || !activeOpenedProject) return;
+      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
 
-      const memberList = document.getElementById("chatMemberList");
-      if (memberList) {
-        memberList.innerHTML = "";
-        if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
-        activeOpenedProject.chatMembers.forEach(m => {
-          const item = document.createElement("div");
-          item.className = "member-item";
-          item.innerHTML = `<div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div><span>${m.name}${m.role ? ' ('+m.role+')' : ''}</span>`;
-          memberList.appendChild(item);
-        });
-      }
+      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
 
-      const groupList = document.getElementById("chatGroupsList");
-      if (groupList) {
-        groupList.innerHTML = "";
-        if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}];
-        activeOpenedProject.chatGroups.forEach(g => {
-          const item = document.createElement("div");
-          item.className = "member-item";
-          item.innerHTML = `<div class="member-avatar" style="background:#00a884;">${g.name.charAt(0).toUpperCase()}</div><span>${g.name}</span>`;
-          groupList.appendChild(item);
-        });
-      }
-
-      const formsListEl = document.getElementById("chatDetailsFormsList");
-      if (formsListEl) {
-        formsListEl.innerHTML = "";
-        chatDetailsAssignedForms.forEach((form, idx) => {
-          const row = document.createElement("div");
-          row.className = "chat-form-item";
-          row.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px;">
-              <div class="member-avatar" style="background:#0284c7; width:28px; height:28px; font-size:0.75rem;">${form.title.charAt(0).toUpperCase()}</div>
-              <span>${form.title}</span>
+      activeOpenedProject.chatMessages.forEach(msg => {
+        const msgRow = document.createElement("div");
+        msgRow.className = `msg-row ${msg.type}`;
+        msgRow.innerHTML = `
+          ${msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : ''}
+          <div class="msg-body">
+            ${msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Member'}</span>` : ''}
+            <div class="msg-bubble ${msg.type}">
+              ${msg.text}
+              <div class="msg-meta-row"><span>${msg.time}</span></div>
             </div>
-            <button class="chat-remove-item-btn" onclick="removeChatAssignedForm(${idx})">&times;</button>
-          `;
-          formsListEl.appendChild(row);
-        });
-      }
-
-      const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
-      if (foldersContainer && activeOpenedProject.children) {
-        foldersContainer.innerHTML = "";
-        activeOpenedProject.children.forEach((folder, fIdx) => {
-          const wrap = document.createElement("div");
-          wrap.className = "chat-folder-accordion-wrap";
-          if (!folder.files) folder.files = [];
-          
-          let filesHtml = folder.files.length === 0 ? `<div style="font-size:0.78rem; color:var(--subtext-color);">No files inside.</div>` : '';
-          folder.files.forEach((file, fileIdx) => {
-            const fileName = typeof file === 'string' ? file : (file.name || 'file');
-            filesHtml += `<div class="chat-file-row"><span>📄 ${fileName}</span><button class="chat-remove-item-btn" onclick="confirmRemoveFile(${fIdx}, ${fileIdx})">&times;</button></div>`;
-          });
-
-          wrap.innerHTML = `
-            <div class="chat-folder-header" onclick="toggleChatFolderAccordion(this)">
-              <div style="display:flex; align-items:center; gap:10px;">
-                <div class="member-avatar" style="background:#d97706; width:28px; height:28px; font-size:0.75rem;">${folder.name.charAt(0).toUpperCase()}</div>
-                <span>${folder.name}</span>
-              </div>
-            </div>
-            <div class="chat-folder-files-box" style="display:none; flex-direction:column; gap:6px;">
-              ${filesHtml}
-              <button class="chat-add-files-btn" onclick="openChatFoldersSelectorModalForFolder(${fIdx})">+ Add</button>
-            </div>
-          `;
-          foldersContainer.appendChild(wrap);
-        });
-      }
+          </div>
+        `;
+        container.appendChild(msgRow);
+      });
+      container.scrollTop = container.scrollHeight;
     }
 
-    function toggleChatFolderAccordion(headerElem) {
-      const box = headerElem.nextElementSibling;
-      if (box) box.style.display = box.style.display === "flex" ? "none" : "flex";
-    }
+    function sendChatMessage() {
+      const input = document.getElementById("chatMsgInput");
+      const text = input ? input.value.trim() : "";
+      if (!text || !activeOpenedProject) return;
 
-    function removeChatAssignedForm(idx) {
-      chatDetailsAssignedForms.splice(idx, 1);
-      renderChatDetailsSidebar();
-    }
+      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+      activeOpenedProject.chatMessages.push({
+        id: 'm-' + Date.now(),
+        type: 'outgoing',
+        text: text,
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      });
 
-    function confirmRemoveFile(folderIdx, fileIdx) {
-      if (!activeOpenedProject || !activeOpenedProject.children) return;
-      activeOpenedProject.children[folderIdx].files.splice(fileIdx, 1);
+      input.value = "";
       persistProjectTree();
-      renderChatDetailsSidebar();
+      renderChatMessages();
     }
 
     function addNewMember() {
@@ -714,244 +342,15 @@
       if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
       activeOpenedProject.chatMembers.push({ name: name.trim(), role: 'Member' });
       persistProjectTree();
-      renderChatDetailsSidebar();
     }
 
-    function addNewChatGroup() {
+    function addNewGroup() {
       const name = prompt("Enter new group name:");
       if (!name || !name.trim()) return;
       if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [];
       activeOpenedProject.chatGroups.push({ name: name.trim() });
       persistProjectTree();
-      renderChatDetailsSidebar();
     }
-
-    function createNewChatSubFolder() {
-      const name = prompt("Enter folder name:");
-      if (!name || !name.trim()) return;
-      if (!activeOpenedProject.children) activeOpenedProject.children = [];
-      activeOpenedProject.children.push({ id: 'f-' + Date.now(), name: name.trim(), items: '0 Files', children: [], files: [] });
-      persistProjectTree();
-      renderChatDetailsSidebar();
-    }
-
-    // --- Message Render Loops & Handlers ---
-    function renderChatMessages() {
-      const container = document.getElementById("chatThreadContainer");
-      if (!container || !activeOpenedProject) return;
-      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
-
-      if (!activeOpenedProject.chatMessages) {
-        activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed.', time: '10:04 am', likes: 2, comments: [] }
-        ];
-      }
-
-      activeOpenedProject.chatMessages.forEach(msg => {
-        const msgRow = document.createElement("div");
-        msgRow.id = `msg-row-${msg.id}`;
-        let rowClasses = `msg-row ${msg.type}`;
-        if (selectedMessageIds.includes(msg.id)) rowClasses += " selected";
-        if (isMessageSelectionMode) rowClasses += " selection-mode";
-        
-        msgRow.className = rowClasses;
-        msgRow.oncontextmenu = (e) => handleMessageContextMenu(e, msg.id);
-
-        let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
-        let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
-
-        let contentHtml = '';
-        if (msg.imageUrls && msg.imageUrls.length > 0) {
-          contentHtml += `<div class="msg-bubble outgoing media-bubble"><img src="${msg.imageUrls[0]}" class="msg-media-img" onclick="openLightbox('${msg.imageUrls[0]}')" /></div>`;
-        }
-        if (msg.text) {
-          contentHtml += `<div class="msg-bubble ${msg.type}">${msg.text}<div class="msg-meta-row"><span>${msg.time}</span></div></div>`;
-        }
-
-        msgRow.innerHTML = `
-          <input type="checkbox" class="msg-selection-checkbox" ${selectedMessageIds.includes(msg.id) ? 'checked' : ''} onclick="toggleMessageSelection('${msg.id}', event)" />
-          ${avatarHtml}
-          <div class="msg-body">${senderNameHtml}${contentHtml}</div>
-        `;
-        container.appendChild(msgRow);
-      });
-      scrollToLatestMessage();
-    }
-
-    function sendChatMessage() {
-      const input = document.getElementById("chatMsgInput");
-      let rawText = input ? input.value.trim() : "";
-      if (!rawText && pendingStagedFiles.length === 0) return;
-      if (!activeOpenedProject) return;
-
-      const currentTimeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
-
-      let imageUrls = pendingStagedFiles.filter(f => f.type && f.type.startsWith("image/")).map(file => URL.createObjectURL(file));
-
-      activeOpenedProject.chatMessages.push({
-        id: 'm-' + Date.now(),
-        type: 'outgoing',
-        text: rawText,
-        imageUrls: imageUrls,
-        time: currentTimeStr,
-        likes: 0,
-        comments: []
-      });
-
-      pendingStagedFiles = [];
-      renderPendingPreviews();
-      if (input) input.value = "";
-      persistProjectTree();
-      renderChatMessages();
-      scrollToLatestMessage();
-    }
-
-    function handleChatInputKey(e) {
-      if (e.key === 'Enter') sendChatMessage();
-    }
-
-    function handleMessageContextMenu(e, msgId) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!selectedMessageIds.includes(msgId)) selectedMessageIds.push(msgId);
-      isMessageSelectionMode = true;
-      renderChatMessages();
-      updateMessageContextFloatingBar();
-    }
-
-    function toggleMessageSelection(msgId, e) {
-      if (e) e.stopPropagation();
-      const idx = selectedMessageIds.indexOf(msgId);
-      if (idx > -1) selectedMessageIds.splice(idx, 1);
-      else selectedMessageIds.push(msgId);
-      if (selectedMessageIds.length === 0) isMessageSelectionMode = false;
-      renderChatMessages();
-      updateMessageContextFloatingBar();
-    }
-
-    function updateMessageContextFloatingBar() {
-      const bar = document.getElementById("msgContextFloatingBar");
-      if (!bar || selectedMessageIds.length === 0) {
-        if (bar) bar.style.display = "none";
-        return;
-      }
-      bar.style.display = "flex";
-      bar.innerHTML = `
-        <button class="msg-context-btn danger" onclick="promptDeleteMessages()">Delete</button>
-        <button class="msg-context-btn" onclick="clearMessageSelection()">Cancel</button>
-      `;
-    }
-
-    function clearMessageSelection() {
-      selectedMessageIds = [];
-      isMessageSelectionMode = false;
-      renderChatMessages();
-      updateMessageContextFloatingBar();
-    }
-
-    function promptDeleteMessages() {
-      document.getElementById("deletePermissionModal").style.display = "flex";
-    }
-
-    function closeDeletePermissionModal() {
-      document.getElementById("deletePermissionModal").style.display = "none";
-    }
-
-    function executeMessageDeletion(scope) {
-      closeDeletePermissionModal();
-      if (!activeOpenedProject || !activeOpenedProject.chatMessages) return;
-      if (scope === 'all') {
-        activeOpenedProject.chatMessages = activeOpenedProject.chatMessages.filter(m => !selectedMessageIds.includes(m.id));
-      }
-      persistProjectTree();
-      clearMessageSelection();
-      renderChatMessages();
-    }
-
-    // --- UI Utilities & Lightbox ---
-    function toggleEmojiPicker(e) {
-      if (e) e.stopPropagation();
-      const panel = document.getElementById("chatEmojiPanel");
-      if (panel) panel.style.display = panel.style.display === "grid" ? "none" : "grid";
-    }
-
-    function toggleAttachmentPopover(e) {
-      if (e) e.stopPropagation();
-      const popover = document.getElementById("chatAttachmentPopover");
-      if (popover) popover.style.display = popover.style.display === "flex" ? "none" : "flex";
-    }
-
-    function handleOutsideClicks(event) {
-      const emojiPanel = document.getElementById("chatEmojiPanel");
-      const attachPopover = document.getElementById("chatAttachmentPopover");
-      if (emojiPanel && !emojiPanel.contains(event.target)) emojiPanel.style.display = "none";
-      if (attachPopover && !attachPopover.contains(event.target)) attachPopover.style.display = "none";
-    }
-
-    function insertEmoji(emoji) {
-      const input = document.getElementById("chatMsgInput");
-      if (input) input.value += emoji;
-    }
-
-    function triggerFileInput(acceptType) {
-      const fileInput = document.getElementById("chatHiddenFileInput");
-      if (fileInput) {
-        fileInput.accept = acceptType;
-        fileInput.click();
-      }
-    }
-
-    function handleFilesStaged(e) {
-      const files = e.target.files;
-      if (!files) return;
-      for (let i = 0; i < files.length; i++) pendingStagedFiles.push(files[i]);
-      renderPendingPreviews();
-    }
-
-    function renderPendingPreviews() {
-      const bar = document.getElementById("chatPendingPreviewBar");
-      if (!bar) return;
-      bar.innerHTML = "";
-      bar.style.display = pendingStagedFiles.length > 0 ? "flex" : "none";
-      pendingStagedFiles.forEach((file, index) => {
-        const item = document.createElement("div");
-        item.className = "pending-thumb-item";
-        item.innerHTML = `<div class="file-name-label">${file.name}</div><button class="pending-remove-btn" onclick="pendingStagedFiles.splice(${index},1);renderPendingPreviews();">&times;</button>`;
-        bar.appendChild(item);
-      });
-    }
-
-    function openLightbox(imgSrc) {
-      const lightbox = document.getElementById("lightboxOverlay");
-      const lbImg = document.getElementById("lightboxImage");
-      if (lightbox && lbImg) {
-        lbImg.src = imgSrc;
-        lightbox.style.display = "flex";
-      }
-    }
-
-    function closeLightbox() {
-      document.getElementById("lightboxOverlay").style.display = "none";
-    }
-
-    function handleChatScroll() {
-      const container = document.getElementById("chatThreadContainer");
-      const scrollBtn = document.getElementById("chatScrollDownBtn");
-      if (!container || !scrollBtn) return;
-      scrollBtn.style.display = (container.scrollHeight - container.scrollTop - container.clientHeight > 100) ? "flex" : "none";
-    }
-
-    function scrollToLatestMessage() {
-      const container = document.getElementById("chatThreadContainer");
-      if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-    }
-
-    // Modal dummy bindings to avoid errors
-    function openChatGlobalFormsSelectorModal() { document.getElementById("chatGlobalFormsSelectorModal").style.display = "flex"; }
-    function closeChatGlobalFormsSelectorModal() { document.getElementById("chatGlobalFormsSelectorModal").style.display = "none"; }
-    function openChatFoldersSelectorModalForFolder() { document.getElementById("chatFoldersSelectorModal").style.display = "flex"; }
-    function closeChatFoldersSelectorModal() { document.getElementById("chatFoldersSelectorModal").style.display = "none"; }
   </script>
 </body>
 </html>
