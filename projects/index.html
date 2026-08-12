@@ -342,14 +342,14 @@
     }
 
     // Root-relative path redirection to separated pages
-    function openProjectChat() {
+   function openProjectChat() {
       if (!activeOpenedProject) return;
-      window.location.href = `/project/chat?id=${activeOpenedProject.id}`;
+      window.location.href = `/projects/chat?id=${activeOpenedProject.id}`;
     }
 
-    function openProjectBOQ() {
+  function openProjectBOQ() {
       if (!activeOpenedProject) return;
-      window.location.href = `/project/boq?id=${activeOpenedProject.id}`;
+      window.location.href = `/projects/boq?id=${activeOpenedProject.id}`;
     }
 
     function switchProjectDisplayMode(mode) {
