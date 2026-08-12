@@ -87,7 +87,7 @@
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
-    /* LinkedIn-style reaction/comment bar below bubble */
+    /* LinkedIn-style reaction/comment bar below bubble (Only for group messages) */
     .msg-social-bar { display: flex; align-items: center; gap: 14px; margin-top: 4px; margin-left: 4px; font-size: 0.75rem; color: var(--subtext-color); font-weight: 600; }
     .social-action-pill { display: flex; align-items: center; gap: 4px; background: var(--bg-color); border: 1px solid var(--border-color); padding: 2px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s, color 0.15s; }
     .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
@@ -359,8 +359,8 @@
 
       if (!activeOpenedProject.chatMessages) {
         activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', likes: 2, comments: [{author: 'John', text: 'Verified.'}], liked: false },
-          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', likes: 0, comments: [], liked: false }
+          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', targetGroup: 'Site Engineers', likes: 2, comments: [{author: 'John', text: 'Verified.'}], liked: false },
+          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', targetGroup: '', likes: 0, comments: [], liked: false }
         ];
       }
 
@@ -371,18 +371,22 @@
         let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
         let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
 
-        let socialBarHtml = `
-          <div class="msg-social-bar">
-            <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(event, '${msg.id}')">
-              <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-              <span class="like-count">${msg.likes || 0}</span>
+        // Show social action bar ONLY if the message was sent/tagged to a group
+        let socialBarHtml = '';
+        if (msg.targetGroup && msg.targetGroup.trim() !== "") {
+          socialBarHtml = `
+            <div class="msg-social-bar">
+              <div class="social-action-pill ${msg.liked ? 'liked' : ''}" onclick="handleLikeClick(event, '${msg.id}')">
+                <svg viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                <span class="like-count">${msg.likes || 0}</span>
+              </div>
+              <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
+              </div>
             </div>
-            <div class="social-action-pill" onclick="openCommentsModal('${msg.id}')">
-              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              <span class="comment-count">${msg.comments ? msg.comments.length : 0}</span>
-            </div>
-          </div>
-        `;
+          `;
+        }
 
         msgRow.innerHTML = `
           ${avatarHtml}
@@ -532,6 +536,14 @@
       const groups = activeOpenedProject.chatGroups || [];
       let allGroupNames = groups.map(g => g.name);
 
+      let mentionedGroups = [];
+      allGroupNames.forEach(g => {
+        const reg = new RegExp('@\\s?' + g, 'gi');
+        if (reg.test(rawText)) {
+          mentionedGroups.push(g);
+        }
+      });
+
       function processMentions(textStr) {
         let res = textStr;
         allGroupNames.forEach(g => {
@@ -551,6 +563,7 @@
       activeOpenedProject.chatMessages.push({
         id: 'm-' + Date.now(),
         type: 'outgoing',
+        targetGroup: mentionedGroups.length > 0 ? mentionedGroups.join(', ') : '',
         text: processMentions(rawText),
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
         likes: 0,
@@ -572,7 +585,6 @@
     function addNewMember() {
       const name = prompt("Enter new member name:");
       if (!name || !name.trim()) return;
-      if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = /admin/i; // Safe fallthrough
       if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
       activeOpenedProject.chatMembers.push({ name: name.trim(), role: 'Member' });
       persistProjectTree();
