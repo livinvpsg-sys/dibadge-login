@@ -232,8 +232,24 @@
       try { return JSON.parse(stored); } catch(e) { return []; }
     }
 
-    let allProjects = getProjectsStorage();
-    let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+  let allProjects = getProjectsStorage();
+let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+
+if (!activeOpenedProject) {
+  // No matching project found (e.g. empty/missing localStorage) -
+  // fall back to a default project so the chat still works.
+  activeOpenedProject = {
+    id: projectId || ('PRJ-' + Date.now()),
+    client: 'Amber Holdings',
+    projectNo: 'PRJ-2026-001',
+    chatMembers: [],
+    chatGroups: [],
+    chatMessages: [],
+    children: []
+  };
+  allProjects.push(activeOpenedProject);
+  localStorage.setItem('dibadge_project_tiles', JSON.stringify(allProjects));
+}
 
     if (activeOpenedProject) {
       document.getElementById("headerProjectName").innerText = `${activeOpenedProject.client || 'Amber Holdings'} (${activeOpenedProject.projectNo || 'PRJ-2026-001'})`;
