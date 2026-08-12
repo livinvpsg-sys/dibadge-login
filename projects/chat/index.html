@@ -261,7 +261,7 @@
     </div>
   </section>
 
-  <script>
+ <script>
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
 
@@ -273,6 +273,7 @@
 
     let allProjects = getProjectsStorage();
     let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+    let pendingStagedFiles = [];
 
     if (activeOpenedProject) {
       document.getElementById("headerProjectName").innerText = `${activeOpenedProject.client || 'Amber Holdings'} (${activeOpenedProject.projectNo || 'PRJ-2026-001'})`;
@@ -321,7 +322,8 @@
     function sendChatMessage() {
       const input = document.getElementById("chatMsgInput");
       const text = input ? input.value.trim() : "";
-      if (!text || !activeOpenedProject) return;
+      if (!text && pendingStagedFiles.length === 0) return;
+      if (!activeOpenedProject) return;
 
       if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
       activeOpenedProject.chatMessages.push({
@@ -331,9 +333,16 @@
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
       });
 
-      input.value = "";
+      if (input) input.value = "";
+      pendingStagedFiles = [];
       persistProjectTree();
       renderChatMessages();
+    }
+
+    function handleChatInputKey(e) {
+      if (e.key === 'Enter') {
+        sendChatMessage();
+      }
     }
 
     function addNewMember() {
