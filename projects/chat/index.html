@@ -93,7 +93,9 @@
     .social-action-pill:hover { background: var(--border-color); color: var(--text-color); }
     .social-action-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .social-action-pill.liked { color: #00a884; }
-
+    
+    .delete-permission-modal { position: fixed;  top: 0; left: 0;  width: 100vw; height: 100vh;  background: rgba(0,0,0,0.6);  backdrop-filter: blur(3px);  display: none;  justify-content: center;  align-items: center; z-index: 4000; }
+    
     /* Comments Modal Popup Styling */
     .comments-modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 4000; }
     .comments-modal-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; width: 400px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4); color: var(--text-color); }
@@ -290,9 +292,6 @@
       try { return JSON.parse(stored); } catch(e) { return []; }
     }
 
-    let allProjects = getProjectsStorage();
-    let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
-    let activeCommentMsgId = null;
     let allProjects = getProjectsStorage();
 let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
 let activeCommentMsgId = null;
