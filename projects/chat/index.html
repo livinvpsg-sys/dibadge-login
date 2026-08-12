@@ -379,16 +379,25 @@
   let selectedMessageIds = [];
     let isMessageSelectionMode = false;
 
-    function renderChatMessages() {
+ function renderChatMessages() {
       const container = document.getElementById("chatThreadContainer");
       if (!container || !activeOpenedProject) return;
-      container.innerHTML = `<div class="chat-date-pill">Today</div>`;
+      
+      // Keep your context bar and delete modal, then add the date pill
+      const floatingBar = document.getElementById("msgContextFloatingBar");
+      const deleteModal = document.getElementById("deletePermissionModal");
+      
+      container.innerHTML = "";
+      if (floatingBar) container.appendChild(floatingBar);
+      if (deleteModal) container.appendChild(deleteModal);
+
+      const datePill = document.createElement("div");
+      datePill.className = "chat-date-pill";
+      datePill.innerText = "Today";
+      container.appendChild(datePill);
 
       if (!activeOpenedProject.chatMessages) {
-        activeOpenedProject.chatMessages = [
-          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am', targetGroup: 'Site Engineers', likes: 2, comments: [{author: 'John', text: 'Verified.'}], liked: false },
-          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am', targetGroup: '', likes: 0, comments: [], liked: false }
-        ];
+        activeOpenedProject.chatMessages = [];
       }
 
       activeOpenedProject.chatMessages.forEach(msg => {
@@ -406,7 +415,6 @@
         let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
         let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
 
-        // Show social action bar ONLY if the message was sent to a group
         let socialBarHtml = '';
         if (msg.targetGroup && msg.targetGroup.trim() !== "") {
           socialBarHtml = `
