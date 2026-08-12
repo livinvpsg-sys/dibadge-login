@@ -78,10 +78,14 @@
     .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
+    /* WhatsApp Style Bubbles */
     .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
     .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 4px; }
+
+    /* Visually Dimmed Mention Tags inside Bubbles */
+    .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
     /* Chat Input Bar */
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
@@ -89,6 +93,12 @@
     .chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 16px; border-radius: 20px; font-size: 0.9rem; outline: none; }
     .chat-input-box::placeholder { color: var(--subtext-color); }
     
+    /* Mention Autocomplete Dropdown */
+    .chat-mention-dropdown { position: absolute; bottom: 55px; left: 60px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; max-height: 180px; width: 220px; overflow-y: auto; z-index: 1500; }
+    .chat-mention-item { padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+    .chat-mention-item:last-child { border-bottom: none; }
+    .chat-mention-item:hover { background: var(--border-color); }
+
     .chat-action-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
     .chat-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .chat-action-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
@@ -125,7 +135,7 @@
       <button class="header-back-icon" onclick="goBackToProject()" title="Back to Projects">
         <svg style="width:20px; height:20px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
-      <div class="header-breadcrumb-title" id="headerBreadcrumb">
+      <div class="header-breadcrumb-title">
         Projects <span style="color: var(--subtext-color); font-weight: 400;">></span> <span id="headerProjectName">Amber Holdings (PRJ-2026-001)</span>
       </div>
     </div>
@@ -143,6 +153,8 @@
 
         <!-- Chat Input Bar -->
         <div class="chat-bottom-bar">
+          <div class="chat-mention-dropdown" id="chatMentionDropdown"></div>
+
           <div class="chat-input-row">
             <button class="chat-action-btn" title="Emoji">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
@@ -150,7 +162,7 @@
             <button class="chat-action-btn" title="Attach File">
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
-            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message here..." onkeyup="if(event.key==='Enter') sendChatMessage()" />
+            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
             <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
               <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
             </button>
@@ -167,16 +179,7 @@
             <span>Group Members</span>
             <button class="add-member-btn" onclick="addNewMember()">+ Add</button>
           </div>
-          <div class="member-list" id="chatMemberList">
-            <div class="member-item">
-              <div class="member-avatar">J</div>
-              <span>John (Admin)</span>
-            </div>
-            <div class="member-item">
-              <div class="member-avatar" style="background:#8b5cf6;">M</div>
-              <span>Mary (Member)</span>
-            </div>
-          </div>
+          <div class="member-list" id="chatMemberList"></div>
         </div>
 
         <!-- Groups Section -->
@@ -185,20 +188,7 @@
             <span>Groups</span>
             <button class="add-member-btn" onclick="addNewGroup()">+ Add</button>
           </div>
-          <div class="member-list" id="chatGroupsList">
-            <div class="member-item">
-              <div class="member-avatar" style="background:#d97706;">S</div>
-              <span>Site Engineers</span>
-            </div>
-            <div class="member-item">
-              <div class="member-avatar" style="background:#0284c7;">M</div>
-              <span>Management Team</span>
-            </div>
-            <div class="member-item">
-              <div class="member-avatar" style="background:#64748b;">Q</div>
-              <span>Quality Assurance</span>
-            </div>
-          </div>
+          <div class="member-list" id="chatGroupsList"></div>
         </div>
 
         <!-- Forms Section -->
@@ -224,36 +214,7 @@
             <span>Folders</span>
             <button class="add-member-btn">+ Add</button>
           </div>
-          <div id="chatDetailsFoldersContainer" style="display:flex; flex-direction:column; gap:4px;">
-            <div class="chat-folder-header">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">S</div>
-                <span>Site Photos & diCam</span>
-              </div>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            <div class="chat-folder-header">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">S</div>
-                <span>Safety & Compliance Logs</span>
-              </div>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            <div class="chat-folder-header">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">R</div>
-                <span>Reports & Worksheets</span>
-              </div>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-            <div class="chat-folder-header">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">D</div>
-                <span>Drawings & Blueprints</span>
-              </div>
-              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
-          </div>
+          <div id="chatDetailsFoldersContainer" style="display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
       </div>
@@ -261,7 +222,7 @@
     </div>
   </section>
 
- <script>
+  <script>
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
 
@@ -273,10 +234,12 @@
 
     let allProjects = getProjectsStorage();
     let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
-    let pendingStagedFiles = [];
 
     if (activeOpenedProject) {
       document.getElementById("headerProjectName").innerText = `${activeOpenedProject.client || 'Amber Holdings'} (${activeOpenedProject.projectNo || 'PRJ-2026-001'})`;
+      if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [{name: 'John', role: 'Admin'}, {name: 'Mary', role: 'Member'}];
+      if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [{name: 'Site Engineers'}, {name: 'Management Team'}, {name: 'Quality Assurance'}];
+      renderChatSidebarDetails();
       renderChatMessages();
     }
 
@@ -292,6 +255,55 @@
 
     function goBackToProject() {
       window.location.href = `/projects?id=${projectId}`;
+    }
+
+    function renderChatSidebarDetails() {
+      if (!activeOpenedProject) return;
+
+      // Render Members
+      const memberList = document.getElementById("chatMemberList");
+      if (memberList) {
+        memberList.innerHTML = "";
+        activeOpenedProject.chatMembers.forEach(m => {
+          memberList.innerHTML += `
+            <div class="member-item">
+              <div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div>
+              <span>${m.name}${m.role ? ' ('+m.role+')' : ''}</span>
+            </div>
+          `;
+        });
+      }
+
+      // Render Groups
+      const groupList = document.getElementById("chatGroupsList");
+      if (groupList) {
+        groupList.innerHTML = "";
+        activeOpenedProject.chatGroups.forEach(g => {
+          groupList.innerHTML += `
+            <div class="member-item">
+              <div class="member-avatar" style="background:#00a884;">${g.name.charAt(0).toUpperCase()}</div>
+              <span>${g.name}</span>
+            </div>
+          `;
+        });
+      }
+
+      // Render Folders
+      const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
+      if (foldersContainer && activeOpenedProject.children) {
+        foldersContainer.innerHTML = "";
+        activeOpenedProject.children.forEach(folder => {
+          foldersContainer.innerHTML += `
+            <div class="chat-folder-header">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="member-avatar" style="background:#d97706; width:24px; height:24px; font-size:0.65rem;">${folder.name.charAt(0).toUpperCase()}</div>
+                <span>${folder.name}</span>
+              </div>
+              <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          `;
+        });
+      }
     }
 
     function renderChatMessages() {
@@ -319,22 +331,93 @@
       container.scrollTop = container.scrollHeight;
     }
 
+    // --- Mention Autocomplete Logic ---
+    function handleChatInputEvent(e) {
+      const input = e.target;
+      const val = input.value;
+      const dropdown = document.getElementById("chatMentionDropdown");
+      if (!dropdown || !activeOpenedProject) return;
+
+      const lastAtIdx = val.lastIndexOf('@');
+      if (lastAtIdx === -1) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      const charAfterAt = val.charAt(lastAtIdx + 1);
+      const isGroupMode = (charAfterAt === ' ');
+      const query = isGroupMode ? val.substring(lastAtIdx + 2).toLowerCase() : val.substring(lastAtIdx + 1).toLowerCase();
+
+      let itemsToDisplay = [];
+      if (isGroupMode) {
+        (activeOpenedProject.chatGroups || []).forEach(g => {
+          if (g.name.toLowerCase().includes(query)) itemsToDisplay.push({ name: g.name, type: 'group', color: '#00a884' });
+        });
+      } else {
+        (activeOpenedProject.chatMembers || []).forEach(m => {
+          if (m.name.toLowerCase().includes(query)) itemsToDisplay.push({ name: m.name, type: 'member', color: '#8b5cf6' });
+        });
+      }
+
+      if (itemsToDisplay.length === 0) {
+        dropdown.style.display = "none";
+        return;
+      }
+
+      dropdown.innerHTML = "";
+      itemsToDisplay.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "chat-mention-item";
+        div.innerHTML = `
+          <div class="member-avatar" style="width:22px;height:22px;font-size:0.65rem;background:${item.color};">${item.name.charAt(0).toUpperCase()}</div>
+          <span>${item.name} <small style="color:var(--subtext-color);font-weight:400;font-size:0.7rem;">(${item.type})</small></span>
+        `;
+        div.onclick = () => {
+          input.value = item.type === 'group' ? val.substring(0, lastAtIdx) + '@ ' + item.name + ' ' : val.substring(0, lastAtIdx) + '@' + item.name + ' ';
+          dropdown.style.display = "none";
+          input.focus();
+        };
+        dropdown.appendChild(div);
+      });
+      dropdown.style.display = "flex";
+    }
+
+    // --- Message Sending & Dimming Mentions ---
     function sendChatMessage() {
       const input = document.getElementById("chatMsgInput");
-      const text = input ? input.value.trim() : "";
-      if (!text && pendingStagedFiles.length === 0) return;
-      if (!activeOpenedProject) return;
+      let rawText = input ? input.value.trim() : "";
+      if (!rawText || !activeOpenedProject) return;
+
+      const dropdown = document.getElementById("chatMentionDropdown");
+      if (dropdown) dropdown.style.display = "none";
+
+      const groups = activeOpenedProject.chatGroups || [];
+      let allGroupNames = groups.map(g => g.name);
+
+      function processMentions(textStr) {
+        let res = textStr;
+        allGroupNames.forEach(g => {
+          const reg = new RegExp('@\\s?' + g, 'gi');
+          res = res.replace(reg, `<span class="mention-tag">@${g}</span>`);
+        });
+        const members = activeOpenedProject.chatMembers || [];
+        members.forEach(m => {
+          const mClean = m.name.replace(/\s*\(Admin\)/gi, "").trim();
+          const reg = new RegExp('@' + mClean, 'gi');
+          res = res.replace(reg, `<span class="mention-tag">@${mClean}</span>`);
+        });
+        return res;
+      }
 
       if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
       activeOpenedProject.chatMessages.push({
         id: 'm-' + Date.now(),
         type: 'outgoing',
-        text: text,
+        text: processMentions(rawText),
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
       });
 
-      if (input) input.value = "";
-      pendingStagedFiles = [];
+      input.value = "";
       persistProjectTree();
       renderChatMessages();
     }
@@ -351,6 +434,7 @@
       if (!activeOpenedProject.chatMembers) activeOpenedProject.chatMembers = [];
       activeOpenedProject.chatMembers.push({ name: name.trim(), role: 'Member' });
       persistProjectTree();
+      renderChatSidebarDetails();
     }
 
     function addNewGroup() {
@@ -359,6 +443,7 @@
       if (!activeOpenedProject.chatGroups) activeOpenedProject.chatGroups = [];
       activeOpenedProject.chatGroups.push({ name: name.trim() });
       persistProjectTree();
+      renderChatSidebarDetails();
     }
   </script>
 </body>
