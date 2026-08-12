@@ -293,6 +293,11 @@
     let allProjects = getProjectsStorage();
     let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
     let activeCommentMsgId = null;
+    let allProjects = getProjectsStorage();
+let activeOpenedProject = allProjects.find(p => p.id === projectId) || allProjects[0];
+let activeCommentMsgId = null;
+let selectedMessageIds = [];        // ← moved up here
+let isMessageSelectionMode = false; // ← moved up here
 
     if (!activeOpenedProject) {
       activeOpenedProject = {
@@ -375,9 +380,6 @@
         });
       }
     }
-
-  let selectedMessageIds = [];
-    let isMessageSelectionMode = false;
 
  function renderChatMessages() {
       const container = document.getElementById("chatThreadContainer");
