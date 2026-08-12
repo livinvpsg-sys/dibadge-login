@@ -222,7 +222,7 @@
     </div>
   </section>
 
-  <script>
+ <script>
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id');
 
@@ -260,7 +260,6 @@
     function renderChatSidebarDetails() {
       if (!activeOpenedProject) return;
 
-      // Render Members
       const memberList = document.getElementById("chatMemberList");
       if (memberList) {
         memberList.innerHTML = "";
@@ -274,7 +273,6 @@
         });
       }
 
-      // Render Groups
       const groupList = document.getElementById("chatGroupsList");
       if (groupList) {
         groupList.innerHTML = "";
@@ -288,7 +286,6 @@
         });
       }
 
-      // Render Folders
       const foldersContainer = document.getElementById("chatDetailsFoldersContainer");
       if (foldersContainer && activeOpenedProject.children) {
         foldersContainer.innerHTML = "";
@@ -311,15 +308,24 @@
       if (!container || !activeOpenedProject) return;
       container.innerHTML = `<div class="chat-date-pill">Today</div>`;
 
-      if (!activeOpenedProject.chatMessages) activeOpenedProject.chatMessages = [];
+      if (!activeOpenedProject.chatMessages) {
+        activeOpenedProject.chatMessages = [
+          { id: 'm-1', type: 'incoming', sender: 'Site Engineers', text: 'Foundation check completed for Tower B.', time: '10:04 am' },
+          { id: 'm-2', type: 'outgoing', text: 'Hello! How can I help you?', time: '10:05 am' }
+        ];
+      }
 
       activeOpenedProject.chatMessages.forEach(msg => {
         const msgRow = document.createElement("div");
         msgRow.className = `msg-row ${msg.type}`;
+        
+        let avatarHtml = msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : '';
+        let senderNameHtml = msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Group'}</span>` : '';
+
         msgRow.innerHTML = `
-          ${msg.type === 'incoming' ? `<div class="msg-avatar" style="background:#00a884;">${(msg.sender || 'G').charAt(0)}</div>` : ''}
+          ${avatarHtml}
           <div class="msg-body">
-            ${msg.type === 'incoming' ? `<span class="msg-sender-name">${msg.sender || 'Member'}</span>` : ''}
+            ${senderNameHtml}
             <div class="msg-bubble ${msg.type}">
               ${msg.text}
               <div class="msg-meta-row"><span>${msg.time}</span></div>
