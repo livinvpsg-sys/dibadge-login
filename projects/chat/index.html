@@ -62,7 +62,7 @@
 
     /* Workspace Layout */
     .chat-view-workspace { display: flex; flex: 1; height: calc(100vh - 64px); background: var(--bg-color); position: relative; overflow: hidden; }
-    .chat-split-container { display: flex; width: 100%; height: 100%; gap: 12px; background: var(--bg-color); padding: 12px; }
+ .chat-split-container { display: flex; width: 100%; height: 100%; gap: 12px; background: var(--bg-color); padding: 12px; }
 
     /* Left side: Main Chat Window */
     .chat-main-pane { flex: 1; display: flex; flex-direction: column; height: 100%; position: relative; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
@@ -183,6 +183,15 @@
     .msg-context-btn { background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; transition: background 0.15s; }
     .msg-context-btn:hover { background: var(--border-color); }
     .msg-context-btn.danger { color: var(--error-red); }
+
+    /* Activity Feed Right Panel */
+    .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; flex-shrink: 0; }
+    .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
+    .notifications-header svg { width: 18px; height: 18px; stroke: var(--paper-white); stroke-width: 2; fill: none; margin-right: 6px; }
+    .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-color); }
+    .notification-item .title { font-weight: 700; margin-bottom: 2px; }
+    .notification-item .time { font-size: 0.72rem; color: var(--subtext-color); margin-top: 6px; }
     
   </style>
 </head>
@@ -200,7 +209,7 @@
     </div>
   </header>
 
-  <!-- Workspace Section -->
+<!-- Workspace Section -->
   <section class="chat-view-workspace">
     <div class="chat-split-container">
       
@@ -235,7 +244,7 @@
             <button class="chat-action-btn" title="Attach File">
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
-<div id="chatMsgInput" class="chat-input-box" contenteditable="true" data-placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeydown="handleChatInputKey(event)"></div>
+            <input type="text" id="chatMsgInput" class="chat-input-box" placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeyup="handleChatInputKey(event)" />
             <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send">
               <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
             </button>
@@ -243,9 +252,8 @@
         </div>
       </div>
 
-      <!-- Right Side: Project Management Sidebar -->
+      <!-- Middle/Right Pane: Chat Details Sidebar -->
       <div class="chat-details-pane">
-        
         <!-- Group Members Section -->
         <div class="details-section">
           <div class="details-section-title">
@@ -289,8 +297,22 @@
           </div>
           <div id="chatDetailsFoldersContainer" style="display:flex; flex-direction:column; gap:4px;"></div>
         </div>
-
       </div>
+
+      <!-- Right Pane: Activity Feed Panel -->
+      <aside class="notifications-panel">
+        <div class="notifications-header">
+          <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
+          <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
+        </div>
+        <div class="notifications-list">
+          <div class="notification-item">
+            <div class="title">New Project Initialized</div>
+            <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
+            <div class="time">1 hour ago</div>
+          </div>
+        </div>
+      </aside>
 
     </div>
   </section>
