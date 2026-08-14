@@ -78,12 +78,7 @@
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
  /* WhatsApp Style Bubbles */
-   .msg-body {
-  max-width: 65%;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.msg-body { max-width: 65%; display: flex; flex-direction: column; gap: 2px; }
 .msg-row.outgoing .msg-body { align-items: flex-end; }
 .msg-row.incoming .msg-body { align-items: flex-start; }
 
@@ -102,30 +97,11 @@
   position: relative;
   box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
 }
-.msg-bubble * {
-  text-align: inherit !important;
-  direction: inherit !important;
-}
+.msg-bubble * { text-align: inherit !important; direction: inherit !important; }
 .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
 .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
-
-.msg-bubble.incoming::after,
-.msg-bubble.outgoing::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.msg-meta-row {
-  float: right;
-  margin-left: 10px;
-  margin-top: 3px;
-  padding-right: 2px;
-  font-size: 0.68rem;
-  color: var(--subtext-color);
-  line-height: 1;
-  white-space: nowrap;
-}
+.msg-bubble.incoming::after, .msg-bubble.outgoing::after { content: ""; display: table; clear: both; }
+.msg-meta-row { float: right; margin-left: 10px; margin-top: 3px; padding-right: 2px; font-size: 0.68rem; color: var(--subtext-color); line-height: 1; white-space: nowrap; }
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
@@ -154,35 +130,9 @@
     .chat-bottom-bar { background: var(--surface-color); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; position: relative; }
     .chat-input-row { display: flex; align-items: center; gap: 10px; position: relative; }
 /* Styling for contenteditable typing area & dimmed mentions while typing */
-.chat-input-box {
-  flex: 1;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  outline: none;
-  min-height: 40px;
-  max-height: 100px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.chat-input-box[contenteditable="true"]:empty:before {
-  content: attr(data-placeholder);
-  color: var(--subtext-color);
-  pointer-events: none;
-  display: block;
-}
-
-.chat-input-box .mention-tag {
-  color: var(--subtext-color);
-  font-weight: 600;
-  opacity: 0.65;
-}
-    .chat-input-box::placeholder { color: var(--subtext-color); }
+.chat-input-box { flex: 1; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 10px 14px; border-radius: 20px; font-size: 0.9rem; outline: none; min-height: 40px; max-height: 100px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; }
+.chat-input-box[contenteditable="true"]:empty:before { content: attr(data-placeholder); color: var(--subtext-color); pointer-events: none; display: block; }
+.chat-input-box .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
     
     /* Mention Autocomplete Dropdown */
     .chat-mention-dropdown { position: absolute; bottom: 55px; left: 60px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: none; flex-direction: column; max-height: 180px; width: 220px; overflow-y: auto; z-index: 1500; }
@@ -286,7 +236,7 @@
             <button class="chat-action-btn" title="Attach File">
               <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
             </button>
-        <div id="chatMsgInput" class="chat-input-box" contenteditable="true" data-placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeydown="handleChatInputKey(event)"></div>
+      <div id="chatMsgInput" class="chat-input-box" contenteditable="true" data-placeholder="Message here..." oninput="handleChatInputEvent(event)" onkeydown="handleChatInputKey(event)"></div>
             <button class="chat-send-btn" id="chatSendFabBtn" onclick="sendChatMessage()" title="Send">
               <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
             </button>
@@ -662,16 +612,13 @@ let isMessageSelectionMode = false; // ← moved up here
     // --- Mention Autocomplete Logic ---
 // --- Mention Autocomplete Logic & Dimmed Insertion in Typing Area ---
 function handleChatInputEvent(e) {
-  const input = document.getElementById("chatMsgInput");
+  const input = e.target;
   const val = input.innerText || "";
   const dropdown = document.getElementById("chatMentionDropdown");
   if (!dropdown || !activeOpenedProject) return;
 
   const lastAtIdx = val.lastIndexOf('@');
-  if (lastAtIdx === -1) {
-    dropdown.style.display = "none";
-    return;
-  }
+  if (lastAtIdx === -1) { dropdown.style.display = "none"; return; }
 
   const charAfterAt = val.charAt(lastAtIdx + 1);
   const isGroupMode = (charAfterAt === ' ');
@@ -688,10 +635,7 @@ function handleChatInputEvent(e) {
     });
   }
 
-  if (itemsToDisplay.length === 0) {
-    dropdown.style.display = "none";
-    return;
-  }
+  if (itemsToDisplay.length === 0) { dropdown.style.display = "none"; return; }
 
   dropdown.innerHTML = "";
   itemsToDisplay.forEach(item => {
@@ -702,7 +646,16 @@ function handleChatInputEvent(e) {
       <span>${item.name} <small style="color:var(--subtext-color);font-weight:400;font-size:0.7rem;">(${item.type})</small></span>
     `;
     div.onclick = () => {
-      insertMentionIntoInput(item.name, item.type === 'group');
+      const baseText = val.substring(0, lastAtIdx);
+      const mentionText = item.type === 'group' ? '@ ' + item.name : '@' + item.name;
+      input.innerHTML = baseText + `<span class="mention-tag" contenteditable="false">${mentionText}</span>&nbsp;`;
+      const range = document.createRange();
+      const sel = window.getSelection();
+      range.selectNodeContents(input);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      input.focus();
       dropdown.style.display = "none";
     };
     dropdown.appendChild(div);
@@ -710,6 +663,13 @@ function handleChatInputEvent(e) {
   dropdown.style.display = "flex";
 }
 
+function insertEmoji(emoji) {
+  const input = document.getElementById("chatMsgInput");
+  if (!input) return;
+  input.focus();
+  document.execCommand('insertText', false, emoji);
+}
+    
 // Inserts dimmed mention tag directly inside typing box
 function insertMentionIntoInput(name, isGroup) {
   const input = document.getElementById("chatMsgInput");
@@ -738,55 +698,26 @@ function insertMentionIntoInput(name, isGroup) {
 function getCleanMessageHtml(input) {
   const lines = [];
   let currentLine = "";
-
   function walk(node) {
-    if (node.nodeType === Node.TEXT_NODE) {
-      currentLine += node.textContent;
-      return;
-    }
+    if (node.nodeType === Node.TEXT_NODE) { currentLine += node.textContent; return; }
     if (node.nodeType !== Node.ELEMENT_NODE) return;
-
-    if (node.tagName === 'BR') {
-      lines.push(currentLine);
-      currentLine = "";
-      return;
-    }
-
-    if (node.classList && node.classList.contains('mention-tag')) {
-      currentLine += node.outerHTML;
-      return;
-    }
-
-    // Chrome sometimes wraps each line in its own <div>/<p> block
+    if (node.tagName === 'BR') { lines.push(currentLine); currentLine = ""; return; }
+    if (node.classList && node.classList.contains('mention-tag')) { currentLine += node.outerHTML; return; }
     const isBlock = ['DIV', 'P'].includes(node.tagName);
-    if (isBlock && currentLine !== "") {
-      lines.push(currentLine);
-      currentLine = "";
-    }
-
+    if (isBlock && currentLine !== "") { lines.push(currentLine); currentLine = ""; }
     node.childNodes.forEach(walk);
-
-    if (isBlock) {
-      lines.push(currentLine);
-      currentLine = "";
-    }
+    if (isBlock) { lines.push(currentLine); currentLine = ""; }
   }
-
   input.childNodes.forEach(walk);
   if (currentLine !== "") lines.push(currentLine);
-
-  // Drop trailing empty lines (from extra Enter presses before send)
-  while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
-    lines.pop();
-  }
-
+  while (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
   return lines.join('<br>');
 }
     
 // --- Message Sending ---
 function sendChatMessage() {
   const input = document.getElementById("chatMsgInput");
-  let rawText = input ? input.innerText.trim() : "";
+let rawText = input ? input.innerText.trim() : "";
 
   if (!rawText || !activeOpenedProject) return;
 
@@ -827,14 +758,12 @@ function sendChatMessage() {
   input.focus();
 }
 
-   function handleChatInputKey(e) {
+ function handleChatInputKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    e.stopPropagation();
     sendChatMessage();
-    return false;
   }
-    }
+}
 
     function addNewMember() {
       const name = prompt("Enter new member name:");
