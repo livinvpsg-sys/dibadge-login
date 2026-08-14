@@ -82,13 +82,13 @@
     .msg-row.outgoing .msg-body { align-items: flex-end; }
     .msg-row.incoming .msg-body { align-items: flex-start; }
 
-    .msg-bubble {
+  .msg-bubble {
       display: inline-block;
       width: fit-content;
       max-width: 100%;
-      padding: 6px 10px 6px 10px;
+      padding: 4px 8px 4px 8px; /* Tighter WhatsApp-style padding */
       font-size: 0.875rem;
-      line-height: 1.4;
+      line-height: 1.35;
       word-break: break-word;
       white-space: pre-wrap;
       text-align: left !important;
@@ -97,13 +97,13 @@
       position: relative;
       box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
     }
-    .msg-bubble * { text-align: inherit !important; direction: inherit !important; }
-    .msg-bubble div, .msg-bubble p { margin: 0; padding: 0; line-height: 1.4; }
+    .msg-bubble * { text-align: inherit !important; direction: inherit !important; margin: 0; padding: 0; }
+    .msg-bubble div, .msg-bubble p { margin: 0; padding: 0; line-height: 1.35; }
     
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
     
-    .msg-meta-row { float: right; margin-left: 12px; margin-top: 4px; padding-right: 0; font-size: 0.68rem; color: var(--subtext-color); line-height: 1; white-space: nowrap; }
+  .msg-meta-row { float: right; margin-left: 10px; margin-top: 2px; padding-right: 0; font-size: 0.68rem; color: var(--subtext-color); line-height: 1; white-space: nowrap; }
     .msg-bubble::after { content: ""; display: table; clear: both; }
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
@@ -699,24 +699,23 @@ function insertMentionIntoInput(name, isGroup) {
 // each visual line becomes one line of text, joined with <br>, mention-tag
 // spans preserved, everything else flattened to plain text.
 function getCleanMessageHtml(input) {
-  const lines = [];
-  let currentLine = "";
-  function walk(node) {
-    if (node.nodeType === Node.TEXT_NODE) { currentLine += node.textContent; return; }
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-    if (node.tagName === 'BR') { lines.push(currentLine); currentLine = ""; return; }
-    if (node.classList && node.classList.contains('mention-tag')) { currentLine += node.outerHTML; return; }
-    const isBlock = ['DIV', 'P'].includes(node.tagName);
-    if (isBlock && currentLine !== "") { lines.push(currentLine); currentLine = ""; }
-    node.childNodes.forEach(walk);
-    if (isBlock) { lines.push(currentLine); currentLine = ""; }
-  }
-  input.childNodes.forEach(walk);
-  if (currentLine !== "") lines.push(currentLine);
-  while (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
-  return lines.join('<br>');
-}
-    
+      const lines = [];
+      let currentLine = "";
+      function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) { currentLine += node.textContent; return; }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        if (node.tagName === 'BR') { lines.push(currentLine); currentLine = ""; return; }
+        if (node.classList && node.classList.contains('mention-tag')) { currentLine += node.outerHTML; return; }
+        const isBlock = ['DIV', 'P'].includes(node.tagName);
+        if (isBlock && currentLine !== "") { lines.push(currentLine); currentLine = ""; }
+        node.childNodes.forEach(walk);
+        if (isBlock && currentLine !== "") { lines.push(currentLine); currentLine = ""; }
+      }
+      input.childNodes.forEach(walk);
+      if (currentLine !== "") lines.push(currentLine);
+      while (lines.length > 0 && lines[lines.length - 1].trim() === "") lines.pop();
+      return lines.join('<br>');
+    }
 // --- Message Sending ---
 function sendChatMessage() {
   const input = document.getElementById("chatMsgInput");
