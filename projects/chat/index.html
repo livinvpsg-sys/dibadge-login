@@ -77,31 +77,34 @@
     .msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--border-color); color: var(--text-color); font-weight: 700; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 18px; }
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
- /* WhatsApp Style Bubbles */
-.msg-body { max-width: 65%; display: flex; flex-direction: column; gap: 2px; }
-.msg-row.outgoing .msg-body { align-items: flex-end; }
-.msg-row.incoming .msg-body { align-items: flex-start; }
+/* WhatsApp Style Bubbles & Clean Multi-Line Alignment */
+    .msg-body { max-width: 65%; display: flex; flex-direction: column; gap: 2px; }
+    .msg-row.outgoing .msg-body { align-items: flex-end; }
+    .msg-row.incoming .msg-body { align-items: flex-start; }
 
-.msg-bubble {
-  display: inline-block;
-  width: fit-content;
-  max-width: 100%;
-  padding: 6px 9px 8px 9px;
-  font-size: 0.875rem;
-  line-height: 1.35;
-  word-break: break-word;
-  white-space: pre-wrap;
-  text-align: left !important;
-  direction: ltr !important;
-  unicode-bidi: plaintext;
-  position: relative;
-  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-}
-.msg-bubble * { text-align: inherit !important; direction: inherit !important; }
-.msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
-.msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
-.msg-bubble.incoming::after, .msg-bubble.outgoing::after { content: ""; display: table; clear: both; }
-.msg-meta-row { float: right; margin-left: 10px; margin-top: 3px; padding-right: 2px; font-size: 0.68rem; color: var(--subtext-color); line-height: 1; white-space: nowrap; }
+    .msg-bubble {
+      display: inline-block;
+      width: fit-content;
+      max-width: 100%;
+      padding: 6px 10px 6px 10px;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      word-break: break-word;
+      white-space: pre-wrap;
+      text-align: left !important;
+      direction: ltr !important;
+      unicode-bidi: plaintext;
+      position: relative;
+      box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+    }
+    .msg-bubble * { text-align: inherit !important; direction: inherit !important; }
+    .msg-bubble div, .msg-bubble p { margin: 0; padding: 0; line-height: 1.4; }
+    
+    .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
+    .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
+    
+    .msg-meta-row { float: right; margin-left: 12px; margin-top: 4px; padding-right: 0; font-size: 0.68rem; color: var(--subtext-color); line-height: 1; white-space: nowrap; }
+    .msg-bubble::after { content: ""; display: table; clear: both; }
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
