@@ -82,8 +82,22 @@
     .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
     .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
-    .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; white-space: pre-wrap; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 4px; }
+   .msg-bubble {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-break: break-word;
+  white-space: pre-wrap;
+  text-align: left;
+  direction: ltr;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.msg-bubble div, .msg-bubble p {
+  text-align: inherit;
+  display: inline;
+}
+   .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 2px; }
 
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
@@ -691,16 +705,65 @@ function insertMentionIntoInput(name, isGroup) {
   input.focus();
 }
 
+// Walks the contenteditable's child nodes and rebuilds clean, predictable HTML:
+// each visual line becomes one line of text, joined with <br>, mention-tag
+// spans preserved, everything else flattened to plain text.
+function getCleanMessageHtml(input) {
+  const lines = [];
+  let currentLine = "";
+
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      currentLine += node.textContent;
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+    if (node.tagName === 'BR') {
+      lines.push(currentLine);
+      currentLine = "";
+      return;
+    }
+
+    if (node.classList && node.classList.contains('mention-tag')) {
+      currentLine += node.outerHTML;
+      return;
+    }
+
+    // Chrome sometimes wraps each line in its own <div>/<p> block
+    const isBlock = ['DIV', 'P'].includes(node.tagName);
+    if (isBlock && currentLine !== "") {
+      lines.push(currentLine);
+      currentLine = "";
+    }
+
+    node.childNodes.forEach(walk);
+
+    if (isBlock) {
+      lines.push(currentLine);
+      currentLine = "";
+    }
+  }
+
+  input.childNodes.forEach(walk);
+  if (currentLine !== "") lines.push(currentLine);
+
+  // Drop trailing empty lines (from extra Enter presses before send)
+  while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
+    lines.pop();
+  }
+
+  return lines.join('<br>');
+}
+    
 // --- Message Sending ---
 function sendChatMessage() {
   const input = document.getElementById("chatMsgInput");
   let rawText = input ? input.innerText.trim() : "";
-  let htmlContent = input ? input.innerHTML.trim() : "";
 
   if (!rawText || !activeOpenedProject) return;
 
-  // Strip trailing <br> / &nbsp; / whitespace left over from Enter presses
-  htmlContent = htmlContent.replace(/(<br\s*\/?>|&nbsp;|\s)+$/gi, '').trim();
+  const htmlContent = getCleanMessageHtml(input); // ← replaces old htmlContent logic
 
   const dropdown = document.getElementById("chatMentionDropdown");
   if (dropdown) dropdown.style.display = "none";
