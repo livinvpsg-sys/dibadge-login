@@ -75,30 +75,55 @@
     .msg-row.outgoing { justify-content: flex-end; }
 
     .msg-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--border-color); color: var(--text-color); font-weight: 700; font-size: 0.85rem; display: flex; justify-content: center; align-items: center; flex-shrink: 0; margin-top: 18px; }
-    .msg-body { max-width: 320px; display: flex; flex-direction: column; gap: 2px; }
+    .msg-body {
+  max-width: 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
     .msg-sender-name { font-size: 0.78rem; font-weight: 700; color: var(--chat-sender-name); margin-left: 2px; }
 
     /* WhatsApp Style Bubbles */
-    .msg-bubble { padding: 8px 12px; font-size: 0.9rem; line-height: 1.4; word-break: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-    .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 14px 14px 14px 4px; }
-    .msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 14px 14px 4px 14px; font-weight: 500; }
-   .msg-bubble {
-  padding: 8px 12px;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  
+   .msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
+.msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
+Update .msg-meta-row so the timestamp sits tucked into the bottom-right, floated
+ .msg-bubble {
+  padding: 6px 7px 8px 9px;
+  font-size: 0.875rem;
+  line-height: 1.35;
   word-break: break-word;
   white-space: pre-wrap;
-  text-align: left;
-  direction: ltr;
+  text-align: left !important;
+  direction: ltr !important;
+  unicode-bidi: plaintext;
   position: relative;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  min-width: 60px;
+  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
 }
-.msg-bubble div, .msg-bubble p {
-  text-align: inherit;
-  display: inline;
+.msg-bubble * {
+  text-align: inherit !important;
+  direction: inherit !important;
 }
-   .msg-meta-row { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 0.65rem; color: var(--subtext-color); margin-top: 2px; }
+.msg-bubble.incoming { background: var(--chat-incoming-bg); color: var(--chat-incoming-text); border-radius: 8px 8px 8px 2px; }
+.msg-bubble.outgoing { background: var(--chat-outgoing-bg); color: var(--chat-outgoing-text); border-radius: 8px 8px 2px 8px; font-weight: 500; }
 
+.msg-bubble.incoming::after,
+.msg-bubble.outgoing::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.msg-meta-row {
+  float: right;
+  margin-left: 8px;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  color: var(--subtext-color);
+  line-height: 1;
+}
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
 
