@@ -129,14 +129,12 @@
       max-width: 320px;
     }
     
-    /* Incoming: sharp corner at bottom-left (14px 14px 14px 4px) */
     .msg-bubble.incoming { 
       background: var(--chat-incoming-bg); 
       color: var(--chat-incoming-text); 
       border-radius: 14px 14px 14px 4px; 
     }
     
-    /* Outgoing: sharp corner at bottom-right (14px 14px 4px 14px) */
     .msg-bubble.outgoing { 
       background: var(--chat-outgoing-bg); 
       color: var(--chat-outgoing-text); 
@@ -144,7 +142,12 @@
       font-weight: 500; 
     }
 
-    /* Tight inline timestamp right below text without giant gap */
+    .message-text {
+      display: inline;
+      margin: 0;
+      white-space: pre-wrap; /* Ensures multiple lines render properly on the screen */
+    }
+
     .msg-meta-row { 
       display: flex; 
       align-items: center; 
@@ -260,7 +263,7 @@
     </div>
   </div>
 
-<!-- Footer / Message Input Bar -->
+  <!-- Footer / Message Input Bar -->
   <div class="chat-footer">
     <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
     <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
@@ -268,10 +271,8 @@
     </button>
   </div>
 
-  <!-- JavaScript functionality wrapped properly inside script tags -->
- <script>
+  <script>
     function handleChatInputKey(event) {
-      // If Enter is pressed WITHOUT Shift, send the message and prevent default newline behavior
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         sendChatMessage();
@@ -286,7 +287,6 @@
 
       const chatContainer = document.getElementById("chatContainer");
 
-      // Generate current timestamp
       const now = new Date();
       let hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
@@ -294,7 +294,6 @@
       hours = hours % 12 || 12;
       const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
 
-      // Create message element
       const messageRow = document.createElement("div");
       messageRow.className = "message-row outgoing";
 
@@ -305,7 +304,6 @@
         </div>
       `;
 
-      // Use textContent so multiple lines and formatting are safely preserved
       messageRow.querySelector(".message-text").textContent = text;
 
       chatContainer.appendChild(messageRow);
