@@ -118,13 +118,14 @@
       flex-shrink: 0;
     }
 
-    /* Ultra-thin Top & Bottom Padding Bubble */
+    /* Ultra-thin Minimal Padding Bubble with tight internal flex */
     .msg-bubble {
-      display: inline-block;
+      display: inline-flex;
+      flex-direction: column;
       max-width: 100%;
-      padding: 2px 8px 3px 8px; /* Extremely thin gaps 'a' and 'b' */
+      padding: 2px 8px 2px 8px; /* Gap 'a' and 'b' reduced to absolute minimum */
       font-size: 0.9rem;
-      line-height: 1.35;
+      line-height: 1.2;
       word-break: break-word;
       white-space: pre-wrap;
       position: relative;
@@ -144,19 +145,21 @@
       font-weight: 500; 
     }
 
-    /* Tight inline timestamp styling with zero extra bottom margin */
+    .message-text {
+      display: inline;
+    }
+
+    /* Timestamp aligned compactly inline/right with zero dead space */
     .msg-meta-row {
-      display: inline-block;
-      float: right;
-      margin-left: 8px;
-      margin-top: 2px;
+      align-self: flex-end;
+      margin-left: 12px;
+      margin-top: -2px;
       margin-bottom: 0px;
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       color: var(--subtext-color);
       line-height: 1;
       white-space: nowrap;
       user-select: none;
-      vertical-align: bottom;
     }
 
     /* Chat Footer / Input */
@@ -202,7 +205,7 @@
       <div class="incoming-content-wrapper">
         <div class="small-avatar">J</div>
         <div class="msg-bubble incoming">
-          Hi there!
+          <span class="message-text">Hi there!</span>
           <span class="msg-meta-row">04:13 pm</span>
         </div>
       </div>
@@ -211,7 +214,7 @@
     <!-- Outgoing Message 1 -->
     <div class="message-row outgoing">
       <div class="msg-bubble outgoing">
-        Hello! How can I help you?
+        <span class="message-text">Hello! How can I help you?</span>
         <span class="msg-meta-row">04:13 pm</span>
       </div>
     </div>
@@ -222,7 +225,7 @@
       <div class="incoming-content-wrapper">
         <div class="small-avatar">M</div>
         <div class="msg-bubble incoming">
-          I have a question about the certificate.
+          <span class="message-text">I have a question about the certificate.</span>
           <span class="msg-meta-row">04:13 pm</span>
         </div>
       </div>
@@ -231,7 +234,7 @@
     <!-- Outgoing Message 2 -->
     <div class="message-row outgoing">
       <div class="msg-bubble outgoing">
-        Sure, go ahead and ask.
+        <span class="message-text">Sure, go ahead and ask.</span>
         <span class="msg-meta-row">04:13 pm</span>
       </div>
     </div>
