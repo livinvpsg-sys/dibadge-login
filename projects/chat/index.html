@@ -173,6 +173,10 @@
       color: #ffffff;
       font-size: 0.9rem;
       outline: none;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.35;
+      font-family: inherit;
     }
 
     .chat-send-btn {
@@ -256,18 +260,20 @@
     </div>
   </div>
 
-  <!-- Footer / Message Input Bar -->
+<!-- Footer / Message Input Bar -->
   <div class="chat-footer">
-    <input type="text" id="msgInput" class="chat-input" placeholder="Message" onkeyup="handleChatInputKey(event)">
+    <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
     <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
       <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
     </button>
   </div>
 
   <!-- JavaScript functionality wrapped properly inside script tags -->
-  <script>
+ <script>
     function handleChatInputKey(event) {
-      if (event.key === 'Enter') {
+      // If Enter is pressed WITHOUT Shift, send the message and prevent default newline behavior
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
         sendChatMessage();
       }
     }
@@ -299,6 +305,7 @@
         </div>
       `;
 
+      // Use textContent so multiple lines and formatting are safely preserved
       messageRow.querySelector(".message-text").textContent = text;
 
       chatContainer.appendChild(messageRow);
