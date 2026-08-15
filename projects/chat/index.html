@@ -21,22 +21,26 @@
       --paper-white: #f8f9fa;
     }
 
-body {
+html, body {
       margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: #ffffff;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      height: 100dvh; /* Uses dynamic viewport height to fit strictly inside the browser window */
+      max-height: 100dvh;
       overflow: hidden;
     }
 
     .dashboard-body-split {
       display: flex;
       flex: 1;
-      min-height: 0; /* Crucial for preventing flex child overflow */
+      min-height: 0;
+      height: 100%;
       position: relative;
+      overflow: hidden;
     }
 
     .left-vertical-tabbar {
@@ -116,9 +120,9 @@ body {
       background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 12px 20px 60px 20px; /* Generous bottom spacing */
+      padding: 12px 20px 16px 20px; /* Reduced bottom padding since dvh handles the viewport boundary cleanly */
       flex-direction: column;
-      min-height: 0; /* Prevents overflow past screen */
+      min-height: 0;
     }
     .workspace-pane.active {
       display: flex;
