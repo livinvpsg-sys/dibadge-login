@@ -428,48 +428,44 @@ html, body {
 
   <div class="dashboard-body-split">
 
-    <!-- Left Vertical Tab Bar connected to your project navigation structure -->
+   <!-- Left Vertical Tab Bar with Direct URL Redirections -->
     <aside class="left-vertical-tabbar">
       <div class="project-sub-nav">
-        <!-- 1. Folders (Navigates to project folder view or switches workspace) -->
-        <button class="tab-btn" id="btnFolder" onclick="switchWorkspace('folder')" title="Folders & Files">
+        <!-- 1. Folders: Redirects back to the main project folder view -->
+        <button class="tab-btn" onclick="location.href='https://www.dibadge.com/projects/'" title="Folders & Files">
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
         </button>
 
-        <!-- 2. Chats (Active Workspace) -->
-        <button class="tab-btn active" id="btnChat" onclick="switchWorkspace('chat')" title="Chats">
+        <!-- 2. Chats (Active on this screen) -->
+        <button class="tab-btn active" title="Chats">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         </button>
 
         <!-- 3. Forms -->
-        <button class="tab-btn" id="btnForms" onclick="switchWorkspace('forms')" title="Forms">
+        <button class="tab-btn" onclick="location.href='forms.html'" title="Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
 
-        <!-- 4. BOQ -->
-        <button class="tab-btn" id="btnBOQ" onclick="switchWorkspace('boq')" title="Bill of Quantity (BOQ)">
+        <!-- 4. BOQ: Redirects to the separate BOQ file/workspace -->
+        <button class="tab-btn" onclick="location.href='boq.html'" title="Bill of Quantity (BOQ)">
           <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px">BOQ</text></svg>
         </button>
 
         <!-- 5. Compare -->
-        <button class="tab-btn" title="Expense vs BOQ Comparison">
+        <button class="tab-btn" onclick="location.href='compare.html'" title="Expense vs BOQ Comparison">
           <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </button>
 
         <!-- 6. Claims -->
-        <button class="tab-btn" title="Claims">
+        <button class="tab-btn" onclick="location.href='claims.html'" title="Claims">
           <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
         </button>
 
         <!-- 7. Schedule -->
-        <button class="tab-btn" title="Schedule">
+        <button class="tab-btn" onclick="location.href='schedule.html'" title="Schedule">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </button>
       </div>
-
-      <button class="tab-btn fab-tab-btn" title="Create Action" onclick="location.href='https://www.dibadge.com/projects/'">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      </button>
     </aside>
 
     <!-- WORKSPACE 1: CHAT -->
