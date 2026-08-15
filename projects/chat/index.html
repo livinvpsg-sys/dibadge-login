@@ -118,11 +118,11 @@
       flex-shrink: 0;
     }
 
-    /* Exact WhatsApp Style Compact Bubble & Inverted Radius */
+    /* Ultra-thin Top & Bottom Padding Bubble */
     .msg-bubble {
       display: inline-block;
       max-width: 100%;
-      padding: 4px 8px 4px 8px; /* Extremely tight top and bottom spacing */
+      padding: 2px 8px 3px 8px; /* Extremely thin gaps 'a' and 'b' */
       font-size: 0.9rem;
       line-height: 1.35;
       word-break: break-word;
@@ -134,22 +134,23 @@
     .msg-bubble.incoming { 
       background: var(--chat-incoming-bg); 
       color: var(--chat-incoming-text); 
-      border-radius: 0px 14px 14px 14px; /* Inverted radius */
+      border-radius: 0px 14px 14px 14px; 
     }
     
     .msg-bubble.outgoing { 
       background: var(--chat-outgoing-bg); 
       color: var(--chat-outgoing-text); 
-      border-radius: 14px 0px 14px 14px; /* Inverted radius */
+      border-radius: 14px 0px 14px 14px; 
       font-weight: 500; 
     }
 
-    /* Tight inline timestamp styling sitting right next to/below text compactly */
+    /* Tight inline timestamp styling with zero extra bottom margin */
     .msg-meta-row {
       display: inline-block;
       float: right;
       margin-left: 8px;
-      margin-top: 4px; /* Keeps it tight right under/beside the text */
+      margin-top: 2px;
+      margin-bottom: 0px;
       font-size: 0.65rem;
       color: var(--subtext-color);
       line-height: 1;
