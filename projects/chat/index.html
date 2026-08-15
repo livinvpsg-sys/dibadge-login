@@ -21,22 +21,23 @@
       --paper-white: #f8f9fa;
     }
 
-    body {
+html, body {
       margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: #ffffff;
+      height: 100dvh; /* Uses dynamic viewport height to respect browser and OS taskbars */
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
     }
 
     /* Split Body Layout */
 .dashboard-body-split {
       display: flex;
       flex: 1;
-      height: calc(100vh - 64px);
+      height: 100%; /* Fills the remaining space perfectly without overflowing */
       overflow: hidden;
       position: relative;
     }
@@ -118,7 +119,7 @@
       background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 12px 20px 48px 20px; /* Added proper breathing room at the bottom */
+      padding: 12px 20px 20px 20px; /* Safe padding */
       flex-direction: column;
     }
     .workspace-pane.active {
