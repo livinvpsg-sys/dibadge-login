@@ -21,24 +21,21 @@
       --paper-white: #f8f9fa;
     }
 
-html, body {
+body {
       margin: 0;
-      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: #ffffff;
-      height: 100dvh; /* Uses dynamic viewport height to respect browser and OS taskbars */
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
     }
 
-    /* Split Body Layout */
-.dashboard-body-split {
+    .dashboard-body-split {
       display: flex;
       flex: 1;
-      height: 100%; /* Fills the remaining space perfectly without overflowing */
-      overflow: hidden;
+      min-height: 0; /* Crucial for preventing flex child overflow */
       position: relative;
     }
 
@@ -119,8 +116,9 @@ html, body {
       background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 12px 20px 20px 20px; /* Safe padding */
+      padding: 12px 20px 24px 20px; /* Generous bottom spacing */
       flex-direction: column;
+      min-height: 0; /* Prevents overflow past screen */
     }
     .workspace-pane.active {
       display: flex;
@@ -207,12 +205,13 @@ html, body {
 .chat-main-pane {
       width: 100%;
       height: 100%;
-      background: transparent; /* Removed the underlying slate layer background */
+      background: transparent;
       border: none;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       padding: 0;
+      min-height: 0;
     }
 
     /* Chat Header */
@@ -245,7 +244,7 @@ html, body {
     }
 
     /* Chat Container */
-   .chat-container {
+.chat-container {
       flex: 1;
       padding: 16px;
       overflow-y: auto;
@@ -253,6 +252,7 @@ html, body {
       flex-direction: column;
       gap: 12px;
       background-color: #000000;
+      min-height: 0; /* Allows container to shrink and stay inside viewport */
     }
 
     .date-divider {
@@ -356,7 +356,7 @@ html, body {
       display: flex;
       align-items: center;
       gap: 12px;
-      flex-shrink: 0;
+      flex-shrink: 0; /* Ensures input bar never shrinks or overlaps */
     }
     
  .chat-input {
