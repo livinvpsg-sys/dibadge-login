@@ -33,7 +33,7 @@
     }
 
     /* Split Body Layout */
-    .dashboard-body-split {
+ .dashboard-body-split {
       display: flex;
       flex: 1;
       height: calc(100vh - 64px);
@@ -111,14 +111,14 @@
     }
     
     /* Workspace Panes */
-    .workspace-pane {
+  .workspace-pane {
       display: none;
       flex: 1;
       height: 100%;
       background: var(--bg-color);
       position: relative;
       overflow: hidden;
-      padding: 24px;
+      padding: 12px 12px 20px 12px; /* Added bottom padding so the footer floats above the edge */
       flex-direction: column;
     }
     .workspace-pane.active {
