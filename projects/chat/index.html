@@ -82,48 +82,44 @@
     .msg-row.incoming .msg-body { align-items: flex-start; }
 
 /* WhatsApp Style Compact Bubble */
-   /* WhatsApp Style Compact Bubble */
-.msg-bubble {
-  display: inline-block;
-  max-width: 100%;
-  padding: 6px 10px; /* Adjusted padding for better spacing */
-  font-size: 0.875rem;
-  line-height: 1.35;
-  word-break: break-word;
-  white-space: pre-wrap;
-  text-align: left !important;
-  direction: ltr !important;
-  unicode-bidi: plaintext;
-  position: relative;
-  box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-}
+    .msg-bubble {
+      display: inline-block;
+      max-width: 100%;
+      padding: 5px 10px 6px 10px; /* Reduced vertical padding */
+      font-size: 0.9rem;
+      line-height: 1.35;
+      word-break: break-word;
+      white-space: pre-wrap;
+      position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    
+    .msg-bubble.incoming { 
+      background: var(--chat-incoming-bg); 
+      color: var(--chat-incoming-text); 
+      border-radius: 0px 14px 14px 14px; 
+    }
+    
+    .msg-bubble.outgoing { 
+      background: var(--chat-outgoing-bg); 
+      color: var(--chat-outgoing-text); 
+      border-radius: 14px 0px 14px 14px; 
+      font-weight: 500; 
+    }
 
-.msg-bubble.incoming { 
-  background: var(--chat-incoming-bg); 
-  color: var(--chat-incoming-text); 
-  border-radius: 0px 8px 8px 8px; /* Classic WhatsApp incoming shape */
-}
-
-.msg-bubble.outgoing { 
-  background: var(--chat-outgoing-bg); 
-  color: var(--chat-outgoing-text); 
-  border-radius: 8px 0px 8px 8px; /* Classic WhatsApp outgoing shape */
-  font-weight: 500; 
-}
-
-/* Inline Timestamp Styling */
-.msg-meta-row {
-  display: inline-flex;
-  float: right;
-  margin-left: 8px;
-  margin-top: 4px; /* Pushes it down slightly to sit nicely below/beside trailing text */
-  font-size: 0.65rem;
-  color: var(--subtext-color);
-  line-height: 1;
-  white-space: nowrap;
-  user-select: none;
-  vertical-align: bottom;
-}
+    /* Tight inline timestamp styling */
+    .msg-meta-row {
+      display: inline-block;
+      float: right;
+      margin-left: 8px;
+      margin-top: 2px;
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      line-height: 1;
+      white-space: nowrap;
+      user-select: none;
+      vertical-align: bottom;
+    }
     
     /* Visually Dimmed Mention Tags inside Bubbles */
     .mention-tag { color: var(--subtext-color); font-weight: 600; opacity: 0.65; }
