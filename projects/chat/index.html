@@ -118,52 +118,45 @@
       flex-shrink: 0;
     }
 
-    /* Ultra-thin padding for minimal gaps 'a' and 'b' */
- /* Ultra-thin padding with perfect breathing space */
-    .msg-bubble {
+    
+.msg-bubble { 
+      padding: 6px 10px; 
+      font-size: 0.9rem; 
+      line-height: 1.35; 
+      word-break: break-word; 
+      position: relative; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
       display: inline-block;
-      max-width: 100%;
-      padding: 4px 10px 4px 10px; 
-      font-size: 0.9rem;
-      line-height: 1.35;
-      word-break: break-word;
-      white-space: pre-wrap;
-      position: relative;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+      max-width: 320px;
     }
     
+    /* Incoming: sharp corner at bottom-left (14px 14px 14px 4px) */
     .msg-bubble.incoming { 
       background: var(--chat-incoming-bg); 
       color: var(--chat-incoming-text); 
-      border-radius: 0px 14px 14px 14px; 
+      border-radius: 14px 14px 14px 4px; 
     }
     
+    /* Outgoing: sharp corner at bottom-right (14px 14px 4px 14px) */
     .msg-bubble.outgoing { 
       background: var(--chat-outgoing-bg); 
       color: var(--chat-outgoing-text); 
-      border-radius: 14px 0px 14px 14px; 
+      border-radius: 14px 14px 4px 14px; 
       font-weight: 500; 
     }
 
-    .message-text {
-      display: inline;
-    }
-
-    /* Timestamp aligned compactly inline/right */
-    .msg-meta-row {
-      display: inline-block;
+    /* Tight inline timestamp right below text without giant gap */
+    .msg-meta-row { 
+      display: flex; 
+      align-items: center; 
+      justify-content: flex-end; 
+      gap: 4px; 
+      font-size: 0.65rem; 
+      color: var(--subtext-color); 
+      margin-top: 2px; 
       float: right;
-      clear: both;
-      margin-left: 10px;
-      margin-top: -2px;
-      margin-bottom: 0px;
-      font-size: 0.65rem;
-      color: var(--subtext-color);
-      line-height: 1;
-      white-space: nowrap;
-      user-select: none;
+      margin-left: 12px;
     }
-
     /* Chat Footer / Input */
     .chat-footer {
       background-color: var(--header-bg);
