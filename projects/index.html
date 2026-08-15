@@ -310,7 +310,7 @@
     </aside>
   </div>
 
-  <script>
+ <script>
     let activeOpenedProject = null;
     let folderObjectStack = [];
     let activeViewMode = 'projects';
@@ -341,15 +341,16 @@
       filterProjects();
     }
 
-    // Root-relative path redirection to separated pages
-   function openProjectChat() {
+    // Passes project ID to chat folder
+    function openProjectChat() {
       if (!activeOpenedProject) return;
-      window.location.href = `/projects/chat?id=${activeOpenedProject.id}`;
+      window.location.href = `chat/index.html?id=${activeOpenedProject.id}`;
     }
 
-  function openProjectBOQ() {
+    // Passes project ID to BOQ folder
+    function openProjectBOQ() {
       if (!activeOpenedProject) return;
-      window.location.href = `/projects/boq?id=${activeOpenedProject.id}`;
+      window.location.href = `boq/index.html?id=${activeOpenedProject.id}`;
     }
 
     function switchProjectDisplayMode(mode) {
@@ -462,6 +463,8 @@
         document.getElementById("defaultHeaderTitle").style.display = "flex";
         document.getElementById("projectSearchInput").style.display = "";
         document.getElementById("folderExplorerWorkspace").style.display = "none";
+        // Clean URL parameter when going back to main list
+        window.history.replaceState({}, document.title, window.location.pathname);
         switchMainViewTab('projects');
       } else {
         folderObjectStack = folderObjectStack.slice(0, targetIndex);
@@ -495,7 +498,18 @@
     function confirmDeleteProjectAction() {}
     function closeCustomDeleteProjectModal() {}
 
+    // Automatically check URL parameters on load to open the specific project tile if passed
     (function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('id');
+      if (projectId) {
+        const projects = getProjects();
+        const matchedProj = projects.find(p => p.id === projectId);
+        if (matchedProj) {
+          openProjectFolder(matchedProj);
+          return;
+        }
+      }
       filterProjects();
     })();
   </script>
