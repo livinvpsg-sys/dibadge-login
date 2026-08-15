@@ -12,7 +12,7 @@
       --chat-incoming-text: #ffffff;
       --chat-outgoing-bg: #ffffff;
       --chat-outgoing-text: #000000;
-      --subtext-color: #aaaaaa;
+      --subtext-color: #777777;
       --header-bg: #1f1f1f;
       --input-bg: #2a2a2a;
     }
@@ -118,14 +118,13 @@
       flex-shrink: 0;
     }
 
-    /* Ultra-thin Minimal Padding Bubble with tight internal flex */
+    /* Exact WhatsApp Style Bubble with balanced breathing padding */
     .msg-bubble {
-      display: inline-flex;
-      flex-direction: column;
+      display: inline-block;
       max-width: 100%;
-      padding: 2px 8px 2px 8px; /* Gap 'a' and 'b' reduced to absolute minimum */
+      padding: 6px 12px 6px 12px; /* Balanced breathing space for a and b */
       font-size: 0.9rem;
-      line-height: 1.2;
+      line-height: 1.4;
       word-break: break-word;
       white-space: pre-wrap;
       position: relative;
@@ -149,13 +148,15 @@
       display: inline;
     }
 
-    /* Timestamp aligned compactly inline/right with zero dead space */
+    /* Timestamp neatly aligned to the right like the reference image */
     .msg-meta-row {
-      align-self: flex-end;
-      margin-left: 12px;
-      margin-top: -2px;
+      display: inline-block;
+      float: right;
+      clear: both;
+      margin-left: 16px;
+      margin-top: 2px;
       margin-bottom: 0px;
-      font-size: 0.62rem;
+      font-size: 0.65rem;
       color: var(--subtext-color);
       line-height: 1;
       white-space: nowrap;
