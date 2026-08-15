@@ -62,7 +62,7 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .date-divider {
@@ -94,8 +94,8 @@
     .sender-name {
       font-size: 0.75rem;
       color: var(--subtext-color);
-      margin-bottom: 4px;
-      margin-left: 44px; /* Aligns name with the bubble, past the avatar width */
+      margin-bottom: 2px;
+      margin-left: 40px;
     }
 
     /* Avatar and Bubble Row */
@@ -106,8 +106,8 @@
     }
 
     .small-avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       background-color: #a1887f;
       border-radius: 50%;
       display: flex;
@@ -118,11 +118,11 @@
       flex-shrink: 0;
     }
 
-    /* WhatsApp Style Compact Bubble */
+    /* Exact WhatsApp Style Compact Bubble & Inverted Radius */
     .msg-bubble {
       display: inline-block;
       max-width: 100%;
-      padding: 6px 12px 6px 12px; /* Low top and bottom spacing */
+      padding: 4px 8px 4px 8px; /* Extremely tight top and bottom spacing */
       font-size: 0.9rem;
       line-height: 1.35;
       word-break: break-word;
@@ -134,25 +134,28 @@
     .msg-bubble.incoming { 
       background: var(--chat-incoming-bg); 
       color: var(--chat-incoming-text); 
-      border-radius: 0px 14px 14px 14px; 
+      border-radius: 0px 14px 14px 14px; /* Inverted radius */
     }
     
     .msg-bubble.outgoing { 
       background: var(--chat-outgoing-bg); 
       color: var(--chat-outgoing-text); 
-      border-radius: 14px 0px 14px 14px; 
+      border-radius: 14px 0px 14px 14px; /* Inverted radius */
       font-weight: 500; 
     }
 
-    /* Timestamp styling matching app design */
-    .msg-meta {
-      display: block;
-      text-align: right;
+    /* Tight inline timestamp styling sitting right next to/below text compactly */
+    .msg-meta-row {
+      display: inline-block;
+      float: right;
+      margin-left: 8px;
+      margin-top: 4px; /* Keeps it tight right under/beside the text */
       font-size: 0.65rem;
       color: var(--subtext-color);
-      margin-top: 2px;
-      user-select: none;
+      line-height: 1;
       white-space: nowrap;
+      user-select: none;
+      vertical-align: bottom;
     }
 
     /* Chat Footer / Input */
@@ -199,7 +202,7 @@
         <div class="small-avatar">J</div>
         <div class="msg-bubble incoming">
           Hi there!
-          <span class="msg-meta">04:13 pm</span>
+          <span class="msg-meta-row">04:13 pm</span>
         </div>
       </div>
     </div>
@@ -208,7 +211,7 @@
     <div class="message-row outgoing">
       <div class="msg-bubble outgoing">
         Hello! How can I help you?
-        <span class="msg-meta">04:13 pm</span>
+        <span class="msg-meta-row">04:13 pm</span>
       </div>
     </div>
 
@@ -219,7 +222,7 @@
         <div class="small-avatar">M</div>
         <div class="msg-bubble incoming">
           I have a question about the certificate.
-          <span class="msg-meta">04:13 pm</span>
+          <span class="msg-meta-row">04:13 pm</span>
         </div>
       </div>
     </div>
@@ -228,7 +231,7 @@
     <div class="message-row outgoing">
       <div class="msg-bubble outgoing">
         Sure, go ahead and ask.
-        <span class="msg-meta">04:13 pm</span>
+        <span class="msg-meta-row">04:13 pm</span>
       </div>
     </div>
   </div>
