@@ -115,10 +115,10 @@
       display: none;
       flex: 1;
       height: 100%;
-      background: var(--bg-color);
+      background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 12px 16px 28px 16px; /* Increased bottom padding */
+      padding: 16px 20px 40px 20px; /* Increased padding all around and bottom */
       flex-direction: column;
     }
     .workspace-pane.active {
@@ -253,6 +253,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      background-color: #000000; /* Solid pure black */
     }
 
     .date-divider {
@@ -352,11 +353,12 @@
     /* Chat Footer / Input */
 .chat-footer {
       background-color: var(--header-bg);
-      padding: 14px 20px; /* Increased padding inside footer */
+      padding: 16px 24px; /* Added more padding to the input bar */
       display: flex;
       align-items: center;
       gap: 12px;
     }
+    
     .chat-input {
       flex: 1;
       background-color: var(--input-bg);
