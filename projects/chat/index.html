@@ -33,7 +33,7 @@
     }
 
     /* Split Body Layout */
- .dashboard-body-split {
+.dashboard-body-split {
       display: flex;
       flex: 1;
       height: calc(100vh - 64px);
@@ -118,13 +118,12 @@
       background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 16px 24px 50px 24px; /* Increased bottom padding for more space */
+      padding: 12px 20px 48px 20px; /* Added proper breathing room at the bottom */
       flex-direction: column;
     }
     .workspace-pane.active {
       display: flex;
     }
-
     /* Project Meta Banner */
     .project-meta-banner {
       background: var(--slate-surface);
@@ -245,14 +244,14 @@
     }
 
     /* Chat Container */
-    .chat-container {
+   .chat-container {
       flex: 1;
       padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background-color: #000000; /* Solid pure black */
+      background-color: #000000;
     }
 
     .date-divider {
@@ -351,16 +350,17 @@
 
     /* Chat Footer / Input */
 .chat-footer {
-      background-color: transparent; /* Removes background wrapper box */
+      background-color: transparent;
       padding: 12px 0 0 0;
       display: flex;
       align-items: center;
       gap: 12px;
+      flex-shrink: 0;
     }
     
-  .chat-input {
+ .chat-input {
       flex: 1;
-      background-color: #1e1e1e; /* Slate charcoal color matching theme */
+      background-color: var(--slate-surface, #1e1e1e); /* Slate color */
       border: 1px solid var(--border-color);
       border-radius: 24px;
       padding: 12px 18px;
@@ -374,7 +374,7 @@
     }
 
     .chat-send-btn {
-      background-color: #1e1e1e; /* Slate charcoal color */
+      background-color: var(--slate-surface, #1e1e1e); /* Slate color */
       border: 1px solid var(--border-color);
       width: 44px;
       height: 44px;
@@ -385,10 +385,12 @@
       cursor: pointer;
       color: #ffffff;
       transition: background 0.15s;
+      flex-shrink: 0;
     }
     .chat-send-btn:hover {
-      background-color: #2a2a2a;
+      background-color: #2c2c2e;
     }
+    
     .chat-send-btn svg {
       width: 18px;
       height: 18px;
