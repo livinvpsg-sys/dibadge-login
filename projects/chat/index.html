@@ -118,8 +118,7 @@
       flex-shrink: 0;
     }
 
-    
-.msg-bubble { 
+    .msg-bubble { 
       padding: 6px 10px; 
       font-size: 0.9rem; 
       line-height: 1.35; 
@@ -146,7 +145,7 @@
     }
 
     /* Tight inline timestamp right below text without giant gap */
-  .msg-meta-row { 
+    .msg-meta-row { 
       display: flex; 
       align-items: center; 
       justify-content: flex-end; 
@@ -156,6 +155,7 @@
       margin-top: 2px; 
       align-self: flex-end;
     }
+
     /* Chat Footer / Input */
     .chat-footer {
       background-color: var(--header-bg);
@@ -176,27 +176,26 @@
     }
 
     .chat-send-btn {
-  background-color: #2a2a2a;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #ffffff;
-  transition: background 0.15s;
-}
-.chat-send-btn:hover {
-  background-color: #3a3a3a;
-}
-.chat-send-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-    
+      background-color: #2a2a2a;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ffffff;
+      transition: background 0.15s;
+    }
+    .chat-send-btn:hover {
+      background-color: #3a3a3a;
+    }
+    .chat-send-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
   </style>
 </head>
 <body>
@@ -211,7 +210,7 @@
   </div>
 
   <!-- Chat Body -->
-  <div class="chat-container">
+  <div class="chat-container" id="chatContainer">
     <div class="date-divider">
       <span class="date-badge">Today</span>
     </div>
@@ -259,12 +258,54 @@
 
   <!-- Footer / Message Input Bar -->
   <div class="chat-footer">
-    <input type="text" class="chat-input" placeholder="Message">
+    <input type="text" id="msgInput" class="chat-input" placeholder="Message" onkeyup="handleChatInputKey(event)">
+    <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
+    </button>
   </div>
 
-<button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
-  <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
-</button>
-  
+  <!-- JavaScript functionality wrapped properly inside script tags -->
+  <script>
+    function handleChatInputKey(event) {
+      if (event.key === 'Enter') {
+        sendChatMessage();
+      }
+    }
+
+    function sendChatMessage() {
+      const inputField = document.getElementById("msgInput");
+      const text = inputField.value.trim();
+      
+      if (!text) return;
+
+      const chatContainer = document.getElementById("chatContainer");
+
+      // Generate current timestamp
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+
+      // Create message element
+      const messageRow = document.createElement("div");
+      messageRow.className = "message-row outgoing";
+
+      messageRow.innerHTML = `
+        <div class="msg-bubble outgoing">
+          <span class="message-text"></span>
+          <span class="msg-meta-row">${timeString}</span>
+        </div>
+      `;
+
+      messageRow.querySelector(".message-text").textContent = text;
+
+      chatContainer.appendChild(messageRow);
+      inputField.value = "";
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  </script>
+
 </body>
 </html>
