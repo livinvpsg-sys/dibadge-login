@@ -445,6 +445,7 @@ html, body {
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
     .media-grid-item img, 
     .media-grid-item video {
@@ -726,8 +727,9 @@ html, body {
     }
  .doc-name {
       font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--chat-outgoing-text, #000000); /* Dark text for white outgoing bubble */
+      font-weight: 500;
+      color: var(--chat-outgoing-text, #000000);
+      opacity: 0.6;
       white-space: normal;
       word-break: break-all;
     }
@@ -865,6 +867,55 @@ html, body {
     }
     .preview-fab-btn:hover {
       transform: scale(1.05);
+    }
+
+    /* Fullscreen media viewer (WhatsApp / Telegram style tap-to-open) */
+    .media-viewer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.96);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-overlay.active {
+      display: flex;
+    }
+    .media-viewer-content {
+      max-width: 95vw;
+      max-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-content img,
+    .media-viewer-content video {
+      max-width: 95vw;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .media-viewer-close {
+      position: absolute;
+      top: max(16px, env(safe-area-inset-top, 0px));
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #ffffff;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+    .media-viewer-close:hover {
+      background: rgba(255, 255, 255, 0.25);
     }
     
   </style>
@@ -1035,6 +1086,12 @@ html, body {
 
   </div>
 
+  <!-- Fullscreen media viewer, opened on tapping an image/video in chat -->
+  <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="closeMediaViewer()">
+    <button class="media-viewer-close" onclick="event.stopPropagation(); closeMediaViewer()" title="Close">✕</button>
+    <div class="media-viewer-content" id="mediaViewerContent" onclick="event.stopPropagation()"></div>
+  </div>
+
   <script>
     function handleChatInputKey(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
@@ -1056,6 +1113,24 @@ html, body {
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    function openMediaViewer(url, type) {
+      const overlay = document.getElementById('mediaViewerOverlay');
+      const content = document.getElementById('mediaViewerContent');
+      content.innerHTML = type === 'Video'
+        ? `<video src="${url}" controls autoplay playsinline></video>`
+        : `<img src="${url}" alt="media">`;
+      overlay.classList.add('active');
+    }
+
+    function closeMediaViewer() {
+      const overlay = document.getElementById('mediaViewerOverlay');
+      const content = document.getElementById('mediaViewerContent');
+      const video = content.querySelector('video');
+      if (video) video.pause();
+      overlay.classList.remove('active');
+      content.innerHTML = '';
     }
 
   function setAppHeight() {
@@ -1232,9 +1307,9 @@ function renderPreviewTray() {
         selectedStagedFiles.forEach(file => {
           const objectUrl = URL.createObjectURL(file);
           if (activeUploadType === 'Image') {
-            mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${objectUrl}', 'Image')"><img src="${objectUrl}" alt="attachment"></div>`;
           } else if (activeUploadType === 'Video') {
-            mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${objectUrl}', 'Video')"><video src="${objectUrl}"></video></div>`;
           } else if (activeUploadType === 'Audio') {
             mediaItemsHtml += `
               <div class="doc-tile-row">
