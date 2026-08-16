@@ -1019,13 +1019,11 @@ function handleFilesSelected(input, type) {
               <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
               <div class="doc-info">
                 <span class="doc-name">${file.name}</span>
-                <span class="doc-meta">Audio File</span>
               </div>
             </div>`;
         } else {
-          // Dynamic extension check with fallback for any unassigned type
           const ext = file.name.split('.').pop().toLowerCase();
-          let badgeColor = '#607d8b'; // default slate color for other extensions
+          let badgeColor = '#607d8b';
           let label = ext ? ext.toUpperCase() : 'FILE';
 
           if (['pdf'].includes(ext)) { badgeColor = '#f44336'; }
@@ -1040,7 +1038,6 @@ function handleFilesSelected(input, type) {
               <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
               <div class="doc-info">
                 <span class="doc-name">${file.name}</span>
-                <span class="doc-meta">${label} Document</span>
               </div>
             </a>`;
         }
