@@ -642,48 +642,59 @@ html, body {
     }
 
 .attachment-popup {
-      position: absolute;
-      bottom: 75px;
-      left: 50%;
-      transform: translateX(-50%); /* Centers popup relative to input box */
+      position: fixed;
       background-color: var(--slate-surface, #1e1e1e);
       border: 1px solid var(--border-color);
       border-radius: 16px;
-      padding: 12px 18px; /* Reduced padding for smaller size */
-      display: none;
-      align-items: center;
-      gap: 16px; /* Reduced gap */
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.85);
+      transform-origin: bottom center;
+      transition: transform 0.16s ease, opacity 0.16s ease;
     }
     .attachment-popup.active {
-      display: flex;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1);
     }
     .attach-option {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      gap: 6px;
+      gap: 12px;
+      padding: 7px 14px 7px 8px;
+      border-radius: 10px;
       cursor: pointer;
       user-select: none;
+      transition: background 0.15s;
+    }
+    .attach-option:hover {
+      background: rgba(255, 255, 255, 0.07);
     }
     .attach-icon-circle {
-      width: 42px; /* Smaller icon circles */
-      height: 42px;
+      width: 38px; /* Smaller icon circles */
+      height: 38px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-      transition: transform 0.15s;
-    }
-    .attach-option:hover .attach-icon-circle {
-      transform: scale(1.08);
+      flex-shrink: 0;
     }
     .attach-option span {
-      font-size: 0.72rem;
+      font-size: 0.82rem;
       color: #ffffff;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     /* Document Tile Layout inside Bubble */
@@ -1291,7 +1302,47 @@ html, body {
 function toggleAttachmentPopup(event) {
       event.stopPropagation();
       const popup = document.getElementById("attachmentPopup");
-      popup.classList.toggle("active");
+      if (popup.classList.contains('active')) {
+        popup.classList.remove('active');
+        return;
+      }
+      positionAttachmentPopup();
+      popup.classList.add('active');
+    }
+
+    function positionAttachmentPopup() {
+      const popup = document.getElementById("attachmentPopup");
+      const attachBtn = document.getElementById("attachBtn");
+      const plusBtn = document.getElementById("previewPlusBtn");
+      // Whichever trigger icon is currently shown is the one the popup should anchor to
+      const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
+      if (!triggerBtn) return;
+
+      const gap = 10;
+      const btnRect = triggerBtn.getBoundingClientRect();
+
+      // Measure the popup's own size first (off-screen) so we can center it on the icon
+      popup.style.left = '-9999px';
+      popup.style.top = '-9999px';
+      popup.style.visibility = 'hidden';
+      popup.style.pointerEvents = 'none';
+      popup.classList.add('active');
+      const popupRect = popup.getBoundingClientRect();
+      popup.classList.remove('active');
+      popup.style.visibility = '';
+      popup.style.pointerEvents = '';
+
+      let left = btnRect.left + (btnRect.width / 2) - (popupRect.width / 2);
+      left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
+      const top = btnRect.top - popupRect.height - gap;
+
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+
+      // Keep the scale-in animation anchored to the icon's actual horizontal position,
+      // even if the popup itself had to shift left/right to stay on screen
+      const originX = (btnRect.left + btnRect.width / 2) - left;
+      popup.style.transformOrigin = `${originX}px 100%`;
     }
 
     // Close popup when clicking outside
