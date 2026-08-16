@@ -1207,7 +1207,7 @@ html, body {
             <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
             <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
             <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
-            <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
+            <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.json,.xml,.zip,.rar,.7z,.tar,.gz" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
 
             <!-- Plus Button (Appears in place of paperclip when files are staged) -->
             <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
@@ -1504,6 +1504,14 @@ function toggleAttachmentPopup(event) {
 
 let selectedStagedFiles = [];
     let activeUploadType = 'Image';
+    let stagedFileUrlMap = new Map(); // File -> object URL, created once per file, not per render
+
+    function getStagedFileUrl(file) {
+      if (!stagedFileUrlMap.has(file)) {
+        stagedFileUrlMap.set(file, URL.createObjectURL(file));
+      }
+      return stagedFileUrlMap.get(file);
+    }
 
     function handleFilesSelected(input, type) {
       const files = input.files;
@@ -1527,11 +1535,22 @@ function openFilePicker() {
     }
 
     function removeStagedFile(index) {
+      const file = selectedStagedFiles[index];
+      if (file && stagedFileUrlMap.has(file)) {
+        URL.revokeObjectURL(stagedFileUrlMap.get(file));
+        stagedFileUrlMap.delete(file);
+      }
       selectedStagedFiles.splice(index, 1);
       renderPreviewTray();
     }
 
     function clearAllStagedFiles() {
+      selectedStagedFiles.forEach(file => {
+        if (stagedFileUrlMap.has(file)) {
+          URL.revokeObjectURL(stagedFileUrlMap.get(file));
+          stagedFileUrlMap.delete(file);
+        }
+      });
       selectedStagedFiles = [];
       renderPreviewTray();
     }
@@ -1566,14 +1585,14 @@ function renderPreviewTray() {
    let stagedGalleryId = null;
       if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
         const galleryItems = selectedStagedFiles.map(f => ({
-          url: URL.createObjectURL(f),
+          url: getStagedFileUrl(f),
           type: activeUploadType
         }));
         stagedGalleryId = registerGallery(galleryItems);
       }
 
       selectedStagedFiles.forEach((file, index) => {
-        const objectUrl = stagedGalleryId ? mediaGalleries[stagedGalleryId][index].url : URL.createObjectURL(file);
+        const objectUrl = getStagedFileUrl(file);
         const tile = document.createElement("div");
 
         if (activeUploadType === 'Image') {
@@ -1644,14 +1663,14 @@ function renderPreviewTray() {
       let sentGalleryId = null;
         if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
           const galleryItems = selectedStagedFiles.map(f => ({
-            url: URL.createObjectURL(f),
+            url: getStagedFileUrl(f),
             type: activeUploadType
           }));
           sentGalleryId = registerGallery(galleryItems);
         }
 
         selectedStagedFiles.forEach((file, idx) => {
-          const objectUrl = sentGalleryId ? mediaGalleries[sentGalleryId][idx].url : URL.createObjectURL(file);
+          const objectUrl = getStagedFileUrl(file);
           if (activeUploadType === 'Image') {
             mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><img src="${objectUrl}" alt="attachment"></div>`;
           } else if (activeUploadType === 'Video') {
@@ -1719,8 +1738,12 @@ function renderPreviewTray() {
       chatContainer.appendChild(messageRow);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Clear both the input and any staged files together
+      // Clear both the input and any staged files together.
+      // Note: for a sent message, ownership of its object URLs transfers to the message
+      // bubble (they must stay alive to keep displaying), so we only drop the map entries
+      // here — we do NOT revoke, unlike clearAllStagedFiles()/removeStagedFile() which discard unsent files.
       inputField.value = "";
+      selectedStagedFiles.forEach(file => stagedFileUrlMap.delete(file));
       selectedStagedFiles = [];
       renderPreviewTray();
     }
