@@ -708,12 +708,12 @@ html, body {
       flex-direction: column;
       overflow: hidden;
     }
-   .doc-name {
+ .doc-name {
       font-size: 0.85rem;
       font-weight: 600;
-      color: #ffffff;
-      white-space: normal; /* Allows text to wrap to the next line */
-      word-break: break-all; /* Breaks long file names correctly */
+      color: var(--chat-outgoing-text, #000000); /* Dark text for white outgoing bubble */
+      white-space: normal;
+      word-break: break-all;
     }
     .doc-meta {
       font-size: 0.68rem;
