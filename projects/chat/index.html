@@ -708,13 +708,12 @@ html, body {
       flex-direction: column;
       overflow: hidden;
     }
-    .doc-name {
+   .doc-name {
       font-size: 0.85rem;
       font-weight: 600;
       color: #ffffff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal; /* Allows text to wrap to the next line */
+      word-break: break-all; /* Breaks long file names correctly */
     }
     .doc-meta {
       font-size: 0.68rem;
