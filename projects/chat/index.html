@@ -808,6 +808,32 @@ html, body {
       align-items: center;
       justify-content: center;
     }
+    /* Half-width tile fixed to the left of the tray — clears every staged attachment at once */
+    .preview-clear-tile {
+      width: 46px;
+      height: 92px;
+      border-radius: 12px;
+      background: #2a2a2a;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .preview-clear-tile:hover {
+      background: #3a3a3a;
+    }
+    .preview-clear-tile svg {
+      width: 16px;
+      height: 16px;
+      stroke: #ffffff;
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
     .preview-tile img, .preview-tile video {
       width: 100%;
       height: 100%;
@@ -1385,6 +1411,11 @@ function openFilePicker() {
       renderPreviewTray();
     }
 
+    function clearAllStagedFiles() {
+      selectedStagedFiles = [];
+      renderPreviewTray();
+    }
+
 function renderPreviewTray() {
       const tray = document.getElementById("filePreviewTray");
       const container = document.getElementById("previewScrollContainer");
@@ -1402,6 +1433,14 @@ function renderPreviewTray() {
       tray.classList.add('active');
       if (plusBtn) plusBtn.style.display = 'flex';
       if (attachBtn) attachBtn.style.display = 'none';
+
+      // Fixed half-width tile at the left — clears every staged file in one tap
+      const clearTile = document.createElement("div");
+      clearTile.className = "preview-clear-tile";
+      clearTile.title = "Remove all";
+      clearTile.innerHTML = `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+      clearTile.onclick = () => clearAllStagedFiles();
+      container.appendChild(clearTile);
 
       // Build a gallery so staged images/videos can be swiped through, same as sent media
       let stagedGalleryId = null;
