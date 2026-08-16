@@ -742,6 +742,21 @@ html, body {
       padding: 2px 6px 2px 0;
     }
 
+    /* Caption text shown under attached media/files, when a message sent together with text */
+    .media-caption {
+      padding: 6px 10px 0 10px;
+      font-size: 0.9rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .media-time-row {
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      text-align: right;
+      padding: 2px 8px 4px 0;
+    }
+
     /* File Preview Tray above footer */
 .file-preview-tray {
       display: none;
@@ -1010,7 +1025,7 @@ html, body {
               <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
             </div>
 
-            <button class="chat-send-btn" onclick="sendPreviewedFiles()" title="Send">
+            <button class="chat-send-btn" onclick="sendMessage()" title="Send">
               <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
             </button>
           </div>
@@ -1024,40 +1039,23 @@ html, body {
     function handleChatInputKey(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
-        sendChatMessage();
+        sendMessage();
       }
     }
 
-    function sendChatMessage() {
-      const inputField = document.getElementById("msgInput");
-      const text = inputField.value.trim();
-      
-      if (!text) return;
-
-      const chatContainer = document.getElementById("chatContainer");
-
+    function getTimeString() {
       const now = new Date();
       let hours = now.getHours();
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const ampm = hours >= 12 ? 'pm' : 'am';
       hours = hours % 12 || 12;
-      const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
 
-      const messageRow = document.createElement("div");
-      messageRow.className = "message-row outgoing";
-
-      messageRow.innerHTML = `
-        <div class="msg-bubble outgoing">
-          <span class="message-text"></span>
-          <span class="msg-meta-row">${timeString}</span>
-        </div>
-      `;
-
-      messageRow.querySelector(".message-text").textContent = text;
-
-      chatContainer.appendChild(messageRow);
-      inputField.value = "";
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
     }
 
   function setAppHeight() {
@@ -1213,74 +1211,92 @@ function renderPreviewTray() {
       });
     }
 
-    function sendPreviewedFiles() {
-      if (selectedStagedFiles.length === 0) return;
+    function sendMessage() {
+      const inputField = document.getElementById("msgInput");
+      const text = inputField.value.trim();
+      const hasFiles = selectedStagedFiles.length > 0;
+
+      if (!text && !hasFiles) return;
 
       const chatContainer = document.getElementById("chatContainer");
-      const now = new Date();
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'pm' : 'am';
-      hours = hours % 12 || 12;
-      const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
-
+      const timeString = getTimeString();
       const messageRow = document.createElement("div");
       messageRow.className = "message-row outgoing";
 
-      let mediaItemsHtml = '';
-      const count = selectedStagedFiles.length;
+      if (hasFiles) {
+        // Build the media/file content, then attach the text (if any) as a caption
+        // inside the SAME bubble, so both go out together.
+        let mediaItemsHtml = '';
+        const count = selectedStagedFiles.length;
 
-      selectedStagedFiles.forEach(file => {
-        const objectUrl = URL.createObjectURL(file);
-        if (activeUploadType === 'Image') {
-          mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
-        } else if (activeUploadType === 'Video') {
-          mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
-        } else if (activeUploadType === 'Audio') {
-          mediaItemsHtml += `
-            <div class="doc-tile-row">
-              <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
-              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-            </div>`;
+        selectedStagedFiles.forEach(file => {
+          const objectUrl = URL.createObjectURL(file);
+          if (activeUploadType === 'Image') {
+            mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
+          } else if (activeUploadType === 'Video') {
+            mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
+          } else if (activeUploadType === 'Audio') {
+            mediaItemsHtml += `
+              <div class="doc-tile-row">
+                <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
+                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+              </div>`;
+          } else {
+            const ext = file.name.split('.').pop().toLowerCase();
+            let badgeColor = '#607d8b';
+            let label = ext ? ext.toUpperCase() : 'FILE';
+            if (['pdf'].includes(ext)) badgeColor = '#f44336';
+            else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+            else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+            else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+
+            mediaItemsHtml += `
+              <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
+                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+              </a>`;
+          }
+        });
+
+        const captionHtml = text ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
+        let contentLayout = '';
+
+        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+          let gridClass = 'media-grid-1';
+          if (count === 2) gridClass = 'media-grid-2';
+          else if (count >= 3) gridClass = 'media-grid-3';
+
+          // If there's a caption, show the time under it instead of overlaid on the media
+          contentLayout = `
+            <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
+            ${captionHtml}
+            ${text ? `<div class="media-time-row">${timeString}</div>` : `<div class="media-time-overlay">${timeString}</div>`}
+          `;
         } else {
-          const ext = file.name.split('.').pop().toLowerCase();
-          let badgeColor = '#607d8b';
-          let label = ext ? ext.toUpperCase() : 'FILE';
-          if (['pdf'].includes(ext)) badgeColor = '#f44336';
-          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
-          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
-          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
-
-          mediaItemsHtml += `
-            <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
-              <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
-              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-            </a>`;
+          contentLayout = `
+            <div class="doc-list-container">${mediaItemsHtml}</div>
+            ${captionHtml}
+            <div class="doc-time-row">${timeString}</div>
+          `;
         }
-      });
 
-      let contentLayout = '';
-      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
-        let gridClass = 'media-grid-1';
-        if (count === 2) gridClass = 'media-grid-2';
-        else if (count >= 3) gridClass = 'media-grid-3';
-
-        contentLayout = `
-          <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
-          <div class="media-time-overlay">${timeString}</div>
-        `;
+        messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
       } else {
-        contentLayout = `
-          <div class="doc-list-container">${mediaItemsHtml}</div>
-          <div class="doc-time-row">${timeString}</div>
+        // Text-only message
+        messageRow.innerHTML = `
+          <div class="msg-bubble outgoing">
+            <span class="message-text"></span>
+            <span class="msg-meta-row">${timeString}</span>
+          </div>
         `;
+        messageRow.querySelector(".message-text").textContent = text;
       }
 
-      messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
       chatContainer.appendChild(messageRow);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Clear staged files and close preview tray
+      // Clear both the input and any staged files together
+      inputField.value = "";
       selectedStagedFiles = [];
       renderPreviewTray();
     }
