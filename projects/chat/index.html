@@ -1345,22 +1345,22 @@ function toggleAttachmentPopup(event) {
       popup.classList.add('active');
     }
 
-    function positionAttachmentPopup() {
+   function positionAttachmentPopup() {
       const popup = document.getElementById("attachmentPopup");
       const attachBtn = document.getElementById("attachBtn");
       const plusBtn = document.getElementById("previewPlusBtn");
-      const footer = document.querySelector(".chat-footer");
-      // Whichever trigger icon is currently shown is the one the popup should anchor to
-      const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
+      
+      // Determine which button is currently active/displayed on screen
+      let triggerBtn = attachBtn;
+      if (attachBtn && window.getComputedStyle(attachBtn).display === 'none') {
+        triggerBtn = plusBtn;
+      }
       if (!triggerBtn) return;
 
-      const gap = 44;
+      const gap = 44; // Distance above the button bar
       const btnRect = triggerBtn.getBoundingClientRect();
-      // Clear the whole footer bar (icons + input + send button), not just the icon itself
-      const footerRect = footer ? footer.getBoundingClientRect() : btnRect;
-      const clearAboveY = Math.min(btnRect.top, footerRect.top);
 
-      // Measure the popup's own size first (off-screen) so we can size/clamp it correctly
+      // Temporarily make popup active to measure its dimensions accurately
       popup.style.left = '-9999px';
       popup.style.top = '-9999px';
       popup.style.visibility = 'hidden';
@@ -1371,16 +1371,16 @@ function toggleAttachmentPopup(event) {
       popup.style.visibility = '';
       popup.style.pointerEvents = '';
 
-      // Left edge of the popup starts flush with the left edge of the icon
+      // Align left edge with the button, clamping within viewport bounds
       let left = btnRect.left;
       left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
-      const top = clearAboveY - popupRect.height - gap;
+      
+      // Position cleanly above the button
+      const top = btnRect.top - popupRect.height - gap;
 
       popup.style.left = left + 'px';
       popup.style.top = top + 'px';
 
-      // Keep the scale-in animation anchored to the icon's actual horizontal position,
-      // even if the popup itself had to shift left/right to stay on screen
       const originX = (btnRect.left + btnRect.width / 2) - left;
       popup.style.transformOrigin = `${originX}px 100%`;
     }
