@@ -668,6 +668,64 @@ html, body {
       color: #ffffff;
       font-weight: 500;
     }
+
+    /* Document Tile Layout inside Bubble */
+    .doc-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px;
+      min-width: 240px;
+    }
+    .doc-tile-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .doc-tile-row:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+    .doc-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .doc-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .doc-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .doc-meta {
+      font-size: 0.68rem;
+      color: var(--subtext-color);
+    }
+    .doc-time-row {
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      text-align: right;
+      padding: 2px 6px 2px 0;
+    }
     
   </style>
 </head>
@@ -955,22 +1013,63 @@ function handleFilesSelected(input, type) {
           mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
         } else if (type === 'Video') {
           mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
+        } else if (type === 'Audio') {
+          mediaItemsHtml += `
+            <div class="doc-tile-row">
+              <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
+              <div class="doc-info">
+                <span class="doc-name">${file.name}</span>
+                <span class="doc-meta">Audio File</span>
+              </div>
+            </div>`;
         } else {
-          mediaItemsHtml += `<div class="media-grid-item file-tile">📁 ${file.name}</div>`;
+          // Dynamic extension check with fallback for any unassigned type
+          const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b'; // default slate color for other extensions
+          let label = ext ? ext.toUpperCase() : 'FILE';
+
+          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; }
+          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; }
+          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; }
+          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; }
+          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; }
+          else if (['zip', 'rar', '7z'].includes(ext)) { badgeColor = '#ab47bc'; }
+
+          mediaItemsHtml += `
+            <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
+              <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+              <div class="doc-info">
+                <span class="doc-name">${file.name}</span>
+                <span class="doc-meta">${label} Document</span>
+              </div>
+            </a>`;
         }
       }
 
-      // Determine grid columns class based on count (max 3 per row)
-      let gridClass = 'media-grid-1';
-      if (count === 2) gridClass = 'media-grid-2';
-      else if (count >= 3) gridClass = 'media-grid-3';
+      let contentLayout = '';
+      if (type === 'Image' || type === 'Video') {
+        let gridClass = 'media-grid-1';
+        if (count === 2) gridClass = 'media-grid-2';
+        else if (count >= 3) gridClass = 'media-grid-3';
 
-      messageRow.innerHTML = `
-        <div class="msg-bubble outgoing media-bubble">
+        contentLayout = `
           <div class="media-grid ${gridClass}">
             ${mediaItemsHtml}
           </div>
           <div class="media-time-overlay">${timeString}</div>
+        `;
+      } else {
+        contentLayout = `
+          <div class="doc-list-container">
+            ${mediaItemsHtml}
+          </div>
+          <div class="doc-time-row">${timeString}</div>
+        `;
+      }
+
+      messageRow.innerHTML = `
+        <div class="msg-bubble outgoing media-bubble">
+          ${contentLayout}
         </div>
       `;
 
