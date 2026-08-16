@@ -506,6 +506,17 @@ html, body {
       align-self: flex-end;
     }
 
+    <!-- File Preview Tray (Appears above input when files are selected) -->
+        <div class="file-preview-tray" id="filePreviewTray">
+          <div class="preview-scroll-container" id="previewScrollContainer">
+            <!-- Dynamic Preview Tiles will be inserted here -->
+          </div>
+          <!-- FAB Add Button on the right -->
+          <button class="preview-fab-btn" onclick="openFilePicker()" title="Add More">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+
     /* Chat Footer / Input */
 .chat-footer {
       background-color: transparent;
@@ -725,6 +736,113 @@ html, body {
       text-align: right;
       padding: 2px 6px 2px 0;
     }
+
+    /* File Preview Tray above footer */
+    .file-preview-tray {
+      display: none;
+      background: var(--slate-surface, #1e1e1e);
+      border-top: 1px solid var(--border-color);
+      padding: 12px 16px;
+      gap: 12px;
+      align-items: center;
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .file-preview-tray.active {
+      display: flex;
+    }
+    .preview-scroll-container {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      flex: 1;
+      align-items: center;
+    }
+    .preview-tile {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-tile img, .preview-tile video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-tile-doc {
+      background: #2a2a2a;
+      width: 72px;
+      height: 72px;
+      padding: 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-doc-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      font-size: 0.6rem;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .preview-doc-name {
+      font-size: 0.55rem;
+      color: #fff;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-remove-btn {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-fab-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--chat-outgoing-bg, #ffffff);
+      color: var(--chat-outgoing-text, #000000);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.15s;
+    }
+    .preview-fab-btn:hover {
+      transform: scale(1.05);
+    }
     
   </style>
 </head>
@@ -868,7 +986,7 @@ html, body {
             <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
           </div>
 
-          <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
+        <button class="chat-send-btn" onclick="sendPreviewedFiles()" title="Send">
             <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
           </button>
         </div>
@@ -986,9 +1104,86 @@ function toggleAttachmentPopup(event) {
       }
     });
 
-function handleFilesSelected(input, type) {
+let selectedStagedFiles = [];
+    let activeUploadType = 'Image';
+
+    function handleFilesSelected(input, type) {
       const files = input.files;
       if (!files || files.length === 0) return;
+
+      activeUploadType = type;
+      for (let i = 0; i < files.length; i++) {
+        selectedStagedFiles.push(files[i]);
+      }
+
+      renderPreviewTray();
+      document.getElementById("attachmentPopup").classList.remove('active');
+      input.value = '';
+    }
+
+    function openFilePicker() {
+      if (activeUploadType === 'Image') document.getElementById('imageInput').click();
+      else if (activeUploadType === 'Video') document.getElementById('videoInput').click();
+      else if (activeUploadType === 'Audio') document.getElementById('audioInput').click();
+      else document.getElementById('documentInput').click();
+    }
+
+    function removeStagedFile(index) {
+      selectedStagedFiles.splice(index, 1);
+      renderPreviewTray();
+    }
+
+    function renderPreviewTray() {
+      const tray = document.getElementById("filePreviewTray");
+      const container = document.getElementById("previewScrollContainer");
+      container.innerHTML = '';
+
+      if (selectedStagedFiles.length === 0) {
+        tray.classList.remove('active');
+        return;
+      }
+
+      tray.classList.add('active');
+
+      selectedStagedFiles.forEach((file, index) => {
+        const objectUrl = URL.createObjectURL(file);
+        const tile = document.createElement("div");
+
+        if (activeUploadType === 'Image') {
+          tile.className = "preview-tile";
+          tile.innerHTML = `
+            <img src="${objectUrl}" alt="preview">
+            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+          `;
+        } else if (activeUploadType === 'Video') {
+          tile.className = "preview-tile";
+          tile.innerHTML = `
+            <video src="${objectUrl}"></video>
+            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+          `;
+        } else {
+          const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b';
+          let label = ext ? ext.toUpperCase() : 'FILE';
+          if (['pdf'].includes(ext)) badgeColor = '#f44336';
+          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+
+          tile.className = "preview-tile preview-tile-doc";
+          tile.innerHTML = `
+            <div class="preview-doc-icon" style="background: ${badgeColor};">${label}</div>
+            <span class="preview-doc-name">${file.name}</span>
+            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+          `;
+        }
+
+        container.appendChild(tile);
+      });
+    }
+
+    function sendPreviewedFiles() {
+      if (selectedStagedFiles.length === 0) return;
 
       const chatContainer = document.getElementById("chatContainer");
       const now = new Date();
@@ -1002,78 +1197,70 @@ function handleFilesSelected(input, type) {
       messageRow.className = "message-row outgoing";
 
       let mediaItemsHtml = '';
-      const count = files.length;
-      
-      for (let i = 0; i < count; i++) {
-        const file = files[i];
-        const objectUrl = URL.createObjectURL(file);
+      const count = selectedStagedFiles.length;
 
-        if (type === 'Image') {
+      selectedStagedFiles.forEach(file => {
+        const objectUrl = URL.createObjectURL(file);
+        if (activeUploadType === 'Image') {
           mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
-        } else if (type === 'Video') {
+        } else if (activeUploadType === 'Video') {
           mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
-        } else if (type === 'Audio') {
+        } else if (activeUploadType === 'Audio') {
           mediaItemsHtml += `
             <div class="doc-tile-row">
               <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
-              <div class="doc-info">
-                <span class="doc-name">${file.name}</span>
-              </div>
+              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
             </div>`;
         } else {
           const ext = file.name.split('.').pop().toLowerCase();
           let badgeColor = '#607d8b';
           let label = ext ? ext.toUpperCase() : 'FILE';
-
-          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; }
-          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; }
-          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; }
-          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; }
-          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; }
-          else if (['zip', 'rar', '7z'].includes(ext)) { badgeColor = '#ab47bc'; }
+          if (['pdf'].includes(ext)) badgeColor = '#f44336';
+          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
 
           mediaItemsHtml += `
+            <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
+              <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+            </a>`;
+        }
+      });
+
+      let contentLayout = '';
+      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+        let gridClass = 'media-grid-1';
+        if (count === 2) gridClass = 'media-grid-2';
+        else if (count >= 3) gridClass = 'media-grid-3';
+
+        contentLayout = `
+          <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
+          <div class="media-time-overlay">${timeString}</div>
+        `;
+      } else {
+        contentLayout = `
+          <div class="doc-list-container">${mediaItemsHtml}</div>
+          <div class="doc-time-row">${timeString}</div>
+        `;
+      }
+
+      messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
+      chatContainer.appendChild(messageRow);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // Clear staged files and close preview tray
+      selectedStagedFiles = [];
+      renderPreviewTray();
+    }
+
+    mediaItemsHtml += `
             <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
               <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
               <div class="doc-info">
                 <span class="doc-name">${file.name}</span>
               </div>
             </a>`;
-        }
-      }
-
-      let contentLayout = '';
-      if (type === 'Image' || type === 'Video') {
-        let gridClass = 'media-grid-1';
-        if (count === 2) gridClass = 'media-grid-2';
-        else if (count >= 3) gridClass = 'media-grid-3';
-
-        contentLayout = `
-          <div class="media-grid ${gridClass}">
-            ${mediaItemsHtml}
-          </div>
-          <div class="media-time-overlay">${timeString}</div>
-        `;
-      } else {
-        contentLayout = `
-          <div class="doc-list-container">
-            ${mediaItemsHtml}
-          </div>
-          <div class="doc-time-row">${timeString}</div>
-        `;
-      }
-
-      messageRow.innerHTML = `
-        <div class="msg-bubble outgoing media-bubble">
-          ${contentLayout}
-        </div>
-      `;
-
-      chatContainer.appendChild(messageRow);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-      document.getElementById("attachmentPopup").classList.remove('active');
-      input.value = '';
-    }
     
   </script>
 </body>
