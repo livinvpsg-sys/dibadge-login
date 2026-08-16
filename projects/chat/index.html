@@ -21,6 +21,17 @@
       --paper-white: #f8f9fa;
     }
 
+<!-- Normal Read-Only Document/Media Viewer Modal -->
+  <div class="read-viewer-overlay" id="readViewerOverlay" onclick="closeReadViewer()">
+    <div class="read-viewer-container" onclick="event.stopPropagation()">
+      <button class="read-viewer-close" onclick="closeReadViewer()" title="Close">✕</button>
+      <div class="read-viewer-header" id="readViewerTitle">Document Viewer</div>
+      <div class="read-viewer-body" id="readViewerBody">
+        <!-- Dynamic content injected here -->
+      </div>
+    </div>
+  </div>    
+
 html, body {
   margin: 0;
   padding: 0;
@@ -982,6 +993,88 @@ html, body {
     @media (max-width: 600px) {
       .media-viewer-nav { width: 38px; height: 38px; font-size: 22px; }
     }
+
+    /* Read-Only Viewer Modal Styles */
+    .read-viewer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .read-viewer-overlay.active {
+      display: flex;
+    }
+    .read-viewer-container {
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color, #2c2c2e);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 800px;
+      height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+      position: relative;
+    }
+    .read-viewer-header {
+      padding: 16px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 56px;
+    }
+    .read-viewer-close {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .read-viewer-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .read-viewer-body {
+      flex: 1;
+      background: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      position: relative;
+    }
+    .read-viewer-body iframe,
+    .read-viewer-body embed {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #ffffff;
+    }
+    .read-viewer-body img,
+    .read-viewer-body video {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
     
   </style>
 </head>
@@ -1512,7 +1605,7 @@ function renderPreviewTray() {
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
           
-          tile.onclick = () => openFileInNewTab(objectUrl);
+      openReadViewer(objectUrl, file.name, 'Document');
         }
 
         container.appendChild(tile);
@@ -1619,6 +1712,54 @@ function renderPreviewTray() {
       inputField.value = "";
       selectedStagedFiles = [];
       renderPreviewTray();
+    }
+
+  function openReadViewer(url, fileName, fileType) {
+      const overlay = document.getElementById('readViewerOverlay');
+      const titleEl = document.getElementById('readViewerTitle');
+      const bodyEl = document.getElementById('readViewerBody');
+
+      titleEl.textContent = fileName || 'Document Reader';
+      bodyEl.innerHTML = '';
+
+      const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
+
+      if (fileType === 'Image' || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) {
+        bodyEl.innerHTML = `<img src="${url}" alt="${fileName}">`;
+      } else if (fileType === 'Video' || ['mp4', 'webm', 'ogg'].includes(ext)) {
+        bodyEl.innerHTML = `<video src="${url}" controls autoplay playsinline style="width:100%; height:100%;"></video>`;
+      } else if (fileType === 'Audio' || ['mp3', 'wav', 'm4a', 'aac'].includes(ext)) {
+        bodyEl.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+            <div style="font-size: 64px;">🎵</div>
+            <div style="color: #fff; font-size: 0.95rem;">${fileName}</div>
+            <audio src="${url}" controls autoplay style="width: 300px;"></audio>
+          </div>`;
+      } else if (ext === 'pdf') {
+        bodyEl.innerHTML = `<iframe src="${url}#toolbar=0" type="application/pdf"></iframe>`;
+      } else if (['txt', 'rtf', 'csv', 'json', 'xml', 'html'].includes(ext)) {
+        // Read text/code files directly via fetch & preformatted view
+        bodyEl.innerHTML = `<div id="textViewerContent" style="width: 100%; height: 100%; padding: 20px; box-sizing: border-box; color: #fff; font-family: monospace; white-space: pre-wrap; overflow: auto; background: #121212;">Loading...</div>`;
+        fetch(url)
+          .then(res => res.text())
+          .then(text => {
+            const container = document.getElementById('textViewerContent');
+            if (container) container.textContent = text;
+          })
+          .catch(() => {
+            const container = document.getElementById('textViewerContent');
+            if (container) container.textContent = "Failed to load text content.";
+          });
+      } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
+        // For Word, Excel, PowerPoint: Use Google Docs Viewer iframe embed
+        // Note: Requires a public URL (or hosted object URL if reachable by viewer). 
+        const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+        bodyEl.innerHTML = `<iframe src="${viewerUrl}" style="width:100%; height:100%; border:none; background:#fff;"></iframe>`;
+      } else {
+        bodyEl.innerHTML = `<iframe src="${url}"></iframe>`;
+      }
+
+      overlay.classList.add('active');
     }
 
   </script>
