@@ -385,6 +385,18 @@ html, body {
       display: inline-block;
       max-width: 320px;
     }
+
+    .msg-bubble.media-bubble {
+      padding: 4px 4px 6px 4px !important;
+      border-radius: 12px;
+    }
+
+    .media-time-top {
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      text-align: right;
+      padding: 2px 6px 4px 0;
+    }
     
  .msg-bubble.incoming { 
       background: #1e1e1e; /* Slate charcoal color */
@@ -856,23 +868,21 @@ function handleFilesSelected(input, type) {
         const messageRow = document.createElement("div");
         messageRow.className = "message-row outgoing";
 
-        let contentHtml = `<span class="message-text">📁 <strong>${type} Attachment:</strong> ${file.name}</span>`;
-        
-        // If it's an image, we can also generate a preview thumbnail
+        const objectUrl = URL.createObjectURL(file);
+        let mediaHtml = '';
+
         if (type === 'Image') {
-          const objectUrl = URL.createObjectURL(file);
-          contentHtml = `
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              <img src="${objectUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;" alt="attachment">
-              <span class="message-text" style="font-size: 0.8rem;">${file.name}</span>
-            </div>
-          `;
+          mediaHtml = `<img src="${objectUrl}" style="max-width: 220px; max-height: 220px; border-radius: 8px; object-fit: cover; display: block;" alt="attachment">`;
+        } else if (type === 'Video') {
+          mediaHtml = `<video src="${objectUrl}" style="max-width: 220px; max-height: 220px; border-radius: 8px; object-fit: cover; display: block;" controls></video>`;
+        } else {
+          mediaHtml = `<span class="message-text">📁 <strong>${type}:</strong> ${file.name}</span>`;
         }
 
         messageRow.innerHTML = `
-          <div class="msg-bubble outgoing">
-            ${contentHtml}
-            <span class="msg-meta-row">${timeString}</span>
+          <div class="msg-bubble outgoing media-bubble">
+            <div class="media-time-top">${timeString}</div>
+            ${mediaHtml}
           </div>
         `;
 
@@ -880,11 +890,7 @@ function handleFilesSelected(input, type) {
       }
 
       chatContainer.scrollTop = chatContainer.scrollHeight;
-      
-      // Hide popup menu after selection
       document.getElementById("attachmentPopup").classList.remove('active');
-      
-      // Reset input value so selecting the same files again triggers change event
       input.value = '';
     }
     
