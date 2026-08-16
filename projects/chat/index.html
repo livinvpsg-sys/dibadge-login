@@ -35,6 +35,29 @@ html, body {
   overflow: hidden;
 }
 
+    /* Custom Theme-matched Scrollbar for Webkit Browsers (Chrome, Safari, Edge) */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-surface, #1e1e1e);
+      border-radius: 4px;
+      border: 1px solid var(--border-color, #2c2c2e);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2c2c2e;
+    }
+
+    /* For Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--slate-surface, #1e1e1e) #000000;
+    }
+
 .dashboard-header {
       background: var(--header-bg, #050505);
       color: var(--text-color);
