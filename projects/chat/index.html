@@ -217,7 +217,7 @@ html, body {
       background: #000000;
       position: relative;
       overflow: hidden;
-      padding: 12px 20px 16px 20px; /* Reduced bottom padding since dvh handles the viewport boundary cleanly */
+      padding: 12px 20px 0 20px; /* Remove bottom padding to let footer sit flush */
       flex-direction: column;
       min-height: 0;
     }
@@ -313,6 +313,7 @@ html, body {
       overflow: hidden;
       padding: 0;
       min-height: 0;
+      flex: 1;
     }
 
     /* Chat Header */
@@ -353,7 +354,7 @@ html, body {
       flex-direction: column;
       gap: 12px;
       background-color: #000000;
-      min-height: 0; /* Allows container to shrink and stay inside viewport */
+      min-height: 0; /* Crucial: allows chat container to shrink instead of overflowing */
     }
 
     .date-divider {
