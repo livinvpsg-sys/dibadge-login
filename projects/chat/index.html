@@ -426,7 +426,7 @@ html, body {
       flex-shrink: 0;
     }
 
-  .footer-icon-btn {
+.footer-icon-btn {
       background: transparent;
       border: none;
       color: var(--subtext-color, #aaaaaa);
@@ -443,7 +443,7 @@ html, body {
     .footer-icon-btn svg {
       width: 24px;
       height: 24px;
-      stroke: var(--subtext-color, #aaaaaa); /* Added explicit stroke */
+      stroke: var(--subtext-color, #aaaaaa);
       stroke-width: 2;
       fill: none;
       stroke-linecap: round;
@@ -452,7 +452,7 @@ html, body {
 
     .chat-input-wrapper {
       flex: 1;
-    background-color: var(--slate-surface, #1e1e1e);
+      background-color: var(--slate-surface, #1e1e1e); /* Restores slate charcoal background */
       border: 1px solid var(--border-color);
       border-radius: 28px;
       display: flex;
@@ -460,7 +460,7 @@ html, body {
       padding: 4px 8px 4px 4px;
     }
 
- .inline-icon-btn {
+    .inline-icon-btn {
       background: transparent;
       border: none;
       color: var(--subtext-color, #aaaaaa);
@@ -477,7 +477,7 @@ html, body {
     .inline-icon-btn svg {
       width: 22px;
       height: 22px;
-      stroke: var(--subtext-color, #aaaaaa); /* Added explicit stroke */
+      stroke: var(--subtext-color, #aaaaaa);
       stroke-width: 1.8;
       fill: none;
       stroke-linecap: round;
@@ -629,10 +629,20 @@ html, body {
           </div>
         </div>
 
-        <div class="chat-footer">
-          <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
+       <div class="chat-footer">
+          <button class="footer-icon-btn" title="Attach">
+            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+          </button>
+          
+          <div class="chat-input-wrapper">
+            <button class="inline-icon-btn" title="Emoji">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            </button>
+            <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
+          </div>
+
           <button class="chat-send-btn" onclick="sendChatMessage()" title="Send">
-            <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"></path></svg>
+            <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
           </button>
         </div>
       </div>
