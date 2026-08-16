@@ -542,7 +542,7 @@ html, body {
 
 .chat-input-wrapper {
       flex: 1;
-      width: auto; /* Ensures it expands nicely */
+      width: 100%;
       background-color: var(--slate-surface, #1e1e1e);
       border: 1px solid var(--border-color);
       border-radius: 28px;
@@ -931,14 +931,14 @@ html, body {
 
        <div class="chat-footer" style="position: relative;">
 
-     <!-- File Preview Tray (Appears above input when files are selected) -->
+    <!-- File Preview Tray (Appears above input when files are selected) -->
         <div class="file-preview-tray" id="filePreviewTray">
           <div class="preview-scroll-container" id="previewScrollContainer">
             <!-- Dynamic Preview Tiles -->
           </div>
         </div>
 
-        <div class="chat-footer" style="position: relative;">
+       <div class="chat-footer" style="position: relative;">
           <!-- Attachment Popup Menu -->
           <div class="attachment-popup" id="attachmentPopup">
             <div class="attach-option" onclick="document.getElementById('imageInput').click()">
@@ -973,11 +973,12 @@ html, body {
           <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
           <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
 
-          <!-- Conditional Plus Button (Appears only when files are staged) -->
-          <button class="footer-icon-btn preview-plus-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
+          <!-- Plus Button (Appears in place of paperclip when files are staged) -->
+          <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           </button>
 
+          <!-- Paperclip Attachment Button -->
           <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
             <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
           </button>
@@ -1136,20 +1137,23 @@ function openFilePicker() {
       renderPreviewTray();
     }
 
-  function renderPreviewTray() {
+function renderPreviewTray() {
       const tray = document.getElementById("filePreviewTray");
       const container = document.getElementById("previewScrollContainer");
       const plusBtn = document.getElementById("previewPlusBtn");
+      const attachBtn = document.getElementById("attachBtn");
       container.innerHTML = '';
 
       if (selectedStagedFiles.length === 0) {
         tray.classList.remove('active');
         if (plusBtn) plusBtn.style.display = 'none';
+        if (attachBtn) attachBtn.style.display = 'flex';
         return;
       }
 
       tray.classList.add('active');
       if (plusBtn) plusBtn.style.display = 'flex';
+      if (attachBtn) attachBtn.style.display = 'none';
 
       selectedStagedFiles.forEach((file, index) => {
         const objectUrl = URL.createObjectURL(file);
@@ -1260,14 +1264,6 @@ function openFilePicker() {
       renderPreviewTray();
     }
 
-    mediaItemsHtml += `
-            <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
-              <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
-              <div class="doc-info">
-                <span class="doc-name">${file.name}</span>
-              </div>
-            </a>`;
-    
   </script>
 </body>
 </html>
