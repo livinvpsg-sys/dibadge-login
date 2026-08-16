@@ -652,7 +652,7 @@ html, body {
       align-items: stretch;
       gap: 2px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      z-index: 100;
+      z-index: 150;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -1337,22 +1337,16 @@ function toggleAttachmentPopup(event) {
       popup.classList.add('active');
     }
 
-    function positionAttachmentPopup() {
+   function positionAttachmentPopup() {
       const popup = document.getElementById("attachmentPopup");
       const attachBtn = document.getElementById("attachBtn");
       const plusBtn = document.getElementById("previewPlusBtn");
-      const footer = document.querySelector(".chat-footer");
-      // Whichever trigger icon is currently shown is the one the popup should anchor to
       const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
       if (!triggerBtn) return;
 
-      const gap = 14;
+      const gap = 16;
       const btnRect = triggerBtn.getBoundingClientRect();
-      // Clear the whole footer bar (icons + input + send button), not just the icon itself
-      const footerRect = footer ? footer.getBoundingClientRect() : btnRect;
-      const clearAboveY = Math.min(btnRect.top, footerRect.top);
 
-      // Measure the popup's own size first (off-screen) so we can size/clamp it correctly
       popup.style.left = '-9999px';
       popup.style.top = '-9999px';
       popup.style.visibility = 'hidden';
@@ -1363,66 +1357,19 @@ function toggleAttachmentPopup(event) {
       popup.style.visibility = '';
       popup.style.pointerEvents = '';
 
-      // Left edge of the popup starts flush with the left edge of the icon
       let left = btnRect.left;
       left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
-      const top = clearAboveY - popupRect.height - gap;
+      // Position well above the input footer container
+      const top = btnRect.top - popupRect.height - gap;
 
       popup.style.left = left + 'px';
       popup.style.top = top + 'px';
 
-      // Keep the scale-in animation anchored to the icon's actual horizontal position,
-      // even if the popup itself had to shift left/right to stay on screen
       const originX = (btnRect.left + btnRect.width / 2) - left;
       popup.style.transformOrigin = `${originX}px 100%`;
     }
 
-    // Close popup when clicking outside
-    window.addEventListener('click', function(e) {
-      const popup = document.getElementById("attachmentPopup");
-      const attachBtn = document.getElementById("attachBtn");
-      if (popup && popup.classList.contains('active')) {
-        if (!popup.contains(e.target) && !attachBtn.contains(e.target)) {
-          popup.classList.remove('active');
-        }
-      }
-    });
-
-let selectedStagedFiles = [];
-    let activeUploadType = 'Image';
-
-    function handleFilesSelected(input, type) {
-      const files = input.files;
-      if (!files || files.length === 0) return;
-
-      activeUploadType = type;
-      for (let i = 0; i < files.length; i++) {
-        selectedStagedFiles.push(files[i]);
-      }
-
-      renderPreviewTray();
-      document.getElementById("attachmentPopup").classList.remove('active');
-      input.value = '';
-    }
-
-function openFilePicker() {
-      if (activeUploadType === 'Image') document.getElementById('imageInput').click();
-      else if (activeUploadType === 'Video') document.getElementById('videoInput').click();
-      else if (activeUploadType === 'Audio') document.getElementById('audioInput').click();
-      else document.getElementById('documentInput').click();
-    }
-
-    function removeStagedFile(index) {
-      selectedStagedFiles.splice(index, 1);
-      renderPreviewTray();
-    }
-
-    function clearAllStagedFiles() {
-      selectedStagedFiles = [];
-      renderPreviewTray();
-    }
-
-function renderPreviewTray() {
+    function renderPreviewTray() {
       const tray = document.getElementById("filePreviewTray");
       const container = document.getElementById("previewScrollContainer");
       const plusBtn = document.getElementById("previewPlusBtn");
@@ -1440,7 +1387,6 @@ function renderPreviewTray() {
       if (plusBtn) plusBtn.style.display = 'flex';
       if (attachBtn) attachBtn.style.display = 'none';
 
-      // Fixed half-width tile at the left — clears every staged file in one tap
       const clearTile = document.createElement("div");
       clearTile.className = "preview-clear-tile";
       clearTile.title = "Remove all";
@@ -1448,9 +1394,8 @@ function renderPreviewTray() {
       clearTile.onclick = () => clearAllStagedFiles();
       container.appendChild(clearTile);
 
-      // Build a gallery so staged images/videos can be swiped through, same as sent media
       let stagedGalleryId = null;
-      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+      if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
         const galleryItems = selectedStagedFiles.map(f => ({
           url: URL.createObjectURL(f),
           type: activeUploadType
@@ -1476,6 +1421,14 @@ function renderPreviewTray() {
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
           tile.onclick = () => openMediaViewer(stagedGalleryId, index);
+        } else if (activeUploadType === 'Audio') {
+          tile.className = "preview-tile preview-tile-doc";
+          tile.innerHTML = `
+            <div class="preview-doc-icon" style="background: #ff9800;">🎵</div>
+            <span class="preview-doc-name">${file.name}</span>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
+          `;
+          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
         } else {
           const ext = file.name.split('.').pop().toLowerCase();
           let badgeColor = '#607d8b';
@@ -1491,13 +1444,32 @@ function renderPreviewTray() {
             <span class="preview-doc-name">${file.name}</span>
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
-          if (activeUploadType === 'Document') {
-            tile.onclick = () => openFileInNewTab(objectUrl);
-          }
+          tile.onclick = () => openFileInNewTab(objectUrl);
         }
 
         container.appendChild(tile);
       });
+    }
+
+    function renderMediaViewerContent() {
+      const items = mediaGalleries[currentGalleryId] || [];
+      const item = items[currentMediaIndex];
+      const content = document.getElementById('mediaViewerContent');
+      if (!item) return;
+
+      if (item.type === 'Video') {
+        content.innerHTML = `<video src="${item.url}" controls autoplay playsinline></video>`;
+      } else if (item.type === 'Audio') {
+        content.innerHTML = `<audio src="${item.url}" controls autoplay style="width: 300px;"></audio>`;
+      } else {
+        content.innerHTML = `<img src="${item.url}" alt="media">`;
+      }
+
+      const showNav = items.length > 1;
+      const prevBtn = document.getElementById('mediaViewerPrev');
+      const nextBtn = document.getElementById('mediaViewerNext');
+      if (prevBtn) prevBtn.style.display = showNav ? 'flex' : 'none';
+      if (nextBtn) nextBtn.style.display = showNav ? 'flex' : 'none';
     }
 
     function sendMessage() {
@@ -1513,13 +1485,11 @@ function renderPreviewTray() {
       messageRow.className = "message-row outgoing";
 
       if (hasFiles) {
-        // Build the media/file content, then attach the text (if any) as a caption
-        // inside the SAME bubble, so both go out together.
         let mediaItemsHtml = '';
         const count = selectedStagedFiles.length;
 
         let sentGalleryId = null;
-        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+        if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
           const galleryItems = selectedStagedFiles.map(f => ({
             url: URL.createObjectURL(f),
             type: activeUploadType
@@ -1535,7 +1505,7 @@ function renderPreviewTray() {
             mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
           } else if (activeUploadType === 'Audio') {
             mediaItemsHtml += `
-              <div class="doc-tile-row">
+              <div class="doc-tile-row" onclick="openMediaViewer('${sentGalleryId}', ${idx})" style="cursor: pointer;">
                 <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
                 <div class="doc-info"><span class="doc-name">${file.name}</span></div>
               </div>`;
@@ -1564,7 +1534,6 @@ function renderPreviewTray() {
           if (count === 2) gridClass = 'media-grid-2';
           else if (count >= 3) gridClass = 'media-grid-3';
 
-          // If there's a caption, show the time under it instead of overlaid on the media
           contentLayout = `
             <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
             ${captionHtml}
@@ -1580,7 +1549,6 @@ function renderPreviewTray() {
 
         messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
       } else {
-        // Text-only message
         messageRow.innerHTML = `
           <div class="msg-bubble outgoing">
             <span class="message-text"></span>
@@ -1593,7 +1561,6 @@ function renderPreviewTray() {
       chatContainer.appendChild(messageRow);
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Clear both the input and any staged files together
       inputField.value = "";
       selectedStagedFiles = [];
       renderPreviewTray();
