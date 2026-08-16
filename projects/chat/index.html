@@ -917,6 +917,32 @@ html, body {
     .media-viewer-close:hover {
       background: rgba(255, 255, 255, 0.25);
     }
+    .media-viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+    .media-viewer-nav:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .media-viewer-prev { left: 16px; }
+    .media-viewer-next { right: 16px; }
+    @media (max-width: 600px) {
+      .media-viewer-nav { width: 38px; height: 38px; font-size: 22px; }
+    }
     
   </style>
 </head>
@@ -1089,7 +1115,9 @@ html, body {
   <!-- Fullscreen media viewer, opened on tapping an image/video in chat -->
   <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="closeMediaViewer()">
     <button class="media-viewer-close" onclick="event.stopPropagation(); closeMediaViewer()" title="Close">✕</button>
+    <button class="media-viewer-nav media-viewer-prev" id="mediaViewerPrev" onclick="showPrevMedia(event)" title="Previous">‹</button>
     <div class="media-viewer-content" id="mediaViewerContent" onclick="event.stopPropagation()"></div>
+    <button class="media-viewer-nav media-viewer-next" id="mediaViewerNext" onclick="showNextMedia(event)" title="Next">›</button>
   </div>
 
   <script>
@@ -1115,13 +1143,55 @@ html, body {
       return div.innerHTML;
     }
 
-    function openMediaViewer(url, type) {
-      const overlay = document.getElementById('mediaViewerOverlay');
+    let mediaGalleries = {};
+    let galleryCounter = 0;
+    let currentGalleryId = null;
+    let currentMediaIndex = 0;
+
+    function registerGallery(items) {
+      const id = 'gal_' + (galleryCounter++);
+      mediaGalleries[id] = items;
+      return id;
+    }
+
+    function openMediaViewer(galleryId, index) {
+      currentGalleryId = galleryId;
+      currentMediaIndex = index;
+      renderMediaViewerContent();
+      document.getElementById('mediaViewerOverlay').classList.add('active');
+    }
+
+    function renderMediaViewerContent() {
+      const items = mediaGalleries[currentGalleryId] || [];
+      const item = items[currentMediaIndex];
       const content = document.getElementById('mediaViewerContent');
-      content.innerHTML = type === 'Video'
-        ? `<video src="${url}" controls autoplay playsinline></video>`
-        : `<img src="${url}" alt="media">`;
-      overlay.classList.add('active');
+      if (!item) return;
+
+      content.innerHTML = item.type === 'Video'
+        ? `<video src="${item.url}" controls autoplay playsinline></video>`
+        : `<img src="${item.url}" alt="media">`;
+
+      const showNav = items.length > 1;
+      const prevBtn = document.getElementById('mediaViewerPrev');
+      const nextBtn = document.getElementById('mediaViewerNext');
+      if (prevBtn) prevBtn.style.display = showNav ? 'flex' : 'none';
+      if (nextBtn) nextBtn.style.display = showNav ? 'flex' : 'none';
+    }
+
+    function showPrevMedia(event) {
+      if (event) event.stopPropagation();
+      const items = mediaGalleries[currentGalleryId] || [];
+      if (items.length < 2) return;
+      currentMediaIndex = (currentMediaIndex - 1 + items.length) % items.length;
+      renderMediaViewerContent();
+    }
+
+    function showNextMedia(event) {
+      if (event) event.stopPropagation();
+      const items = mediaGalleries[currentGalleryId] || [];
+      if (items.length < 2) return;
+      currentMediaIndex = (currentMediaIndex + 1) % items.length;
+      renderMediaViewerContent();
     }
 
     function closeMediaViewer() {
@@ -1131,6 +1201,39 @@ html, body {
       if (video) video.pause();
       overlay.classList.remove('active');
       content.innerHTML = '';
+      currentGalleryId = null;
+    }
+
+    // Swipe support (touch) + arrow-key support for the fullscreen viewer
+    (function setupMediaViewerGestures() {
+      const overlay = document.getElementById('mediaViewerOverlay');
+      if (!overlay) return;
+      let touchStartX = null;
+
+      overlay.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+
+      overlay.addEventListener('touchend', function(e) {
+        if (touchStartX === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(deltaX) > 50) {
+          if (deltaX > 0) showPrevMedia();
+          else showNextMedia();
+        }
+        touchStartX = null;
+      }, { passive: true });
+
+      document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('active')) return;
+        if (e.key === 'ArrowLeft') showPrevMedia();
+        else if (e.key === 'ArrowRight') showNextMedia();
+        else if (e.key === 'Escape') closeMediaViewer();
+      });
+    })();
+
+    function openFileInNewTab(url) {
+      window.open(url, '_blank');
     }
 
   function setAppHeight() {
@@ -1249,22 +1352,34 @@ function renderPreviewTray() {
       if (plusBtn) plusBtn.style.display = 'flex';
       if (attachBtn) attachBtn.style.display = 'none';
 
+      // Build a gallery so staged images/videos can be swiped through, same as sent media
+      let stagedGalleryId = null;
+      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+        const galleryItems = selectedStagedFiles.map(f => ({
+          url: URL.createObjectURL(f),
+          type: activeUploadType
+        }));
+        stagedGalleryId = registerGallery(galleryItems);
+      }
+
       selectedStagedFiles.forEach((file, index) => {
-        const objectUrl = URL.createObjectURL(file);
+        const objectUrl = stagedGalleryId ? mediaGalleries[stagedGalleryId][index].url : URL.createObjectURL(file);
         const tile = document.createElement("div");
 
         if (activeUploadType === 'Image') {
           tile.className = "preview-tile";
           tile.innerHTML = `
             <img src="${objectUrl}" alt="preview">
-            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
+          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
         } else if (activeUploadType === 'Video') {
           tile.className = "preview-tile";
           tile.innerHTML = `
             <video src="${objectUrl}"></video>
-            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
+          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
         } else {
           const ext = file.name.split('.').pop().toLowerCase();
           let badgeColor = '#607d8b';
@@ -1278,8 +1393,11 @@ function renderPreviewTray() {
           tile.innerHTML = `
             <div class="preview-doc-icon" style="background: ${badgeColor};">${label}</div>
             <span class="preview-doc-name">${file.name}</span>
-            <button class="preview-remove-btn" onclick="removeStagedFile(${index})">✕</button>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
+          if (activeUploadType === 'Document') {
+            tile.onclick = () => openFileInNewTab(objectUrl);
+          }
         }
 
         container.appendChild(tile);
@@ -1304,12 +1422,21 @@ function renderPreviewTray() {
         let mediaItemsHtml = '';
         const count = selectedStagedFiles.length;
 
-        selectedStagedFiles.forEach(file => {
-          const objectUrl = URL.createObjectURL(file);
+        let sentGalleryId = null;
+        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+          const galleryItems = selectedStagedFiles.map(f => ({
+            url: URL.createObjectURL(f),
+            type: activeUploadType
+          }));
+          sentGalleryId = registerGallery(galleryItems);
+        }
+
+        selectedStagedFiles.forEach((file, idx) => {
+          const objectUrl = sentGalleryId ? mediaGalleries[sentGalleryId][idx].url : URL.createObjectURL(file);
           if (activeUploadType === 'Image') {
-            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${objectUrl}', 'Image')"><img src="${objectUrl}" alt="attachment"></div>`;
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><img src="${objectUrl}" alt="attachment"></div>`;
           } else if (activeUploadType === 'Video') {
-            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${objectUrl}', 'Video')"><video src="${objectUrl}"></video></div>`;
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
           } else if (activeUploadType === 'Audio') {
             mediaItemsHtml += `
               <div class="doc-tile-row">
