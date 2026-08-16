@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>diBadge | Project Chat</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     /* Theme Variables */
     :root {
@@ -1723,13 +1725,14 @@ function renderPreviewTray() {
       renderPreviewTray();
     }
 
-  function openReadViewer(url, fileName, fileType) {
+  async function openReadViewer(url, fileName, fileType) {
       const overlay = document.getElementById('readViewerOverlay');
       const titleEl = document.getElementById('readViewerTitle');
       const bodyEl = document.getElementById('readViewerBody');
 
       titleEl.textContent = fileName || 'Document Reader';
       bodyEl.innerHTML = '';
+      overlay.classList.add('active');
 
       const ext = fileName ? fileName.split('.').pop().toLowerCase() : '';
 
@@ -1746,29 +1749,86 @@ function renderPreviewTray() {
           </div>`;
       } else if (ext === 'pdf') {
         bodyEl.innerHTML = `<iframe src="${url}#toolbar=0" type="application/pdf"></iframe>`;
-      } else if (['txt', 'rtf', 'csv', 'json', 'xml', 'html'].includes(ext)) {
+      } else if (['txt', 'csv', 'json', 'xml', 'html'].includes(ext)) {
         // Read text/code files directly via fetch & preformatted view
         bodyEl.innerHTML = `<div id="textViewerContent" style="width: 100%; height: 100%; padding: 20px; box-sizing: border-box; color: #fff; font-family: monospace; white-space: pre-wrap; overflow: auto; background: #121212;">Loading...</div>`;
-        fetch(url)
-          .then(res => res.text())
-          .then(text => {
-            const container = document.getElementById('textViewerContent');
-            if (container) container.textContent = text;
-          })
-          .catch(() => {
-            const container = document.getElementById('textViewerContent');
-            if (container) container.textContent = "Failed to load text content.";
-          });
-      } else if (['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext)) {
-        // For Word, Excel, PowerPoint: Use Google Docs Viewer iframe embed
-        // Note: Requires a public URL (or hosted object URL if reachable by viewer). 
-        const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-        bodyEl.innerHTML = `<iframe src="${viewerUrl}" style="width:100%; height:100%; border:none; background:#fff;"></iframe>`;
+        try {
+          const res = await fetch(url);
+          const text = await res.text();
+          const container = document.getElementById('textViewerContent');
+          if (container) container.textContent = text;
+        } catch (err) {
+          const container = document.getElementById('textViewerContent');
+          if (container) container.textContent = "Failed to load text content.";
+        }
+      } else if (ext === 'docx') {
+        // Word (.docx): parsed and rendered client-side with Mammoth.js.
+        // (Google Docs Viewer needs a public URL — local blob: URLs aren't reachable by Google's servers,
+        // which is why it was throwing a 400 "malformed request" error.)
+        bodyEl.innerHTML = `<div style="width:100%; height:100%; overflow:auto; background:#fff; box-sizing:border-box; padding:40px 32px;"><div id="docxViewerContent" style="max-width:760px; margin:0 auto; color:#1a1a1a; font-family:Georgia, 'Times New Roman', serif; line-height:1.6; font-size:0.95rem;">Loading document…</div></div>`;
+        try {
+          const res = await fetch(url);
+          const arrayBuffer = await res.arrayBuffer();
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+          const container = document.getElementById('docxViewerContent');
+          if (container) container.innerHTML = result.value || '<p><em>This document appears to be empty.</em></p>';
+        } catch (err) {
+          const container = document.getElementById('docxViewerContent');
+          if (container) container.innerHTML = '<p style="color:#c00;">Could not preview this document. Please download it instead.</p>';
+        }
+      } else if (['xls', 'xlsx'].includes(ext)) {
+        // Excel: parsed and rendered client-side with SheetJS, one table per sheet.
+        bodyEl.innerHTML = `<div style="width:100%; height:100%; overflow:auto; background:#fff; box-sizing:border-box; padding:24px;"><div id="xlsxViewerContent" style="color:#1a1a1a;">Loading spreadsheet…</div></div>`;
+        try {
+          const res = await fetch(url);
+          const arrayBuffer = await res.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          const container = document.getElementById('xlsxViewerContent');
+          if (container) {
+            container.innerHTML = '';
+            workbook.SheetNames.forEach((sheetName) => {
+              const sheet = workbook.Sheets[sheetName];
+              const tableHtml = XLSX.utils.sheet_to_html(sheet, { editable: false });
+              const wrapper = document.createElement('div');
+              wrapper.style.marginBottom = '28px';
+              wrapper.innerHTML = `<div style="font-weight:700; font-size:0.9rem; margin-bottom:8px;">${sheetName}</div>${tableHtml}`;
+              container.appendChild(wrapper);
+            });
+            container.querySelectorAll('table').forEach(t => {
+              t.style.borderCollapse = 'collapse';
+              t.style.width = '100%';
+              t.style.fontSize = '0.82rem';
+              t.querySelectorAll('td, th').forEach(c => {
+                c.style.border = '1px solid #ddd';
+                c.style.padding = '5px 9px';
+                c.style.whiteSpace = 'nowrap';
+              });
+            });
+          }
+        } catch (err) {
+          const container = document.getElementById('xlsxViewerContent');
+          if (container) container.innerHTML = '<p style="color:#c00;">Could not preview this spreadsheet. Please download it instead.</p>';
+        }
+      } else if (['doc', 'ppt', 'pptx', 'rtf'].includes(ext)) {
+        // Legacy .doc, PowerPoint, and .rtf files have no reliable client-side renderer
+        // without a backend conversion step, so offer a direct download instead of a broken viewer.
+        bodyEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; gap:14px; color:#fff; text-align:center; padding:32px;">
+            <div style="font-size:48px;">📄</div>
+            <div style="font-size:0.95rem;">Preview isn't available for .${ext} files.</div>
+            <a href="${url}" download="${fileName}" style="background:#fff; color:#000; padding:10px 22px; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.9rem;">Download to view</a>
+          </div>`;
+      } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) {
+        // Archives can't be previewed in-browser at all — offer download only.
+        bodyEl.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; gap:14px; color:#fff; text-align:center; padding:32px;">
+            <div style="font-size:48px;">🗜️</div>
+            <div style="font-size:0.95rem;">Archives can't be previewed. Download to extract and view its contents.</div>
+            <a href="${url}" download="${fileName}" style="background:#fff; color:#000; padding:10px 22px; border-radius:8px; text-decoration:none; font-weight:600; font-size:0.9rem;">Download</a>
+          </div>`;
       } else {
         bodyEl.innerHTML = `<iframe src="${url}"></iframe>`;
       }
-
-      overlay.classList.add('active');
     }
 
   </script>
