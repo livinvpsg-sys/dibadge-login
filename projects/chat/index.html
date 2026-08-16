@@ -386,16 +386,71 @@ html, body {
       max-width: 320px;
     }
 
+ /* Media Bubble with Overlay Stamp */
     .msg-bubble.media-bubble {
-      padding: 4px 4px 6px 4px !important;
+      padding: 3px !important;
       border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      max-width: 280px;
     }
 
-    .media-time-top {
-      font-size: 0.65rem;
-      color: var(--subtext-color);
-      text-align: right;
-      padding: 2px 6px 4px 0;
+    /* Telegram-style Grid Container */
+    .media-grid {
+      display: grid;
+      gap: 3px;
+      width: 100%;
+    }
+    .media-grid-1 { grid-template-columns: 1fr; }
+    .media-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .media-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    /* For rows with fewer than 3 items, make them stretch to match full width */
+    .media-grid-3 > *:nth-last-child(1):nth-child(3n+1) {
+      grid-column: span 3;
+    }
+    .media-grid-3 > *:nth-last-child(2):nth-child(3n+1),
+    .media-grid-3 > *:nth-last-child(1):nth-child(3n+2) {
+      grid-column: span 1.5;
+    }
+
+    .media-grid-item {
+      aspect-ratio: 1 / 1;
+      background: #111;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-grid-item img, 
+    .media-grid-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .media-grid-item.file-tile {
+      font-size: 0.75rem;
+      padding: 8px;
+      text-align: center;
+      color: #fff;
+      word-break: break-all;
+    }
+
+    /* Time Overlay on Bottom-Right of Media */
+    .media-time-overlay {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      color: #ffffff;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      pointer-events: none;
+      letter-spacing: 0.3px;
     }
     
  .msg-bubble.incoming { 
@@ -863,32 +918,40 @@ function handleFilesSelected(input, type) {
       hours = hours % 12 || 12;
       const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const messageRow = document.createElement("div");
-        messageRow.className = "message-row outgoing";
+      const messageRow = document.createElement("div");
+      messageRow.className = "message-row outgoing";
 
+      let mediaItemsHtml = '';
+      const count = files.length;
+      
+      for (let i = 0; i < count; i++) {
+        const file = files[i];
         const objectUrl = URL.createObjectURL(file);
-        let mediaHtml = '';
 
         if (type === 'Image') {
-          mediaHtml = `<img src="${objectUrl}" style="max-width: 220px; max-height: 220px; border-radius: 8px; object-fit: cover; display: block;" alt="attachment">`;
+          mediaItemsHtml += `<div class="media-grid-item"><img src="${objectUrl}" alt="attachment"></div>`;
         } else if (type === 'Video') {
-          mediaHtml = `<video src="${objectUrl}" style="max-width: 220px; max-height: 220px; border-radius: 8px; object-fit: cover; display: block;" controls></video>`;
+          mediaItemsHtml += `<div class="media-grid-item"><video src="${objectUrl}" controls></video></div>`;
         } else {
-          mediaHtml = `<span class="message-text">📁 <strong>${type}:</strong> ${file.name}</span>`;
+          mediaItemsHtml += `<div class="media-grid-item file-tile">📁 ${file.name}</div>`;
         }
-
-        messageRow.innerHTML = `
-          <div class="msg-bubble outgoing media-bubble">
-            <div class="media-time-top">${timeString}</div>
-            ${mediaHtml}
-          </div>
-        `;
-
-        chatContainer.appendChild(messageRow);
       }
 
+      // Determine grid columns class based on count (max 3 per row)
+      let gridClass = 'media-grid-1';
+      if (count === 2) gridClass = 'media-grid-2';
+      else if (count >= 3) gridClass = 'media-grid-3';
+
+      messageRow.innerHTML = `
+        <div class="msg-bubble outgoing media-bubble">
+          <div class="media-grid ${gridClass}">
+            ${mediaItemsHtml}
+          </div>
+          <div class="media-time-overlay">${timeString}</div>
+        </div>
+      `;
+
+      chatContainer.appendChild(messageRow);
       chatContainer.scrollTop = chatContainer.scrollHeight;
       document.getElementById("attachmentPopup").classList.remove('active');
       input.value = '';
