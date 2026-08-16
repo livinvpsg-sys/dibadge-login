@@ -1346,7 +1346,7 @@ function toggleAttachmentPopup(event) {
       const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
       if (!triggerBtn) return;
 
-      const gap = 36;
+      const gap = 40;
       const btnRect = triggerBtn.getBoundingClientRect();
       // Clear the whole footer bar (icons + input + send button), not just the icon itself
       const footerRect = footer ? footer.getBoundingClientRect() : btnRect;
