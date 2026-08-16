@@ -1,1221 +1,1213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>diBadge | Project Chat</title>
-  <style>
-    /* Theme Variables */
-    :root {
-      --bg-color: #121212;
-      --chat-incoming-bg: #1e1e1e;
-      --chat-incoming-text: #ffffff;
-      --chat-outgoing-bg: #ffffff;
-      --chat-outgoing-text: #000000;
-      --subtext-color: #aaaaaa;
-      --header-bg: #1f1f1f;
-      --input-bg: #2a2a2a;
-      --tabbar-bg: #050505;
-      --border-color: #2c2c2e;
-      --slate-surface: #1e1e1e;
-      --paper-white: #f8f9fa;
-    }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>diBadge | Project Chat</title>
+  <style>
+    /* Theme Variables */
+    :root {
+      --bg-color: #121212;
+      --chat-incoming-bg: #1e1e1e;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #000000;
+      --subtext-color: #aaaaaa;
+      --header-bg: #1f1f1f;
+      --input-bg: #2a2a2a;
+      --tabbar-bg: #050505;
+      --border-color: #2c2c2e;
+      --slate-surface: #1e1e1e;
+      --paper-white: #f8f9fa;
+    }
 
 html, body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;                 /* fallback */
-  height: calc(var(--app-height, 100vh)); /* JS-corrected */
-  max-height: calc(var(--app-height, 100vh));
-  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;                 /* fallback */
+  height: calc(var(--app-height, 100vh)); /* JS-corrected */
+  max-height: calc(var(--app-height, 100vh));
+  overflow: hidden;
 }
 
-    /* Custom Theme-matched Scrollbar for Webkit Browsers (Chrome, Safari, Edge) */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #000000;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--slate-surface, #1e1e1e);
-      border-radius: 4px;
-      border: 1px solid var(--border-color, #2c2c2e);
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #2c2c2e;
-    }
+    /* Custom Theme-matched Scrollbar for Webkit Browsers (Chrome, Safari, Edge) */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--slate-surface, #1e1e1e);
+      border-radius: 4px;
+      border: 1px solid var(--border-color, #2c2c2e);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2c2c2e;
+    }
 
-    /* For Firefox */
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--slate-surface, #1e1e1e) #000000;
-    }
+    /* For Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--slate-surface, #1e1e1e) #000000;
+    }
 
 .dashboard-header {
-      background: var(--header-bg, #050505);
-      color: var(--text-color);
-      padding: 0 24px;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start; /* Aligns breadcrumb to the left */
-      height: 64px;
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border-color, #2c2c2e);
-    }
+      background: var(--header-bg, #050505);
+      color: var(--text-color);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start; /* Aligns breadcrumb to the left */
+      height: 64px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border-color, #2c2c2e);
+    }
 
-    .folder-header-nav {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 1.05rem;
-      font-weight: 600;
-    }
+    .folder-header-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
 
-    .header-back-icon {
-      background: transparent;
-      border: none;
-      color: var(--text-color);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 4px;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .header-back-icon:hover {
-      background: var(--surface-color, #1e1e1e);
-    }
+    .header-back-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .header-back-icon:hover {
+      background: var(--surface-color, #1e1e1e);
+    }
 
-    .header-breadcrumb-path {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
+    .header-breadcrumb-path {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
 
-    .breadcrumb-item {
-      cursor: pointer;
-      color: var(--subtext-color, #aaaaaa);
-      text-decoration: none;
-    }
-    .breadcrumb-item:hover {
-      text-decoration: underline;
-    }
-    .breadcrumb-item.active {
-      color: var(--text-color, #ffffff);
-      cursor: default;
-    }
+    .breadcrumb-item {
+      cursor: pointer;
+      color: var(--subtext-color, #aaaaaa);
+      text-decoration: none;
+    }
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+    .breadcrumb-item.active {
+      color: var(--text-color, #ffffff);
+      cursor: default;
+    }
 
-    .header-center {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .dashboard-body-split {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-    }
+    .header-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .dashboard-body-split {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
 
-    .left-vertical-tabbar {
-      width: 64px;
-      background: var(--tabbar-bg);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px 0;
-      z-index: 10;
-      flex-shrink: 0;
-    }
+    .left-vertical-tabbar {
+      width: 64px;
+      background: var(--tabbar-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      z-index: 10;
+      flex-shrink: 0;
+    }
 
-    .tab-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: transparent;
-      border: none;
-      color: var(--subtext-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 10px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+    .tab-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 10px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-    .tab-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: currentColor;
-      stroke-width: 1.8;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+    .tab-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-    .tab-btn:hover {
-      background: var(--slate-surface);
-      color: #ffffff;
-    }
+    .tab-btn:hover {
+      background: var(--slate-surface);
+      color: #ffffff;
+    }
 
-    .tab-btn.active {
-      background: var(--slate-surface);
-      color: #ffffff;
-    }
+    .tab-btn.active {
+      background: var(--slate-surface);
+      color: #ffffff;
+    }
 
-    .project-sub-nav {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-    }
+    .project-sub-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
 
-    .fab-tab-btn {
-      margin-top: auto;
-      background: #f8f9fa;
-      color: #0f0f0f;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      cursor: pointer;
-      display: flex;
-    }
+    .fab-tab-btn {
+      margin-top: auto;
+      background: #f8f9fa;
+      color: #0f0f0f;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      display: flex;
+    }
 
-    .fab-tab-btn:hover {
-      opacity: 0.9;
-      transform: scale(1.05);
-    }
-    
-    /* Workspace Panes */
+    .fab-tab-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+    
+    /* Workspace Panes */
 .workspace-pane {
-      display: none;
-      flex: 1;
-      height: 100%;
-      background: #000000;
-      position: relative;
-      overflow: hidden;
-      padding: 12px 20px 16px 20px; /* Reduced bottom padding since dvh handles the viewport boundary cleanly */
-      flex-direction: column;
-      min-height: 0;
-    }
-    .workspace-pane.active {
-      display: flex;
-    }
-    /* Project Meta Banner */
-    .project-meta-banner {
-      background: var(--slate-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 14px 18px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .project-meta-client {
-      font-size: 0.98rem;
-      font-weight: 700;
-      color: #ffffff;
-    }
-    .project-meta-badge {
-      font-size: 0.72rem;
-      font-weight: 600;
-      background: var(--border-color);
-      color: #ffffff;
-      padding: 3px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+      display: none;
+      flex: 1;
+      height: 100%;
+      background: #000000;
+      position: relative;
+      overflow: hidden;
+      padding: 12px 20px 16px 20px; /* Reduced bottom padding since dvh handles the viewport boundary cleanly */
+      flex-direction: column;
+      min-height: 0;
+    }
+    .workspace-pane.active {
+      display: flex;
+    }
+    /* Project Meta Banner */
+    .project-meta-banner {
+      background: var(--slate-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .project-meta-client {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .project-meta-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: var(--border-color);
+      color: #ffffff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-    /* Folder Grid */
-    .folder-contents-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 16px;
-      width: 100%;
-    }
-    .folder-card {
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 10px;
-      padding: 12px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s, background 0.15s;
-      user-select: none;
-      width: 100%;
-      max-width: 140px;
-      aspect-ratio: 1 / 1;
-      justify-content: space-between;
-    }
-    .folder-card:hover {
-      transform: translateY(-3px);
-      background: var(--slate-surface);
-      border-color: var(--border-color);
-    }
-    .folder-card svg {
-      width: 48px;
-      height: 48px;
-      stroke: #ffffff;
-      fill: none;
-      stroke-width: 1.6;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      margin-top: 4px;
-    }
-    .folder-name {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #ffffff;
-      word-break: break-word;
-      line-height: 1.2;
-    }
-    .folder-items-count {
-      font-size: 0.68rem;
-      color: var(--subtext-color);
-    }
+    /* Folder Grid */
+    .folder-contents-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+    .folder-card {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, background 0.15s;
+      user-select: none;
+      width: 100%;
+      max-width: 140px;
+      aspect-ratio: 1 / 1;
+      justify-content: space-between;
+    }
+    .folder-card:hover {
+      transform: translateY(-3px);
+      background: var(--slate-surface);
+      border-color: var(--border-color);
+    }
+    .folder-card svg {
+      width: 48px;
+      height: 48px;
+      stroke: #ffffff;
+      fill: none;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      margin-top: 4px;
+    }
+    .folder-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #ffffff;
+      word-break: break-word;
+      line-height: 1.2;
+    }
+    .folder-items-count {
+      font-size: 0.68rem;
+      color: var(--subtext-color);
+    }
 
-    /* Chat Main Pane Wrapper */
+    /* Chat Main Pane Wrapper */
 .chat-main-pane {
-      width: 100%;
-      height: 100%;
-      background: transparent;
-      border: none;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 0;
-      min-height: 0;
-    }
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 0;
+      min-height: 0;
+    }
 
-    /* Chat Header */
-    .chat-header {
-      background-color: var(--header-bg);
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      flex-shrink: 0;
-    }
-    .avatar {
-      width: 40px;
-      height: 40px;
-      background-color: #d81b60;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-    .header-info h3 {
-      margin: 0;
-      font-size: 1rem;
-    }
-    .header-info span {
-      font-size: 0.75rem;
-      color: var(--subtext-color);
-    }
+    /* Chat Header */
+    .chat-header {
+      background-color: var(--header-bg);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .avatar {
+      width: 40px;
+      height: 40px;
+      background-color: #d81b60;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .header-info h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .header-info span {
+      font-size: 0.75rem;
+      color: var(--subtext-color);
+    }
 
-    /* Chat Container */
+    /* Chat Container */
 .chat-container {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background-color: #000000;
-      min-height: 0; /* Allows container to shrink and stay inside viewport */
-    }
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background-color: #000000;
+      min-height: 0; /* Allows container to shrink and stay inside viewport */
+    }
 
-    .date-divider {
-      text-align: center;
-      margin: 8px 0;
-    }
-    .date-badge {
-      background-color: #2a2a2a;
-      color: var(--subtext-color);
-      font-size: 0.75rem;
-      padding: 4px 12px;
-      border-radius: 10px;
-    }
+    .date-divider {
+      text-align: center;
+      margin: 8px 0;
+    }
+    .date-badge {
+      background-color: #2a2a2a;
+      color: var(--subtext-color);
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 10px;
+    }
 
-    /* Message Wrapper */
-    .message-row {
-      display: flex;
-      flex-direction: column;
-      max-width: 80%;
-    }
-    .message-row.incoming {
-      align-self: flex-start;
-    }
-    .message-row.outgoing {
-      align-self: flex-end;
-    }
+    /* Message Wrapper */
+    .message-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+    .message-row.incoming {
+      align-self: flex-start;
+    }
+    .message-row.outgoing {
+      align-self: flex-end;
+    }
 
-    /* Sender Name */
-    .sender-name {
-      font-size: 0.75rem;
-      color: var(--subtext-color);
-      margin-bottom: 2px;
-      margin-left: 40px;
-    }
+    /* Sender Name */
+    .sender-name {
+      font-size: 0.75rem;
+      color: var(--subtext-color);
+      margin-bottom: 2px;
+      margin-left: 40px;
+    }
 
-    /* Avatar and Bubble Row */
-    .incoming-content-wrapper {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-    }
+    /* Avatar and Bubble Row */
+    .incoming-content-wrapper {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
 
-    .small-avatar {
-      width: 28px;
-      height: 28px;
-      background-color: #a1887f;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
+    .small-avatar {
+      width: 28px;
+      height: 28px;
+      background-color: #a1887f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
 
-    .msg-bubble { 
-      padding: 6px 10px; 
-      font-size: 0.9rem; 
-      line-height: 1.35; 
-      word-break: break-word; 
-      position: relative; 
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
-      display: inline-block;
-      max-width: 320px;
-    }
+    .msg-bubble { 
+      padding: 6px 10px; 
+      font-size: 0.9rem; 
+      line-height: 1.35; 
+      word-break: break-word; 
+      position: relative; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2); 
+      display: inline-block;
+      max-width: 320px;
+    }
 
- /* Media Bubble with Overlay Stamp */
-    .msg-bubble.media-bubble {
-      padding: 3px !important;
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      max-width: 280px;
-    }
+ /* Media Bubble with Overlay Stamp */
+    .msg-bubble.media-bubble {
+      padding: 3px !important;
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      max-width: 280px;
+    }
 
-    /* Telegram-style Grid Container */
-    .media-grid {
-      display: grid;
-      gap: 3px;
-      width: 100%;
-    }
-    .media-grid-1 { grid-template-columns: 1fr; }
-    .media-grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .media-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    /* Telegram-style Grid Container */
+    .media-grid {
+      display: grid;
+      gap: 3px;
+      width: 100%;
+    }
+    .media-grid-1 { grid-template-columns: 1fr; }
+    .media-grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .media-grid-3 { grid-template-columns: repeat(3, 1fr); }
 
-    /* For rows with fewer than 3 items, make them stretch to match full width */
-    .media-grid-3 > *:nth-last-child(1):nth-child(3n+1) {
-      grid-column: span 3;
-    }
-    .media-grid-3 > *:nth-last-child(2):nth-child(3n+1),
-    .media-grid-3 > *:nth-last-child(1):nth-child(3n+2) {
-      grid-column: span 1.5;
-    }
+    /* For rows with fewer than 3 items, make them stretch to match full width */
+    .media-grid-3 > *:nth-last-child(1):nth-child(3n+1) {
+      grid-column: span 3;
+    }
+    .media-grid-3 > *:nth-last-child(2):nth-child(3n+1),
+    .media-grid-3 > *:nth-last-child(1):nth-child(3n+2) {
+      grid-column: span 1.5;
+    }
 
-    .media-grid-item {
-      aspect-ratio: 1 / 1;
-      background: #111;
-      border-radius: 8px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .media-grid-item img, 
-    .media-grid-item video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .media-grid-item.file-tile {
-      font-size: 0.75rem;
-      padding: 8px;
-      text-align: center;
-      color: #fff;
-      word-break: break-all;
-    }
+    .media-grid-item {
+      aspect-ratio: 1 / 1;
+      background: #111;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .media-grid-item img, 
+    .media-grid-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .media-grid-item.file-tile {
+      font-size: 0.75rem;
+      padding: 8px;
+      text-align: center;
+      color: #fff;
+      word-break: break-all;
+    }
 
-    /* Time Overlay on Bottom-Right of Media */
-    .media-time-overlay {
-      position: absolute;
-      bottom: 6px;
-      right: 8px;
-      background: rgba(0, 0, 0, 0.55);
-      backdrop-filter: blur(2px);
-      color: #ffffff;
-      font-size: 0.6rem;
-      padding: 2px 6px;
-      border-radius: 10px;
-      pointer-events: none;
-      letter-spacing: 0.3px;
-    }
-    
- .msg-bubble.incoming { 
-      background: #1e1e1e; /* Slate charcoal color */
-      color: var(--chat-incoming-text); 
-      border-radius: 14px 14px 14px 4px; 
-    }
-    
-    .msg-bubble.outgoing { 
-      background: var(--chat-outgoing-bg); 
-      color: var(--chat-outgoing-text); 
-      border-radius: 14px 14px 4px 14px; 
-      font-weight: 500; 
-    }
+    /* Time Overlay on Bottom-Right of Media */
+    .media-time-overlay {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(2px);
+      color: #ffffff;
+      font-size: 0.6rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      pointer-events: none;
+      letter-spacing: 0.3px;
+    }
+    
+ .msg-bubble.incoming { 
+      background: #1e1e1e; /* Slate charcoal color */
+      color: var(--chat-incoming-text); 
+      border-radius: 14px 14px 14px 4px; 
+    }
+    
+    .msg-bubble.outgoing { 
+      background: var(--chat-outgoing-bg); 
+      color: var(--chat-outgoing-text); 
+      border-radius: 14px 14px 4px 14px; 
+      font-weight: 500; 
+    }
 
-    .message-text {
-      display: inline;
-      margin: 0;
-      white-space: pre-wrap;
-    }
+    .message-text {
+      display: inline;
+      margin: 0;
+      white-space: pre-wrap;
+    }
 
-    .msg-meta-row { 
-      display: flex; 
-      align-items: center; 
-      justify-content: flex-end; 
-      gap: 4px; 
-      font-size: 0.65rem; 
-      color: var(--subtext-color); 
-      margin-top: 2px; 
-      align-self: flex-end;
-    }
+    .msg-meta-row { 
+      display: flex; 
+      align-items: center; 
+      justify-content: flex-end; 
+      gap: 4px; 
+      font-size: 0.65rem; 
+      color: var(--subtext-color); 
+      margin-top: 2px; 
+      align-self: flex-end;
+    }
 
-    /* Chat Footer / Input area — column wrapper holding the preview tray
-       above the actual input row so both always span full width */
-    .chat-footer-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      flex-shrink: 0;
-    }
+    /* Chat Footer / Input area — column wrapper holding the preview tray
+       above the actual input row so both always span full width */
+    .chat-footer-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      flex-shrink: 0;
+    }
 
 .chat-footer {
-      background-color: transparent;
-      padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)) 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-shrink: 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
+      background-color: transparent;
+      padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)) 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
 .footer-icon-btn {
-      background: transparent;
-      border: none;
-      color: var(--subtext-color, #aaaaaa);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      transition: color 0.15s;
-      flex-shrink: 0;
-    }
-    .footer-icon-btn:hover {
-      color: #ffffff;
-    }
-    .footer-icon-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke: var(--subtext-color, #aaaaaa);
-      stroke-width: 2;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+      background: transparent;
+      border: none;
+      color: var(--subtext-color, #aaaaaa);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+    .footer-icon-btn:hover {
+      color: #ffffff;
+    }
+    .footer-icon-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--subtext-color, #aaaaaa);
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
 .chat-input-wrapper {
-      flex: 1 1 auto;
-      min-width: 0;
-      width: 100%;
-      background-color: var(--slate-surface, #1e1e1e);
-      border: 1px solid var(--border-color);
-      border-radius: 28px;
-      display: flex;
-      align-items: center;
-      padding: 4px 8px 4px 4px;
-    }
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+      background-color: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      padding: 4px 8px 4px 4px;
+    }
 
-    .inline-icon-btn {
-      background: transparent;
-      border: none;
-      color: var(--subtext-color, #aaaaaa);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      transition: color 0.15s;
-      flex-shrink: 0;
-    }
-    .inline-icon-btn:hover {
-      color: #ffffff;
-    }
-    .inline-icon-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: var(--subtext-color, #aaaaaa);
-      stroke-width: 1.8;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+    .inline-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color, #aaaaaa);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+    .inline-icon-btn:hover {
+      color: #ffffff;
+    }
+    .inline-icon-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--subtext-color, #aaaaaa);
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-    .chat-input {
-      flex: 1 1 auto;
-      min-width: 0;
-      width: 100%;
-      background-color: transparent;
-      border: none;
-      padding: 8px 12px;
-      color: #ffffff;
-      font-size: 0.95rem;
-      outline: none;
-      resize: none;
-      max-height: 120px;
-      line-height: 1.35;
-      font-family: inherit;
-    }
+    .chat-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+      background-color: transparent;
+      border: none;
+      padding: 8px 12px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      outline: none;
+      resize: none;
+      max-height: 120px;
+      line-height: 1.35;
+      font-family: inherit;
+    }
 
-    .chat-send-btn {
-      background-color: #ffffff; /* Solid white circle */
-      border: none;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: #000000; /* Dark arrow */
-      transition: transform 0.15s, opacity 0.15s;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .chat-send-btn:hover {
-      opacity: 0.9;
-      transform: scale(1.04);
-    }
-    
-    .chat-send-btn svg {
-      width: 24px;
-      height: 24px;
-    }
+    .chat-send-btn {
+      background-color: #ffffff; /* Solid white circle */
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #000000; /* Dark arrow */
+      transition: transform 0.15s, opacity 0.15s;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .chat-send-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.04);
+    }
+    
+    .chat-send-btn svg {
+      width: 24px;
+      height: 24px;
+    }
 
-    /* BOQ Card */
-    .workspace-inner-card {
-      background: #1e1e1e;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 24px;
-      width: 100%;
-      height: 100%;
-      overflow-y: auto;
-    }
+    /* BOQ Card */
+    .workspace-inner-card {
+      background: #1e1e1e;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 24px;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
 
 .attachment-popup {
-      position: fixed;
-      background-color: var(--slate-surface, #1e1e1e);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 2px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      z-index: 100;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transform: scale(0.85);
-      transform-origin: bottom left;
-      transition: transform 0.16s ease, opacity 0.16s ease;
-    }
-    .attachment-popup.active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-      transform: scale(1);
-    }
-    .attach-option {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.15s;
-    }
-    .attach-option:hover {
-      background: rgba(255, 255, 255, 0.07);
-    }
-    .attach-icon-circle {
-      width: 38px; /* Smaller icon circles */
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-      flex-shrink: 0;
-    }
-    .attach-option span {
-      font-size: 0.78rem;
-      color: #ffffff;
-      font-weight: 500;
-      white-space: nowrap;
-      text-align: center;
-    }
+      position: fixed;
+      background-color: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.85);
+      transform-origin: bottom center;
+      transition: transform 0.16s ease, opacity 0.16s ease;
+    }
+    .attachment-popup.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+    .attach-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .attach-option:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+    .attach-icon-circle {
+      width: 38px; /* Smaller icon circles */
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    .attach-option span {
+      font-size: 0.78rem;
+      color: #ffffff;
+      font-weight: 500;
+      white-space: nowrap;
+      text-align: center;
+    }
 
-    /* Document Tile Layout inside Bubble */
-    .doc-list-container {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 4px;
-      min-width: 240px;
-    }
-    .doc-tile-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 8px 12px;
-      border-radius: 10px;
-      transition: background 0.15s;
-    }
-    .doc-tile-row:hover {
-      background: rgba(255, 255, 255, 0.09);
-    }
-    .doc-icon-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #ffffff;
-      flex-shrink: 0;
-      text-transform: uppercase;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    .doc-info {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
- .doc-name {
-      font-size: 0.85rem;
-      font-weight: 500;
-      color: var(--chat-outgoing-text, #000000);
-      opacity: 0.6;
-      white-space: normal;
-      word-break: break-all;
-    }
-    .doc-meta {
-      font-size: 0.68rem;
-      color: var(--subtext-color);
-    }
-    .doc-time-row {
-      font-size: 0.65rem;
-      color: var(--subtext-color);
-      text-align: right;
-      padding: 2px 6px 2px 0;
-    }
+    /* Document Tile Layout inside Bubble */
+    .doc-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 4px;
+      min-width: 240px;
+    }
+    .doc-tile-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    .doc-tile-row:hover {
+      background: rgba(255, 255, 255, 0.09);
+    }
+    .doc-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ffffff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .doc-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+ .doc-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--chat-outgoing-text, #000000);
+      opacity: 0.6;
+      white-space: normal;
+      word-break: break-all;
+    }
+    .doc-meta {
+      font-size: 0.68rem;
+      color: var(--subtext-color);
+    }
+    .doc-time-row {
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      text-align: right;
+      padding: 2px 6px 2px 0;
+    }
 
-    /* Caption text shown under attached media/files, when a message sent together with text */
-    .media-caption {
-      padding: 6px 10px 0 10px;
-      font-size: 0.9rem;
-      line-height: 1.35;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .media-time-row {
-      font-size: 0.65rem;
-      color: var(--subtext-color);
-      text-align: right;
-      padding: 2px 8px 4px 0;
-    }
+    /* Caption text shown under attached media/files, when a message sent together with text */
+    .media-caption {
+      padding: 6px 10px 0 10px;
+      font-size: 0.9rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .media-time-row {
+      font-size: 0.65rem;
+      color: var(--subtext-color);
+      text-align: right;
+      padding: 2px 8px 4px 0;
+    }
 
-    /* File Preview Tray above footer */
+    /* File Preview Tray above footer */
 .file-preview-tray {
-      display: none;
-      flex-direction: row; /* Aligns tiles horizontally */
-      background: transparent;
-      padding: 10px 16px 0 16px;
-      gap: 10px;
-      align-items: center;
-      overflow-x: auto;
-      flex-shrink: 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .file-preview-tray.active {
-      display: flex;
-    }
-    .preview-scroll-container {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      width: 100%;
-      align-items: center;
-      padding-bottom: 4px;
-    }
-    .preview-tile {
-      position: relative;
-      width: 92px;
-      height: 92px;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      flex-shrink: 0;
-      border: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Half-width tile fixed to the left of the tray — clears every staged attachment at once */
-    .preview-clear-tile {
-      width: 46px;
-      height: 92px;
-      border-radius: 12px;
-      background: #2a2a2a;
-      border: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .preview-clear-tile:hover {
-      background: #3a3a3a;
-    }
-    .preview-clear-tile svg {
-      width: 16px;
-      height: 16px;
-      stroke: #ffffff;
-      stroke-width: 2.4;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    .preview-tile img, .preview-tile video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .preview-tile-doc {
-      background: #2a2a2a;
-      width: 92px;
-      height: 92px;
-      padding: 6px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .preview-doc-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      font-size: 0.62rem;
-      font-weight: bold;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .preview-doc-name {
-      font-size: 0.6rem;
-      color: #fff;
-      width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .preview-remove-btn {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      background: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      border: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      font-size: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .preview-fab-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--chat-outgoing-bg, #ffffff);
-      color: var(--chat-outgoing-text, #000000);
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      transition: transform 0.15s;
-    }
-    .preview-fab-btn:hover {
-      transform: scale(1.05);
-    }
+      display: none;
+      flex-direction: row; /* Aligns tiles horizontally */
+      background: transparent;
+      padding: 10px 16px 0 16px;
+      gap: 10px;
+      align-items: center;
+      overflow-x: auto;
+      flex-shrink: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .file-preview-tray.active {
+      display: flex;
+    }
+    .preview-scroll-container {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      width: 100%;
+      align-items: center;
+      padding-bottom: 4px;
+    }
+    .preview-tile {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Half-width tile fixed to the left of the tray — clears every staged attachment at once */
+    .preview-clear-tile {
+      width: 46px;
+      height: 92px;
+      border-radius: 12px;
+      background: #2a2a2a;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .preview-clear-tile:hover {
+      background: #3a3a3a;
+    }
+    .preview-clear-tile svg {
+      width: 16px;
+      height: 16px;
+      stroke: #ffffff;
+      stroke-width: 2.4;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .preview-tile img, .preview-tile video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .preview-tile-doc {
+      background: #2a2a2a;
+      width: 92px;
+      height: 92px;
+      padding: 6px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-doc-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 0.62rem;
+      font-weight: bold;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .preview-doc-name {
+      font-size: 0.6rem;
+      color: #fff;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .preview-remove-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-fab-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--chat-outgoing-bg, #ffffff);
+      color: var(--chat-outgoing-text, #000000);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.15s;
+    }
+    .preview-fab-btn:hover {
+      transform: scale(1.05);
+    }
 
-    /* Fullscreen media viewer (WhatsApp / Telegram style tap-to-open) */
-    .media-viewer-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.96);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .media-viewer-overlay.active {
-      display: flex;
-    }
-    .media-viewer-content {
-      max-width: 95vw;
-      max-height: 92vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .media-viewer-content img,
-    .media-viewer-content video {
-      max-width: 95vw;
-      max-height: 92vh;
-      object-fit: contain;
-      border-radius: 4px;
-    }
-    .media-viewer-close {
-      position: absolute;
-      top: max(16px, env(safe-area-inset-top, 0px));
-      right: 16px;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      border: none;
-      color: #ffffff;
-      font-size: 18px;
-      line-height: 1;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1001;
-    }
-    .media-viewer-close:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-    .media-viewer-nav {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      border: none;
-      color: #ffffff;
-      font-size: 28px;
-      line-height: 1;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1001;
-    }
-    .media-viewer-nav:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-    .media-viewer-prev { left: 16px; }
-    .media-viewer-next { right: 16px; }
-    @media (max-width: 600px) {
-      .media-viewer-nav { width: 38px; height: 38px; font-size: 22px; }
-    }
-    
-  </style>
+    /* Fullscreen media viewer (WhatsApp / Telegram style tap-to-open) */
+    .media-viewer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.96);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-overlay.active {
+      display: flex;
+    }
+    .media-viewer-content {
+      max-width: 95vw;
+      max-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .media-viewer-content img,
+    .media-viewer-content video {
+      max-width: 95vw;
+      max-height: 92vh;
+      object-fit: contain;
+      border-radius: 4px;
+    }
+    .media-viewer-close {
+      position: absolute;
+      top: max(16px, env(safe-area-inset-top, 0px));
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #ffffff;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+    .media-viewer-close:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .media-viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+    }
+    .media-viewer-nav:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .media-viewer-prev { left: 16px; }
+    .media-viewer-next { right: 16px; }
+    @media (max-width: 600px) {
+      .media-viewer-nav { width: 38px; height: 38px; font-size: 22px; }
+    }
+    
+  </style>
 </head>
 <body>
 
 <!-- Header -->
-  <header class="dashboard-header">
-    <div class="folder-header-nav" style="display: flex;">
-      <button class="header-back-icon" id="backBtn" title="Go Back">
-        <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      </button>
-      <div class="header-breadcrumb-path" id="breadcrumbBar">
-        <span class="breadcrumb-item" id="projectsCrumb">Chats</span>
-        <span>></span>
-        <span class="breadcrumb-item active" id="projectTitleCrumb">Loading...</span>
-      </div>
-    </div>
-  </header>
+  <header class="dashboard-header">
+    <div class="folder-header-nav" style="display: flex;">
+      <button class="header-back-icon" id="backBtn" title="Go Back">
+        <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="header-breadcrumb-path" id="breadcrumbBar">
+        <span class="breadcrumb-item" id="projectsCrumb">Chats</span>
+        <span>></span>
+        <span class="breadcrumb-item active" id="projectTitleCrumb">Loading...</span>
+      </div>
+    </div>
+  </header>
 
-  <div class="dashboard-body-split">
+  <div class="dashboard-body-split">
 
-   <!-- Left Vertical Tab Bar with Direct URL Redirections -->
-    <aside class="left-vertical-tabbar">
-      <div class="project-sub-nav">
-        
-       <!-- Folder Tab button inside chat -->
+   <!-- Left Vertical Tab Bar with Direct URL Redirections -->
+    <aside class="left-vertical-tabbar">
+      <div class="project-sub-nav">
+        
+       <!-- Folder Tab button inside chat -->
 <button class="tab-btn" onclick="goToProjectFolder()" title="Folders & Files">
-  <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+  <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
 </button>
 
 <script>
-  function goToProjectFolder() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const projectId = urlParams.get('id') || 'proj-1';
-    window.location.href = `../?id=${projectId}`;
-  }
+  function goToProjectFolder() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const projectId = urlParams.get('id') || 'proj-1';
+    window.location.href = `../?id=${projectId}`;
+  }
 </script>
 
-        <!-- 2. Chats (Active on this screen) -->
-        <button class="tab-btn active" title="Chats">
-          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        </button>
+        <!-- 2. Chats (Active on this screen) -->
+        <button class="tab-btn active" title="Chats">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </button>
 
-        <!-- 3. Forms -->
-        <button class="tab-btn" onclick="location.href='forms.html'" title="Forms">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-        </button>
+        <!-- 3. Forms -->
+        <button class="tab-btn" onclick="location.href='forms.html'" title="Forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+        </button>
 
-        <!-- 4. BOQ: Redirects to the separate BOQ file/workspace -->
-        <button class="tab-btn" onclick="location.href='boq.html'" title="Bill of Quantity (BOQ)">
-          <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px">BOQ</text></svg>
-        </button>
+        <!-- 4. BOQ: Redirects to the separate BOQ file/workspace -->
+        <button class="tab-btn" onclick="location.href='boq.html'" title="Bill of Quantity (BOQ)">
+          <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px">BOQ</text></svg>
+        </button>
 
-        <!-- 5. Compare -->
-        <button class="tab-btn" onclick="location.href='compare.html'" title="Expense vs BOQ Comparison">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        </button>
+        <!-- 5. Compare -->
+        <button class="tab-btn" onclick="location.href='compare.html'" title="Expense vs BOQ Comparison">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </button>
 
-        <!-- 6. Claims -->
-        <button class="tab-btn" onclick="location.href='claims.html'" title="Claims">
-          <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
-        </button>
+        <!-- 6. Claims -->
+        <button class="tab-btn" onclick="location.href='claims.html'" title="Claims">
+          <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
+        </button>
 
-        <!-- 7. Schedule -->
-        <button class="tab-btn" onclick="location.href='schedule.html'" title="Schedule">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        </button>
-      </div>
-    </aside>
+        <!-- 7. Schedule -->
+        <button class="tab-btn" onclick="location.href='schedule.html'" title="Schedule">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </button>
+      </div>
+    </aside>
 
-    <!-- WORKSPACE 1: CHAT -->
-    <section class="workspace-pane active" id="workspaceChat">
-      <div class="chat-main-pane">
-        <div class="chat-container" id="chatContainer">
-          <div class="date-divider">
-            <span class="date-badge">Today</span>
-          </div>
+    <!-- WORKSPACE 1: CHAT -->
+    <section class="workspace-pane active" id="workspaceChat">
+      <div class="chat-main-pane">
+        <div class="chat-container" id="chatContainer">
+          <div class="date-divider">
+            <span class="date-badge">Today</span>
+          </div>
 
-          <div class="message-row incoming">
-            <span class="sender-name">John</span>
-            <div class="incoming-content-wrapper">
-              <div class="small-avatar">J</div>
-              <div class="msg-bubble incoming">
-                <span class="message-text">Hi there!</span>
-                <span class="msg-meta-row">04:13 pm</span>
-              </div>
-            </div>
-          </div>
+          <div class="message-row incoming">
+            <span class="sender-name">John</span>
+            <div class="incoming-content-wrapper">
+              <div class="small-avatar">J</div>
+              <div class="msg-bubble incoming">
+                <span class="message-text">Hi there!</span>
+                <span class="msg-meta-row">04:13 pm</span>
+              </div>
+            </div>
+          </div>
 
-          <div class="message-row outgoing">
-            <div class="msg-bubble outgoing">
-              <span class="message-text">Hello! How can I help you?</span>
-              <span class="msg-meta-row">04:13 pm</span>
-            </div>
-          </div>
-        </div>
+          <div class="message-row outgoing">
+            <div class="msg-bubble outgoing">
+              <span class="message-text">Hello! How can I help you?</span>
+              <span class="msg-meta-row">04:13 pm</span>
+            </div>
+          </div>
+        </div>
 
-        <!-- Column wrapper: preview tray sits above the button row, both full width -->
-        <div class="chat-footer-container" id="chatFooterContainer">
+        <!-- Column wrapper: preview tray sits above the button row, both full width -->
+        <div class="chat-footer-container" id="chatFooterContainer">
 
-          <!-- File Preview Tray (Appears above input when files are selected) -->
-          <div class="file-preview-tray" id="filePreviewTray">
-            <div class="preview-scroll-container" id="previewScrollContainer">
-              <!-- Dynamic Preview Tiles -->
-            </div>
-          </div>
+          <!-- File Preview Tray (Appears above input when files are selected) -->
+          <div class="file-preview-tray" id="filePreviewTray">
+            <div class="preview-scroll-container" id="previewScrollContainer">
+              <!-- Dynamic Preview Tiles -->
+            </div>
+          </div>
 
-          <div class="chat-footer" style="position: relative;">
-            <!-- Attachment Popup Menu -->
-            <div class="attachment-popup" id="attachmentPopup">
-              <div class="attach-option" onclick="document.getElementById('imageInput').click()">
-                <div class="attach-icon-circle" style="background: #e91e63;">
-                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                </div>
-                <span>Image</span>
-              </div>
-              <div class="attach-option" onclick="document.getElementById('videoInput').click()">
-                <div class="attach-icon-circle" style="background: #9c27b0;">
-                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                </div>
-                <span>Video</span>
-              </div>
-              <div class="attach-option" onclick="document.getElementById('audioInput').click()">
-                <div class="attach-icon-circle" style="background: #ff9800;">
-                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-                </div>
-                <span>Audio</span>
-              </div>
-              <div class="attach-option" onclick="document.getElementById('documentInput').click()">
-                <div class="attach-icon-circle" style="background: #2196f3;">
-                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                </div>
-                <span>Document</span>
-              </div>
-            </div>
+          <div class="chat-footer" style="position: relative;">
+            <!-- Attachment Popup Menu -->
+            <div class="attachment-popup" id="attachmentPopup">
+              <div class="attach-option" onclick="document.getElementById('imageInput').click()">
+                <div class="attach-icon-circle" style="background: #e91e63;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </div>
+                <span>Image</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('videoInput').click()">
+                <div class="attach-icon-circle" style="background: #9c27b0;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                </div>
+                <span>Video</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('audioInput').click()">
+                <div class="attach-icon-circle" style="background: #ff9800;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                </div>
+                <span>Audio</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('documentInput').click()">
+                <div class="attach-icon-circle" style="background: #2196f3;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                </div>
+                <span>Document</span>
+              </div>
+            </div>
 
-            <!-- Hidden File Inputs -->
-            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
-            <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
-            <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
-            <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
+            <!-- Hidden File Inputs -->
+            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
+            <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
+            <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
+            <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
 
-            <!-- Plus Button (Appears in place of paperclip when files are staged) -->
-            <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
+            <!-- Plus Button (Appears in place of paperclip when files are staged) -->
+            <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
 
-            <!-- Paperclip Attachment Button -->
-            <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
-              <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-            </button>
-            
-            <div class="chat-input-wrapper">
-              <button class="inline-icon-btn" title="Emoji">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-              </button>
-              <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
-            </div>
+            <!-- Paperclip Attachment Button -->
+            <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
+              <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            </button>
+            
+            <div class="chat-input-wrapper">
+              <button class="inline-icon-btn" title="Emoji">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
+            </div>
 
-            <button class="chat-send-btn" onclick="sendMessage()" title="Send">
-              <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+            <button class="chat-send-btn" onclick="sendMessage()" title="Send">
+              <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  </div>
+  </div>
 
-  <!-- Fullscreen media viewer, opened on tapping an image/video in chat -->
-  <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="closeMediaViewer()">
-    <button class="media-viewer-close" onclick="event.stopPropagation(); closeMediaViewer()" title="Close">✕</button>
-    <button class="media-viewer-nav media-viewer-prev" id="mediaViewerPrev" onclick="showPrevMedia(event)" title="Previous">‹</button>
-    <div class="media-viewer-content" id="mediaViewerContent" onclick="event.stopPropagation()"></div>
-    <button class="media-viewer-nav media-viewer-next" id="mediaViewerNext" onclick="showNextMedia(event)" title="Next">›</button>
-  </div>
+  <!-- Fullscreen media viewer, opened on tapping an image/video in chat -->
+  <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="closeMediaViewer()">
+    <button class="media-viewer-close" onclick="event.stopPropagation(); closeMediaViewer()" title="Close">✕</button>
+    <button class="media-viewer-nav media-viewer-prev" id="mediaViewerPrev" onclick="showPrevMedia(event)" title="Previous">‹</button>
+    <div class="media-viewer-content" id="mediaViewerContent" onclick="event.stopPropagation()"></div>
+    <button class="media-viewer-nav media-viewer-next" id="mediaViewerNext" onclick="showNextMedia(event)" title="Next">›</button>
+  </div>
 
-  <script>
-    function handleChatInputKey(event) {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-      }
-    }
+  <script>
+    function handleChatInputKey(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    }
 
-    function getTimeString() {
-      const now = new Date();
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'pm' : 'am';
-      hours = hours % 12 || 12;
-      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
-    }
+    function getTimeString() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+    }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
 
-    let mediaGalleries = {};
-    let galleryCounter = 0;
-    let currentGalleryId = null;
-    let currentMediaIndex = 0;
+    let mediaGalleries = {};
+    let galleryCounter = 0;
+    let currentGalleryId = null;
+    let currentMediaIndex = 0;
 
-    function registerGallery(items) {
-      const id = 'gal_' + (galleryCounter++);
-      mediaGalleries[id] = items;
-      return id;
-    }
+    function registerGallery(items) {
+      const id = 'gal_' + (galleryCounter++);
+      mediaGalleries[id] = items;
+      return id;
+    }
 
-    function openMediaViewer(galleryId, index) {
-      currentGalleryId = galleryId;
-      currentMediaIndex = index;
-      renderMediaViewerContent();
-      document.getElementById('mediaViewerOverlay').classList.add('active');
-    }
+    function openMediaViewer(galleryId, index) {
+      currentGalleryId = galleryId;
+      currentMediaIndex = index;
+      renderMediaViewerContent();
+      document.getElementById('mediaViewerOverlay').classList.add('active');
+    }
 
-  function renderMediaViewerContent() {
+    function renderMediaViewerContent() {
       const items = mediaGalleries[currentGalleryId] || [];
       const item = items[currentMediaIndex];
       const content = document.getElementById('mediaViewerContent');
       if (!item) return;
 
-      if (item.type === 'Video') {
-        content.innerHTML = `<video src="${item.url}" controls autoplay playsinline></video>`;
-      } else if (item.type === 'Audio') {
-        content.innerHTML = `
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; background: #1e1e1e; border-radius: 12px; border: 1px solid var(--border-color);">
-            <div style="font-size: 48px;">🎵</div>
-            <audio src="${item.url}" controls autoplay style="width: 300px; max-width: 80vw;"></audio>
-          </div>`;
-      } else {
-        content.innerHTML = `<img src="${item.url}" alt="media">`;
-      }
+      content.innerHTML = item.type === 'Video'
+        ? `<video src="${item.url}" controls autoplay playsinline></video>`
+        : `<img src="${item.url}" alt="media">`;
 
       const showNav = items.length > 1;
       const prevBtn = document.getElementById('mediaViewerPrev');
@@ -1224,241 +1216,241 @@ html, body {
       if (nextBtn) nextBtn.style.display = showNav ? 'flex' : 'none';
     }
 
-    function showPrevMedia(event) {
-      if (event) event.stopPropagation();
-      const items = mediaGalleries[currentGalleryId] || [];
-      if (items.length < 2) return;
-      currentMediaIndex = (currentMediaIndex - 1 + items.length) % items.length;
-      renderMediaViewerContent();
-    }
+    function showPrevMedia(event) {
+      if (event) event.stopPropagation();
+      const items = mediaGalleries[currentGalleryId] || [];
+      if (items.length < 2) return;
+      currentMediaIndex = (currentMediaIndex - 1 + items.length) % items.length;
+      renderMediaViewerContent();
+    }
 
-    function showNextMedia(event) {
-      if (event) event.stopPropagation();
-      const items = mediaGalleries[currentGalleryId] || [];
-      if (items.length < 2) return;
-      currentMediaIndex = (currentMediaIndex + 1) % items.length;
-      renderMediaViewerContent();
-    }
+    function showNextMedia(event) {
+      if (event) event.stopPropagation();
+      const items = mediaGalleries[currentGalleryId] || [];
+      if (items.length < 2) return;
+      currentMediaIndex = (currentMediaIndex + 1) % items.length;
+      renderMediaViewerContent();
+    }
 
-    function closeMediaViewer() {
-      const overlay = document.getElementById('mediaViewerOverlay');
-      const content = document.getElementById('mediaViewerContent');
-      const video = content.querySelector('video');
-      if (video) video.pause();
-      overlay.classList.remove('active');
-      content.innerHTML = '';
-      currentGalleryId = null;
-    }
+    function closeMediaViewer() {
+      const overlay = document.getElementById('mediaViewerOverlay');
+      const content = document.getElementById('mediaViewerContent');
+      const video = content.querySelector('video');
+      if (video) video.pause();
+      overlay.classList.remove('active');
+      content.innerHTML = '';
+      currentGalleryId = null;
+    }
 
-    // Swipe support (touch) + arrow-key support for the fullscreen viewer
-    (function setupMediaViewerGestures() {
-      const overlay = document.getElementById('mediaViewerOverlay');
-      if (!overlay) return;
-      let touchStartX = null;
+    // Swipe support (touch) + arrow-key support for the fullscreen viewer
+    (function setupMediaViewerGestures() {
+      const overlay = document.getElementById('mediaViewerOverlay');
+      if (!overlay) return;
+      let touchStartX = null;
 
-      overlay.addEventListener('touchstart', function(e) {
-        touchStartX = e.touches[0].clientX;
-      }, { passive: true });
+      overlay.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
 
-      overlay.addEventListener('touchend', function(e) {
-        if (touchStartX === null) return;
-        const deltaX = e.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(deltaX) > 50) {
-          if (deltaX > 0) showPrevMedia();
-          else showNextMedia();
-        }
-        touchStartX = null;
-      }, { passive: true });
+      overlay.addEventListener('touchend', function(e) {
+        if (touchStartX === null) return;
+        const deltaX = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(deltaX) > 50) {
+          if (deltaX > 0) showPrevMedia();
+          else showNextMedia();
+        }
+        touchStartX = null;
+      }, { passive: true });
 
-      document.addEventListener('keydown', function(e) {
-        if (!overlay.classList.contains('active')) return;
-        if (e.key === 'ArrowLeft') showPrevMedia();
-        else if (e.key === 'ArrowRight') showNextMedia();
-        else if (e.key === 'Escape') closeMediaViewer();
-      });
-    })();
+      document.addEventListener('keydown', function(e) {
+        if (!overlay.classList.contains('active')) return;
+        if (e.key === 'ArrowLeft') showPrevMedia();
+        else if (e.key === 'ArrowRight') showNextMedia();
+        else if (e.key === 'Escape') closeMediaViewer();
+      });
+    })();
 
-    function openFileInNewTab(url) {
-      window.open(url, '_blank');
-    }
+    function openFileInNewTab(url) {
+      window.open(url, '_blank');
+    }
 
-  function setAppHeight() {
-    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty('--app-height', h + 'px');
-  }
-  setAppHeight();
-  window.addEventListener('resize', setAppHeight);
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', setAppHeight);
-  }
-  </script>
+  function setAppHeight() {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', h + 'px');
+  }
+  setAppHeight();
+  window.addEventListener('resize', setAppHeight);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setAppHeight);
+  }
+  </script>
 
-  <script>
-    const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', year: '2026' },
-      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', year: '2026' }
-    ];
+  <script>
+    const defaultProjects = [
+      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', year: '2026' },
+      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', year: '2026' }
+    ];
 
-    function getProjects() {
-      const stored = localStorage.getItem('dibadge_project_tiles');
-      if (!stored) return defaultProjects;
-      try { return JSON.parse(stored); } catch(e) { return defaultProjects; }
-    }
+    function getProjects() {
+      const stored = localStorage.getItem('dibadge_project_tiles');
+      if (!stored) return defaultProjects;
+      try { return JSON.parse(stored); } catch(e) { return defaultProjects; }
+    }
 
-    (function initChatHeader() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const projectId = urlParams.get('id') || 'proj-1';
-      
-      const projects = getProjects();
-      const currentProj = projects.find(p => p.id === projectId) || projects[0];
+    (function initChatHeader() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('id') || 'proj-1';
+      
+      const projects = getProjects();
+      const currentProj = projects.find(p => p.id === projectId) || projects[0];
 
-      // Sets exact project folder name and project number cleanly
-      const crumbEl = document.getElementById("projectTitleCrumb");
-      if (crumbEl) {
-        crumbEl.textContent = `${currentProj.client} (${currentProj.projectNo})`;
-      }
+      // Sets exact project folder name and project number cleanly
+      const crumbEl = document.getElementById("projectTitleCrumb");
+      if (crumbEl) {
+        crumbEl.textContent = `${currentProj.client} (${currentProj.projectNo})`;
+      }
 
-      // Back button handlers
-      const backBtn = document.getElementById("backBtn");
-      if (backBtn) {
-        backBtn.onclick = () => {
-          window.location.href = `../?id=${currentProj.id}`;
-        };
-      }
+      // Back button handlers
+      const backBtn = document.getElementById("backBtn");
+      if (backBtn) {
+        backBtn.onclick = () => {
+          window.location.href = `../?id=${currentProj.id}`;
+        };
+      }
 
-      const projectsCrumb = document.getElementById("projectsCrumb");
-      if (projectsCrumb) {
-        projectsCrumb.onclick = () => {
-          window.location.href = `../?id=${currentProj.id}`;
-        };
-      }
-    })();
+      const projectsCrumb = document.getElementById("projectsCrumb");
+      if (projectsCrumb) {
+        projectsCrumb.onclick = () => {
+          window.location.href = `../?id=${currentProj.id}`;
+        };
+      }
+    })();
 
 function toggleAttachmentPopup(event) {
-      event.stopPropagation();
-      const popup = document.getElementById("attachmentPopup");
-      if (popup.classList.contains('active')) {
-        popup.classList.remove('active');
-        return;
-      }
-      positionAttachmentPopup();
-      popup.classList.add('active');
-    }
+      event.stopPropagation();
+      const popup = document.getElementById("attachmentPopup");
+      if (popup.classList.contains('active')) {
+        popup.classList.remove('active');
+        return;
+      }
+      positionAttachmentPopup();
+      popup.classList.add('active');
+    }
 
-    function positionAttachmentPopup() {
-      const popup = document.getElementById("attachmentPopup");
-      const attachBtn = document.getElementById("attachBtn");
-      const plusBtn = document.getElementById("previewPlusBtn");
-      const footer = document.querySelector(".chat-footer");
-      // Whichever trigger icon is currently shown is the one the popup should anchor to
-      const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
-      if (!triggerBtn) return;
+    function positionAttachmentPopup() {
+      const popup = document.getElementById("attachmentPopup");
+      const attachBtn = document.getElementById("attachBtn");
+      const plusBtn = document.getElementById("previewPlusBtn");
+      const footer = document.querySelector(".chat-footer");
+      // Whichever trigger icon is currently shown is the one the popup should anchor to
+      const triggerBtn = (attachBtn && attachBtn.style.display !== 'none') ? attachBtn : plusBtn;
+      if (!triggerBtn) return;
 
-      const gap = 44;
-      const btnRect = triggerBtn.getBoundingClientRect();
-      // Clear the whole footer bar (icons + input + send button), not just the icon itself
-      const footerRect = footer ? footer.getBoundingClientRect() : btnRect;
-      const clearAboveY = Math.min(btnRect.top, footerRect.top);
+      const gap = 14;
+      const btnRect = triggerBtn.getBoundingClientRect();
+      // Clear the whole footer bar (icons + input + send button), not just the icon itself
+      const footerRect = footer ? footer.getBoundingClientRect() : btnRect;
+      const clearAboveY = Math.min(btnRect.top, footerRect.top);
 
-      // Measure the popup's own size first (off-screen) so we can size/clamp it correctly
-      popup.style.left = '-9999px';
-      popup.style.top = '-9999px';
-      popup.style.visibility = 'hidden';
-      popup.style.pointerEvents = 'none';
-      popup.classList.add('active');
-      const popupRect = popup.getBoundingClientRect();
-      popup.classList.remove('active');
-      popup.style.visibility = '';
-      popup.style.pointerEvents = '';
+      // Measure the popup's own size first (off-screen) so we can size/clamp it correctly
+      popup.style.left = '-9999px';
+      popup.style.top = '-9999px';
+      popup.style.visibility = 'hidden';
+      popup.style.pointerEvents = 'none';
+      popup.classList.add('active');
+      const popupRect = popup.getBoundingClientRect();
+      popup.classList.remove('active');
+      popup.style.visibility = '';
+      popup.style.pointerEvents = '';
 
-      // Left edge of the popup starts flush with the left edge of the icon
-      let left = btnRect.left;
-      left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
-      const top = clearAboveY - popupRect.height - gap;
+      // Left edge of the popup starts flush with the left edge of the icon
+      let left = btnRect.left;
+      left = Math.max(8, Math.min(left, window.innerWidth - popupRect.width - 8));
+      const top = clearAboveY - popupRect.height - gap;
 
-      popup.style.left = left + 'px';
-      popup.style.top = top + 'px';
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
 
-      // Keep the scale-in animation anchored to the icon's actual horizontal position,
-      // even if the popup itself had to shift left/right to stay on screen
-      const originX = (btnRect.left + btnRect.width / 2) - left;
-      popup.style.transformOrigin = `${originX}px 100%`;
-    }
+      // Keep the scale-in animation anchored to the icon's actual horizontal position,
+      // even if the popup itself had to shift left/right to stay on screen
+      const originX = (btnRect.left + btnRect.width / 2) - left;
+      popup.style.transformOrigin = `${originX}px 100%`;
+    }
 
-    // Close popup when clicking outside
-    window.addEventListener('click', function(e) {
-      const popup = document.getElementById("attachmentPopup");
-      const attachBtn = document.getElementById("attachBtn");
-      if (popup && popup.classList.contains('active')) {
-        if (!popup.contains(e.target) && !attachBtn.contains(e.target)) {
-          popup.classList.remove('active');
-        }
-      }
-    });
+    // Close popup when clicking outside
+    window.addEventListener('click', function(e) {
+      const popup = document.getElementById("attachmentPopup");
+      const attachBtn = document.getElementById("attachBtn");
+      if (popup && popup.classList.contains('active')) {
+        if (!popup.contains(e.target) && !attachBtn.contains(e.target)) {
+          popup.classList.remove('active');
+        }
+      }
+    });
 
 let selectedStagedFiles = [];
-    let activeUploadType = 'Image';
+    let activeUploadType = 'Image';
 
-    function handleFilesSelected(input, type) {
-      const files = input.files;
-      if (!files || files.length === 0) return;
+    function handleFilesSelected(input, type) {
+      const files = input.files;
+      if (!files || files.length === 0) return;
 
-      activeUploadType = type;
-      for (let i = 0; i < files.length; i++) {
-        selectedStagedFiles.push(files[i]);
-      }
+      activeUploadType = type;
+      for (let i = 0; i < files.length; i++) {
+        selectedStagedFiles.push(files[i]);
+      }
 
-      renderPreviewTray();
-      document.getElementById("attachmentPopup").classList.remove('active');
-      input.value = '';
-    }
+      renderPreviewTray();
+      document.getElementById("attachmentPopup").classList.remove('active');
+      input.value = '';
+    }
 
 function openFilePicker() {
-      if (activeUploadType === 'Image') document.getElementById('imageInput').click();
-      else if (activeUploadType === 'Video') document.getElementById('videoInput').click();
-      else if (activeUploadType === 'Audio') document.getElementById('audioInput').click();
-      else document.getElementById('documentInput').click();
-    }
+      if (activeUploadType === 'Image') document.getElementById('imageInput').click();
+      else if (activeUploadType === 'Video') document.getElementById('videoInput').click();
+      else if (activeUploadType === 'Audio') document.getElementById('audioInput').click();
+      else document.getElementById('documentInput').click();
+    }
 
-    function removeStagedFile(index) {
-      selectedStagedFiles.splice(index, 1);
-      renderPreviewTray();
-    }
+    function removeStagedFile(index) {
+      selectedStagedFiles.splice(index, 1);
+      renderPreviewTray();
+    }
 
-    function clearAllStagedFiles() {
-      selectedStagedFiles = [];
-      renderPreviewTray();
-    }
+    function clearAllStagedFiles() {
+      selectedStagedFiles = [];
+      renderPreviewTray();
+    }
 
 function renderPreviewTray() {
-      const tray = document.getElementById("filePreviewTray");
-      const container = document.getElementById("previewScrollContainer");
-      const plusBtn = document.getElementById("previewPlusBtn");
-      const attachBtn = document.getElementById("attachBtn");
-      container.innerHTML = '';
+      const tray = document.getElementById("filePreviewTray");
+      const container = document.getElementById("previewScrollContainer");
+      const plusBtn = document.getElementById("previewPlusBtn");
+      const attachBtn = document.getElementById("attachBtn");
+      container.innerHTML = '';
 
-      if (selectedStagedFiles.length === 0) {
-        tray.classList.remove('active');
-        if (plusBtn) plusBtn.style.display = 'none';
-        if (attachBtn) attachBtn.style.display = 'flex';
-        return;
-      }
+      if (selectedStagedFiles.length === 0) {
+        tray.classList.remove('active');
+        if (plusBtn) plusBtn.style.display = 'none';
+        if (attachBtn) attachBtn.style.display = 'flex';
+        return;
+      }
 
-      tray.classList.add('active');
-      if (plusBtn) plusBtn.style.display = 'flex';
-      if (attachBtn) attachBtn.style.display = 'none';
+      tray.classList.add('active');
+      if (plusBtn) plusBtn.style.display = 'flex';
+      if (attachBtn) attachBtn.style.display = 'none';
 
-      // Fixed half-width tile at the left — clears every staged file in one tap
-      const clearTile = document.createElement("div");
-      clearTile.className = "preview-clear-tile";
-      clearTile.title = "Remove all";
-      clearTile.innerHTML = `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-      clearTile.onclick = () => clearAllStagedFiles();
-      container.appendChild(clearTile);
+      // Fixed half-width tile at the left — clears every staged file in one tap
+      const clearTile = document.createElement("div");
+      clearTile.className = "preview-clear-tile";
+      clearTile.title = "Remove all";
+      clearTile.innerHTML = `<svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+      clearTile.onclick = () => clearAllStagedFiles();
+      container.appendChild(clearTile);
 
-      // Build a gallery so staged images/videos can be swiped through, same as sent media
-    let stagedGalleryId = null;
-      if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
+      // Build a gallery so staged images/videos can be swiped through, same as sent media
+      let stagedGalleryId = null;
+      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
         const galleryItems = selectedStagedFiles.map(f => ({
           url: URL.createObjectURL(f),
           type: activeUploadType
@@ -1466,76 +1458,68 @@ function renderPreviewTray() {
         stagedGalleryId = registerGallery(galleryItems);
       }
 
-      selectedStagedFiles.forEach((file, index) => {
-        const objectUrl = stagedGalleryId ? mediaGalleries[stagedGalleryId][index].url : URL.createObjectURL(file);
-        const tile = document.createElement("div");
+      selectedStagedFiles.forEach((file, index) => {
+        const objectUrl = stagedGalleryId ? mediaGalleries[stagedGalleryId][index].url : URL.createObjectURL(file);
+        const tile = document.createElement("div");
 
-        if (activeUploadType === 'Image') {
-          tile.className = "preview-tile";
-          tile.innerHTML = `
-            <img src="${objectUrl}" alt="preview">
-            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
-          `;
-          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
-        } else if (activeUploadType === 'Video') {
-          tile.className = "preview-tile";
-          tile.innerHTML = `
-            <video src="${objectUrl}"></video>
-            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
-          `;
-          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
-        } else if (activeUploadType === 'Audio') {
-          tile.className = "preview-tile preview-tile-doc";
+        if (activeUploadType === 'Image') {
+          tile.className = "preview-tile";
           tile.innerHTML = `
-            <div class="preview-doc-icon" style="background: #ff9800;">🎵</div>
-            <span class="preview-doc-name">${file.name}</span>
+            <img src="${objectUrl}" alt="preview">
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
+          `;
+          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
+        } else if (activeUploadType === 'Video') {
+          tile.className = "preview-tile";
+          tile.innerHTML = `
+            <video src="${objectUrl}"></video>
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
           tile.onclick = () => openMediaViewer(stagedGalleryId, index);
         } else {
-          const ext = file.name.split('.').pop().toLowerCase();
-          let badgeColor = '#607d8b';
-          let label = ext ? ext.toUpperCase() : 'FILE';
-          if (['pdf'].includes(ext)) badgeColor = '#f44336';
-          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
-          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
-          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+          const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b';
+          let label = ext ? ext.toUpperCase() : 'FILE';
+          if (['pdf'].includes(ext)) badgeColor = '#f44336';
+          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
 
-          tile.className = "preview-tile preview-tile-doc";
-          tile.innerHTML = `
-            <div class="preview-doc-icon" style="background: ${badgeColor};">${label}</div>
-            <span class="preview-doc-name">${file.name}</span>
-            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
-          `;
-          if (activeUploadType === 'Document') {
-            tile.onclick = () => openFileInNewTab(objectUrl);
-          }
-        }
+          tile.className = "preview-tile preview-tile-doc";
+          tile.innerHTML = `
+            <div class="preview-doc-icon" style="background: ${badgeColor};">${label}</div>
+            <span class="preview-doc-name">${file.name}</span>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
+          `;
+          if (activeUploadType === 'Document') {
+            tile.onclick = () => openFileInNewTab(objectUrl);
+          }
+        }
 
-        container.appendChild(tile);
-      });
-    }
+        container.appendChild(tile);
+      });
+    }
 
-    function sendMessage() {
-      const inputField = document.getElementById("msgInput");
-      const text = inputField.value.trim();
-      const hasFiles = selectedStagedFiles.length > 0;
+    function sendMessage() {
+      const inputField = document.getElementById("msgInput");
+      const text = inputField.value.trim();
+      const hasFiles = selectedStagedFiles.length > 0;
 
-      if (!text && !hasFiles) return;
+      if (!text && !hasFiles) return;
 
-      const chatContainer = document.getElementById("chatContainer");
-      const timeString = getTimeString();
-      const messageRow = document.createElement("div");
-      messageRow.className = "message-row outgoing";
+      const chatContainer = document.getElementById("chatContainer");
+      const timeString = getTimeString();
+      const messageRow = document.createElement("div");
+      messageRow.className = "message-row outgoing";
 
-      if (hasFiles) {
-        // Build the media/file content, then attach the text (if any) as a caption
-        // inside the SAME bubble, so both go out together.
-        let mediaItemsHtml = '';
-        const count = selectedStagedFiles.length;
+      if (hasFiles) {
+        // Build the media/file content, then attach the text (if any) as a caption
+        // inside the SAME bubble, so both go out together.
+        let mediaItemsHtml = '';
+        const count = selectedStagedFiles.length;
 
-      let sentGalleryId = null;
-        if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
+        let sentGalleryId = null;
+        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
           const galleryItems = selectedStagedFiles.map(f => ({
             url: URL.createObjectURL(f),
             type: activeUploadType
@@ -1543,79 +1527,78 @@ function renderPreviewTray() {
           sentGalleryId = registerGallery(galleryItems);
         }
 
-        selectedStagedFiles.forEach((file, idx) => {
-          const objectUrl = sentGalleryId ? mediaGalleries[sentGalleryId][idx].url : URL.createObjectURL(file);
-          if (activeUploadType === 'Image') {
-            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><img src="${objectUrl}" alt="attachment"></div>`;
-          } else if (activeUploadType === 'Video') {
-            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
-        } else if (activeUploadType === 'Audio') {
-          mediaItemsHtml += `
-            <div class="doc-tile-row" onclick="openMediaViewer('${sentGalleryId}', ${idx})" style="cursor: pointer;">
-              <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
-              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-            </div>`;
-          } else {
-            const ext = file.name.split('.').pop().toLowerCase();
-            let badgeColor = '#607d8b';
-            let label = ext ? ext.toUpperCase() : 'FILE';
-            if (['pdf'].includes(ext)) badgeColor = '#f44336';
-            else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
-            else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
-            else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+        selectedStagedFiles.forEach((file, idx) => {
+          const objectUrl = sentGalleryId ? mediaGalleries[sentGalleryId][idx].url : URL.createObjectURL(file);
+          if (activeUploadType === 'Image') {
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><img src="${objectUrl}" alt="attachment"></div>`;
+          } else if (activeUploadType === 'Video') {
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
+          } else if (activeUploadType === 'Audio') {
+            mediaItemsHtml += `
+              <div class="doc-tile-row">
+                <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
+                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+              </div>`;
+          } else {
+            const ext = file.name.split('.').pop().toLowerCase();
+            let badgeColor = '#607d8b';
+            let label = ext ? ext.toUpperCase() : 'FILE';
+            if (['pdf'].includes(ext)) badgeColor = '#f44336';
+            else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+            else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+            else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
 
-            mediaItemsHtml += `
-              <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
-                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
-                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-              </a>`;
-          }
-        });
+            mediaItemsHtml += `
+              <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
+                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+              </a>`;
+          }
+        });
 
-        const captionHtml = text ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
-        let contentLayout = '';
+        const captionHtml = text ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
+        let contentLayout = '';
 
-        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
-          let gridClass = 'media-grid-1';
-          if (count === 2) gridClass = 'media-grid-2';
-          else if (count >= 3) gridClass = 'media-grid-3';
+        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+          let gridClass = 'media-grid-1';
+          if (count === 2) gridClass = 'media-grid-2';
+          else if (count >= 3) gridClass = 'media-grid-3';
 
-          // If there's a caption, show the time under it instead of overlaid on the media
-          contentLayout = `
-            <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
-            ${captionHtml}
-            ${text ? `<div class="media-time-row">${timeString}</div>` : `<div class="media-time-overlay">${timeString}</div>`}
-          `;
-        } else {
-          contentLayout = `
-            <div class="doc-list-container">${mediaItemsHtml}</div>
-            ${captionHtml}
-            <div class="doc-time-row">${timeString}</div>
-          `;
-        }
+          // If there's a caption, show the time under it instead of overlaid on the media
+          contentLayout = `
+            <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
+            ${captionHtml}
+            ${text ? `<div class="media-time-row">${timeString}</div>` : `<div class="media-time-overlay">${timeString}</div>`}
+          `;
+        } else {
+          contentLayout = `
+            <div class="doc-list-container">${mediaItemsHtml}</div>
+            ${captionHtml}
+            <div class="doc-time-row">${timeString}</div>
+          `;
+        }
 
-        messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
-      } else {
-        // Text-only message
-        messageRow.innerHTML = `
-          <div class="msg-bubble outgoing">
-            <span class="message-text"></span>
-            <span class="msg-meta-row">${timeString}</span>
-          </div>
-        `;
-        messageRow.querySelector(".message-text").textContent = text;
-      }
+        messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
+      } else {
+        // Text-only message
+        messageRow.innerHTML = `
+          <div class="msg-bubble outgoing">
+            <span class="message-text"></span>
+            <span class="msg-meta-row">${timeString}</span>
+          </div>
+        `;
+        messageRow.querySelector(".message-text").textContent = text;
+      }
 
-      chatContainer.appendChild(messageRow);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      chatContainer.appendChild(messageRow);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
 
-      // Clear both the input and any staged files together
-      inputField.value = "";
-      selectedStagedFiles = [];
-      renderPreviewTray();
-    }
+      // Clear both the input and any staged files together
+      inputField.value = "";
+      selectedStagedFiles = [];
+      renderPreviewTray();
+    }
 
-  </script>
+  </script>
 </body>
 </html>
-
