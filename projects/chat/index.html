@@ -21,17 +21,6 @@
       --paper-white: #f8f9fa;
     }
 
-<!-- Normal Read-Only Document/Media Viewer Modal -->
-  <div class="read-viewer-overlay" id="readViewerOverlay" onclick="closeReadViewer()">
-    <div class="read-viewer-container" onclick="event.stopPropagation()">
-      <button class="read-viewer-close" onclick="closeReadViewer()" title="Close">✕</button>
-      <div class="read-viewer-header" id="readViewerTitle">Document Viewer</div>
-      <div class="read-viewer-body" id="readViewerBody">
-        <!-- Dynamic content injected here -->
-      </div>
-    </div>
-  </div>    
-
 html, body {
   margin: 0;
   padding: 0;
@@ -1089,7 +1078,7 @@ html, body {
       </button>
       <div class="header-breadcrumb-path" id="breadcrumbBar">
         <span class="breadcrumb-item" id="projectsCrumb">Chats</span>
-        <span>></span>
+        <span>&gt;</span>
         <span class="breadcrumb-item active" id="projectTitleCrumb">Loading...</span>
       </div>
     </div>
@@ -1253,6 +1242,17 @@ html, body {
     <button class="media-viewer-nav media-viewer-next" id="mediaViewerNext" onclick="showNextMedia(event)" title="Next">›</button>
   </div>
 
+  <!-- Normal Read-Only Document/Media Viewer Modal (moved out of <style> into the body, where it belongs) -->
+  <div class="read-viewer-overlay" id="readViewerOverlay" onclick="closeReadViewer()">
+    <div class="read-viewer-container" onclick="event.stopPropagation()">
+      <button class="read-viewer-close" onclick="closeReadViewer()" title="Close">✕</button>
+      <div class="read-viewer-header" id="readViewerTitle">Document Viewer</div>
+      <div class="read-viewer-body" id="readViewerBody">
+        <!-- Dynamic content injected here -->
+      </div>
+    </div>
+  </div>
+
   <script>
     function handleChatInputKey(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
@@ -1343,6 +1343,15 @@ html, body {
       overlay.classList.remove('active');
       content.innerHTML = '';
       currentGalleryId = null;
+    }
+
+    function closeReadViewer() {
+      const overlay = document.getElementById('readViewerOverlay');
+      const bodyEl = document.getElementById('readViewerBody');
+      const media = bodyEl ? bodyEl.querySelector('video, audio') : null;
+      if (media) media.pause();
+      overlay.classList.remove('active');
+      bodyEl.innerHTML = '';
     }
 
     // Swipe support (touch) + arrow-key support for the fullscreen viewer
@@ -1605,8 +1614,7 @@ function renderPreviewTray() {
             <span class="preview-doc-name">${file.name}</span>
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
-          
-      openReadViewer(objectUrl, file.name, 'Document');
+          tile.onclick = () => openReadViewer(objectUrl, file.name, 'Document');
         }
 
         container.appendChild(tile);
@@ -1665,7 +1673,7 @@ function renderPreviewTray() {
           else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) { badgeColor = '#ab47bc'; } // Purple for Archives
 
             mediaItemsHtml += `
-              <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
+              <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
                 <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
                 <div class="doc-info"><span class="doc-name">${file.name}</span></div>
               </a>`;
