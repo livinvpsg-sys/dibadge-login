@@ -506,7 +506,15 @@ html, body {
       align-self: flex-end;
     }
 
-    /* Chat Footer / Input */
+    /* Chat Footer / Input area — column wrapper holding the preview tray
+       above the actual input row so both always span full width */
+    .chat-footer-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
 .chat-footer {
       background-color: transparent;
       padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)) 16px;
@@ -514,6 +522,8 @@ html, body {
       align-items: center;
       gap: 12px;
       flex-shrink: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
 .footer-icon-btn {
@@ -526,6 +536,7 @@ html, body {
       justify-content: center;
       padding: 8px;
       transition: color 0.15s;
+      flex-shrink: 0;
     }
     .footer-icon-btn:hover {
       color: #ffffff;
@@ -541,7 +552,8 @@ html, body {
     }
 
 .chat-input-wrapper {
-      flex: 1;
+      flex: 1 1 auto;
+      min-width: 0;
       width: 100%;
       background-color: var(--slate-surface, #1e1e1e);
       border: 1px solid var(--border-color);
@@ -561,6 +573,7 @@ html, body {
       justify-content: center;
       padding: 8px;
       transition: color 0.15s;
+      flex-shrink: 0;
     }
     .inline-icon-btn:hover {
       color: #ffffff;
@@ -576,7 +589,9 @@ html, body {
     }
 
     .chat-input {
-      flex: 1;
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
       background-color: transparent;
       border: none;
       padding: 8px 12px;
@@ -732,7 +747,7 @@ html, body {
       display: none;
       flex-direction: row; /* Aligns tiles horizontally */
       background: transparent;
-      padding: 0 16px 8px 16px;
+      padding: 10px 16px 0 16px;
       gap: 10px;
       align-items: center;
       overflow-x: auto;
@@ -753,10 +768,10 @@ html, body {
     }
     .preview-tile {
       position: relative;
-      width: 68px;
-      height: 68px;
+      width: 92px;
+      height: 92px;
       background: #000;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       flex-shrink: 0;
       border: 1px solid var(--border-color);
@@ -772,9 +787,9 @@ html, body {
     }
     .preview-tile-doc {
       background: #2a2a2a;
-      width: 72px;
-      height: 72px;
-      padding: 4px;
+      width: 92px;
+      height: 92px;
+      padding: 6px;
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -782,20 +797,20 @@ html, body {
       justify-content: center;
     }
     .preview-doc-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 4px;
-      font-size: 0.6rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      font-size: 0.62rem;
       font-weight: bold;
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       text-transform: uppercase;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
     }
     .preview-doc-name {
-      font-size: 0.55rem;
+      font-size: 0.6rem;
       color: #fff;
       width: 100%;
       white-space: nowrap;
@@ -804,15 +819,15 @@ html, body {
     }
     .preview-remove-btn {
       position: absolute;
-      top: 3px;
-      right: 3px;
+      top: 4px;
+      right: 4px;
       background: rgba(0, 0, 0, 0.7);
       color: #fff;
       border: none;
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      font-size: 10px;
+      font-size: 11px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -933,70 +948,72 @@ html, body {
           </div>
         </div>
 
-       <div class="chat-footer" style="position: relative;">
+        <!-- Column wrapper: preview tray sits above the button row, both full width -->
+        <div class="chat-footer-container" id="chatFooterContainer">
 
-    <!-- File Preview Tray (Appears above input when files are selected) -->
-        <div class="file-preview-tray" id="filePreviewTray">
-          <div class="preview-scroll-container" id="previewScrollContainer">
-            <!-- Dynamic Preview Tiles -->
-          </div>
-        </div>
-
-       <div class="chat-footer" style="position: relative;">
-          <!-- Attachment Popup Menu -->
-          <div class="attachment-popup" id="attachmentPopup">
-            <div class="attach-option" onclick="document.getElementById('imageInput').click()">
-              <div class="attach-icon-circle" style="background: #e91e63;">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-              </div>
-              <span>Image</span>
-            </div>
-            <div class="attach-option" onclick="document.getElementById('videoInput').click()">
-              <div class="attach-icon-circle" style="background: #9c27b0;">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-              </div>
-              <span>Video</span>
-            </div>
-            <div class="attach-option" onclick="document.getElementById('audioInput').click()">
-              <div class="attach-icon-circle" style="background: #ff9800;">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
-              </div>
-              <span>Audio</span>
-            </div>
-            <div class="attach-option" onclick="document.getElementById('documentInput').click()">
-              <div class="attach-icon-circle" style="background: #2196f3;">
-                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              </div>
-              <span>Document</span>
+          <!-- File Preview Tray (Appears above input when files are selected) -->
+          <div class="file-preview-tray" id="filePreviewTray">
+            <div class="preview-scroll-container" id="previewScrollContainer">
+              <!-- Dynamic Preview Tiles -->
             </div>
           </div>
 
-          <!-- Hidden File Inputs -->
-          <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
-          <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
-          <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
-          <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
+          <div class="chat-footer" style="position: relative;">
+            <!-- Attachment Popup Menu -->
+            <div class="attachment-popup" id="attachmentPopup">
+              <div class="attach-option" onclick="document.getElementById('imageInput').click()">
+                <div class="attach-icon-circle" style="background: #e91e63;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </div>
+                <span>Image</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('videoInput').click()">
+                <div class="attach-icon-circle" style="background: #9c27b0;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                </div>
+                <span>Video</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('audioInput').click()">
+                <div class="attach-icon-circle" style="background: #ff9800;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                </div>
+                <span>Audio</span>
+              </div>
+              <div class="attach-option" onclick="document.getElementById('documentInput').click()">
+                <div class="attach-icon-circle" style="background: #2196f3;">
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                </div>
+                <span>Document</span>
+              </div>
+            </div>
 
-          <!-- Plus Button (Appears in place of paperclip when files are staged) -->
-          <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </button>
+            <!-- Hidden File Inputs -->
+            <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
+            <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
+            <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
+            <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
 
-          <!-- Paperclip Attachment Button -->
-          <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
-            <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-          </button>
-          
-          <div class="chat-input-wrapper">
-            <button class="inline-icon-btn" title="Emoji">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            <!-- Plus Button (Appears in place of paperclip when files are staged) -->
+            <button class="footer-icon-btn" id="previewPlusBtn" onclick="openFilePicker()" title="Add More" style="display: none;">
+              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
-            <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
-          </div>
 
-          <button class="chat-send-btn" onclick="sendPreviewedFiles()" title="Send">
-            <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
-          </button>
+            <!-- Paperclip Attachment Button -->
+            <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
+              <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            </button>
+            
+            <div class="chat-input-wrapper">
+              <button class="inline-icon-btn" title="Emoji">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
+            </div>
+
+            <button class="chat-send-btn" onclick="sendPreviewedFiles()" title="Send">
+              <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="#000000"></path></svg>
+            </button>
+          </div>
         </div>
       </div>
     </section>
