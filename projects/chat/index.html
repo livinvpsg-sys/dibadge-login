@@ -1493,13 +1493,16 @@ function renderPreviewTray() {
           `;
           tile.onclick = () => openMediaViewer(stagedGalleryId, index);
         }else {
-          const ext = file.name.split('.').pop().toLowerCase();
-          let badgeColor = '#607d8b';
+        const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b'; // default slate color
           let label = ext ? ext.toUpperCase() : 'FILE';
-          if (['pdf'].includes(ext)) badgeColor = '#f44336';
-          else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
-          else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
-          else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+
+          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; } // Red for PDF
+          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; } // Blue for Word
+          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; } // Green for Excel
+          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; } // Orange for PowerPoint
+          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; } // Blue-Grey for Text
+          else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) { badgeColor = '#ab47bc'; } // Purple for Archives
 
           tile.className = "preview-tile preview-tile-doc";
           tile.innerHTML = `
@@ -1507,8 +1510,7 @@ function renderPreviewTray() {
             <span class="preview-doc-name">${file.name}</span>
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
-          if (activeUploadType === 'Document') {
-            tile.onclick = () => openFileInNewTab(objectUrl);
+         tile.onclick = () => openFileInNewTab(objectUrl);
           }
         }
 
@@ -1556,13 +1558,16 @@ function renderPreviewTray() {
               <div class="doc-info"><span class="doc-name">${file.name}</span></div>
             </div>`;
           } else {
-            const ext = file.name.split('.').pop().toLowerCase();
-            let badgeColor = '#607d8b';
-            let label = ext ? ext.toUpperCase() : 'FILE';
-            if (['pdf'].includes(ext)) badgeColor = '#f44336';
-            else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
-            else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
-            else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+           const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b'; // default slate color
+          let label = ext ? ext.toUpperCase() : 'FILE';
+
+          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; } // Red for PDF
+          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; } // Blue for Word
+          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; } // Green for Excel
+          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; } // Orange for PowerPoint
+          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; } // Blue-Grey for Text
+          else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) { badgeColor = '#ab47bc'; } // Purple for Archives
 
             mediaItemsHtml += `
               <a href="${objectUrl}" target="_blank" class="doc-tile-row" style="text-decoration: none;">
