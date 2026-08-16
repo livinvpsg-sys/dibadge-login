@@ -506,17 +506,6 @@ html, body {
       align-self: flex-end;
     }
 
-    <!-- File Preview Tray (Appears above input when files are selected) -->
-        <div class="file-preview-tray" id="filePreviewTray">
-          <div class="preview-scroll-container" id="previewScrollContainer">
-            <!-- Dynamic Preview Tiles will be inserted here -->
-          </div>
-          <!-- FAB Add Button on the right -->
-          <button class="preview-fab-btn" onclick="openFilePicker()" title="Add More">
-            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          </button>
-        </div>
-
     /* Chat Footer / Input */
 .chat-footer {
       background-color: transparent;
@@ -941,7 +930,18 @@ html, body {
         </div>
 
        <div class="chat-footer" style="position: relative;">
-          <!-- Attachment Popup Menu -->
+
+         <!-- File Preview Tray  -->
+        <div class="file-preview-tray" id="filePreviewTray">
+          <div class="preview-scroll-container" id="previewScrollContainer"></div>
+          <button class="preview-fab-btn" onclick="openFilePicker()" title="Add More">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+        </div>
+
+        <div class="chat-footer" style="position: relative;">
+         
+         <!-- Attachment Popup Menu -->
           <div class="attachment-popup" id="attachmentPopup">
             <div class="attach-option" onclick="document.getElementById('imageInput').click()">
               <div class="attach-icon-circle" style="background: #e91e63;">
@@ -1121,7 +1121,7 @@ let selectedStagedFiles = [];
       input.value = '';
     }
 
-    function openFilePicker() {
+function openFilePicker() {
       if (activeUploadType === 'Image') document.getElementById('imageInput').click();
       else if (activeUploadType === 'Video') document.getElementById('videoInput').click();
       else if (activeUploadType === 'Audio') document.getElementById('audioInput').click();
