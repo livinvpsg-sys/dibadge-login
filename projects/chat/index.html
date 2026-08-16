@@ -537,14 +537,15 @@ html, body {
 .attachment-popup {
       position: absolute;
       bottom: 75px;
-      left: 16px;
+      left: 50%;
+      transform: translateX(-50%); /* Centers popup relative to input box */
       background-color: var(--slate-surface, #1e1e1e);
       border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 18px 24px;
+      border-radius: 16px;
+      padding: 12px 18px; /* Reduced padding for smaller size */
       display: none;
       align-items: center;
-      gap: 24px;
+      gap: 16px; /* Reduced gap */
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       z-index: 100;
     }
@@ -555,25 +556,25 @@ html, body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
       user-select: none;
     }
     .attach-icon-circle {
-      width: 52px;
-      height: 52px;
+      width: 42px; /* Smaller icon circles */
+      height: 42px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
       transition: transform 0.15s;
     }
     .attach-option:hover .attach-icon-circle {
       transform: scale(1.08);
     }
     .attach-option span {
-      font-size: 0.8rem;
+      font-size: 0.72rem;
       color: #ffffff;
       font-weight: 500;
     }
@@ -677,31 +678,37 @@ html, body {
        <div class="chat-footer" style="position: relative;">
           <!-- Attachment Popup Menu -->
           <div class="attachment-popup" id="attachmentPopup">
-            <div class="attach-option" onclick="alert('Select Image')">
+            <div class="attach-option" onclick="document.getElementById('imageInput').click()">
               <div class="attach-icon-circle" style="background: #e91e63;">
-                <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
               </div>
               <span>Image</span>
             </div>
-            <div class="attach-option" onclick="alert('Select Video')">
+            <div class="attach-option" onclick="document.getElementById('videoInput').click()">
               <div class="attach-icon-circle" style="background: #9c27b0;">
-                <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
               </div>
               <span>Video</span>
             </div>
-            <div class="attach-option" onclick="alert('Select Audio')">
+            <div class="attach-option" onclick="document.getElementById('audioInput').click()">
               <div class="attach-icon-circle" style="background: #ff9800;">
-                <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
               </div>
               <span>Audio</span>
             </div>
-            <div class="attach-option" onclick="alert('Select Document')">
+            <div class="attach-option" onclick="document.getElementById('documentInput').click()">
               <div class="attach-icon-circle" style="background: #2196f3;">
-                <svg viewBox="0 0 24 24" width="22" height="22" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="#fff" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
               </div>
               <span>Document</span>
             </div>
           </div>
+
+          <!-- Hidden File Inputs with Multiple Selection Enabled -->
+          <input type="file" id="imageInput" accept="image/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Image')">
+          <input type="file" id="videoInput" accept="video/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Video')">
+          <input type="file" id="audioInput" accept="audio/*" multiple style="display: none;" onchange="handleFilesSelected(this, 'Audio')">
+          <input type="file" id="documentInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" multiple style="display: none;" onchange="handleFilesSelected(this, 'Document')">
 
           <button class="footer-icon-btn" id="attachBtn" title="Attach" onclick="toggleAttachmentPopup(event)">
             <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
@@ -831,6 +838,55 @@ function toggleAttachmentPopup(event) {
         }
       }
     });
+
+function handleFilesSelected(input, type) {
+      const files = input.files;
+      if (!files || files.length === 0) return;
+
+      const chatContainer = document.getElementById("chatContainer");
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'pm' : 'am';
+      hours = hours % 12 || 12;
+      const timeString = `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const messageRow = document.createElement("div");
+        messageRow.className = "message-row outgoing";
+
+        let contentHtml = `<span class="message-text">📁 <strong>${type} Attachment:</strong> ${file.name}</span>`;
+        
+        // If it's an image, we can also generate a preview thumbnail
+        if (type === 'Image') {
+          const objectUrl = URL.createObjectURL(file);
+          contentHtml = `
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <img src="${objectUrl}" style="max-width: 200px; max-height: 200px; border-radius: 8px; object-fit: cover;" alt="attachment">
+              <span class="message-text" style="font-size: 0.8rem;">${file.name}</span>
+            </div>
+          `;
+        }
+
+        messageRow.innerHTML = `
+          <div class="msg-bubble outgoing">
+            ${contentHtml}
+            <span class="msg-meta-row">${timeString}</span>
+          </div>
+        `;
+
+        chatContainer.appendChild(messageRow);
+      }
+
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      
+      // Hide popup menu after selection
+      document.getElementById("attachmentPopup").classList.remove('active');
+      
+      // Reset input value so selecting the same files again triggers change event
+      input.value = '';
+    }
     
   </script>
 </body>
