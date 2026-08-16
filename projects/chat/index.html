@@ -1205,9 +1205,17 @@ html, body {
       const content = document.getElementById('mediaViewerContent');
       if (!item) return;
 
-      content.innerHTML = item.type === 'Video'
-        ? `<video src="${item.url}" controls autoplay playsinline></video>`
-        : `<img src="${item.url}" alt="media">`;
+     if (item.type === 'Video') {
+        content.innerHTML = `<video src="${item.url}" controls autoplay playsinline></video>`;
+      } else if (item.type === 'Audio') {
+        content.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px; background: #1e1e1e; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 48px;">🎵</div>
+            <audio src="${item.url}" controls autoplay style="width: 300px; max-width: 80vw;"></audio>
+          </div>`;
+      } else {
+        content.innerHTML = `<img src="${item.url}" alt="media">`;
+      }
 
       const showNav = items.length > 1;
       const prevBtn = document.getElementById('mediaViewerPrev');
@@ -1449,8 +1457,8 @@ function renderPreviewTray() {
       container.appendChild(clearTile);
 
       // Build a gallery so staged images/videos can be swiped through, same as sent media
-      let stagedGalleryId = null;
-      if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+     let stagedGalleryId = null;
+      if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
         const galleryItems = selectedStagedFiles.map(f => ({
           url: URL.createObjectURL(f),
           type: activeUploadType
@@ -1476,7 +1484,15 @@ function renderPreviewTray() {
             <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
           `;
           tile.onclick = () => openMediaViewer(stagedGalleryId, index);
-        } else {
+        } else if (activeUploadType === 'Audio') {
+          tile.className = "preview-tile preview-tile-doc";
+          tile.innerHTML = `
+            <div class="preview-doc-icon" style="background: #ff9800;">🎵</div>
+            <span class="preview-doc-name">${file.name}</span>
+            <button class="preview-remove-btn" onclick="event.stopPropagation(); removeStagedFile(${index})">✕</button>
+          `;
+          tile.onclick = () => openMediaViewer(stagedGalleryId, index);
+        }else {
           const ext = file.name.split('.').pop().toLowerCase();
           let badgeColor = '#607d8b';
           let label = ext ? ext.toUpperCase() : 'FILE';
@@ -1518,8 +1534,8 @@ function renderPreviewTray() {
         let mediaItemsHtml = '';
         const count = selectedStagedFiles.length;
 
-        let sentGalleryId = null;
-        if (activeUploadType === 'Image' || activeUploadType === 'Video') {
+      let sentGalleryId = null;
+        if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
           const galleryItems = selectedStagedFiles.map(f => ({
             url: URL.createObjectURL(f),
             type: activeUploadType
@@ -1533,12 +1549,12 @@ function renderPreviewTray() {
             mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><img src="${objectUrl}" alt="attachment"></div>`;
           } else if (activeUploadType === 'Video') {
             mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
-          } else if (activeUploadType === 'Audio') {
-            mediaItemsHtml += `
-              <div class="doc-tile-row">
-                <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
-                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-              </div>`;
+        } else if (activeUploadType === 'Audio') {
+          mediaItemsHtml += `
+            <div class="doc-tile-row" onclick="openMediaViewer('${sentGalleryId}', ${idx})" style="cursor: pointer;">
+              <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
+              <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+            </div>`;
           } else {
             const ext = file.name.split('.').pop().toLowerCase();
             let badgeColor = '#607d8b';
