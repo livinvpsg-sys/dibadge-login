@@ -1015,35 +1015,64 @@ html, body {
       position: relative;
     }
     .read-viewer-header {
-      padding: 16px 20px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .read-viewer-title-text {
       font-size: 1rem;
       font-weight: 600;
       color: #ffffff;
-      border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 56px;
+      flex: 1;
+      min-width: 0;
     }
-    .read-viewer-close {
-      position: absolute;
-      top: 14px;
-      right: 16px;
-      width: 36px;
-      height: 36px;
+    .read-viewer-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .read-viewer-action-btn {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.1);
       border: none;
       color: #ffffff;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background 0.15s;
+      flex-shrink: 0;
     }
-    .read-viewer-close:hover {
+    .read-viewer-action-btn:hover {
       background: rgba(255, 255, 255, 0.2);
+    }
+    .read-viewer-action-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: #ffffff;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    /* When the container itself goes fullscreen via the Fullscreen API,
+       let it fill the entire screen instead of staying capped at max-width/85vh */
+    .read-viewer-container:fullscreen,
+    .read-viewer-container:-webkit-full-screen {
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
     }
     .read-viewer-body {
       flex: 1;
@@ -1247,8 +1276,18 @@ html, body {
   <!-- Normal Read-Only Document/Media Viewer Modal (moved out of <style> into the body, where it belongs) -->
   <div class="read-viewer-overlay" id="readViewerOverlay" onclick="closeReadViewer()">
     <div class="read-viewer-container" onclick="event.stopPropagation()">
-      <button class="read-viewer-close" onclick="closeReadViewer()" title="Close">✕</button>
-      <div class="read-viewer-header" id="readViewerTitle">Document Viewer</div>
+      <div class="read-viewer-header">
+        <span class="read-viewer-title-text" id="readViewerTitle">Document Viewer</span>
+        <div class="read-viewer-header-actions">
+          <button class="read-viewer-action-btn" id="readViewerDownloadBtn" onclick="downloadReadViewerFile()" title="Download">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12"></path><polyline points="7 11 12 16 17 11"></polyline><path d="M5 21h14"></path></svg>
+          </button>
+          <button class="read-viewer-action-btn" id="readViewerFullscreenBtn" onclick="toggleReadViewerFullscreen()" title="Full screen">
+            <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+          </button>
+          <button class="read-viewer-action-btn" onclick="closeReadViewer()" title="Close">✕</button>
+        </div>
+      </div>
       <div class="read-viewer-body" id="readViewerBody">
         <!-- Dynamic content injected here -->
       </div>
@@ -1347,13 +1386,62 @@ html, body {
       currentGalleryId = null;
     }
 
+    let readViewerCurrentUrl = null;
+    let readViewerCurrentFileName = null;
+
+    const READ_VIEWER_ENTER_FS_ICON = `<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+    const READ_VIEWER_EXIT_FS_ICON = `<svg viewBox="0 0 24 24"><path d="M9 3v3a2 2 0 0 1-2 2H4"></path><path d="M15 3v3a2 2 0 0 0 2 2h3"></path><path d="M20 16h-3a2 2 0 0 0-2 2v3"></path><path d="M4 16h3a2 2 0 0 1 2 2v3"></path></svg>`;
+
+    function downloadReadViewerFile() {
+      if (!readViewerCurrentUrl) return;
+      const a = document.createElement('a');
+      a.href = readViewerCurrentUrl;
+      a.download = readViewerCurrentFileName || 'download';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function isReadViewerFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function toggleReadViewerFullscreen() {
+      const container = document.querySelector('.read-viewer-container');
+      if (!container) return;
+      if (!isReadViewerFullscreen()) {
+        if (container.requestFullscreen) container.requestFullscreen();
+        else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    }
+
+    function updateReadViewerFullscreenIcon() {
+      const btn = document.getElementById('readViewerFullscreenBtn');
+      if (!btn) return;
+      const isFs = isReadViewerFullscreen();
+      btn.title = isFs ? 'Exit full screen' : 'Full screen';
+      btn.innerHTML = isFs ? READ_VIEWER_EXIT_FS_ICON : READ_VIEWER_ENTER_FS_ICON;
+    }
+
+    document.addEventListener('fullscreenchange', updateReadViewerFullscreenIcon);
+    document.addEventListener('webkitfullscreenchange', updateReadViewerFullscreenIcon);
+
     function closeReadViewer() {
       const overlay = document.getElementById('readViewerOverlay');
       const bodyEl = document.getElementById('readViewerBody');
       const media = bodyEl ? bodyEl.querySelector('video, audio') : null;
       if (media) media.pause();
+      if (isReadViewerFullscreen()) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
       overlay.classList.remove('active');
       bodyEl.innerHTML = '';
+      readViewerCurrentUrl = null;
+      readViewerCurrentFileName = null;
     }
 
     // Swipe support (touch) + arrow-key support for the fullscreen viewer
@@ -1752,6 +1840,9 @@ function renderPreviewTray() {
       const overlay = document.getElementById('readViewerOverlay');
       const titleEl = document.getElementById('readViewerTitle');
       const bodyEl = document.getElementById('readViewerBody');
+
+      readViewerCurrentUrl = url;
+      readViewerCurrentFileName = fileName;
 
       titleEl.textContent = fileName || 'Document Reader';
       bodyEl.innerHTML = '';
