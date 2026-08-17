@@ -938,10 +938,16 @@ html, body {
       object-fit: contain;
       border-radius: 4px;
     }
-    .media-viewer-close {
+    .media-viewer-actions {
       position: absolute;
       top: max(16px, env(safe-area-inset-top, 0px));
       right: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1001;
+    }
+    .media-viewer-action-btn {
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -954,11 +960,86 @@ html, body {
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1001;
+      flex-shrink: 0;
     }
-    .media-viewer-close:hover {
+    .media-viewer-action-btn:hover {
       background: rgba(255, 255, 255, 0.25);
     }
+    .media-viewer-action-btn svg {
+      width: 19px;
+      height: 19px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Photo annotation/drawing editor (opened via the Edit icon in the photo viewer) */
+    .media-editor-toolbar {
+      display: none;
+      position: absolute;
+      top: max(70px, calc(env(safe-area-inset-top, 0px) + 70px));
+      left: 50%;
+      transform: translateX(-50%);
+      align-items: center;
+      gap: 12px;
+      background: rgba(30, 30, 30, 0.92);
+      border-radius: 30px;
+      padding: 8px 14px;
+      z-index: 1001;
+    }
+    .media-editor-toolbar.active { display: flex; }
+    .media-editor-colors { display: flex; align-items: center; gap: 6px; }
+    .media-editor-color-swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .media-editor-color-swatch.active {
+      border-color: #fff;
+      transform: scale(1.15);
+    }
+    .media-editor-tool-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .media-editor-tool-btn:hover { background: rgba(255,255,255,0.25); }
+    .media-editor-tool-btn svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .media-editor-actions {
+      display: none;
+      position: absolute;
+      bottom: max(24px, env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      gap: 12px;
+      z-index: 1001;
+    }
+    .media-editor-actions.active { display: flex; }
+    .media-editor-cancel-btn, .media-editor-send-btn {
+      padding: 10px 26px;
+      border-radius: 24px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .media-editor-cancel-btn { background: rgba(255,255,255,0.15); color: #fff; }
+    .media-editor-send-btn { background: #25D366; color: #fff; }
     .media-viewer-nav {
       position: absolute;
       top: 50%;
@@ -1193,38 +1274,42 @@ html, body {
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
       position: absolute;
-      bottom: -10px;
+      bottom: -12px;
       right: 6px;
       background: var(--slate-surface);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 1px 6px;
-      font-size: 0.8rem;
+      border-radius: 14px;
+      padding: 2px 8px;
+      font-size: 1.05rem;
       cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
       line-height: 1.3;
     }
 
-    /* Quick reaction picker bar */
+    /* Quick reaction / emoji picker bar — fixed to exactly 12 emojis per row */
     .react-quick-bar {
       position: fixed;
       display: none;
+      flex-wrap: wrap;
+      align-content: flex-start;
       align-items: center;
       gap: 4px;
+      width: 420px;
+      max-width: 94vw;
       background: var(--slate-surface);
       border: 1px solid var(--border-color);
-      border-radius: 30px;
-      padding: 6px 8px;
+      border-radius: 18px;
+      padding: 8px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       z-index: 1500;
     }
     .react-quick-bar.active { display: flex; }
     .react-quick-bar .react-emoji-btn {
-      background: transparent; border: none; font-size: 1.3rem; cursor: pointer;
-      padding: 4px; border-radius: 50%; transition: transform 0.1s, background 0.15s;
-      line-height: 1;
+      background: transparent; border: none; font-size: 1.15rem; cursor: pointer;
+      width: 30px; height: 30px; border-radius: 8px; transition: transform 0.1s, background 0.15s;
+      line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .react-quick-bar .react-emoji-btn:hover { transform: scale(1.25); background: rgba(255,255,255,0.08); }
+    .react-quick-bar .react-emoji-btn:hover { transform: scale(1.2); background: rgba(255,255,255,0.08); }
 
     /* Delete-confirm modal */
     .confirm-modal-overlay {
@@ -1456,11 +1541,39 @@ html, body {
   </div>
 
   <!-- Fullscreen media viewer, opened on tapping an image/video in chat -->
-  <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="closeMediaViewer()">
-    <button class="media-viewer-close" onclick="event.stopPropagation(); closeMediaViewer()" title="Close">✕</button>
+  <div class="media-viewer-overlay" id="mediaViewerOverlay" onclick="handleMediaOverlayBackgroundClick()">
+    <div class="media-viewer-actions" id="mediaViewerActions" onclick="event.stopPropagation()">
+      <button class="media-viewer-action-btn" id="mediaViewerDeleteBtn" onclick="mediaViewerDelete()" title="Delete">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+      </button>
+      <button class="media-viewer-action-btn" id="mediaViewerEditBtn" onclick="mediaViewerEdit()" title="Edit">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      </button>
+      <button class="media-viewer-action-btn" id="mediaViewerReplyBtn" onclick="mediaViewerReply()" title="Reply">
+        <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+      </button>
+      <button class="media-viewer-action-btn" onclick="closeMediaViewer()" title="Close">✕</button>
+    </div>
     <button class="media-viewer-nav media-viewer-prev" id="mediaViewerPrev" onclick="showPrevMedia(event)" title="Previous">‹</button>
     <div class="media-viewer-content" id="mediaViewerContent" onclick="event.stopPropagation()"></div>
     <button class="media-viewer-nav media-viewer-next" id="mediaViewerNext" onclick="showNextMedia(event)" title="Next">›</button>
+
+    <!-- Drawing toolbar shown only while editing a photo -->
+    <div class="media-editor-toolbar" id="mediaEditorToolbar" onclick="event.stopPropagation()">
+      <div class="media-editor-colors" id="mediaEditorColors"></div>
+      <button class="media-editor-tool-btn" onclick="mediaEditorUndo()" title="Undo">
+        <svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15-6.7L3 13"></path></svg>
+      </button>
+      <button class="media-editor-tool-btn" onclick="mediaEditorRedo()" title="Redo">
+        <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 15-6.7L21 13"></path></svg>
+      </button>
+    </div>
+
+    <!-- Send / Cancel bar shown only while editing a photo -->
+    <div class="media-editor-actions" id="mediaEditorActions" onclick="event.stopPropagation()">
+      <button class="media-editor-cancel-btn" onclick="cancelMediaEdit()">Cancel</button>
+      <button class="media-editor-send-btn" onclick="sendMediaEdit()">Send</button>
+    </div>
   </div>
 
   <!-- Normal Read-Only Document/Media Viewer Modal (moved out of <style> into the body, where it belongs) -->
@@ -1531,6 +1644,7 @@ html, body {
     let galleryCounter = 0;
     let currentGalleryId = null;
     let currentMediaIndex = 0;
+    let galleryMessageMap = {}; // galleryId -> messageId, only set for actually-sent/received galleries (not staged previews)
 
     function registerGallery(items) {
       const id = 'gal_' + (galleryCounter++);
@@ -1568,10 +1682,44 @@ html, body {
       const nextBtn = document.getElementById('mediaViewerNext');
       if (prevBtn) prevBtn.style.display = showNav ? 'flex' : 'none';
       if (nextBtn) nextBtn.style.display = showNav ? 'flex' : 'none';
+
+      updateMediaViewerActionsVisibility();
+    }
+
+    // Delete/Edit/Reply only make sense for media that belongs to an actual sent/received
+    // message (not files still staged in the preview tray) — Edit is further limited to photos.
+    function updateMediaViewerActionsVisibility() {
+      const items = mediaGalleries[currentGalleryId] || [];
+      const item = items[currentMediaIndex];
+      const msgId = galleryMessageMap[currentGalleryId];
+      const msg = msgId ? messages[msgId] : null;
+      const hasMessage = !!msg && msg.deletedFor !== 'everyone';
+
+      const deleteBtn = document.getElementById('mediaViewerDeleteBtn');
+      const editBtn = document.getElementById('mediaViewerEditBtn');
+      const replyBtn = document.getElementById('mediaViewerReplyBtn');
+      if (deleteBtn) deleteBtn.style.display = hasMessage ? 'flex' : 'none';
+      if (replyBtn) replyBtn.style.display = hasMessage ? 'flex' : 'none';
+      if (editBtn) editBtn.style.display = (hasMessage && item && item.type === 'Image') ? 'flex' : 'none';
+    }
+
+    function mediaViewerDelete() {
+      const msgId = galleryMessageMap[currentGalleryId];
+      if (!msgId) return;
+      closeMediaViewer();
+      openDeleteConfirm(msgId);
+    }
+
+    function mediaViewerReply() {
+      const msgId = galleryMessageMap[currentGalleryId];
+      if (!msgId) return;
+      closeMediaViewer();
+      startReply(msgId);
     }
 
     function showPrevMedia(event) {
       if (event) event.stopPropagation();
+      if (mediaEditMode) return;
       const items = mediaGalleries[currentGalleryId] || [];
       if (items.length < 2) return;
       currentMediaIndex = (currentMediaIndex - 1 + items.length) % items.length;
@@ -1580,13 +1728,20 @@ html, body {
 
     function showNextMedia(event) {
       if (event) event.stopPropagation();
+      if (mediaEditMode) return;
       const items = mediaGalleries[currentGalleryId] || [];
       if (items.length < 2) return;
       currentMediaIndex = (currentMediaIndex + 1) % items.length;
       renderMediaViewerContent();
     }
 
+    function handleMediaOverlayBackgroundClick() {
+      if (mediaEditMode) return; // require explicit Cancel/Send while editing, not an accidental background tap
+      closeMediaViewer();
+    }
+
     function closeMediaViewer() {
+      if (mediaEditMode) exitMediaEditMode();
       const overlay = document.getElementById('mediaViewerOverlay');
       const content = document.getElementById('mediaViewerContent');
       const video = content.querySelector('video');
@@ -1594,6 +1749,171 @@ html, body {
       overlay.classList.remove('active');
       content.innerHTML = '';
       currentGalleryId = null;
+    }
+
+    // ---------- Photo editor: freehand annotation drawn over the image before re-sending ----------
+
+    let mediaEditMode = false;
+    let mediaEditCanvas = null;
+    let mediaEditCtx = null;
+    let mediaEditBaseImg = null;
+    let mediaEditStrokes = [];
+    let mediaEditRedoStack = [];
+    let mediaEditCurrentColor = '#ff3b30';
+    let mediaEditDrawing = false;
+    let mediaEditCurrentStroke = null;
+    let mediaEditSourceFileName = null;
+    const MEDIA_EDIT_COLORS = ['#ff3b30', '#ffcc00', '#34c759', '#0a84ff', '#af52de', '#ffffff', '#000000'];
+
+    function mediaViewerEdit() {
+      const items = mediaGalleries[currentGalleryId] || [];
+      const item = items[currentMediaIndex];
+      if (!item || item.type !== 'Image') return;
+      mediaEditSourceFileName = item.name || 'photo.png';
+      enterMediaEditMode(item.url);
+    }
+
+    function enterMediaEditMode(imageUrl) {
+      mediaEditMode = true;
+      mediaEditStrokes = [];
+      mediaEditRedoStack = [];
+      const content = document.getElementById('mediaViewerContent');
+      content.innerHTML = '';
+
+      const img = new Image();
+      img.onload = function() {
+        mediaEditBaseImg = img;
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.style.maxWidth = '95vw';
+        canvas.style.maxHeight = '80vh';
+        canvas.style.touchAction = 'none';
+        canvas.style.borderRadius = '4px';
+        canvas.style.cursor = 'crosshair';
+        mediaEditCanvas = canvas;
+        mediaEditCtx = canvas.getContext('2d');
+        redrawMediaEditCanvas();
+        content.appendChild(canvas);
+        attachMediaEditorEvents(canvas);
+      };
+      img.src = imageUrl;
+
+      document.getElementById('mediaViewerActions').style.display = 'none';
+      document.getElementById('mediaViewerPrev').style.display = 'none';
+      document.getElementById('mediaViewerNext').style.display = 'none';
+      document.getElementById('mediaEditorToolbar').classList.add('active');
+      document.getElementById('mediaEditorActions').classList.add('active');
+      renderMediaEditorColors();
+    }
+
+    function exitMediaEditMode() {
+      mediaEditMode = false;
+      document.getElementById('mediaEditorToolbar').classList.remove('active');
+      document.getElementById('mediaEditorActions').classList.remove('active');
+      document.getElementById('mediaViewerActions').style.display = 'flex';
+      mediaEditCanvas = null;
+      mediaEditCtx = null;
+      mediaEditBaseImg = null;
+      mediaEditStrokes = [];
+      mediaEditRedoStack = [];
+      mediaEditCurrentStroke = null;
+      mediaEditDrawing = false;
+    }
+
+    function cancelMediaEdit() {
+      exitMediaEditMode();
+      closeMediaViewer();
+    }
+
+    function renderMediaEditorColors() {
+      const container = document.getElementById('mediaEditorColors');
+      container.innerHTML = MEDIA_EDIT_COLORS.map(c =>
+        `<button class="media-editor-color-swatch${c === mediaEditCurrentColor ? ' active' : ''}" style="background:${c};" onclick="selectMediaEditorColor('${c}')" title="${c}"></button>`
+      ).join('');
+    }
+
+    function selectMediaEditorColor(color) {
+      mediaEditCurrentColor = color;
+      renderMediaEditorColors();
+    }
+
+    function redrawMediaEditCanvas() {
+      if (!mediaEditCtx || !mediaEditBaseImg || !mediaEditCanvas) return;
+      mediaEditCtx.clearRect(0, 0, mediaEditCanvas.width, mediaEditCanvas.height);
+      mediaEditCtx.drawImage(mediaEditBaseImg, 0, 0, mediaEditCanvas.width, mediaEditCanvas.height);
+      mediaEditStrokes.forEach(stroke => drawStrokeOnCtx(mediaEditCtx, stroke));
+    }
+
+    function drawStrokeOnCtx(ctx, stroke) {
+      if (!stroke.points || stroke.points.length === 0) return;
+      ctx.strokeStyle = stroke.color;
+      ctx.lineWidth = Math.max(3, mediaEditCanvas.width / 200);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+      for (let i = 1; i < stroke.points.length; i++) ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+      ctx.stroke();
+    }
+
+    function attachMediaEditorEvents(canvas) {
+      function getCanvasPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return { x: (evt.clientX - rect.left) * scaleX, y: (evt.clientY - rect.top) * scaleY };
+      }
+      function pointerDown(evt) {
+        evt.preventDefault();
+        mediaEditDrawing = true;
+        mediaEditRedoStack = []; // starting a fresh stroke invalidates any redo history
+        const pos = getCanvasPos(evt);
+        mediaEditCurrentStroke = { color: mediaEditCurrentColor, points: [pos] };
+        mediaEditStrokes.push(mediaEditCurrentStroke);
+      }
+      function pointerMove(evt) {
+        if (!mediaEditDrawing || !mediaEditCurrentStroke) return;
+        evt.preventDefault();
+        mediaEditCurrentStroke.points.push(getCanvasPos(evt));
+        redrawMediaEditCanvas();
+      }
+      function pointerUp() {
+        mediaEditDrawing = false;
+        mediaEditCurrentStroke = null;
+      }
+      canvas.addEventListener('pointerdown', pointerDown);
+      canvas.addEventListener('pointermove', pointerMove);
+      window.addEventListener('pointerup', pointerUp);
+    }
+
+    function mediaEditorUndo() {
+      if (mediaEditStrokes.length === 0) return;
+      mediaEditRedoStack.push(mediaEditStrokes.pop());
+      redrawMediaEditCanvas();
+    }
+
+    function mediaEditorRedo() {
+      if (mediaEditRedoStack.length === 0) return;
+      mediaEditStrokes.push(mediaEditRedoStack.pop());
+      redrawMediaEditCanvas();
+    }
+
+    function sendMediaEdit() {
+      if (!mediaEditCanvas) return;
+      mediaEditCanvas.toBlob(function(blob) {
+        if (!blob) return;
+        const originalName = mediaEditSourceFileName || 'photo.png';
+        const dotIdx = originalName.lastIndexOf('.');
+        const baseName = dotIdx > -1 ? originalName.slice(0, dotIdx) : originalName;
+        const editedFile = new File([blob], `${baseName}_edited.png`, { type: 'image/png' });
+        exitMediaEditMode();
+        closeMediaViewer();
+        // Send the annotated image the same way any staged photo gets sent
+        selectedStagedFiles = [editedFile];
+        activeUploadType = 'Image';
+        sendMessage();
+      }, 'image/png');
     }
 
     let readViewerCurrentUrl = null;
@@ -1661,11 +1981,12 @@ html, body {
       let touchStartX = null;
 
       overlay.addEventListener('touchstart', function(e) {
+        if (mediaEditMode) return; // don't hijack drawing gestures as swipe navigation
         touchStartX = e.touches[0].clientX;
       }, { passive: true });
 
       overlay.addEventListener('touchend', function(e) {
-        if (touchStartX === null) return;
+        if (mediaEditMode || touchStartX === null) return;
         const deltaX = e.changedTouches[0].clientX - touchStartX;
         if (Math.abs(deltaX) > 50) {
           if (deltaX > 0) showPrevMedia();
@@ -1676,6 +1997,10 @@ html, body {
 
       document.addEventListener('keydown', function(e) {
         if (!overlay.classList.contains('active')) return;
+        if (mediaEditMode) {
+          if (e.key === 'Escape') cancelMediaEdit();
+          return;
+        }
         if (e.key === 'ArrowLeft') showPrevMedia();
         else if (e.key === 'ArrowRight') showNextMedia();
         else if (e.key === 'Escape') closeMediaViewer();
@@ -2049,9 +2374,11 @@ function renderPreviewTray() {
 
         const galleryItems = selectedStagedFiles.map(f => ({
           url: getStagedFileUrl(f),
-          type: activeUploadType
+          type: activeUploadType,
+          name: f.name
         }));
         const sentGalleryId = registerGallery(galleryItems);
+        galleryMessageMap[sentGalleryId] = messageId;
 
         selectedStagedFiles.forEach((file, idx) => {
           const objectUrl = getStagedFileUrl(file);
@@ -2544,7 +2871,7 @@ function renderPreviewTray() {
 
     // ---------- React / Emoji picker (shared bar: reacting to a message, or inserting into the composer) ----------
 
-    const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+    const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '😊', '🔥', '🎉', '👏', '😍', '🤔', '😎', '👌', '💯', '✅', '❌', '😭', '😡', '🥳', '🤗', '😴', '🙌', '💪'];
     let quickBarMode = 'react'; // 'react' -> reacts to reactTargetId | 'insert' -> inserts into the message input
 
     function openReactBarFromMenu(id) {
