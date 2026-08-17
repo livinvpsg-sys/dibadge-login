@@ -1439,7 +1439,7 @@ html, body {
             </button>
             
             <div class="chat-input-wrapper">
-              <button class="inline-icon-btn" title="Emoji">
+              <button class="inline-icon-btn" title="Emoji" onclick="toggleComposerEmojiPicker(event)">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
               </button>
               <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
@@ -1957,37 +1957,101 @@ function renderPreviewTray() {
 
       const chatContainer = document.getElementById("chatContainer");
       const timeString = getTimeString();
+
+      function buildQuotedHtml(targetId) {
+        if (!targetId || !messages[targetId]) return '';
+        const m = messages[targetId];
+        const senderLabel = m.isOutgoing ? 'You' : 'John';
+        const snippet = m.kind === 'text' ? truncateSnippet(m.text, 80) : (m.kind === 'media' ? '📷 Media' : '📄 Document');
+        return `<div class="quoted-reply-block" data-target-id="${targetId}"><div class="quoted-reply-sender">${escapeHtml(senderLabel)}</div><div class="quoted-reply-snippet">${escapeHtml(snippet)}</div></div>`;
+      }
+
+      // ---------------- Documents: each attached file becomes its own separate message bubble ----------------
+      if (hasFiles && activeUploadType === 'Document') {
+        const fileCount = selectedStagedFiles.length;
+
+        selectedStagedFiles.forEach((file, idx) => {
+          const docMessageId = generateMessageId();
+          const objectUrl = getStagedFileUrl(file);
+          const ext = file.name.split('.').pop().toLowerCase();
+          let badgeColor = '#607d8b';
+          let label = ext ? ext.toUpperCase() : 'FILE';
+          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; }
+          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; }
+          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; }
+          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; }
+          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; }
+          else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) { badgeColor = '#ab47bc'; }
+
+          const isFirst = idx === 0;
+          const isLast = idx === fileCount - 1;
+          const thisQuoted = isFirst ? buildQuotedHtml(replyingToId) : '';
+          const thisCaption = (isLast && text) ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
+          const ticksSpan = `<span class="msg-ticks" id="ticks-${docMessageId}"></span>`;
+
+          const docRow = document.createElement('div');
+          docRow.className = 'message-row outgoing';
+          docRow.setAttribute('data-id', docMessageId);
+          docRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">
+            ${thisQuoted}
+            <div class="doc-list-container">
+              <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
+                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+              </a>
+            </div>
+            ${thisCaption}
+            <div class="doc-time-row">${timeString} ${ticksSpan}</div>
+          </div>`;
+
+          chatContainer.appendChild(docRow);
+          registerMessage({
+            id: docMessageId,
+            isOutgoing: true,
+            kind: 'document',
+            text: isLast ? text : '',
+            time: timeString,
+            status: 'sent',
+            readAt: null,
+            edited: false,
+            editedAt: null,
+            deletedFor: 'none',
+            reaction: null,
+            replyTo: isFirst ? replyingToId : null
+          });
+          updateTicksUI(docMessageId);
+          simulateDeliveryAndRead(docMessageId);
+        });
+
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        cancelReply();
+        inputField.value = "";
+        selectedStagedFiles.forEach(file => stagedFileUrlMap.delete(file));
+        selectedStagedFiles = [];
+        renderPreviewTray();
+        return;
+      }
+
+      // ---------------- Text-only messages, or an Image/Video/Audio album in one bubble ----------------
       const messageId = generateMessageId();
       const messageRow = document.createElement("div");
       messageRow.className = "message-row outgoing";
       messageRow.setAttribute('data-id', messageId);
-
-      // Quoted-reply block, if this message is a reply to another
-      let quotedHtml = '';
-      const replyMsg = replyingToId ? messages[replyingToId] : null;
-      if (replyMsg) {
-        const senderLabel = replyMsg.isOutgoing ? 'You' : 'John';
-        const snippet = replyMsg.kind === 'text' ? truncateSnippet(replyMsg.text, 80) : (replyMsg.kind === 'media' ? '📷 Media' : '📄 Document');
-        quotedHtml = `<div class="quoted-reply-block" data-target-id="${replyingToId}"><div class="quoted-reply-sender">${escapeHtml(senderLabel)}</div><div class="quoted-reply-snippet">${escapeHtml(snippet)}</div></div>`;
-      }
-
+      const quotedHtml = buildQuotedHtml(replyingToId);
       let msgKind = 'text';
 
       if (hasFiles) {
-        // Build the media/file content, then attach the text (if any) as a caption
-        // inside the SAME bubble, so both go out together.
-        msgKind = (activeUploadType === 'Document') ? 'document' : 'media';
+        // Image / Video / Audio: kept grouped as one album bubble (WhatsApp-style),
+        // unlike Documents above which now split into individual bubbles.
+        msgKind = 'media';
         let mediaItemsHtml = '';
         const count = selectedStagedFiles.length;
 
-      let sentGalleryId = null;
-        if (activeUploadType === 'Image' || activeUploadType === 'Video' || activeUploadType === 'Audio') {
-          const galleryItems = selectedStagedFiles.map(f => ({
-            url: getStagedFileUrl(f),
-            type: activeUploadType
-          }));
-          sentGalleryId = registerGallery(galleryItems);
-        }
+        const galleryItems = selectedStagedFiles.map(f => ({
+          url: getStagedFileUrl(f),
+          type: activeUploadType
+        }));
+        const sentGalleryId = registerGallery(galleryItems);
 
         selectedStagedFiles.forEach((file, idx) => {
           const objectUrl = getStagedFileUrl(file);
@@ -1996,28 +2060,11 @@ function renderPreviewTray() {
           } else if (activeUploadType === 'Video') {
             mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${sentGalleryId}', ${idx})"><video src="${objectUrl}"></video></div>`;
           } else if (activeUploadType === 'Audio') {
-          mediaItemsHtml += `
+            mediaItemsHtml += `
             <div class="doc-tile-row" onclick="openMediaViewer('${sentGalleryId}', ${idx})" style="cursor: pointer;">
               <div class="doc-icon-box" style="background: #ff9800;">🎵</div>
               <div class="doc-info"><span class="doc-name">${file.name}</span></div>
             </div>`;
-          } else {
-         const ext = file.name.split('.').pop().toLowerCase();
-          let badgeColor = '#607d8b'; // default slate color
-          let label = ext ? ext.toUpperCase() : 'FILE';
-
-          if (['pdf'].includes(ext)) { badgeColor = '#f44336'; } // Red for PDF
-          else if (['doc', 'docx'].includes(ext)) { badgeColor = '#2196f3'; } // Blue for Word
-          else if (['xls', 'xlsx'].includes(ext)) { badgeColor = '#4caf50'; } // Green for Excel
-          else if (['ppt', 'pptx'].includes(ext)) { badgeColor = '#ff9800'; } // Orange for PowerPoint
-          else if (['txt', 'rtf'].includes(ext)) { badgeColor = '#78909c'; } // Blue-Grey for Text
-          else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(ext)) { badgeColor = '#ab47bc'; } // Purple for Archives
-
-            mediaItemsHtml += `
-              <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
-                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
-                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-              </a>`;
           }
         });
 
@@ -2030,7 +2077,6 @@ function renderPreviewTray() {
           if (count === 2) gridClass = 'media-grid-2';
           else if (count >= 3) gridClass = 'media-grid-3';
 
-          // If there's a caption, show the time under it instead of overlaid on the media
           contentLayout = `
             ${quotedHtml}
             <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
@@ -2421,7 +2467,7 @@ function renderPreviewTray() {
       const bubble = row.querySelector('.msg-bubble');
       if (!bubble) return;
       bubble.className = 'msg-bubble deleted-bubble ' + (msg.isOutgoing ? 'outgoing' : 'incoming');
-      bubble.innerHTML = `<span class="message-text">🚫 This message was deleted</span><span class="msg-meta-row">${msg.deletedAt}</span>`;
+      bubble.innerHTML = `<span class="message-text">This message was deleted</span><span class="msg-meta-row">${msg.deletedAt}</span>`;
     }
 
     // ---------- Copy ----------
@@ -2496,9 +2542,10 @@ function renderPreviewTray() {
       document.getElementById('msgInfoOverlay').classList.remove('active');
     }
 
-    // ---------- React ----------
+    // ---------- React / Emoji picker (shared bar: reacting to a message, or inserting into the composer) ----------
 
     const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+    let quickBarMode = 'react'; // 'react' -> reacts to reactTargetId | 'insert' -> inserts into the message input
 
     function openReactBarFromMenu(id) {
       closeMsgContextMenu();
@@ -2506,13 +2553,27 @@ function renderPreviewTray() {
       if (!row) return;
       const bubble = row.querySelector('.msg-bubble');
       const rect = bubble.getBoundingClientRect();
-      openReactBar(rect.left, rect.top - 50, id);
+      quickBarMode = 'react';
+      reactTargetId = id;
+      openReactBar(rect.left, rect.top - 50);
     }
 
-    function openReactBar(x, y, id) {
-      reactTargetId = id;
+    function toggleComposerEmojiPicker(event) {
+      event.stopPropagation();
       const bar = document.getElementById('reactQuickBar');
-      bar.innerHTML = REACT_EMOJIS.map(e => `<button class="react-emoji-btn" onclick="applyReaction('${id}','${e}')">${e}</button>`).join('');
+      if (bar.classList.contains('active') && quickBarMode === 'insert') {
+        closeReactBar();
+        return;
+      }
+      quickBarMode = 'insert';
+      reactTargetId = null;
+      const btnRect = event.currentTarget.getBoundingClientRect();
+      openReactBar(btnRect.left, btnRect.top - 54);
+    }
+
+    function openReactBar(x, y) {
+      const bar = document.getElementById('reactQuickBar');
+      bar.innerHTML = REACT_EMOJIS.map(e => `<button class="react-emoji-btn" onclick="handleQuickBarEmojiPick('${e}')">${e}</button>`).join('');
       bar.style.left = '-9999px';
       bar.style.top = '-9999px';
       bar.classList.add('active');
@@ -2533,6 +2594,25 @@ function renderPreviewTray() {
         closeReactBar();
       }
     });
+
+    function handleQuickBarEmojiPick(emoji) {
+      if (quickBarMode === 'insert') {
+        insertEmojiIntoInput(emoji);
+      } else if (reactTargetId) {
+        applyReaction(reactTargetId, emoji);
+      }
+    }
+
+    function insertEmojiIntoInput(emoji) {
+      const input = document.getElementById('msgInput');
+      const start = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
+      const end = (typeof input.selectionEnd === 'number') ? input.selectionEnd : input.value.length;
+      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+      const newPos = start + emoji.length;
+      closeReactBar();
+      input.focus();
+      input.setSelectionRange(newPos, newPos);
+    }
 
     function applyReaction(id, emoji) {
       closeReactBar();
