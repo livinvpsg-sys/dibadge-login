@@ -365,6 +365,7 @@ html, body {
       display: flex;
       flex-direction: column;
       max-width: 80%;
+      position: relative;
     }
     .message-row.incoming {
       align-self: flex-start;
@@ -1340,30 +1341,121 @@ html, body {
       line-height: 1.3;
     }
 
-    /* Quick reaction / emoji picker bar — fixed to exactly 12 emojis per row */
+    /* Reaction mini-bar: 5 quick emojis + a "+" that opens the full picker */
     .react-quick-bar {
       position: fixed;
       display: none;
-      flex-wrap: wrap;
-      align-content: flex-start;
       align-items: center;
       gap: 4px;
-      width: 420px;
-      max-width: 94vw;
       background: var(--slate-surface);
       border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 8px;
+      border-radius: 30px;
+      padding: 6px 8px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       z-index: 1500;
     }
     .react-quick-bar.active { display: flex; }
     .react-quick-bar .react-emoji-btn {
-      background: transparent; border: none; font-size: 1.15rem; cursor: pointer;
-      width: 30px; height: 30px; border-radius: 8px; transition: transform 0.1s, background 0.15s;
-      line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      background: transparent; border: none; font-size: 1.3rem; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.1s, background 0.15s; line-height: 1; flex-shrink: 0;
     }
     .react-quick-bar .react-emoji-btn:hover { transform: scale(1.2); background: rgba(255,255,255,0.08); }
+    .react-quick-bar .react-emoji-plus-btn { font-weight: 700; font-size: 1.15rem; background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* Full categorized emoji picker (Recent + Smileys/People/Animals/Food/Activities/Travel/Objects/Symbols/Flags) */
+    .emoji-picker-panel {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      width: 320px;
+      max-width: 92vw;
+      height: 360px;
+      background: var(--slate-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1550;
+      overflow: hidden;
+    }
+    .emoji-picker-panel.active { display: flex; }
+    .emoji-picker-tabs {
+      display: flex;
+      gap: 2px;
+      padding: 6px;
+      border-bottom: 1px solid var(--border-color);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .emoji-picker-tab-btn {
+      background: transparent; border: none; font-size: 1.1rem;
+      padding: 6px 8px; border-radius: 8px; cursor: pointer; flex-shrink: 0; line-height: 1;
+    }
+    .emoji-picker-tab-btn.active { background: rgba(255,255,255,0.12); }
+    .emoji-picker-grid {
+      flex: 1;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 2px;
+      padding: 8px;
+      align-content: start;
+    }
+    .emoji-picker-grid .emoji-grid-btn {
+      background: transparent; border: none; font-size: 1.3rem;
+      padding: 5px; border-radius: 8px; cursor: pointer; line-height: 1;
+    }
+    .emoji-picker-grid .emoji-grid-btn:hover { background: rgba(255,255,255,0.1); }
+    .emoji-picker-empty-hint {
+      grid-column: 1 / -1;
+      color: var(--subtext-color);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* Hover-triggered React/Reply icons, WhatsApp-style — only visible while the cursor is over that message row */
+    .msg-hover-actions {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 5;
+    }
+    .message-row.outgoing .msg-hover-actions { right: 100%; margin-right: 6px; }
+    .message-row.incoming .msg-hover-actions { left: 100%; margin-left: 6px; }
+    .message-row:hover .msg-hover-actions { opacity: 1; pointer-events: auto; }
+    .chat-container.selection-mode .msg-hover-actions { display: none !important; }
+    .message-row:has(.deleted-bubble) .msg-hover-actions { display: none !important; }
+    .msg-hover-btn {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--slate-surface); border: 1px solid var(--border-color);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.3); flex-shrink: 0;
+    }
+    .msg-hover-btn:hover { background: #2c2c2e; }
+    .msg-hover-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Emoji-only messages render without a bubble background, WhatsApp-style */
+    .msg-bubble.emoji-only {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 2px 4px !important;
+    }
+    .msg-bubble.emoji-only .message-text {
+      font-size: 2.6rem;
+      line-height: 1.15;
+      display: block;
+    }
+    .msg-bubble.emoji-only .msg-meta-row {
+      color: var(--subtext-color);
+      font-weight: 400;
+    }
 
     /* Delete-confirm modal */
     .confirm-modal-overlay {
@@ -1492,6 +1584,14 @@ html, body {
           </div>
 
           <div class="message-row incoming" data-id="seed_1">
+            <div class="msg-hover-actions" onclick="event.stopPropagation()">
+              <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_1')" title="React">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              <button class="msg-hover-btn" onclick="startReply('seed_1')" title="Reply">
+                <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+              </button>
+            </div>
             <span class="sender-name">John</span>
             <div class="incoming-content-wrapper">
               <div class="small-avatar">J</div>
@@ -1503,6 +1603,14 @@ html, body {
           </div>
 
           <div class="message-row outgoing" data-id="seed_2">
+            <div class="msg-hover-actions" onclick="event.stopPropagation()">
+              <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_2')" title="React">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+              </button>
+              <button class="msg-hover-btn" onclick="startReply('seed_2')" title="Reply">
+                <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+              </button>
+            </div>
             <div class="msg-bubble outgoing">
               <span class="message-text">Hello! How can I help you?</span>
               <span class="msg-meta-row">04:13 pm <span class="msg-ticks" id="ticks-seed_2"></span></span>
@@ -1675,6 +1783,12 @@ html, body {
 
   <!-- Quick reaction picker bar -->
   <div class="react-quick-bar" id="reactQuickBar"></div>
+
+  <!-- Full categorized emoji picker (Recent + 9 categories) -->
+  <div class="emoji-picker-panel" id="emojiPickerPanel">
+    <div class="emoji-picker-tabs" id="emojiPickerTabs"></div>
+    <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
+  </div>
 
   <!-- Delete confirmation modal -->
   <div class="confirm-modal-overlay" id="deleteConfirmOverlay" onclick="closeDeleteConfirm()">
@@ -2390,7 +2504,7 @@ function renderPreviewTray() {
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
           docRow.setAttribute('data-id', docMessageId);
-          docRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">
+          docRow.innerHTML = `${buildHoverActionsHtml(docMessageId)}<div class="msg-bubble outgoing media-bubble">
             ${thisQuoted}
             <div class="doc-list-container">
               <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
@@ -2494,11 +2608,13 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
+        messageRow.innerHTML = `${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
       } else {
-        // Text-only message
+        // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
+        const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
-          <div class="msg-bubble outgoing">
+          ${buildHoverActionsHtml(messageId)}
+          <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
             ${quotedHtml}
             <span class="message-text"></span>
             <span class="msg-meta-row">${timeString} <span class="msg-ticks" id="ticks-${messageId}"></span></span>
@@ -2676,6 +2792,31 @@ function renderPreviewTray() {
       return text.length > max ? text.slice(0, max) + '…' : text;
     }
 
+    // WhatsApp-style hover icons, positioned outside the bubble via .msg-hover-actions (see CSS) —
+    // only visible while the cursor is over that specific message row.
+    function buildHoverActionsHtml(id) {
+      return `<div class="msg-hover-actions" onclick="event.stopPropagation()">
+        <button class="msg-hover-btn" onclick="quickReactOpen(event, '${id}')" title="React">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+        </button>
+        <button class="msg-hover-btn" onclick="startReply('${id}')" title="Reply">
+          <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+        </button>
+      </div>`;
+    }
+
+    // A message showing as just emoji (1-12 of them, nothing else) renders without the bubble
+    // background, WhatsApp-style — larger and unboxed.
+    function isEmojiOnlyText(text) {
+      if (!text) return false;
+      const trimmed = text.trim();
+      if (!trimmed) return false;
+      const stripped = trimmed.replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\u20E3]/gu, '');
+      if (stripped.trim().length > 0) return false;
+      const graphemeCount = [...trimmed].length;
+      return graphemeCount > 0 && graphemeCount <= 12;
+    }
+
     function updateTicksUI(id) {
       const msg = messages[id];
       if (!msg || !msg.isOutgoing) return;
@@ -2787,8 +2928,10 @@ function renderPreviewTray() {
 
     function startReply(id) {
       closeMsgContextMenu();
+      closeReactBar();
+      closeEmojiPickerPanel();
       const msg = messages[id];
-      if (!msg) return;
+      if (!msg || msg.deletedFor === 'everyone') return;
       cancelEdit(); // can't be editing and replying at the same time
       replyingToId = id;
       const bar = document.getElementById('replyPreviewBar');
@@ -3041,6 +3184,7 @@ function renderPreviewTray() {
       const bubble = row.querySelector('.msg-bubble');
       const textEl = bubble.querySelector('.message-text');
       if (textEl) textEl.textContent = newText;
+      bubble.classList.toggle('emoji-only', isEmojiOnlyText(newText));
       const metaEl = bubble.querySelector('.msg-meta-row');
       if (metaEl) {
         const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${id}"></span>` : '';
@@ -3074,38 +3218,240 @@ function renderPreviewTray() {
       document.getElementById('msgInfoOverlay').classList.remove('active');
     }
 
-    // ---------- React / Emoji picker (shared bar: reacting to a message, or inserting into the composer) ----------
+    // ---------- Full categorized emoji picker (mirrors the app's EmojiState: categories + recents) ----------
 
-    const REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '🙏', '😊', '🔥', '🎉', '👏', '😍', '🤔', '😎', '👌', '💯', '✅', '❌', '😭', '😡', '🥳', '🤗', '😴', '🙌', '💪'];
-    let quickBarMode = 'react'; // 'react' -> reacts to reactTargetId | 'insert' -> inserts into the message input
+    const EMOJI_MAX_RECENTS = 24;
+    const EMOJI_RECENTS_STORAGE_KEY = 'dicam_emoji_recents';
+    let emojiRecents = [];
+    let emojiPendingRecents = new Set();
 
-    function openReactBarFromMenu(id) {
-      closeMsgContextMenu();
-      const row = getMessageRow(id);
-      if (!row) return;
-      const bubble = row.querySelector('.msg-bubble');
-      const rect = bubble.getBoundingClientRect();
-      quickBarMode = 'react';
-      reactTargetId = id;
-      openReactBar(rect.left, rect.top - 50);
+    function loadEmojiRecents() {
+      try {
+        const saved = localStorage.getItem(EMOJI_RECENTS_STORAGE_KEY) || '';
+        emojiRecents = saved ? saved.split(',').filter(Boolean) : [];
+      } catch (e) {
+        emojiRecents = [];
+      }
+    }
+    loadEmojiRecents();
+
+    function recordEmojiUsage(emoji) {
+      emojiPendingRecents.add(emoji);
     }
 
-    function toggleComposerEmojiPicker(event) {
-      event.stopPropagation();
-      const bar = document.getElementById('reactQuickBar');
-      if (bar.classList.contains('active') && quickBarMode === 'insert') {
-        closeReactBar();
+    // Batches picks made in one picker session before writing to storage, same as
+    // the Kotlin EmojiState's pending-set -> commitRecents() pattern.
+    function commitEmojiRecents() {
+      if (emojiPendingRecents.size === 0) return;
+      emojiPendingRecents.forEach(emoji => {
+        const idx = emojiRecents.indexOf(emoji);
+        if (idx > -1) emojiRecents.splice(idx, 1);
+        emojiRecents.unshift(emoji);
+      });
+      if (emojiRecents.length > EMOJI_MAX_RECENTS) {
+        emojiRecents = emojiRecents.slice(0, EMOJI_MAX_RECENTS);
+      }
+      try { localStorage.setItem(EMOJI_RECENTS_STORAGE_KEY, emojiRecents.join(',')); } catch (e) {}
+      emojiPendingRecents.clear();
+    }
+
+    const EMOJI_CATEGORIES = [
+      { name: 'Smileys & Emotion', icon: '😀', emojis: [
+        '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗',
+        '☺️', '😚', '😙', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶',
+        '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶',
+        '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦',
+        '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬',
+        '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '😺', '😸', '😹', '😻', '😼', '😽',
+        '🙀', '😿', '😾', '🙈', '🙉', '🙊', '💋', '💌', '💘', '💝', '💖', '💗', '💓', '💞', '💕', '💟', '❣️', '💔'
+      ]},
+      { name: 'People & Body', icon: '👋', emojis: [
+        '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️',
+        '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦵',
+        '🦿', '🦶', '👣', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄', '👶', '🧒', '👦', '👧', '🧑',
+        '👱', '👨', '🧔', '👩', '🧓', '👴', '👵', '👲', '🧕', '👮', '👷', '💂', '🕵️', '👩‍⚕️', '👨‍⚕️', '👩‍🌾', '👨‍🌾',
+        '👩‍🍳', '👨‍🍳', '👩‍🔧', '👨‍🔧', '👩‍🏭', '👨‍🏭', '👩‍💼', '👨‍💼', '👩‍🔬', '👨‍🔬', '👩‍💻', '👨‍💻', '👩‍🎤', '👨‍🎤', '👩‍🎨', '👨‍🎨',
+        '👩‍✈️', '👨‍✈️', '👩‍🚀', '👨‍🚀', '👩‍🚒', '👨‍🚒', '🤴', '👸', '👳', '🤵', '👰'
+      ]},
+      { name: 'Animals & Nature', icon: '🐶', emojis: [
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐻‍❄️', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈',
+        '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝',
+        '🪱', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🕷️', '🕸️', '🦂', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑',
+        '🦐', '🦞', '🦀', '🐡', '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛',
+        '🦏', '🦛', '🐪', '🐫', '🦒', '🦘', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🦙', '🐐', '🦌', '🐕', '🐩'
+      ]},
+      { name: 'Food & Drink', icon: '🍏', emojis: [
+        '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅',
+        '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖',
+        '🥨', '🧀', '🥚', '🍳', '🧈', '🥓', '🥩', '🍗', '🍖', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🫓', '🌮', '🌯',
+        '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🍦',
+        '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🍵', '🧉'
+      ]},
+      { name: 'Activities', icon: '⚽', emojis: [
+        '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🏏', '🪃', '🥅', '🏹',
+        '🎣', '🤿', '🥊', '🥋', '⛸️', '🎿', '🛷', '🎯', '🪅', '🪁', '🔮', '🧿', '🎮', '🕹️', '🎰', '🎲', '🧩',
+        '🧸', '🪗', '🎨', '🧵', '🧶', '🎼', '🎵', '🎶', '🎙️', '🎚️', '🎛️', '🎤', '🎧', '📻', '🎷', '🪗', '🎸', '🎹',
+        '🎺', '🎻', '🪕', '🥁', '🪘', '🎬', '🎤', '🎧', '🎨', '🎭', '🎫', '🎟️', '🎖️', '🏆', '🏅', '🥇', '🥈', '🥉'
+      ]},
+      { name: 'Travel & Places', icon: '🚗', emojis: [
+        '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🛵', '🚲', '🛴', '🚏',
+        '🛣️', '🛤️', '🛢️', '⛽', '🚨', '🚥', '🚦', '🛑', '🚧', '⚓', '⛵', '🛶', '🚤', '🛳️', '⛴️', '🚢', '✈️', '🛩️',
+        '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸', '🪐', '🌠', '🌌', '☀️', '🌤️', '⛅', '🌥️',
+        '☁️', '🌦️', '🌧️', '🌨️', '🌩️', '🌪️', '🌫️', '🌬️', '🌀', '🌈', '⛱️', '☔', '⚡', '❄️', '☃️', '⛄', '☄️', '🔥',
+        '🗺️', '🏔️', '⛰️', '🌋', '🗻', '🏕️', '🏖️', '🏜️', '🏝️', '🏞️', '🏟️', '🏛️', '🏗️', '🧱', '🏘️', '🏚️', '🏠', '🏡'
+      ]},
+      { name: 'Objects', icon: '🛠️', emojis: [
+        '🛠️', '⚒️', '🔨', '⛏️', '🔧', '🪛', '🔩', '⚙️', '🗜️', '⚖️', '🦯', '🔗', '⛓️', '🪝', '🧰', '🧲', '🪜', '🧱',
+        '🪵', '🪚', '🏗️', '👷', '🧤', '⚡', '💧', '💨', '🏢', '🏘️', '🏡', '📏', '📐', '🔦', '🔋', '🧯', '🩹', '🩺',
+        '🚽', '🚿', '🛁', '🚪', '🪟', '🔑', '🔐', '📦', '🗑️', '🧹', '🧼', '🌡️', '🔍', '🔎', '🕯️', '💡', '🔦', '🏮',
+        '🪑', '🛋️', '🛌', '🛏️', '🧸', '🖼️', '🛍️', '🛒', '🎁', '🎈', '🎏', '🎀', '🎊', '🎉', '🎎', '🏮', '🎐', '🧧'
+      ]},
+      { name: 'Symbols', icon: '❤️', emojis: [
+        '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝',
+        '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌',
+        '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺',
+        '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌',
+        '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔'
+      ]},
+      { name: 'Flags', icon: '🏁', emojis: [
+        '🏁', '🚩', '🎌', '🏴', '🏳️', '🏳️‍🌈', '🏳️‍⚧️', '🏴‍☠️',
+        '🇦🇫', '🇦🇽', '🇦🇱', '🇩🇿', '🇦🇸', '🇦🇩', '🇦🇴', '🇦🇮', '🇦🇶', '🇦🇬', '🇦🇷', '🇦🇲', '🇦🇼', '🇦🇺', '🇦🇹', '🇦🇿',
+        '🇧🇸', '🇧🇭', '🇧🇩', '🇧🇧', '🇧🇾', '🇧🇪', '🇧🇿', '🇧🇯', '🇧🇲', '🇧🇹', '🇧🇴', '🇧🇦', '🇧🇼', '🇧🇻', '🇧🇷', '🇮🇴', '🇻🇬', '🇧🇳', '🇧🇬', '🇧🇫', '🇧🇮',
+        '🇰🇭', '🇨🇲', '🇨🇦', '🇮🇨', '🇨🇻', '🇧🇶', '🇰🇾', '🇨🇫', '🇹🇩', '🇨🇱', '🇨🇳', '🇨🇽', '🇨🇨', '🇨🇴', '🇰🇲', '🇨🇬', '🇨🇩', '🇨🇰', '🇨🇷', '🇨🇮', '🇭🇷', '🇨🇺', '🇨🇼', '🇨🇾', '🇨🇿',
+        '🇩🇰', '🇩🇯', '🇩🇲', '🇩🇴',
+        '🇪🇨', '🇪🇬', '🇸🇻', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🇬🇶', '🇪🇷', '🇪🇪', '🇸🇿', '🇪🇹', '🇪🇺',
+        '🇫🇰', '🇫🇴', '🇫🇯', '🇫🇮', '🇫🇷', '🇬🇫', '🇵🇫', '🇹🇫',
+        '🇬🇦', '🇬🇲', '🇬🇪', '🇩🇪', '🇬🇭', '🇬🇮', '🇬🇷', '🇬🇱', '🇬🇩', '🇬🇵', '🇬🇺', '🇬🇹', '🇬🇬', '🇬🇳', '🇬🇼', '🇬🇾',
+        '🇭🇹', '🇭🇲', '🇭🇳', '🇭🇰', '🇭🇺',
+        '🇮🇸', '🇮🇳', '🇮🇩', '🇮🇷', '🇮🇶', '🇮🇪', '🇮🇲', '🇮🇱', '🇮🇹',
+        '🇯🇲', '🇯🇵', '🇯🇪', '🇯🇴',
+        '🇰🇿', '🇰🇪', '🇰🇮', '🇽🇰', '🇰🇼', '🇰🇬',
+        '🇱🇦', '🇱🇻', '🇱🇧', '🇱🇸', '🇱🇷', '🇱🇾', '🇱🇮', '🇱🇹', '🇱🇺',
+        '🇲🇴', '🇲🇰', '🇲🇬', '🇲🇼', '🇲🇾', '🇲🇻', '🇲🇱', '🇲🇹', '🇲🇭', '🇲🇶', '🇲🇷', '🇲🇺', '🇾🇹', '🇲🇽', '🇫🇲', '🇲🇩', '🇲🇨', '🇲🇳', '🇲🇪', '🇲🇸', '🇲🇦', '🇲🇿', '🇲🇲',
+        '🇳🇦', '🇳🇷', '🇳🇵', '🇳🇱', '🇳🇨', '🇳🇿', '🇳🇮', '🇳🇪', '🇳🇬', '🇳🇺', '🇳🇫', '🇰🇵', '🇲🇵', '🇳🇴',
+        '🇴🇲',
+        '🇵🇰', '🇵🇼', '🇵🇸', '🇵🇦', '🇵🇬', '🇵🇾', '🇵🇪', '🇵🇭', '🇵🇳', '🇵🇱', '🇵🇹', '🇵🇷',
+        '🇶🇦',
+        '🇷🇪', '🇷🇴', '🇷🇺', '🇷🇼',
+        '🇼🇸', '🇸🇲', '🇸🇹', '🇸🇦', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🇸🇳', '🇷🇸', '🇸🇨', '🇸🇱', '🇸🇬', '🇸🇽', '🇸🇰', '🇸🇮', '🇸🇧', '🇸🇴', '🇿🇦', '🇬🇸', '🇰🇷', '🇸🇸', '🇪🇸', '🇱🇰', '🇧🇱', '🇸🇭', '🇰🇳', '🇱🇨', '🇲🇫', '🇵🇲', '🇻🇨', '🇸🇩', '🇸🇷', '🇸🇯', '🇸🇪', '🇨🇭', '🇸🇾',
+        '🇹🇼', '🇹🇯', '🇹🇿', '🇹🇭', '🇹🇱', '🇹🇬', '🇹🇰', '🇹🇴', '🇹🇹', '🇹🇳', '🇹🇷', '🇹🇲', '🇹🇨', '🇹🇻',
+        '🇺🇬', '🇺🇦', '🇦🇪', '🇬🇧', '🇺🇸', '🇺🇾', '🇺🇲', '🇻🇮', '🇺🇿',
+        '🇻🇺', '🇻🇦', '🇻🇪', '🇻🇳',
+        '🏴󠁧󠁢󠁷󠁬󠁳󠁿', '🇼🇫', '🇪🇭',
+        '🇾🇪',
+        '🇿🇲', '🇿🇼'
+      ]}
+    ];
+
+    let emojiPickerMode = 'insert'; // 'insert' -> types into the composer | 'react' -> reacts to reactTargetId
+    let emojiPickerActiveCategory = 0;
+
+    function getEmojiPickerCategories() {
+      return [{ name: 'Recent', icon: '🕓', emojis: emojiRecents.slice() }, ...EMOJI_CATEGORIES];
+    }
+
+    function openEmojiPickerPanel(x, y, mode) {
+      emojiPickerMode = mode;
+      emojiPickerActiveCategory = emojiRecents.length > 0 ? 0 : 1;
+      renderEmojiPickerTabs();
+      renderEmojiPickerGrid();
+      const panel = document.getElementById('emojiPickerPanel');
+      panel.style.left = '-9999px';
+      panel.style.top = '-9999px';
+      panel.classList.add('active');
+      const rect = panel.getBoundingClientRect();
+      const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
+      const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+      panel.style.left = left + 'px';
+      panel.style.top = top + 'px';
+    }
+
+    function closeEmojiPickerPanel() {
+      document.getElementById('emojiPickerPanel').classList.remove('active');
+      commitEmojiRecents(); // flush this session's picks to storage, same as the Kotlin commitRecents()
+    }
+
+    window.addEventListener('click', function(e) {
+      const panel = document.getElementById('emojiPickerPanel');
+      if (panel.classList.contains('active') && !panel.contains(e.target)) {
+        closeEmojiPickerPanel();
+      }
+    });
+
+    function renderEmojiPickerTabs() {
+      const cats = getEmojiPickerCategories();
+      document.getElementById('emojiPickerTabs').innerHTML = cats.map((cat, i) =>
+        `<button class="emoji-picker-tab-btn${i === emojiPickerActiveCategory ? ' active' : ''}" onclick="selectEmojiPickerCategory(${i})" title="${cat.name}">${cat.icon}</button>`
+      ).join('');
+    }
+
+    function selectEmojiPickerCategory(i) {
+      emojiPickerActiveCategory = i;
+      renderEmojiPickerTabs();
+      renderEmojiPickerGrid();
+    }
+
+    function renderEmojiPickerGrid() {
+      const cat = getEmojiPickerCategories()[emojiPickerActiveCategory];
+      const grid = document.getElementById('emojiPickerGrid');
+      if (!cat || !cat.emojis || cat.emojis.length === 0) {
+        grid.innerHTML = `<div class="emoji-picker-empty-hint">No recent emojis yet</div>`;
         return;
       }
-      quickBarMode = 'insert';
-      reactTargetId = null;
-      const btnRect = event.currentTarget.getBoundingClientRect();
-      openReactBar(btnRect.left, btnRect.top - 54);
+      grid.innerHTML = cat.emojis.map(e => `<button class="emoji-grid-btn" onclick="handleEmojiPickerPick('${e}')">${e}</button>`).join('');
     }
 
-    function openReactBar(x, y) {
+    function handleEmojiPickerPick(emoji) {
+      recordEmojiUsage(emoji);
+      if (emojiPickerMode === 'insert') {
+        insertEmojiIntoInput(emoji);
+        closeEmojiPickerPanel();
+      } else if (emojiPickerMode === 'react' && reactTargetId) {
+        applyReaction(reactTargetId, emoji);
+        closeEmojiPickerPanel();
+      }
+    }
+
+    function insertEmojiIntoInput(emoji) {
+      const input = document.getElementById('msgInput');
+      const start = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
+      const end = (typeof input.selectionEnd === 'number') ? input.selectionEnd : input.value.length;
+      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+      const newPos = start + emoji.length;
+      input.focus();
+      input.setSelectionRange(newPos, newPos);
+    }
+
+    // Composer's emoji button opens the full picker directly (typing benefits from the full palette)
+    function toggleComposerEmojiPicker(event) {
+      event.stopPropagation();
+      const panel = document.getElementById('emojiPickerPanel');
+      if (panel.classList.contains('active') && emojiPickerMode === 'insert') {
+        closeEmojiPickerPanel();
+        return;
+      }
+      const btnRect = event.currentTarget.getBoundingClientRect();
+      openEmojiPickerPanel(btnRect.left, btnRect.top - 366, 'insert');
+    }
+
+    // ---------- Reaction mini-bar: 5 quick emojis + a "+" that opens the full picker ----------
+
+    const QUICK_REACT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢'];
+
+    function quickReactOpen(event, id) {
+      event.stopPropagation();
+      closeMsgContextMenu();
+      const msg = messages[id];
+      if (!msg || msg.deletedFor === 'everyone') return;
+      reactTargetId = id;
+      const btnRect = event.currentTarget.getBoundingClientRect();
+      openQuickReactMiniBar(btnRect.left, btnRect.top - 46);
+    }
+
+    function openQuickReactMiniBar(x, y) {
       const bar = document.getElementById('reactQuickBar');
-      bar.innerHTML = REACT_EMOJIS.map(e => `<button class="react-emoji-btn" onclick="handleQuickBarEmojiPick('${e}')">${e}</button>`).join('');
+      bar.innerHTML = QUICK_REACT_EMOJIS.map(e => `<button class="react-emoji-btn" onclick="handleQuickBarEmojiPick('${e}')">${e}</button>`).join('')
+        + `<button class="react-emoji-btn react-emoji-plus-btn" onclick="openFullPickerFromMiniBar(event)" title="More emojis">+</button>`;
       bar.style.left = '-9999px';
       bar.style.top = '-9999px';
       bar.classList.add('active');
@@ -3127,23 +3473,18 @@ function renderPreviewTray() {
       }
     });
 
-    function handleQuickBarEmojiPick(emoji) {
-      if (quickBarMode === 'insert') {
-        insertEmojiIntoInput(emoji);
-      } else if (reactTargetId) {
-        applyReaction(reactTargetId, emoji);
-      }
+    function openFullPickerFromMiniBar(event) {
+      event.stopPropagation();
+      const btnRect = event.currentTarget.getBoundingClientRect();
+      closeReactBar();
+      openEmojiPickerPanel(btnRect.left, btnRect.top - 366, 'react');
     }
 
-    function insertEmojiIntoInput(emoji) {
-      const input = document.getElementById('msgInput');
-      const start = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
-      const end = (typeof input.selectionEnd === 'number') ? input.selectionEnd : input.value.length;
-      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
-      const newPos = start + emoji.length;
-      closeReactBar();
-      input.focus();
-      input.setSelectionRange(newPos, newPos);
+    function handleQuickBarEmojiPick(emoji) {
+      if (!reactTargetId) return;
+      recordEmojiUsage(emoji);
+      applyReaction(reactTargetId, emoji);
+      commitEmojiRecents();
     }
 
     function applyReaction(id, emoji) {
