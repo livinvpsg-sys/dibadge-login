@@ -1808,7 +1808,7 @@ html, body {
     <!-- Send / Cancel bar shown only while editing a photo -->
     <div class="media-editor-actions" id="mediaEditorActions" onclick="event.stopPropagation()">
       <button class="media-editor-cancel-btn" onclick="cancelMediaEdit()">Cancel</button>
-      <button class="media-editor-send-btn" onclick="sendMediaEdit()">Send</button>
+      <button class="media-editor-send-btn" id="mediaEditorSendBtn" onclick="sendMediaEdit()">Send</button>
     </div>
   </div>
 
@@ -1939,20 +1939,30 @@ html, body {
       const msgId = galleryMessageMap[currentGalleryId];
       const msg = msgId ? messages[msgId] : null;
       const hasMessage = !!msg && msg.deletedFor !== 'everyone';
+      const isStaged = !msgId; // no associated sent message => a not-yet-sent preview from the attachment tray
 
       const deleteBtn = document.getElementById('mediaViewerDeleteBtn');
       const editBtn = document.getElementById('mediaViewerEditBtn');
       const replyBtn = document.getElementById('mediaViewerReplyBtn');
-      if (deleteBtn) deleteBtn.style.display = hasMessage ? 'flex' : 'none';
+
+      // Sent/received messages get Delete + Edit + Reply; staged previews get just Delete + Edit
+      // (nothing to reply to yet); Edit is further limited to photos either way.
+      if (deleteBtn) deleteBtn.style.display = (hasMessage || isStaged) ? 'flex' : 'none';
       if (replyBtn) replyBtn.style.display = hasMessage ? 'flex' : 'none';
-      if (editBtn) editBtn.style.display = (hasMessage && item && item.type === 'Image') ? 'flex' : 'none';
+      if (editBtn) editBtn.style.display = ((hasMessage || isStaged) && item && item.type === 'Image') ? 'flex' : 'none';
     }
 
     function mediaViewerDelete() {
       const msgId = galleryMessageMap[currentGalleryId];
-      if (!msgId) return;
-      closeMediaViewer();
-      openDeleteConfirm(msgId);
+      if (msgId) {
+        closeMediaViewer();
+        openDeleteConfirm(msgId);
+      } else {
+        // Staged preview — remove it from the attachment tray directly, no confirmation needed
+        const indexToRemove = currentMediaIndex;
+        closeMediaViewer();
+        removeStagedFile(indexToRemove);
+      }
     }
 
     function mediaViewerReply() {
@@ -2008,13 +2018,26 @@ html, body {
     let mediaEditDrawing = false;
     let mediaEditCurrentStroke = null;
     let mediaEditSourceFileName = null;
+    let mediaEditContext = 'sent'; // 'sent' -> edits an already-sent message, re-sends as a new message
+                                    // 'staged' -> edits a not-yet-sent tray preview, applies in place instead
+    let mediaEditStagedIndex = null;
     const MEDIA_EDIT_COLORS = ['#ff3b30', '#ffcc00', '#34c759', '#0a84ff', '#af52de', '#ffffff', '#000000'];
 
     function mediaViewerEdit() {
       const items = mediaGalleries[currentGalleryId] || [];
       const item = items[currentMediaIndex];
       if (!item || item.type !== 'Image') return;
-      mediaEditSourceFileName = item.name || 'photo.png';
+      const msgId = galleryMessageMap[currentGalleryId];
+      if (msgId) {
+        mediaEditContext = 'sent';
+        mediaEditStagedIndex = null;
+        mediaEditSourceFileName = item.name || 'photo.png';
+      } else {
+        mediaEditContext = 'staged';
+        mediaEditStagedIndex = currentMediaIndex;
+        const stagedFile = selectedStagedFiles[currentMediaIndex];
+        mediaEditSourceFileName = stagedFile ? stagedFile.name : 'photo.png';
+      }
       enterMediaEditMode(item.url);
     }
 
@@ -2049,6 +2072,9 @@ html, body {
       document.getElementById('mediaViewerNext').style.display = 'none';
       document.getElementById('mediaEditorToolbar').classList.add('active');
       document.getElementById('mediaEditorActions').classList.add('active');
+      // "Apply" when editing a staged (not-yet-sent) preview — it updates that preview only.
+      // "Send" when editing an already-sent message — it sends the edit as a new message.
+      document.getElementById('mediaEditorSendBtn').textContent = (mediaEditContext === 'staged') ? 'Apply' : 'Send';
       renderMediaEditorColors();
     }
 
@@ -2064,6 +2090,8 @@ html, body {
       mediaEditRedoStack = [];
       mediaEditCurrentStroke = null;
       mediaEditDrawing = false;
+      mediaEditContext = 'sent';
+      mediaEditStagedIndex = null;
     }
 
     function cancelMediaEdit() {
@@ -2152,12 +2180,28 @@ html, body {
         const dotIdx = originalName.lastIndexOf('.');
         const baseName = dotIdx > -1 ? originalName.slice(0, dotIdx) : originalName;
         const editedFile = new File([blob], `${baseName}_edited.png`, { type: 'image/png' });
-        exitMediaEditMode();
-        closeMediaViewer();
-        // Send the annotated image the same way any staged photo gets sent
-        selectedStagedFiles = [editedFile];
-        activeUploadType = 'Image';
-        sendMessage();
+
+        if (mediaEditContext === 'staged' && mediaEditStagedIndex !== null) {
+          // Apply: replace the file in the staged tray in place — nothing gets sent yet,
+          // the tray preview just now shows the drawn version, ready for a normal Send later.
+          const oldFile = selectedStagedFiles[mediaEditStagedIndex];
+          if (oldFile && stagedFileUrlMap.has(oldFile)) {
+            URL.revokeObjectURL(stagedFileUrlMap.get(oldFile));
+            stagedFileUrlMap.delete(oldFile);
+          }
+          selectedStagedFiles[mediaEditStagedIndex] = editedFile;
+          exitMediaEditMode();
+          closeMediaViewer();
+          renderPreviewTray();
+        } else {
+          // Send: editing an already-sent message sends the annotated image as a new message,
+          // the same way any staged photo gets sent.
+          exitMediaEditMode();
+          closeMediaViewer();
+          selectedStagedFiles = [editedFile];
+          activeUploadType = 'Image';
+          sendMessage();
+        }
       }, 'image/png');
     }
 
