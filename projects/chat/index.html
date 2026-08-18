@@ -364,14 +364,22 @@ html, body {
     .message-row {
       display: flex;
       flex-direction: column;
-      max-width: 80%;
+      width: 100%;
       position: relative;
     }
     .message-row.incoming {
-      align-self: flex-start;
+      align-items: flex-start;
     }
     .message-row.outgoing {
-      align-self: flex-end;
+      align-items: flex-end;
+    }
+    /* Shrink-wraps to the bubble's own width — hover icons position relative to THIS,
+       while hover-detection happens on the full-width .message-row above so the icons
+       stay reachable anywhere along that message's horizontal band, not just on the bubble. */
+    .msg-content-wrap {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
     }
 
     /* Sender Name */
@@ -1368,9 +1376,9 @@ html, body {
       position: fixed;
       display: none;
       flex-direction: column;
-      width: 320px;
-      max-width: 92vw;
-      height: 360px;
+      width: 460px;
+      max-width: 96vw;
+      height: 380px;
       background: var(--slate-surface);
       border: 1px solid var(--border-color);
       border-radius: 14px;
@@ -1381,22 +1389,22 @@ html, body {
     .emoji-picker-panel.active { display: flex; }
     .emoji-picker-tabs {
       display: flex;
+      flex-wrap: wrap;
       gap: 2px;
       padding: 6px;
       border-bottom: 1px solid var(--border-color);
-      overflow-x: auto;
       flex-shrink: 0;
     }
     .emoji-picker-tab-btn {
-      background: transparent; border: none; font-size: 1.1rem;
-      padding: 6px 8px; border-radius: 8px; cursor: pointer; flex-shrink: 0; line-height: 1;
+      background: transparent; border: none; font-size: 1.05rem;
+      padding: 6px 7px; border-radius: 8px; cursor: pointer; flex-shrink: 0; line-height: 1;
     }
     .emoji-picker-tab-btn.active { background: rgba(255,255,255,0.12); }
     .emoji-picker-grid {
       flex: 1;
       overflow-y: auto;
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
+      grid-template-columns: repeat(9, 1fr);
       gap: 2px;
       padding: 8px;
       align-content: start;
@@ -1414,7 +1422,10 @@ html, body {
       padding: 20px;
     }
 
-    /* Hover-triggered React/Reply icons, WhatsApp-style — only visible while the cursor is over that message row */
+    /* Hover-triggered React/Reply icons, WhatsApp-style. Visibility is driven by hovering the
+       FULL-WIDTH .message-row (see above) — anywhere at that message's height triggers it, not
+       just directly over the bubble — while position is anchored to .msg-content-wrap so the
+       icons still sit snug against the bubble itself, not off at the row's far edge. */
     .msg-hover-actions {
       position: absolute;
       top: 50%;
@@ -1427,8 +1438,8 @@ html, body {
       transition: opacity 0.15s;
       z-index: 5;
     }
-    .message-row.outgoing .msg-hover-actions { right: 100%; margin-right: 6px; }
-    .message-row.incoming .msg-hover-actions { left: 100%; margin-left: 6px; }
+    .msg-content-wrap.outgoing-wrap .msg-hover-actions { right: 100%; margin-right: 6px; }
+    .msg-content-wrap.incoming-wrap .msg-hover-actions { left: 100%; margin-left: 6px; }
     .message-row:hover .msg-hover-actions { opacity: 1; pointer-events: auto; }
     .chat-container.selection-mode .msg-hover-actions { display: none !important; }
     .message-row:has(.deleted-bubble) .msg-hover-actions { display: none !important; }
@@ -1584,36 +1595,40 @@ html, body {
           </div>
 
           <div class="message-row incoming" data-id="seed_1">
-            <div class="msg-hover-actions" onclick="event.stopPropagation()">
-              <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_1')" title="React">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-              </button>
-              <button class="msg-hover-btn" onclick="startReply('seed_1')" title="Reply">
-                <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
-              </button>
-            </div>
             <span class="sender-name">John</span>
-            <div class="incoming-content-wrapper">
-              <div class="small-avatar">J</div>
-              <div class="msg-bubble incoming">
-                <span class="message-text">Hi there!</span>
-                <span class="msg-meta-row">04:13 pm</span>
+            <div class="msg-content-wrap incoming-wrap">
+              <div class="incoming-content-wrapper">
+                <div class="small-avatar">J</div>
+                <div class="msg-bubble incoming">
+                  <span class="message-text">Hi there!</span>
+                  <span class="msg-meta-row">04:13 pm</span>
+                </div>
+              </div>
+              <div class="msg-hover-actions" onclick="event.stopPropagation()">
+                <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_1')" title="React">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                </button>
+                <button class="msg-hover-btn" onclick="startReply('seed_1')" title="Reply">
+                  <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+                </button>
               </div>
             </div>
           </div>
 
           <div class="message-row outgoing" data-id="seed_2">
-            <div class="msg-hover-actions" onclick="event.stopPropagation()">
-              <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_2')" title="React">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-              </button>
-              <button class="msg-hover-btn" onclick="startReply('seed_2')" title="Reply">
-                <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
-              </button>
-            </div>
-            <div class="msg-bubble outgoing">
-              <span class="message-text">Hello! How can I help you?</span>
-              <span class="msg-meta-row">04:13 pm <span class="msg-ticks" id="ticks-seed_2"></span></span>
+            <div class="msg-content-wrap outgoing-wrap">
+              <div class="msg-hover-actions" onclick="event.stopPropagation()">
+                <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_2')" title="React">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                </button>
+                <button class="msg-hover-btn" onclick="startReply('seed_2')" title="Reply">
+                  <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
+                </button>
+              </div>
+              <div class="msg-bubble outgoing">
+                <span class="message-text">Hello! How can I help you?</span>
+                <span class="msg-meta-row">04:13 pm <span class="msg-ticks" id="ticks-seed_2"></span></span>
+              </div>
             </div>
           </div>
         </div>
@@ -1785,7 +1800,7 @@ html, body {
   <div class="react-quick-bar" id="reactQuickBar"></div>
 
   <!-- Full categorized emoji picker (Recent + 9 categories) -->
-  <div class="emoji-picker-panel" id="emojiPickerPanel">
+  <div class="emoji-picker-panel" id="emojiPickerPanel" onclick="event.stopPropagation()">
     <div class="emoji-picker-tabs" id="emojiPickerTabs"></div>
     <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
   </div>
@@ -2252,6 +2267,8 @@ html, body {
 
 function toggleAttachmentPopup(event) {
       event.stopPropagation();
+      closeEmojiPickerPanel();
+      closeReactBar();
       const popup = document.getElementById("attachmentPopup");
       if (popup.classList.contains('active')) {
         popup.classList.remove('active');
@@ -2504,16 +2521,19 @@ function renderPreviewTray() {
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
           docRow.setAttribute('data-id', docMessageId);
-          docRow.innerHTML = `${buildHoverActionsHtml(docMessageId)}<div class="msg-bubble outgoing media-bubble">
-            ${thisQuoted}
-            <div class="doc-list-container">
-              <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
-                <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
-                <div class="doc-info"><span class="doc-name">${file.name}</span></div>
-              </a>
+          docRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">
+            ${buildHoverActionsHtml(docMessageId)}
+            <div class="msg-bubble outgoing media-bubble">
+              ${thisQuoted}
+              <div class="doc-list-container">
+                <a href="#" onclick="event.preventDefault(); openReadViewer('${objectUrl}', '${file.name.replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration: none;">
+                  <div class="doc-icon-box" style="background: ${badgeColor};">${label}</div>
+                  <div class="doc-info"><span class="doc-name">${file.name}</span></div>
+                </a>
+              </div>
+              ${thisCaption}
+              <div class="doc-time-row">${timeString} ${ticksSpan}</div>
             </div>
-            ${thisCaption}
-            <div class="doc-time-row">${timeString} ${ticksSpan}</div>
           </div>`;
 
           chatContainer.appendChild(docRow);
@@ -2608,16 +2628,18 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>`;
+        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
-          ${buildHoverActionsHtml(messageId)}
-          <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
-            ${quotedHtml}
-            <span class="message-text"></span>
-            <span class="msg-meta-row">${timeString} <span class="msg-ticks" id="ticks-${messageId}"></span></span>
+          <div class="msg-content-wrap outgoing-wrap">
+            ${buildHoverActionsHtml(messageId)}
+            <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
+              ${quotedHtml}
+              <span class="message-text"></span>
+              <span class="msg-meta-row">${timeString} <span class="msg-ticks" id="ticks-${messageId}"></span></span>
+            </div>
           </div>
         `;
         messageRow.querySelector(".message-text").textContent = text;
@@ -3402,13 +3424,13 @@ function renderPreviewTray() {
     }
 
     function handleEmojiPickerPick(emoji) {
+      // Stays open after a pick — only closes on an outside click (or Cancel-equivalent),
+      // so multiple emojis can be typed/reacted in one session.
       recordEmojiUsage(emoji);
       if (emojiPickerMode === 'insert') {
         insertEmojiIntoInput(emoji);
-        closeEmojiPickerPanel();
       } else if (emojiPickerMode === 'react' && reactTargetId) {
         applyReaction(reactTargetId, emoji);
-        closeEmojiPickerPanel();
       }
     }
 
@@ -3430,6 +3452,7 @@ function renderPreviewTray() {
         closeEmojiPickerPanel();
         return;
       }
+      document.getElementById('attachmentPopup').classList.remove('active');
       const btnRect = event.currentTarget.getBoundingClientRect();
       openEmojiPickerPanel(btnRect.left, btnRect.top - 366, 'insert');
     }
