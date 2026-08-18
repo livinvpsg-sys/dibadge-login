@@ -1053,8 +1053,8 @@ html, body {
       font-size: 0.9rem;
       cursor: pointer;
     }
-    .media-editor-cancel-btn { background: rgba(255,255,255,0.15); color: #fff; }
-    .media-editor-send-btn { background: #25D366; color: #fff; }
+    .media-editor-cancel-btn { background: transparent; color: #fff; }
+    .media-editor-send-btn { background: #ffffff; color: #000000; font-weight: 700; }
     .media-viewer-nav {
       position: absolute;
       top: 50%;
@@ -1269,7 +1269,7 @@ html, body {
       margin: 8px 16px 0 16px;
       padding: 8px 10px;
     }
-    .reply-preview-bar { border-left: 3px solid #34b7f1; }
+    .reply-preview-bar { border-left: none; }
     .edit-mode-bar { border-left: 3px solid #ffb300; }
     .reply-preview-bar.active, .edit-mode-bar.active { display: flex; }
     .reply-preview-info { flex: 1; min-width: 0; }
@@ -1284,7 +1284,6 @@ html, body {
     /* Quoted-reply block shown inside a message that replies to another */
     .quoted-reply-block {
       background: rgba(255,255,255,0.08);
-      border-left: 3px solid #34b7f1;
       border-radius: 6px;
       padding: 5px 8px;
       margin: 2px 2px 6px 2px;
