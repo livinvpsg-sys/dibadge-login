@@ -1224,6 +1224,41 @@ html, body {
     .msg-context-menu-item.danger { color: #ff5252; }
     .msg-context-menu-item svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; }
 
+    /* Reaction info popup (WhatsApp-style), shown when tapping a reaction badge */
+    .reaction-info-popup {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      background: var(--slate-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 14px 6px 14px;
+      min-width: 190px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1500;
+    }
+    .reaction-info-popup.active { display: flex; }
+    .reaction-info-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .reaction-info-emoji { font-size: 1.6rem; line-height: 1; }
+    .reaction-info-label { font-size: 0.85rem; color: #fff; font-weight: 600; }
+    .reaction-info-remove-btn {
+      background: transparent;
+      border: none;
+      border-top: 1px solid var(--border-color);
+      color: #ff5252;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 4px;
+      cursor: pointer;
+    }
+    .reaction-info-remove-btn:hover { background: rgba(255,82,82,0.08); }
+
     /* Reply preview / Edit mode bars above the input */
     .reply-preview-bar, .edit-mode-bar {
       display: none;
@@ -1298,7 +1333,7 @@ html, body {
     .selection-top-bar-count { font-size: 0.95rem; font-weight: 600; color: #fff; }
 
     .message-row.selected .msg-bubble {
-      outline: 2px solid #34b7f1;
+      outline: 2px solid #14b8a6;
       outline-offset: 2px;
     }
     .chat-container.selection-mode .message-row { cursor: pointer; }
@@ -1800,6 +1835,9 @@ html, body {
 
   <!-- Message right-click context menu -->
   <div class="msg-context-menu" id="msgContextMenu"></div>
+
+  <!-- Reaction info popup (WhatsApp-style, shown when tapping a reaction badge) -->
+  <div class="reaction-info-popup" id="reactionInfoPopup" onclick="event.stopPropagation()"></div>
 
   <!-- Quick reaction picker bar -->
   <div class="react-quick-bar" id="reactQuickBar"></div>
@@ -3532,16 +3570,72 @@ function renderPreviewTray() {
         if (!badge) {
           badge = document.createElement('span');
           badge.className = 'msg-reaction-badge';
-          badge.title = 'Click to remove';
+          badge.title = 'View reaction';
           bubble.appendChild(badge);
         }
         badge.textContent = msg.reaction;
-        badge.onclick = (ev) => { ev.stopPropagation(); applyReaction(id, msg.reaction); };
+        badge.onclick = (ev) => { openReactionInfoPopup(ev, id); };
       } else if (badge) {
         badge.remove();
       }
       row.classList.toggle('has-reaction', !!msg.reaction);
     }
+
+    // ---------- Reaction info popup: tapping a badge shows who reacted, with Remove for your own ----------
+
+    let reactionInfoTargetId = null;
+
+    function openReactionInfoPopup(event, id) {
+      event.stopPropagation();
+      closeMsgContextMenu();
+      const msg = messages[id];
+      if (!msg || !msg.reaction) return;
+      reactionInfoTargetId = id;
+
+      // Every reaction in this app is placed by the current user — there's no simulated
+      // second participant reacting yet — so Remove is always offered here. This check
+      // exists so a future multi-person reaction model can gate it by who actually reacted.
+      const isOwnReaction = true;
+
+      const popup = document.getElementById('reactionInfoPopup');
+      popup.innerHTML = `
+        <div class="reaction-info-header">
+          <span class="reaction-info-emoji">${msg.reaction}</span>
+          <span class="reaction-info-label">You reacted</span>
+        </div>
+        ${isOwnReaction ? `<button class="reaction-info-remove-btn" onclick="removeReactionFromPopup()">Remove reaction</button>` : ''}
+      `;
+      popup.style.left = '-9999px';
+      popup.style.top = '-9999px';
+      popup.classList.add('active');
+
+      const rect = popup.getBoundingClientRect();
+      const badgeRect = event.currentTarget.getBoundingClientRect();
+      const left = Math.max(8, Math.min(badgeRect.left, window.innerWidth - rect.width - 8));
+      let top = badgeRect.top - rect.height - 8;
+      if (top < 8) top = badgeRect.bottom + 8; // flip below if there's no room above
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+    }
+
+    function closeReactionInfoPopup() {
+      document.getElementById('reactionInfoPopup').classList.remove('active');
+      reactionInfoTargetId = null;
+    }
+
+    function removeReactionFromPopup() {
+      if (!reactionInfoTargetId) return;
+      const msg = messages[reactionInfoTargetId];
+      if (msg && msg.reaction) applyReaction(reactionInfoTargetId, msg.reaction); // same emoji -> toggles off
+      closeReactionInfoPopup();
+    }
+
+    window.addEventListener('click', function(e) {
+      const popup = document.getElementById('reactionInfoPopup');
+      if (popup.classList.contains('active') && !popup.contains(e.target)) {
+        closeReactionInfoPopup();
+      }
+    });
   </script>
 </body>
 </html>
