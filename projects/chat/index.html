@@ -1290,13 +1290,18 @@ html, body {
 
     .selection-bottom-bar {
       display: none;
+      position: absolute;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
       align-items: center;
-      justify-content: space-around;
-      padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)) 16px;
-      background: var(--header-bg);
-      border-top: 1px solid var(--border-color);
-      width: 100%;
-      box-sizing: border-box;
+      gap: 30px;
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      padding: 10px 26px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 50;
     }
     .chat-footer-container.selection-mode .selection-bottom-bar { display: flex; }
     .chat-footer-container.selection-mode .chat-footer,
@@ -2925,12 +2930,17 @@ function renderPreviewTray() {
     function renderSelectionUI() {
       document.getElementById('selectionCount').textContent = selectedMessageIds.size + ' selected';
       let hasDownloadable = false;
+      let hasText = false;
       selectedMessageIds.forEach(id => {
         const m = messages[id];
-        if (m && (m.kind === 'media' || m.kind === 'document')) hasDownloadable = true;
+        if (!m) return;
+        if (m.kind === 'media' || m.kind === 'document') hasDownloadable = true;
+        if (m.kind === 'text') hasText = true;
       });
+      // Only show Download when the selection is entirely media/documents — mixing in
+      // even one text message hides it, since there's nothing to download for that part.
       const downloadBtn = document.getElementById('selectionDownloadBtn');
-      if (downloadBtn) downloadBtn.style.display = hasDownloadable ? 'flex' : 'none';
+      if (downloadBtn) downloadBtn.style.display = (hasDownloadable && !hasText) ? 'flex' : 'none';
     }
 
     // Intercept clicks anywhere in a message row while selecting, before any bubble-specific
