@@ -348,6 +348,12 @@ html, body {
       min-height: 0; /* Crucial: allows chat container to shrink instead of overflowing */
     }
 
+    /* Extra breathing room below a message that has a reaction badge, so the badge
+       (which overlaps the bottom of its own bubble) doesn't collide with the next bubble */
+    .message-row.has-reaction {
+      margin-bottom: 12px;
+    }
+
     .date-divider {
       text-align: center;
       margin: 8px 0;
@@ -1337,7 +1343,7 @@ html, body {
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
       position: absolute;
-      bottom: -17px;
+      bottom: -8px;
       right: 6px;
       background: transparent;
       border: none;
@@ -3534,6 +3540,7 @@ function renderPreviewTray() {
       } else if (badge) {
         badge.remove();
       }
+      row.classList.toggle('has-reaction', !!msg.reaction);
     }
   </script>
 </body>
