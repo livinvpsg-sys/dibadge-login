@@ -6,6 +6,7 @@
   <title>diBadge | Project Chat</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js"></script>
   <style>
     /* Theme Variables */
     :root {
@@ -1453,6 +1454,17 @@ html, body {
       padding: 5px; border-radius: 8px; cursor: pointer; line-height: 1;
     }
     .emoji-picker-grid .emoji-grid-btn:hover { background: rgba(255,255,255,0.1); }
+
+    /* Twemoji fallback images — used for flag emoji, which Windows (and some Linux) render
+       as plain two-letter country codes instead of pictorial flags at the OS/font level.
+       Sized to sit inline exactly like native emoji text wherever they appear. */
+    img.emoji {
+      height: 1.2em;
+      width: 1.2em;
+      vertical-align: -0.2em;
+      display: inline-block;
+      margin: 0 1px;
+    }
     .emoji-picker-empty-hint {
       grid-column: 1 / -1;
       color: var(--subtext-color);
@@ -2729,6 +2741,7 @@ function renderPreviewTray() {
           </div>
         `;
         messageRow.querySelector(".message-text").textContent = text;
+        if (window.twemoji) twemoji.parse(messageRow.querySelector(".message-text"));
       }
 
       chatContainer.appendChild(messageRow);
@@ -3291,7 +3304,10 @@ function renderPreviewTray() {
       if (!row) return;
       const bubble = row.querySelector('.msg-bubble');
       const textEl = bubble.querySelector('.message-text');
-      if (textEl) textEl.textContent = newText;
+      if (textEl) {
+        textEl.textContent = newText;
+        if (window.twemoji) twemoji.parse(textEl);
+      }
       bubble.classList.toggle('emoji-only', isEmojiOnlyText(newText));
       const metaEl = bubble.querySelector('.msg-meta-row');
       if (metaEl) {
@@ -3511,6 +3527,9 @@ function renderPreviewTray() {
         return;
       }
       grid.innerHTML = cat.emojis.map(e => `<button class="emoji-grid-btn" onclick="handleEmojiPickerPick('${e}')">${e}</button>`).join('');
+      // Flags in particular render as plain two-letter codes on Windows/some Linux without
+      // this — Twemoji swaps the raw emoji characters for consistent pictorial images.
+      if (window.twemoji) twemoji.parse(grid);
     }
 
     function handleEmojiPickerPick(emoji) {
@@ -3618,6 +3637,7 @@ function renderPreviewTray() {
         }
         badge.textContent = msg.reaction;
         badge.onclick = (ev) => { openReactionInfoPopup(ev, id); };
+        if (window.twemoji) twemoji.parse(badge);
       } else if (badge) {
         badge.remove();
       }
@@ -3648,6 +3668,7 @@ function renderPreviewTray() {
         </div>
         ${isOwnReaction ? `<button class="reaction-info-remove-btn" onclick="removeReactionFromPopup()">Remove reaction</button>` : ''}
       `;
+      if (window.twemoji) twemoji.parse(popup);
       popup.style.left = '-9999px';
       popup.style.top = '-9999px';
       popup.classList.add('active');
