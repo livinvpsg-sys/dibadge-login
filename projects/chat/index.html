@@ -130,6 +130,7 @@ html, body {
       height: 100%;
       position: relative;
       overflow: hidden;
+      background: #0f0f0f;
     }
 
     .left-vertical-tabbar {
@@ -142,6 +143,133 @@ html, body {
       padding: 16px 0;
       z-index: 10;
       flex-shrink: 0;
+    }
+
+    /* ---------- Chat Details panel: Group Members / Groups / Forms / Folders ---------- */
+    .chat-details-panel {
+      width: 330px;
+      flex-shrink: 0;
+      margin-left: 4px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      background: var(--slate-surface);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 6px 16px 16px 16px;
+      gap: 14px;
+      border-radius: 10px;
+    }
+
+    /* ---------- Activity Feed panel: fully separate column of its own ---------- */
+    .activity-feed-panel {
+      width: 300px;
+      flex-shrink: 0;
+      margin-left: 4px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      background: var(--slate-surface);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 16px;
+      border-radius: 10px;
+    }
+    .details-panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .details-panel-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .details-panel-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .details-panel-title-group svg {
+      width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0;
+    }
+    .details-panel-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--subtext-color);
+    }
+    .details-panel-live-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #25D366;
+      animation: livePulse 1.6s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .details-panel-add-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .details-panel-add-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    .activity-feed-card {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .activity-feed-title { font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .activity-feed-desc { font-size: 0.78rem; color: var(--subtext-color); line-height: 1.4; }
+    .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
+    .activity-feed-empty { font-size: 0.78rem; color: var(--subtext-color); padding: 4px 2px; }
+
+    .details-panel-divider {
+      height: 1px;
+      background: var(--border-color);
+      border: none;
+      margin: 2px 0;
+      opacity: 0.5;
+    }
+
+    .details-subsection { display: flex; flex-direction: column; gap: 8px; }
+    .details-subsection-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--subtext-color);
+    }
+    .details-item-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .details-item-row:hover { background: rgba(255,255,255,0.05); }
+    .details-item-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .details-item-label { flex: 1; font-size: 0.82rem; font-weight: 600; color: #fff; min-width: 0; }
+    .details-item-remove-btn {
+      background: transparent; border: none; color: var(--subtext-color);
+      cursor: pointer; display: flex; padding: 2px; flex-shrink: 0;
+    }
+    .details-item-remove-btn:hover { color: #ff5252; }
+    .details-item-chevron {
+      width: 14px; height: 14px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0;
     }
 
     .tab-btn {
@@ -205,13 +333,16 @@ html, body {
 .workspace-pane {
       display: none;
       flex: 1;
-      height: 100%;
-      background: #000000;
+      background: var(--slate-surface);
       position: relative;
       overflow: hidden;
-      padding: 12px 20px 0 20px; /* Remove bottom padding to let footer sit flush */
+      padding: 6px 4px 4px 4px; /* top matches the bottom gap now */
       flex-direction: column;
       min-height: 0;
+      margin-left: 4px;
+      margin-top: 6px;
+      margin-bottom: 6px;
+      border-radius: 10px;
     }
     .workspace-pane.active {
       display: flex;
@@ -345,7 +476,7 @@ html, body {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background-color: #000000;
+      background-color: var(--slate-surface);
       min-height: 0; /* Crucial: allows chat container to shrink instead of overflowing */
     }
 
@@ -497,8 +628,8 @@ html, body {
     }
     
  .msg-bubble.incoming { 
-      background: #1e1e1e; /* Slate charcoal color */
-      color: var(--chat-incoming-text); 
+      background: #000000;
+      color: #ffffff; 
       border-radius: 14px 14px 14px 4px; 
     }
     
@@ -536,8 +667,8 @@ html, body {
     }
 
 .chat-footer {
-      background-color: transparent;
-      padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)) 16px;
+      background-color: var(--slate-surface);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)) 16px;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -575,7 +706,7 @@ html, body {
       flex: 1 1 auto;
       min-width: 0;
       width: 100%;
-      background-color: var(--slate-surface, #1e1e1e);
+      background-color: #000000;
       border: 1px solid var(--border-color);
       border-radius: 28px;
       display: flex;
@@ -1378,7 +1509,7 @@ html, body {
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
       position: absolute;
-      bottom: -8px;
+      bottom: -14px;
       right: 6px;
       background: transparent;
       border: none;
@@ -1784,6 +1915,108 @@ html, body {
         </div>
       </div>
     </section>
+
+    <!-- Chat Details panel: Group Members / Groups / Forms / Folders -->
+    <aside class="chat-details-panel" id="chatDetailsPanel">
+
+      <div class="details-subsection">
+        <div class="details-panel-section-header">
+          <span class="details-subsection-label">GROUP MEMBERS</span>
+          <button class="details-panel-add-btn">+ Add</button>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#8d6e63;">J</div>
+          <span class="details-item-label">John (Admin)</span>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#8d6e63;">M</div>
+          <span class="details-item-label">Mary (Member)</span>
+        </div>
+      </div>
+
+      <hr class="details-panel-divider">
+
+      <div class="details-subsection">
+        <div class="details-panel-section-header">
+          <span class="details-subsection-label">GROUPS</span>
+          <button class="details-panel-add-btn">+ Add</button>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#a05a2c;">S</div>
+          <span class="details-item-label">Site Engineers</span>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#00acc1;">M</div>
+          <span class="details-item-label">Management Team</span>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#607d8b;">Q</div>
+          <span class="details-item-label">Quality Assurance</span>
+        </div>
+      </div>
+
+      <hr class="details-panel-divider">
+
+      <div class="details-subsection">
+        <div class="details-panel-section-header">
+          <span class="details-subsection-label">FORMS</span>
+          <button class="details-panel-add-btn">+ Add</button>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#2196f3;">T</div>
+          <span class="details-item-label">Tower B Foundation Log Sheet</span>
+          <button class="details-item-remove-btn" title="Remove">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <hr class="details-panel-divider">
+
+      <div class="details-subsection">
+        <div class="details-panel-section-header">
+          <span class="details-subsection-label">FOLDERS</span>
+          <button class="details-panel-add-btn">+ Add</button>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#ff9800;">S</div>
+          <span class="details-item-label">Site Photos &amp; diCam</span>
+          <svg class="details-item-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#ff9800;">S</div>
+          <span class="details-item-label">Safety &amp; Compliance Logs</span>
+          <svg class="details-item-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#ff9800;">R</div>
+          <span class="details-item-label">Reports &amp; Worksheets</span>
+          <svg class="details-item-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#ff9800;">D</div>
+          <span class="details-item-label">Drawings &amp; Blueprints</span>
+          <svg class="details-item-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Activity Feed panel: fully separate from Chat Details, its own column -->
+    <aside class="activity-feed-panel" id="activityFeedPanel">
+      <div class="details-panel-section-header">
+        <div class="details-panel-title-group">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="details-panel-title">Activity Feed</span>
+        </div>
+        <span class="details-panel-live-dot" title="Live"></span>
+      </div>
+      <div class="activity-feed-card">
+        <div class="activity-feed-title">New Project Initialized</div>
+        <div class="activity-feed-desc">Amber Holdings setup complete.</div>
+        <div class="activity-feed-time">1 hour ago</div>
+      </div>
+    </aside>
 
   </div>
 
