@@ -67,11 +67,40 @@ html, body {
       padding: 0 24px;
       display: flex;
       align-items: center;
-      justify-content: flex-start; /* Aligns breadcrumb to the left */
+      justify-content: flex-start;
       height: 64px;
       flex-shrink: 0;
       border-bottom: 1px solid var(--border-color, #2c2c2e);
+      position: relative; /* so the search pill can be absolutely positioned against it */
     }
+
+    .header-search-pill {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color, #2c2c2e);
+      border-radius: 20px;
+      padding: 11px 16px;
+      width: 220px;
+      flex-shrink: 0;
+    }
+    .header-search-pill svg {
+      width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0;
+    }
+    .header-search-pill input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+    .header-search-pill input::placeholder { color: var(--subtext-color); }
 
     .folder-header-nav {
       display: flex;
@@ -256,6 +285,108 @@ html, body {
       cursor: pointer;
     }
     .details-item-row:hover { background: rgba(255,255,255,0.05); }
+    .details-item-row.active-room { background: rgba(255,255,255,0.08); }
+
+    /* ---------- Group right-click menu (Rename / Delete) ---------- */
+    .group-context-menu {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      background: var(--slate-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px;
+      min-width: 160px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1700;
+    }
+    .group-context-menu.active { display: flex; }
+    .group-context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.86rem;
+      color: #fff;
+      user-select: none;
+    }
+    .group-context-menu-item:hover { background: rgba(255,255,255,0.08); }
+    .group-context-menu-item.danger { color: #ff5252; }
+    .group-context-menu-item svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; }
+
+    /* ---------- Rename / Delete confirmation modals ---------- */
+    .group-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1800;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .group-modal-overlay.active { display: flex; }
+    .group-modal-box {
+      background: var(--slate-surface, #1e1e1e);
+      border-radius: 20px;
+      padding: 28px 24px 20px 24px;
+      width: 320px;
+      max-width: 100%;
+    }
+    .group-modal-title {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    .group-modal-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 6px 2px 10px 2px;
+      outline: none;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    .group-modal-input::placeholder { color: var(--subtext-color); }
+    .group-modal-input:focus { border-bottom-color: #888; }
+    .group-modal-message {
+      font-size: 0.85rem;
+      color: var(--subtext-color);
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+    .group-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 20px;
+    }
+    .group-modal-cancel-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .group-modal-ok-btn {
+      background: rgba(255,255,255,0.18);
+      border: none;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 10px 26px;
+      border-radius: 24px;
+      cursor: pointer;
+    }
+    .group-modal-ok-btn.danger { color: #ff5252; }
     .details-item-avatar {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -307,6 +438,25 @@ html, body {
       background: var(--slate-surface);
       color: #ffffff;
     }
+
+    .tab-unread-badge {
+      display: none;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 3px;
+      border-radius: 8px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 700;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .tab-unread-badge.active { display: flex; }
 
     .project-sub-nav {
       display: flex;
@@ -478,7 +628,48 @@ html, body {
       gap: 12px;
       background-color: var(--slate-surface);
       min-height: 0; /* Crucial: allows chat container to shrink instead of overflowing */
+      position: relative;
     }
+
+    /* Jump-to-latest button, WhatsApp-style — hidden until you've scrolled up from the bottom */
+    .scroll-to-bottom-btn {
+      display: none;
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--input-bg, #2a2a2a);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      z-index: 20;
+    }
+    .scroll-to-bottom-btn.active { display: flex; }
+    .scroll-to-bottom-btn:hover { background: #333; }
+    .scroll-to-bottom-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .scroll-to-bottom-unread {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 3px;
+      border-radius: 8px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .scroll-to-bottom-unread.active { display: flex; }
 
     /* Extra breathing room below a message that has a reaction badge, so the badge
        (which overlaps the bottom of its own bubble) doesn't collide with the next bubble */
@@ -749,10 +940,67 @@ html, body {
       color: #ffffff;
       font-size: 0.95rem;
       outline: none;
-      resize: none;
       max-height: 120px;
+      overflow-y: auto;
       line-height: 1.35;
       font-family: inherit;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .chat-input:empty:before {
+      content: attr(data-placeholder);
+      color: var(--subtext-color, #aaaaaa);
+      pointer-events: none;
+    }
+
+    /* @mention tag — dim, both while composing and once sent */
+    .mention-tag {
+      color: var(--subtext-color, #aaaaaa);
+      font-weight: 600;
+    }
+
+    /* @mention autocomplete dropdown */
+    .mention-dropdown {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      background: var(--slate-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px;
+      min-width: 210px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 1550;
+    }
+    .mention-dropdown.active { display: flex; }
+    .mention-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #fff;
+      font-weight: 600;
+    }
+    .mention-dropdown-item:hover,
+    .mention-dropdown-item.highlighted {
+      background: rgba(255,255,255,0.08);
+    }
+    .mention-dropdown-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
     }
 
     .chat-send-btn {
@@ -1506,6 +1754,78 @@ html, body {
     .msg-ticks.status-delivered svg { stroke: var(--subtext-color); }
     .msg-ticks.status-read svg { stroke: #25D366; }
 
+    /* ---------- Group-mentioned message: persistent React + Comment bar, LinkedIn-style ---------- */
+    .group-comment-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-color);
+    }
+    .msg-content-wrap.outgoing-wrap .group-comment-bar { justify-content: flex-end; }
+    .group-comment-icon-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 8px;
+    }
+    .group-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .group-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .group-comment-icon-btn .comment-count { font-size: 0.72rem; }
+
+    .comment-thread-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+      background: var(--chat-outgoing-bg, #ffffff);
+      border: 1px solid #14b8a6;
+      border-radius: 10px;
+      padding: 10px;
+      width: 280px;
+    }
+    .comment-thread-panel.active { display: flex; }
+    .comment-list { display: flex; flex-direction: column; gap: 6px; }
+    .comment-item { color: #1a1a1a; line-height: 1.4; }
+    .comment-header { display: flex; align-items: baseline; gap: 6px; }
+    .comment-author-group { color: #888; font-size: 0.68rem; font-weight: 400; }
+    .comment-body { margin-top: 2px; font-size: 0.9rem; }
+    .comment-author { font-weight: 700; color: #000; font-size: 0.68rem; }
+    .comment-time { font-size: 0.65rem; color: #888; margin-left: 6px; }
+    .comment-empty { font-size: 0.78rem; color: #888; font-style: italic; }
+    .comment-input-row { display: flex; align-items: center; gap: 6px; }
+    .comment-input {
+      flex: 1;
+      min-width: 0;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 16px;
+      padding: 6px 12px;
+      color: #000;
+      font-size: 0.78rem;
+      outline: none;
+    }
+    .comment-input::placeholder { color: #999; }
+    .comment-send-btn {
+      background: transparent;
+      border: none;
+      color: #14b8a6;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px 4px;
+      flex-shrink: 0;
+    }
+    .comment-send-btn:hover { text-decoration: underline; }
+
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
       position: absolute;
@@ -1708,6 +2028,10 @@ html, body {
         <span class="breadcrumb-item active" id="projectTitleCrumb">Loading...</span>
       </div>
     </div>
+    <div class="header-search-pill" id="chatSearchPill">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="chatSearchInput" placeholder="search.." oninput="handleChatSearch(this.value)">
+    </div>
   </header>
 
   <div class="dashboard-body-split">
@@ -1730,8 +2054,9 @@ html, body {
 </script>
 
         <!-- 2. Chats (Active on this screen) -->
-        <button class="tab-btn active" title="Chats">
+        <button class="tab-btn active" title="Chats" id="chatTabBtn" onclick="markChatAsRead()" style="position:relative;">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span class="tab-unread-badge" id="chatUnreadBadge"></span>
         </button>
 
         <!-- 3. Forms -->
@@ -1772,6 +2097,10 @@ html, body {
           <span class="selection-top-bar-count" id="selectionCount">0 selected</span>
         </div>
         <div class="chat-container" id="chatContainer">
+          <button class="scroll-to-bottom-btn" id="scrollToBottomBtn" onclick="scrollChatToBottom()" title="Jump to latest">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <span class="scroll-to-bottom-unread" id="scrollToBottomUnread"></span>
+          </button>
           <div class="date-divider">
             <span class="date-badge">Today</span>
           </div>
@@ -1905,7 +2234,7 @@ html, body {
               <button class="inline-icon-btn" title="Emoji" onclick="toggleComposerEmojiPicker(event)">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
               </button>
-              <textarea id="msgInput" class="chat-input" placeholder="Message" rows="1" onkeydown="handleChatInputKey(event)"></textarea>
+              <div id="msgInput" class="chat-input" contenteditable="true" data-placeholder="Message" onkeydown="handleChatInputKey(event)" oninput="handleComposerInput(event)"></div>
             </div>
 
             <button class="chat-send-btn" onclick="sendMessage()" title="Send">
@@ -1941,15 +2270,15 @@ html, body {
           <span class="details-subsection-label">GROUPS</span>
           <button class="details-panel-add-btn">+ Add</button>
         </div>
-        <div class="details-item-row">
+        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
           <div class="details-item-avatar" style="background:#a05a2c;">S</div>
           <span class="details-item-label">Site Engineers</span>
         </div>
-        <div class="details-item-row">
+        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
           <div class="details-item-avatar" style="background:#00acc1;">M</div>
           <span class="details-item-label">Management Team</span>
         </div>
-        <div class="details-item-row">
+        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
           <div class="details-item-avatar" style="background:#607d8b;">Q</div>
           <span class="details-item-label">Quality Assurance</span>
         </div>
@@ -2080,6 +2409,33 @@ html, body {
   <!-- Message right-click context menu -->
   <div class="msg-context-menu" id="msgContextMenu"></div>
 
+  <!-- Group right-click menu (Rename / Delete) -->
+  <div class="group-context-menu" id="groupContextMenu"></div>
+
+  <!-- Rename group modal -->
+  <div class="group-modal-overlay" id="groupRenameOverlay" onclick="closeGroupRenameModal()">
+    <div class="group-modal-box" onclick="event.stopPropagation()">
+      <div class="group-modal-title">Rename Group</div>
+      <input type="text" class="group-modal-input" id="groupRenameInput" placeholder="Name" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmGroupRename();}">
+      <div class="group-modal-actions">
+        <button class="group-modal-cancel-btn" onclick="closeGroupRenameModal()">Cancel</button>
+        <button class="group-modal-ok-btn" onclick="confirmGroupRename()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete group confirmation modal -->
+  <div class="group-modal-overlay" id="groupDeleteOverlay" onclick="closeGroupDeleteModal()">
+    <div class="group-modal-box" onclick="event.stopPropagation()">
+      <div class="group-modal-title">Delete Group</div>
+      <div class="group-modal-message" id="groupDeleteMessage"></div>
+      <div class="group-modal-actions">
+        <button class="group-modal-cancel-btn" onclick="closeGroupDeleteModal()">Cancel</button>
+        <button class="group-modal-ok-btn danger" onclick="confirmGroupDelete()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Reaction info popup (WhatsApp-style, shown when tapping a reaction badge) -->
   <div class="reaction-info-popup" id="reactionInfoPopup" onclick="event.stopPropagation()"></div>
 
@@ -2087,6 +2443,9 @@ html, body {
   <div class="react-quick-bar" id="reactQuickBar"></div>
 
   <!-- Full categorized emoji picker (Recent + 9 categories) -->
+  <!-- @mention autocomplete dropdown -->
+  <div class="mention-dropdown" id="mentionDropdown" onclick="event.stopPropagation()"></div>
+
   <div class="emoji-picker-panel" id="emojiPickerPanel" onclick="event.stopPropagation()">
     <div class="emoji-picker-tabs" id="emojiPickerTabs"></div>
     <div class="emoji-picker-grid" id="emojiPickerGrid"></div>
@@ -2108,6 +2467,25 @@ html, body {
 
   <script>
     function handleChatInputKey(event) {
+      if (mentionDropdownOpen) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          moveMentionHighlight(1);
+          return;
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          moveMentionHighlight(-1);
+          return;
+        } else if (event.key === 'Enter' || event.key === 'Tab') {
+          event.preventDefault();
+          selectHighlightedMention();
+          return;
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMentionDropdown();
+          return;
+        }
+      }
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
@@ -2802,15 +3180,16 @@ function renderPreviewTray() {
 
     function sendMessage() {
       const inputField = document.getElementById("msgInput");
-      const text = inputField.value.trim();
+      const text = inputField.textContent.trim();
       const hasFiles = selectedStagedFiles.length > 0;
+      const mentionedGroups = getComposerGroupMentions(); // captured before we clear the composer below
 
       if (!text && !hasFiles) return;
 
       // Editing an existing text message updates it in place instead of sending a new one
       if (editingMessageId) {
         applyEdit(editingMessageId, text);
-        inputField.value = "";
+        inputField.innerHTML = "";
         cancelEdit();
         return;
       }
@@ -2846,14 +3225,20 @@ function renderPreviewTray() {
           const isFirst = idx === 0;
           const isLast = idx === fileCount - 1;
           const thisQuoted = isFirst ? buildQuotedHtml(replyingToId) : '';
-          const thisCaption = (isLast && text) ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
+          const thisCaption = (isLast && text) ? `<div class="media-caption">${renderTextWithMentions(text)}</div>` : '';
           const ticksSpan = `<span class="msg-ticks" id="ticks-${docMessageId}"></span>`;
+          // The @mention lives in the shared caption, so only the last bubble in a multi-file
+          // batch is the one actually tagged to the group(s) — and it skips the hover
+          // React/Reply icons since it already gets the persistent comment bar instead.
+          const thisMentionsGroups = isLast && mentionedGroups.length > 0;
+          const thisHoverHtml = thisMentionsGroups ? '' : buildHoverActionsHtml(docMessageId);
+          const thisCommentBarHtml = thisMentionsGroups ? buildGroupCommentBarHtml(docMessageId) : '';
 
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
           docRow.setAttribute('data-id', docMessageId);
           docRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">
-            ${buildHoverActionsHtml(docMessageId)}
+            ${thisHoverHtml}
             <div class="msg-bubble outgoing media-bubble">
               ${thisQuoted}
               <div class="doc-list-container">
@@ -2865,6 +3250,7 @@ function renderPreviewTray() {
               ${thisCaption}
               <div class="doc-time-row">${timeString} ${ticksSpan}</div>
             </div>
+            ${thisCommentBarHtml}
           </div>`;
 
           chatContainer.appendChild(docRow);
@@ -2882,15 +3268,18 @@ function renderPreviewTray() {
             reaction: null,
             replyTo: isFirst ? replyingToId : null,
             url: objectUrl,
-            fileName: file.name
+            fileName: file.name,
+            mentionedGroups: isLast ? mentionedGroups : [],
+            comments: []
           });
+          if (thisMentionsGroups) crossPostToMentionedGroups(docMessageId, mentionedGroups);
           updateTicksUI(docMessageId);
           simulateDeliveryAndRead(docMessageId);
         });
 
         chatContainer.scrollTop = chatContainer.scrollHeight;
         cancelReply();
-        inputField.value = "";
+        inputField.innerHTML = "";
         selectedStagedFiles.forEach(file => stagedFileUrlMap.delete(file));
         selectedStagedFiles = [];
         renderPreviewTray();
@@ -2935,7 +3324,7 @@ function renderPreviewTray() {
           }
         });
 
-        const captionHtml = text ? `<div class="media-caption">${escapeHtml(text)}</div>` : '';
+        const captionHtml = text ? `<div class="media-caption">${renderTextWithMentions(text)}</div>` : '';
         const ticksSpan = `<span class="msg-ticks" id="ticks-${messageId}"></span>`;
         let contentLayout = '';
 
@@ -2959,21 +3348,22 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
+        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>${mentionedGroups.length > 0 ? buildGroupCommentBarHtml(messageId) : ''}</div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
           <div class="msg-content-wrap outgoing-wrap">
-            ${buildHoverActionsHtml(messageId)}
+            ${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}
             <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
               ${quotedHtml}
               <span class="message-text"></span>
               <span class="msg-meta-row">${timeString} <span class="msg-ticks" id="ticks-${messageId}"></span></span>
             </div>
+            ${mentionedGroups.length > 0 ? buildGroupCommentBarHtml(messageId) : ''}
           </div>
         `;
-        messageRow.querySelector(".message-text").textContent = text;
+        messageRow.querySelector(".message-text").innerHTML = renderTextWithMentions(text);
         if (window.twemoji) twemoji.parse(messageRow.querySelector(".message-text"));
       }
 
@@ -2992,8 +3382,11 @@ function renderPreviewTray() {
         editedAt: null,
         deletedFor: 'none',
         reaction: null,
-        replyTo: replyingToId
+        replyTo: replyingToId,
+        mentionedGroups: mentionedGroups,
+        comments: []
       });
+      crossPostToMentionedGroups(messageId, mentionedGroups);
       updateTicksUI(messageId);
       simulateDeliveryAndRead(messageId);
       cancelReply();
@@ -3002,7 +3395,7 @@ function renderPreviewTray() {
       // Note: for a sent message, ownership of its object URLs transfers to the message
       // bubble (they must stay alive to keep displaying), so we only drop the map entries
       // here — we do NOT revoke, unlike clearAllStagedFiles()/removeStagedFile() which discard unsent files.
-      inputField.value = "";
+      inputField.innerHTML = "";
       selectedStagedFiles.forEach(file => stagedFileUrlMap.delete(file));
       selectedStagedFiles = [];
       renderPreviewTray();
@@ -3120,7 +3513,22 @@ function renderPreviewTray() {
     // ===================== Message interactions: reply / delete / react / copy / edit / info =====================
 
     let messageIdCounter = 1;
-    let messages = {}; // id -> message data
+
+    // ---- Multi-room chat ----
+    // "project" is the original single conversation; the three Groups are separate real rooms.
+    // `messages` always points at whichever room is currently active — every existing function
+    // that reads/writes `messages[id]` keeps working unchanged, it just operates on whatever
+    // room's store is currently "live".
+    let rooms = {
+      'project':           { name: 'Amber Holdings', type: 'project', store: {} },
+      'site-engineers':    { name: 'Site Engineers', type: 'group', store: {} },
+      'management-team':   { name: 'Management Team', type: 'group', store: {} },
+      'quality-assurance': { name: 'Quality Assurance', type: 'group', store: {} }
+    };
+    const ROOM_ORDER = ['project', 'site-engineers', 'management-team', 'quality-assurance'];
+    let currentRoomId = 'project';
+    let messages = rooms[currentRoomId].store; // id -> message data, for the ACTIVE room
+
     let replyingToId = null;
     let editingMessageId = null;
     let contextMenuTargetId = null;
@@ -3134,6 +3542,7 @@ function renderPreviewTray() {
     }
 
     function registerMessage(data) {
+      if (typeof data.unread === 'undefined') data.unread = !data.isOutgoing; // incoming starts unread, outgoing never is
       messages[data.id] = data;
     }
 
@@ -3200,10 +3609,107 @@ function renderPreviewTray() {
 
     // Register the two pre-existing seed messages already in the markup
     (function initSeedMessages() {
-      registerMessage({ id: 'seed_1', isOutgoing: false, kind: 'text', text: 'Hi there!', time: '04:13 pm', status: null, readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null });
-      registerMessage({ id: 'seed_2', isOutgoing: true, kind: 'text', text: 'Hello! How can I help you?', time: '04:13 pm', status: 'delivered', readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null });
+      registerMessage({ id: 'seed_1', isOutgoing: false, kind: 'text', text: 'Hi there!', time: '04:13 pm', status: null, readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null, mentionedGroups: [], comments: [] });
+      registerMessage({ id: 'seed_2', isOutgoing: true, kind: 'text', text: 'Hello! How can I help you?', time: '04:13 pm', status: 'delivered', readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null, mentionedGroups: [], comments: [] });
       updateTicksUI('seed_2');
+      highlightActiveGroupInPanel();
+      updateUnreadBadge();
     })();
+
+    // ===================== Unread badge: left-tab Chat icon =====================
+    // Total = unread incoming messages + unread (not-yet-closed) comment threads, both scoped
+    // to the currently active room's message store.
+
+    function updateUnreadBadge() {
+      let msgCount = 0, commentCount = 0;
+      Object.keys(messages).forEach(id => {
+        const m = messages[id];
+        if (m.unread) msgCount++;
+        (m.comments || []).forEach(c => { if (c.unread) commentCount++; });
+      });
+      const total = msgCount + commentCount;
+      const badge = document.getElementById('chatUnreadBadge');
+      if (badge) {
+        badge.textContent = total > 99 ? '99+' : (total > 0 ? total : '');
+        badge.classList.toggle('active', total > 0);
+      }
+    }
+
+    function markChatAsRead() {
+      Object.keys(messages).forEach(id => { messages[id].unread = false; });
+      updateUnreadBadge();
+    }
+
+    // ===================== Chat search =====================
+
+    function handleChatSearch(query) {
+      const q = query.trim().toLowerCase();
+      document.querySelectorAll('#chatContainer .message-row').forEach(row => {
+        if (!q) { row.style.display = ''; return; }
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    // Keeps the search pill's right edge lined up with the chat pane's own right edge —
+    // not the full page width — since the chat pane's width shifts with the side panels.
+    function alignSearchPillToChat() {
+      const header = document.querySelector('.dashboard-header');
+      const workspace = document.getElementById('workspaceChat');
+      const pill = document.getElementById('chatSearchPill');
+      if (!header || !workspace || !pill) return;
+      const headerRect = header.getBoundingClientRect();
+      const workspaceRect = workspace.getBoundingClientRect();
+      const rightOffset = Math.max(24, headerRect.right - workspaceRect.right);
+      pill.style.right = rightOffset + 'px';
+    }
+    window.addEventListener('resize', alignSearchPillToChat);
+    window.addEventListener('load', alignSearchPillToChat);
+    setTimeout(alignSearchPillToChat, 0); // run once after initial layout settles
+
+    // ===================== Jump-to-latest button (WhatsApp-style) =====================
+    // Shown only once you've scrolled up away from the bottom, so you can get back down
+    // to the newest messages in one tap instead of manually scrolling.
+
+    function updateScrollToBottomVisibility() {
+      const container = document.getElementById('chatContainer');
+      const btn = document.getElementById('scrollToBottomBtn');
+      if (!container || !btn) return;
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      btn.classList.toggle('active', distanceFromBottom > 120);
+    }
+
+    function scrollChatToBottom() {
+      const container = document.getElementById('chatContainer');
+      if (!container) return;
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
+
+    (function setupScrollToBottomListener() {
+      const container = document.getElementById('chatContainer');
+      if (!container) return;
+      container.addEventListener('scroll', updateScrollToBottomVisibility);
+    })();
+
+    // A message with no @group mention stays only in the room it was sent from. One with a
+    // mention shares the SAME message object into each target room's store (same id, same
+    // comments array) — so reacting or commenting from either room updates the one real thread.
+    function crossPostToMentionedGroups(messageId, mentionedGroups) {
+      if (!mentionedGroups || mentionedGroups.length === 0) return;
+      const msg = messages[messageId];
+      if (!msg) return;
+      let targetRoomIds;
+      if (mentionedGroups.some(g => g.toLowerCase() === 'all')) {
+        targetRoomIds = ROOM_ORDER.filter(r => rooms[r].type === 'group');
+      } else {
+        targetRoomIds = ROOM_ORDER.filter(r => rooms[r].type === 'group' &&
+          mentionedGroups.some(g => g.toLowerCase() === rooms[r].name.toLowerCase()));
+      }
+      targetRoomIds.forEach(roomId => {
+        if (roomId === currentRoomId) return; // already stored there
+        rooms[roomId].store[messageId] = msg;
+      });
+    }
 
     // ---------- Right-click context menu ----------
 
@@ -3517,9 +4023,8 @@ function renderPreviewTray() {
       cancelReply(); // can't be replying and editing at the same time
       editingMessageId = id;
       document.getElementById('editModeBar').classList.add('active');
-      const input = document.getElementById('msgInput');
-      input.value = msg.text;
-      input.focus();
+      setComposerText(msg.text);
+      document.getElementById('msgInput').focus();
     }
 
     function cancelEdit() {
@@ -3538,7 +4043,7 @@ function renderPreviewTray() {
       const bubble = row.querySelector('.msg-bubble');
       const textEl = bubble.querySelector('.message-text');
       if (textEl) {
-        textEl.textContent = newText;
+        textEl.innerHTML = renderTextWithMentions(newText);
         if (window.twemoji) twemoji.parse(textEl);
       }
       bubble.classList.toggle('emoji-only', isEmojiOnlyText(newText));
@@ -3778,12 +4283,25 @@ function renderPreviewTray() {
 
     function insertEmojiIntoInput(emoji) {
       const input = document.getElementById('msgInput');
-      const start = (typeof input.selectionStart === 'number') ? input.selectionStart : input.value.length;
-      const end = (typeof input.selectionEnd === 'number') ? input.selectionEnd : input.value.length;
-      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
-      const newPos = start + emoji.length;
       input.focus();
-      input.setSelectionRange(newPos, newPos);
+      const sel = window.getSelection();
+      let range;
+      if (sel.rangeCount > 0 && input.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+        range = sel.getRangeAt(0);
+      } else {
+        // No caret currently inside the composer — just append at the very end
+        range = document.createRange();
+        range.selectNodeContents(input);
+        range.collapse(false);
+      }
+      range.deleteContents();
+      const emojiNode = document.createTextNode(emoji);
+      range.insertNode(emojiNode);
+      range.setStartAfter(emojiNode);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      if (window.twemoji) twemoji.parse(input);
     }
 
     // Composer's emoji button opens the full picker directly (typing benefits from the full palette)
@@ -3933,6 +4451,546 @@ function renderPreviewTray() {
         closeReactionInfoPopup();
       }
     });
+
+    // ===================== @mention autocomplete =====================
+    // "@" alone -> Group Members list. "@" + space -> Groups list. Both reuse the same
+    // people/groups shown in the "Chat Details" panel, with "All" pinned first either way.
+
+    const MENTION_MEMBERS = [
+      { id: 'all', label: 'All', insertText: 'All', color: '#607d8b' },
+      { id: 'john', label: 'John (Admin)', insertText: 'John', color: '#8d6e63' },
+      { id: 'mary', label: 'Mary (Member)', insertText: 'Mary', color: '#8d6e63' }
+    ];
+    const MENTION_GROUPS = [
+      { id: 'all-groups', label: 'All', insertText: 'All', color: '#607d8b' },
+      { id: 'site-engineers', label: 'Site Engineers', insertText: 'Site Engineers', color: '#a05a2c' },
+      { id: 'management-team', label: 'Management Team', insertText: 'Management Team', color: '#00acc1' },
+      { id: 'quality-assurance', label: 'Quality Assurance', insertText: 'Quality Assurance', color: '#607d8b' }
+    ];
+
+    let mentionMode = 'member'; // 'member' | 'group'
+    let mentionDropdownOpen = false;
+    let mentionQuery = '';
+    let mentionAnchorNode = null;   // text node containing the "@"
+    let mentionAnchorOffset = 0;    // offset of the "@" character within that node
+    let mentionFiltered = [];
+    let mentionHighlightIndex = 0;
+
+    function getMentionSourceList(mode) {
+      return mode === 'group' ? MENTION_GROUPS : MENTION_MEMBERS;
+    }
+
+    // Escapes plain text, then wraps any @mention occurrence (member or group name) in a dim
+    // span. Used both for the composer (re-loading an edited message) and the sent bubble.
+    function renderTextWithMentions(text) {
+      const escaped = escapeHtml(text);
+      const allNames = [...MENTION_MEMBERS, ...MENTION_GROUPS]
+        .map(m => m.insertText)
+        .filter((v, i, arr) => arr.indexOf(v) === i) // de-dupe (both lists share "All")
+        .sort((a, b) => b.length - a.length); // longest first so "Site Engineers" wins over a partial match
+      const escapedNames = allNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const re = new RegExp('@(' + escapedNames.join('|') + ')\\b', 'g');
+      return escaped.replace(re, '<span class="mention-tag">@$1</span>');
+    }
+
+    // Sets the composer's content from a plain-text string (used when loading a message into
+    // Edit mode), rendering any @mentions it contains as dim, non-editable tags — consistent
+    // with how mentions look when picked live from the dropdown.
+    function setComposerText(text) {
+      const input = document.getElementById('msgInput');
+      input.innerHTML = renderTextWithMentions(text)
+        .replace(/<span class="mention-tag">(.*?)<\/span>/g, '<span class="mention-tag" contenteditable="false">$1</span>');
+      // Place the caret at the end
+      const range = document.createRange();
+      range.selectNodeContents(input);
+      range.collapse(false);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function handleComposerInput(event) {
+      const input = document.getElementById('msgInput');
+      const sel = window.getSelection();
+      if (!input.contains(document.activeElement) && document.activeElement !== input) { closeMentionDropdown(); return; }
+      if (!sel || sel.rangeCount === 0) { closeMentionDropdown(); return; }
+      const range = sel.getRangeAt(0);
+      const node = range.startContainer;
+      if (node.nodeType !== Node.TEXT_NODE) { closeMentionDropdown(); return; }
+      const textBeforeCaret = node.textContent.slice(0, range.startOffset);
+
+      // Check the group trigger ("@" + exactly one space + optional filter letters) first,
+      // since it's the more specific pattern.
+      const groupMatch = textBeforeCaret.match(/(?:^|\s)@ ([a-zA-Z]*)$/);
+      const memberMatch = textBeforeCaret.match(/(?:^|\s)@([a-zA-Z]*)$/);
+
+      if (groupMatch) {
+        mentionMode = 'group';
+        mentionQuery = groupMatch[1].toLowerCase();
+        mentionAnchorNode = node;
+        mentionAnchorOffset = range.startOffset - groupMatch[1].length - 2; // position of the '@' (before the space)
+        openMentionDropdown();
+      } else if (memberMatch) {
+        mentionMode = 'member';
+        mentionQuery = memberMatch[1].toLowerCase();
+        mentionAnchorNode = node;
+        mentionAnchorOffset = range.startOffset - memberMatch[1].length - 1; // position of the '@'
+        openMentionDropdown();
+      } else {
+        closeMentionDropdown();
+      }
+    }
+
+    function openMentionDropdown() {
+      const source = getMentionSourceList(mentionMode);
+      mentionFiltered = source.filter(m =>
+        mentionQuery === '' || m.label.toLowerCase().startsWith(mentionQuery) || m.insertText.toLowerCase().startsWith(mentionQuery)
+      );
+      if (mentionFiltered.length === 0) { closeMentionDropdown(); return; }
+      mentionHighlightIndex = 0;
+      mentionDropdownOpen = true;
+      renderMentionDropdown();
+
+      const dropdown = document.getElementById('mentionDropdown');
+      const wrapper = document.querySelector('.chat-input-wrapper');
+      dropdown.classList.add('active');
+      const rect = dropdown.getBoundingClientRect();
+      const anchorRect = wrapper.getBoundingClientRect();
+      const left = Math.max(8, Math.min(anchorRect.left, window.innerWidth - rect.width - 8));
+      const top = anchorRect.top - rect.height - 8;
+      dropdown.style.left = left + 'px';
+      dropdown.style.top = top + 'px';
+    }
+
+    function closeMentionDropdown() {
+      mentionDropdownOpen = false;
+      document.getElementById('mentionDropdown').classList.remove('active');
+    }
+
+    function renderMentionDropdown() {
+      const dropdown = document.getElementById('mentionDropdown');
+      dropdown.innerHTML = mentionFiltered.map((m, i) => `
+        <div class="mention-dropdown-item${i === mentionHighlightIndex ? ' highlighted' : ''}" onmousedown="event.preventDefault(); selectMentionById('${m.id}')">
+          <div class="mention-dropdown-avatar" style="background:${m.color};">${(m.id === 'all' || m.id === 'all-groups') ? '@' : m.label.charAt(0)}</div>
+          <span>${m.label}</span>
+        </div>
+      `).join('');
+    }
+
+    function moveMentionHighlight(delta) {
+      mentionHighlightIndex = (mentionHighlightIndex + delta + mentionFiltered.length) % mentionFiltered.length;
+      renderMentionDropdown();
+    }
+
+    function selectHighlightedMention() {
+      const member = mentionFiltered[mentionHighlightIndex];
+      if (member) selectMentionById(member.id);
+    }
+
+    function selectMentionById(id) {
+      const source = getMentionSourceList(mentionMode);
+      const member = source.find(m => m.id === id);
+      if (!member || !mentionAnchorNode) { closeMentionDropdown(); return; }
+
+      const input = document.getElementById('msgInput');
+      const sel = window.getSelection();
+      const caretOffset = sel.rangeCount ? sel.getRangeAt(0).startOffset : mentionAnchorNode.textContent.length;
+
+      // Replace everything from the '@' to the current caret (covers "@query" for members,
+      // or "@ query" for groups) with a non-editable mention tag + a space
+      const fullText = mentionAnchorNode.textContent;
+      const before = fullText.slice(0, mentionAnchorOffset);
+      const after = fullText.slice(caretOffset);
+
+      const beforeNode = document.createTextNode(before);
+      const tagNode = document.createElement('span');
+      tagNode.className = 'mention-tag';
+      tagNode.contentEditable = 'false';
+      if (mentionMode === 'group') tagNode.dataset.mentionGroup = 'true';
+      tagNode.textContent = '@' + member.insertText;
+      const spaceNode = document.createTextNode('\u00A0');
+      const afterNode = document.createTextNode(after);
+
+      const parent = mentionAnchorNode.parentNode;
+      parent.insertBefore(beforeNode, mentionAnchorNode);
+      parent.insertBefore(tagNode, mentionAnchorNode);
+      parent.insertBefore(spaceNode, mentionAnchorNode);
+      parent.insertBefore(afterNode, mentionAnchorNode);
+      parent.removeChild(mentionAnchorNode);
+
+      // Put the caret right after the inserted space
+      const range = document.createRange();
+      range.setStart(spaceNode, spaceNode.textContent.length);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      input.focus();
+      closeMentionDropdown();
+    }
+
+    window.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('mentionDropdown');
+      if (dropdown.classList.contains('active') && !dropdown.contains(e.target) && e.target.id !== 'msgInput') {
+        closeMentionDropdown();
+      }
+    });
+
+    // ===================== Group-mentioned messages: React + Comment thread =====================
+    // A message that @mentions one or more groups gets a persistent React/Comment bar (unlike
+    // ordinary messages, where React only shows on hover) — representing that it's now open for
+    // that group to discuss, LinkedIn-post style. A plain message with no group mention stays a
+    // normal message with no comment thread.
+
+    // Reads which @group tags are currently in the composer, before it gets cleared by send.
+    function getComposerGroupMentions() {
+      const input = document.getElementById('msgInput');
+      const tags = input.querySelectorAll('.mention-tag[data-mention-group="true"]');
+      return Array.from(tags).map(el => el.textContent.replace(/^@/, ''));
+    }
+
+    function buildGroupCommentBarHtml(id) {
+      return `
+        <div class="group-comment-bar">
+          <button class="group-comment-icon-btn" onclick="quickReactOpen(event, '${id}')" title="React">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+            <span>React</span>
+          </button>
+          <button class="group-comment-icon-btn" onclick="toggleCommentThread('${id}')" title="Comment">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Comment</span>
+            <span class="comment-count" id="comment-count-${id}"></span>
+          </button>
+        </div>
+        <div class="comment-thread-panel" id="comments-${id}"></div>
+      `;
+    }
+
+    let openCommentPanelId = null;
+
+    function toggleCommentThread(id) {
+      const panel = document.getElementById('comments-' + id);
+      if (!panel) return;
+      if (openCommentPanelId === id) {
+        panel.classList.remove('active');
+        openCommentPanelId = null;
+        markCommentsRead(id); // closing the thread acknowledges whatever's in it
+        return;
+      }
+      if (openCommentPanelId) {
+        const prev = document.getElementById('comments-' + openCommentPanelId);
+        if (prev) prev.classList.remove('active');
+        markCommentsRead(openCommentPanelId);
+      }
+      panel.classList.add('active');
+      openCommentPanelId = id;
+      renderCommentThread(id);
+    }
+
+    // Closes the open comment thread when clicking anywhere outside its message (bubble,
+    // comment bar, and the panel itself are all fair game — only truly outside closes it).
+    document.addEventListener('click', function(e) {
+      if (!openCommentPanelId) return;
+      const panel = document.getElementById('comments-' + openCommentPanelId);
+      if (!panel) return;
+      const wrap = panel.closest('.msg-content-wrap');
+      if (wrap && wrap.contains(e.target)) return;
+      panel.classList.remove('active');
+      markCommentsRead(openCommentPanelId);
+      openCommentPanelId = null;
+    });
+
+    function renderCommentThread(id) {
+      const msg = messages[id];
+      const panel = document.getElementById('comments-' + id);
+      if (!msg || !panel) return;
+      const comments = msg.comments || [];
+      panel.innerHTML = `
+        <div class="comment-list">
+          ${comments.length
+            ? comments.map(c => {
+                // Same identity ("You") throughout — but when viewed from a DIFFERENT room than
+                // the one the comment was posted from, show which group they were posting as,
+                // dimmed, the way someone in another group would see it.
+                const crossRoom = c.authorRoomId && c.authorRoomId !== currentRoomId;
+                const groupTag = crossRoom ? `<span class="comment-author-group">${escapeHtml(rooms[c.authorRoomId] ? rooms[c.authorRoomId].name : '')}</span>` : '';
+                return `<div class="comment-item">
+                  <div class="comment-header"><span class="comment-author">${escapeHtml(c.author)}</span>${groupTag}</div>
+                  <div class="comment-body">${escapeHtml(c.text)}<span class="comment-time">${c.time}</span></div>
+                </div>`;
+              }).join('')
+            : '<div class="comment-empty">No comments yet</div>'}
+        </div>
+        <div class="comment-input-row">
+          <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
+          <button class="comment-send-btn" onclick="addComment('${id}')">Send</button>
+        </div>
+      `;
+    }
+
+    function addComment(id) {
+      const input = document.getElementById('comment-input-' + id);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      const msg = messages[id];
+      if (!msg) return;
+      if (!msg.comments) msg.comments = [];
+      msg.comments.push({ author: 'You', authorRoomId: currentRoomId, text: text, time: getTimeString(), unread: true });
+      input.value = '';
+      renderCommentThread(id);
+      updateCommentCount(id);
+      updateUnreadBadge();
+    }
+
+    // Shows the number of NOT-YET-ACKNOWLEDGED comments on this bubble's Comment icon —
+    // stays unread until the thread is closed (opening it to read doesn't count; closing does,
+    // same principle as an app badge clearing once you've actually looked).
+    function updateCommentCount(id) {
+      const msg = messages[id];
+      const el = document.getElementById('comment-count-' + id);
+      if (!msg || !el) return;
+      const unreadCount = (msg.comments || []).filter(c => c.unread).length;
+      el.textContent = unreadCount > 0 ? unreadCount : '';
+    }
+
+    function markCommentsRead(id) {
+      const msg = messages[id];
+      if (!msg || !msg.comments) return;
+      let changed = false;
+      msg.comments.forEach(c => { if (c.unread) { c.unread = false; changed = true; } });
+      if (changed) {
+        updateCommentCount(id);
+        updateUnreadBadge();
+      }
+    }
+
+    // ===================== Room switching =====================
+    // Groups are opened the same way you'd open a chat with a person — by clicking them in the
+    // Chat Details panel — not through a separate switcher inside the chat screen itself.
+
+    function highlightActiveGroupInPanel() {
+      document.querySelectorAll('.details-item-row[data-room-id]').forEach(row => {
+        row.classList.toggle('active-room', row.getAttribute('data-room-id') === currentRoomId);
+      });
+    }
+
+    function switchRoom(roomId) {
+      if (roomId === currentRoomId || !rooms[roomId]) return;
+      // Exit any in-progress composer/selection state before moving rooms, so nothing carries
+      // over incorrectly (e.g. editing a message that belongs to the room you're leaving).
+      cancelReply();
+      cancelEdit();
+      if (typeof selectionMode !== 'undefined' && selectionMode) exitSelectMode();
+      closeMsgContextMenu();
+      closeReactBar();
+      closeEmojiPickerPanel();
+      closeMentionDropdown();
+
+      currentRoomId = roomId;
+      messages = rooms[roomId].store; // reassign the "live" pointer — every existing function
+                                        // that reads/writes `messages[id]` now operates on this room
+      highlightActiveGroupInPanel();
+      renderActiveRoomMessages();
+    }
+
+    function renderActiveRoomMessages() {
+      const chatContainer = document.getElementById('chatContainer');
+      chatContainer.innerHTML = `
+        <button class="scroll-to-bottom-btn" id="scrollToBottomBtn" onclick="scrollChatToBottom()" title="Jump to latest">
+          <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <span class="scroll-to-bottom-unread" id="scrollToBottomUnread"></span>
+        </button>
+        <div class="date-divider"><span class="date-badge">Today</span></div>
+      `;
+      Object.keys(messages).forEach(id => {
+        const el = renderMessageToDOM(messages[id]);
+        if (el) chatContainer.appendChild(el);
+      });
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+      updateUnreadBadge();
+    }
+
+    // Rebuilds a full .message-row element from a stored message object — used when redrawing
+    // a room's history on switching into it. Covers text (full fidelity: mentions, reactions,
+    // group-comment bar, edited/deleted state) and a functional (simpler) rendering for
+    // media/document messages, reusing the same global gallery data those already rely on.
+    function renderMessageToDOM(msg) {
+      const row = document.createElement('div');
+      row.className = 'message-row ' + (msg.isOutgoing ? 'outgoing' : 'incoming');
+      row.setAttribute('data-id', msg.id);
+
+      if (msg.deletedFor === 'everyone') {
+        row.innerHTML = `<div class="msg-bubble deleted-bubble ${msg.isOutgoing ? 'outgoing' : 'incoming'}">
+          <span class="message-text">This message was deleted</span><span class="msg-meta-row">${msg.deletedAt || msg.time}</span>
+        </div>`;
+        return row;
+      }
+
+      const hoverHtml = buildHoverActionsHtml(msg.id);
+      const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${msg.id}"></span>` : '';
+      const editedHtml = msg.edited ? `<span class="edited-label">Edited</span>` : '';
+      const commentBarHtml = (msg.mentionedGroups && msg.mentionedGroups.length > 0) ? buildGroupCommentBarHtml(msg.id) : '';
+
+      if (msg.kind === 'text') {
+        const isEmojiOnly = isEmojiOnlyText(msg.text);
+        const wrapClass = msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap';
+        const bubbleHtml = `<div class="msg-bubble ${msg.isOutgoing ? 'outgoing' : 'incoming'}${isEmojiOnly ? ' emoji-only' : ''}">
+          <span class="message-text">${renderTextWithMentions(msg.text)}</span>
+          <span class="msg-meta-row">${editedHtml}${msg.time} ${ticksHtml}</span>
+        </div>`;
+        if (msg.isOutgoing) {
+          row.innerHTML = `<span class="sender-name" style="display:none;"></span>
+            <div class="msg-content-wrap ${wrapClass}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+        } else {
+          row.innerHTML = `<span class="sender-name">John</span>
+            <div class="msg-content-wrap ${wrapClass}">
+              <div class="incoming-content-wrapper"><div class="small-avatar">J</div>${bubbleHtml}</div>
+              ${hoverHtml}
+            </div>${commentBarHtml}`;
+        }
+      } else if (msg.kind === 'media') {
+        const galleryId = Object.keys(galleryMessageMap).find(gId => galleryMessageMap[gId] === msg.id);
+        const items = galleryId ? mediaGalleries[galleryId] : [];
+        let mediaItemsHtml = '';
+        items.forEach((item, idx) => {
+          if (item.type === 'Image') {
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${galleryId}', ${idx})"><img src="${item.url}" alt="attachment"></div>`;
+          } else if (item.type === 'Video') {
+            mediaItemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${galleryId}', ${idx})"><video src="${item.url}"></video></div>`;
+          } else if (item.type === 'Audio') {
+            mediaItemsHtml += `<div class="doc-tile-row" onclick="openMediaViewer('${galleryId}', ${idx})" style="cursor:pointer;"><div class="doc-icon-box" style="background:#ff9800;">🎵</div><div class="doc-info"><span class="doc-name">${item.name || 'audio'}</span></div></div>`;
+          }
+        });
+        let gridClass = 'media-grid-1';
+        if (items.length === 2) gridClass = 'media-grid-2';
+        else if (items.length >= 3) gridClass = 'media-grid-3';
+        const captionHtml = msg.text ? `<div class="media-caption">${escapeHtml(msg.text)}</div>` : '';
+        const bubbleHtml = `<div class="msg-bubble ${msg.isOutgoing ? 'outgoing' : 'incoming'} media-bubble">
+          <div class="media-grid ${gridClass}">${mediaItemsHtml}</div>
+          ${captionHtml}
+          <div class="media-time-row">${msg.time} ${ticksHtml}</div>
+        </div>`;
+        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+      } else if (msg.kind === 'document') {
+        const ext = (msg.fileName || '').split('.').pop().toLowerCase();
+        let badgeColor = '#607d8b', label = ext ? ext.toUpperCase() : 'FILE';
+        if (ext === 'pdf') badgeColor = '#f44336';
+        else if (['doc', 'docx'].includes(ext)) badgeColor = '#2196f3';
+        else if (['xls', 'xlsx'].includes(ext)) badgeColor = '#4caf50';
+        else if (['ppt', 'pptx'].includes(ext)) badgeColor = '#ff9800';
+        const bubbleHtml = `<div class="msg-bubble ${msg.isOutgoing ? 'outgoing' : 'incoming'} media-bubble">
+          <div class="doc-list-container">
+            <a href="#" onclick="event.preventDefault(); openReadViewer('${msg.url}', '${(msg.fileName || '').replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration:none;">
+              <div class="doc-icon-box" style="background:${badgeColor};">${label}</div>
+              <div class="doc-info"><span class="doc-name">${escapeHtml(msg.fileName || '')}</span></div>
+            </a>
+          </div>
+          <div class="doc-time-row">${msg.time} ${ticksHtml}</div>
+        </div>`;
+        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+      }
+
+      if (msg.isOutgoing) updateTicksUI(msg.id);
+      if (msg.reaction) {
+        const bubble = row.querySelector('.msg-bubble');
+        if (bubble) {
+          const badge = document.createElement('span');
+          badge.className = 'msg-reaction-badge';
+          badge.title = 'View reaction';
+          badge.textContent = msg.reaction;
+          badge.onclick = (ev) => { openReactionInfoPopup(ev, msg.id); };
+          bubble.appendChild(badge);
+        }
+        row.classList.add('has-reaction');
+      }
+      if (window.twemoji) twemoji.parse(row);
+      return row;
+    }
+
+    // ===================== Group row: right-click Rename / Delete =====================
+    // These only affect this group's entry in *your own* chat list — there's no external
+    // group-management system here, so nothing about the group itself (its real name, its
+    // membership, anything the admin set) is touched.
+
+    let groupContextTargetRow = null;
+
+    function openGroupContextMenu(event) {
+      event.preventDefault();
+      groupContextTargetRow = event.currentTarget;
+      const menu = document.getElementById('groupContextMenu');
+      menu.innerHTML = `
+        <div class="group-context-menu-item" onclick="openGroupRenameModal()">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Rename
+        </div>
+        <div class="group-context-menu-item danger" onclick="openGroupDeleteModal()">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg> Delete
+        </div>
+      `;
+      menu.style.left = '-9999px';
+      menu.style.top = '-9999px';
+      menu.classList.add('active');
+      const rect = menu.getBoundingClientRect();
+      const left = Math.max(8, Math.min(event.clientX, window.innerWidth - rect.width - 8));
+      const top = Math.max(8, Math.min(event.clientY, window.innerHeight - rect.height - 8));
+      menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+    }
+
+    function closeGroupContextMenu() {
+      document.getElementById('groupContextMenu').classList.remove('active');
+    }
+
+    window.addEventListener('click', function(e) {
+      const menu = document.getElementById('groupContextMenu');
+      if (menu.classList.contains('active') && !menu.contains(e.target)) closeGroupContextMenu();
+    });
+
+    function openGroupRenameModal() {
+      closeGroupContextMenu();
+      if (!groupContextTargetRow) return;
+      const label = groupContextTargetRow.querySelector('.details-item-label');
+      const input = document.getElementById('groupRenameInput');
+      input.value = label ? label.textContent : '';
+      document.getElementById('groupRenameOverlay').classList.add('active');
+      input.focus();
+      input.select();
+    }
+
+    function closeGroupRenameModal() {
+      document.getElementById('groupRenameOverlay').classList.remove('active');
+    }
+
+    function confirmGroupRename() {
+      const input = document.getElementById('groupRenameInput');
+      const newName = input.value.trim();
+      if (newName && groupContextTargetRow) {
+        const label = groupContextTargetRow.querySelector('.details-item-label');
+        if (label) label.textContent = newName;
+        const avatar = groupContextTargetRow.querySelector('.details-item-avatar');
+        if (avatar) avatar.textContent = newName.charAt(0).toUpperCase();
+      }
+      closeGroupRenameModal();
+    }
+
+    function openGroupDeleteModal() {
+      closeGroupContextMenu();
+      if (!groupContextTargetRow) return;
+      const label = groupContextTargetRow.querySelector('.details-item-label');
+      const name = label ? label.textContent : 'this group';
+      document.getElementById('groupDeleteMessage').textContent = `Remove "${name}" from your chat list?`;
+      document.getElementById('groupDeleteOverlay').classList.add('active');
+    }
+
+    function closeGroupDeleteModal() {
+      document.getElementById('groupDeleteOverlay').classList.remove('active');
+    }
+
+    function confirmGroupDelete() {
+      if (groupContextTargetRow) groupContextTargetRow.remove();
+      closeGroupDeleteModal();
+      groupContextTargetRow = null;
+    }
   </script>
 </body>
 </html>
