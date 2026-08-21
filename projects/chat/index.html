@@ -1761,7 +1761,7 @@ html, body {
       gap: 4px;
       margin-top: 6px;
       padding-top: 6px;
-      border-top: 1px solid var(--border-color);
+      background: transparent !important;
     }
     /* The reaction badge hangs below the bubble via a negative offset — when both a reaction
        AND the group comment bar are present, give the bar extra clearance so the badge doesn't
@@ -1772,14 +1772,17 @@ html, body {
       display: flex;
       align-items: center;
       gap: 5px;
-      background: transparent;
+      background: transparent !important;
       border: none;
+      appearance: none;
+      -webkit-appearance: none;
       color: var(--subtext-color);
       font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       padding: 5px 8px;
       border-radius: 8px;
+      box-shadow: none !important;
     }
     .group-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
     .group-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
@@ -1817,13 +1820,63 @@ html, body {
     }
     .comment-thread-panel.active { display: flex; }
     .comment-list { display: flex; flex-direction: column; gap: 6px; }
-    .comment-item { color: #fff; line-height: 1.4; }
+    .comment-item { color: #fff; line-height: 1.4; flex: 1; min-width: 0; }
     .comment-header { display: flex; align-items: baseline; gap: 6px; }
     .comment-author-group { color: var(--subtext-color); font-size: 0.68rem; font-weight: 400; }
     .comment-body { margin-top: 2px; font-size: 0.9rem; }
     .comment-author { font-weight: 700; color: #fff; font-size: 0.68rem; }
     .comment-time { font-size: 0.65rem; color: var(--subtext-color); margin-left: 6px; }
+    .comment-edited-label { font-size: 0.65rem; color: var(--subtext-color); font-style: italic; }
     .comment-empty { font-size: 0.78rem; color: var(--subtext-color); font-style: italic; }
+
+    /* Hover-reveal Edit/Delete icons on your own comment rows, same idea as chat message hover actions */
+    .comment-item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    .comment-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .comment-item-row:hover .comment-item-actions { opacity: 1; }
+    .comment-item-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      cursor: pointer;
+      padding: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .comment-item-action-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .comment-item-action-btn.danger:hover { color: #ff5252; }
+    .comment-item-action-btn svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    /* Inline comment editing */
+    .comment-edit-row { display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+    .comment-edit-save-btn, .comment-edit-cancel-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: 50%;
+    }
+    .comment-edit-save-btn { color: #14b8a6; }
+    .comment-edit-cancel-btn { color: var(--subtext-color); }
+    .comment-edit-save-btn:hover, .comment-edit-cancel-btn:hover { background: rgba(255,255,255,0.08); }
+    .comment-edit-save-btn svg, .comment-edit-cancel-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+
     .comment-input-row { display: flex; align-items: center; gap: 6px; }
     .comment-input {
       flex: 1;
@@ -4691,7 +4744,7 @@ function renderPreviewTray() {
             <span class="comment-unread-badge" id="comment-unread-badge-${id}"></span>
           </button>
         </div>
-        <div class="comment-thread-panel" id="comments-${id}"></div>
+        <div class="comment-thread-panel" id="comments-${id}" onclick="event.stopPropagation()"></div>
       `;
     }
 
@@ -4729,6 +4782,8 @@ function renderPreviewTray() {
       openCommentPanelId = null;
     });
 
+    let editingCommentKey = null; // "<messageId>::<index>" of the comment currently being edited inline
+
     function renderCommentThread(id) {
       const msg = messages[id];
       const panel = document.getElementById('comments-' + id);
@@ -4737,15 +4792,42 @@ function renderPreviewTray() {
       panel.innerHTML = `
         <div class="comment-list">
           ${comments.length
-            ? comments.map(c => {
+            ? comments.map((c, idx) => {
                 // Same identity ("You") throughout — but when viewed from a DIFFERENT room than
                 // the one the comment was posted from, show which group they were posting as,
                 // dimmed, the way someone in another group would see it.
                 const crossRoom = c.authorRoomId && c.authorRoomId !== currentRoomId;
                 const groupTag = crossRoom ? `<span class="comment-author-group">${escapeHtml(rooms[c.authorRoomId] ? rooms[c.authorRoomId].name : '')}</span>` : '';
-                return `<div class="comment-item">
-                  <div class="comment-header"><span class="comment-author">${escapeHtml(c.author)}</span>${groupTag}</div>
-                  <div class="comment-body">${escapeHtml(c.text)}<span class="comment-time">${c.time}</span></div>
+                const key = id + '::' + idx;
+
+                if (editingCommentKey === key) {
+                  return `<div class="comment-item">
+                    <div class="comment-header"><span class="comment-author">${escapeHtml(c.author)}</span>${groupTag}</div>
+                    <div class="comment-edit-row">
+                      <input type="text" class="comment-input" id="comment-edit-input-${id}-${idx}" value="${escapeHtml(c.text)}" onkeydown="if(event.key==='Enter'){event.preventDefault(); saveEditComment('${id}', ${idx});} else if(event.key==='Escape'){cancelEditComment('${id}');}">
+                      <button class="comment-edit-save-btn" onclick="saveEditComment('${id}', ${idx})" title="Save">
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      </button>
+                      <button class="comment-edit-cancel-btn" onclick="cancelEditComment('${id}')" title="Cancel">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    </div>
+                  </div>`;
+                }
+
+                return `<div class="comment-item-row">
+                  <div class="comment-item">
+                    <div class="comment-header"><span class="comment-author">${escapeHtml(c.author)}</span>${groupTag}</div>
+                    <div class="comment-body">${escapeHtml(c.text)}${c.edited ? ' <span class="comment-edited-label">(edited)</span>' : ''}<span class="comment-time">${c.time}</span></div>
+                  </div>
+                  <div class="comment-item-actions">
+                    <button class="comment-item-action-btn" onclick="startEditComment('${id}', ${idx})" title="Edit">
+                      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="comment-item-action-btn danger" onclick="deleteComment('${id}', ${idx})" title="Delete">
+                      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                    </button>
+                  </div>
                 </div>`;
               }).join('')
             : '<div class="comment-empty">No comments yet</div>'}
@@ -4769,6 +4851,43 @@ function renderPreviewTray() {
       if (!msg.comments) msg.comments = [];
       msg.comments.push({ author: 'You', authorRoomId: currentRoomId, text: text, time: getTimeString(), unread: true });
       input.value = '';
+      renderCommentThread(id);
+      updateCommentCount(id);
+      updateUnreadBadge();
+    }
+
+    // ---------- Edit / delete a single comment, same idea as editing/deleting a chat message ----------
+
+    function startEditComment(id, idx) {
+      editingCommentKey = id + '::' + idx;
+      renderCommentThread(id);
+      const input = document.getElementById(`comment-edit-input-${id}-${idx}`);
+      if (input) { input.focus(); input.select(); }
+    }
+
+    function cancelEditComment(id) {
+      editingCommentKey = null;
+      renderCommentThread(id);
+    }
+
+    function saveEditComment(id, idx) {
+      const msg = messages[id];
+      if (!msg || !msg.comments || !msg.comments[idx]) return;
+      const input = document.getElementById(`comment-edit-input-${id}-${idx}`);
+      if (!input) return;
+      const newText = input.value.trim();
+      if (newText) {
+        msg.comments[idx].text = newText;
+        msg.comments[idx].edited = true;
+      }
+      editingCommentKey = null;
+      renderCommentThread(id);
+    }
+
+    function deleteComment(id, idx) {
+      const msg = messages[id];
+      if (!msg || !msg.comments || !msg.comments[idx]) return;
+      msg.comments.splice(idx, 1);
       renderCommentThread(id);
       updateCommentCount(id);
       updateUnreadBadge();
