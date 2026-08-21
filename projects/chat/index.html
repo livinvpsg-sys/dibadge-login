@@ -1763,6 +1763,10 @@ html, body {
       padding-top: 6px;
       border-top: 1px solid var(--border-color);
     }
+    /* The reaction badge hangs below the bubble via a negative offset — when both a reaction
+       AND the group comment bar are present, give the bar extra clearance so the badge doesn't
+       overlap its top border/React-Comment row. */
+    .message-row.has-reaction .group-comment-bar { margin-top: 28px; }
     .msg-content-wrap.outgoing-wrap .group-comment-bar { justify-content: flex-end; }
     .group-comment-icon-btn {
       display: flex;
