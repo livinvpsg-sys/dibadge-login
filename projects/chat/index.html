@@ -755,7 +755,6 @@ html, body {
       padding: 3px !important;
       border-radius: 12px;
       position: relative;
-      overflow: hidden;
       max-width: 280px;
     }
 
@@ -764,6 +763,9 @@ html, body {
       display: grid;
       gap: 3px;
       width: 100%;
+      border-radius: 9px;
+      overflow: hidden; /* clips the images' own corners now, instead of the whole bubble — so a
+                            reaction badge hanging outside the bubble's edge doesn't get cut off */
     }
     .media-grid-1 { grid-template-columns: 1fr; }
     .media-grid-2 { grid-template-columns: repeat(2, 1fr); }
