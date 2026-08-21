@@ -4301,7 +4301,11 @@ function renderPreviewTray() {
       range.collapse(true);
       sel.removeAllRanges();
       sel.addRange(range);
-      if (window.twemoji) twemoji.parse(input);
+      // Deliberately NOT calling twemoji.parse() here — it would swap this emoji's text node
+      // for an <img>, and <img> elements have no textContent. sendMessage() reads the
+      // composer via textContent, so an emoji rendered as an image would silently vanish from
+      // the message. Twemoji conversion is only safe to apply to the final, read-only bubble
+      // after sending — never to the live editable composer.
     }
 
     // Composer's emoji button opens the full picker directly (typing benefits from the full palette)
