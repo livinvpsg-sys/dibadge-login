@@ -1783,52 +1783,73 @@ html, body {
     }
     .group-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
     .group-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .group-comment-icon-btn .comment-count { font-size: 0.72rem; }
+    .group-comment-icon-btn .comment-count-label { font-size: 0.75rem; }
+    .comment-unread-badge {
+      display: none;
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      min-width: 14px;
+      height: 14px;
+      padding: 0 3px;
+      border-radius: 7px;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 700;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .comment-unread-badge.active { display: flex; }
 
     .comment-thread-panel {
       display: none;
       flex-direction: column;
       gap: 8px;
       margin-top: 6px;
-      background: var(--chat-outgoing-bg, #ffffff);
-      border: 1px solid #14b8a6;
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color);
       border-radius: 10px;
       padding: 10px;
       width: 280px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
     }
     .comment-thread-panel.active { display: flex; }
     .comment-list { display: flex; flex-direction: column; gap: 6px; }
-    .comment-item { color: #1a1a1a; line-height: 1.4; }
+    .comment-item { color: #fff; line-height: 1.4; }
     .comment-header { display: flex; align-items: baseline; gap: 6px; }
-    .comment-author-group { color: #888; font-size: 0.68rem; font-weight: 400; }
+    .comment-author-group { color: var(--subtext-color); font-size: 0.68rem; font-weight: 400; }
     .comment-body { margin-top: 2px; font-size: 0.9rem; }
-    .comment-author { font-weight: 700; color: #000; font-size: 0.68rem; }
-    .comment-time { font-size: 0.65rem; color: #888; margin-left: 6px; }
-    .comment-empty { font-size: 0.78rem; color: #888; font-style: italic; }
+    .comment-author { font-weight: 700; color: #fff; font-size: 0.68rem; }
+    .comment-time { font-size: 0.65rem; color: var(--subtext-color); margin-left: 6px; }
+    .comment-empty { font-size: 0.78rem; color: var(--subtext-color); font-style: italic; }
     .comment-input-row { display: flex; align-items: center; gap: 6px; }
     .comment-input {
       flex: 1;
       min-width: 0;
-      background: #f0f0f0;
-      border: 1px solid #ddd;
+      background: var(--input-bg, #2a2a2a);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 6px 12px;
-      color: #000;
+      color: #fff;
       font-size: 0.78rem;
       outline: none;
     }
-    .comment-input::placeholder { color: #999; }
+    .comment-input::placeholder { color: var(--subtext-color); }
     .comment-send-btn {
       background: transparent;
       border: none;
-      color: #14b8a6;
-      font-size: 0.78rem;
-      font-weight: 700;
+      color: #ffffff;
       cursor: pointer;
-      padding: 6px 4px;
+      padding: 6px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .comment-send-btn:hover { text-decoration: underline; }
+    .comment-send-btn svg { width: 18px; height: 18px; }
+    .comment-send-btn:hover { opacity: 0.8; }
 
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
@@ -4663,12 +4684,11 @@ function renderPreviewTray() {
         <div class="group-comment-bar">
           <button class="group-comment-icon-btn" onclick="quickReactOpen(event, '${id}')" title="React">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-            <span>React</span>
           </button>
-          <button class="group-comment-icon-btn" onclick="toggleCommentThread('${id}')" title="Comment">
+          <button class="group-comment-icon-btn" onclick="toggleCommentThread('${id}')" title="Comment" style="position:relative;">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            <span>Comment</span>
-            <span class="comment-count" id="comment-count-${id}"></span>
+            <span class="comment-count-label" id="comment-count-${id}">Comment</span>
+            <span class="comment-unread-badge" id="comment-unread-badge-${id}"></span>
           </button>
         </div>
         <div class="comment-thread-panel" id="comments-${id}"></div>
@@ -4732,7 +4752,9 @@ function renderPreviewTray() {
         </div>
         <div class="comment-input-row">
           <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
-          <button class="comment-send-btn" onclick="addComment('${id}')">Send</button>
+          <button class="comment-send-btn" onclick="addComment('${id}')" title="Send">
+            <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+          </button>
         </div>
       `;
     }
@@ -4755,12 +4777,23 @@ function renderPreviewTray() {
     // Shows the number of NOT-YET-ACKNOWLEDGED comments on this bubble's Comment icon —
     // stays unread until the thread is closed (opening it to read doesn't count; closing does,
     // same principle as an app badge clearing once you've actually looked).
+    // The label always shows the TOTAL comment count (read + unread combined) — never hidden
+    // just because everything's been read. Unread specifically only shows as a small badge.
     function updateCommentCount(id) {
       const msg = messages[id];
-      const el = document.getElementById('comment-count-' + id);
-      if (!msg || !el) return;
-      const unreadCount = (msg.comments || []).filter(c => c.unread).length;
-      el.textContent = unreadCount > 0 ? unreadCount : '';
+      const countEl = document.getElementById('comment-count-' + id);
+      const badgeEl = document.getElementById('comment-unread-badge-' + id);
+      if (!msg) return;
+      const comments = msg.comments || [];
+      const total = comments.length;
+      if (countEl) {
+        countEl.textContent = total > 0 ? `${total} ${total === 1 ? 'comment' : 'comments'}` : 'Comment';
+      }
+      if (badgeEl) {
+        const unreadCount = comments.filter(c => c.unread).length;
+        badgeEl.textContent = unreadCount > 9 ? '9+' : (unreadCount > 0 ? unreadCount : '');
+        badgeEl.classList.toggle('active', unreadCount > 0);
+      }
     }
 
     function markCommentsRead(id) {
@@ -4913,6 +4946,7 @@ function renderPreviewTray() {
         }
         row.classList.add('has-reaction');
       }
+      if (commentBarHtml) updateCommentCount(msg.id); // reflect any existing comment history correctly
       if (window.twemoji) twemoji.parse(row);
       return row;
     }
