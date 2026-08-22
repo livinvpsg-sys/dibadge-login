@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>diBadge | Form</title>
+  <title>diBadge | Project Forms</title>
 
   <script>
     (function() {
@@ -26,6 +26,7 @@
       --text-color: var(--jet-black);
       --surface-color: var(--accent-white);
       --header-bg: var(--paper-white);
+      --tabbar-bg: var(--paper-white);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
     }
@@ -34,6 +35,7 @@
       --text-color: var(--accent-white);
       --surface-color: var(--slate-surface);
       --header-bg: #050505;
+      --tabbar-bg: #050505;
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
     }
@@ -41,15 +43,56 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    .dashboard-header { background: var(--header-bg); padding: 0 24px; display: flex; align-items: center; gap: 12px; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+    /* Header — same shell as the Projects screen */
+    .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+    .default-header-title { display: flex; align-items: center; gap: 12px; }
+    .default-header-title h1 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .header-center { flex: 1; max-width: 450px; margin: 0 20px; display: flex; align-items: center; gap: 12px; }
+    .search-input { flex: 1; background: var(--surface-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; font-size: 0.88rem; outline: none; }
+    .search-input::placeholder { color: var(--subtext-color); }
+    .view-mode-toggle { display: flex; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; }
+    .view-btn { background: transparent; border: none; color: var(--subtext-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .view-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .view-btn.active { background: var(--paper-white); color: var(--jet-black); }
+
+    .folder-header-nav { display: flex; align-items: center; gap: 12px; font-size: 1.05rem; font-weight: 600; }
     .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; }
     .header-back-icon:hover { background: var(--surface-color); }
-    .header-breadcrumb-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 1.05rem; font-weight: 600; }
-    .breadcrumb-item { cursor: pointer; color: var(--subtext-color); }
+    .header-breadcrumb-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .breadcrumb-item { cursor: pointer; color: var(--subtext-color); text-decoration: none; }
     .breadcrumb-item:hover { text-decoration: underline; }
     .breadcrumb-item.active { color: var(--text-color); cursor: default; text-decoration: none; }
 
-    .form-workspace { flex: 1; overflow-y: auto; padding: 32px; display: flex; justify-content: center; }
+    .dashboard-body-split { display: flex; flex: 1; height: calc(100vh - 64px); overflow: hidden; position: relative; }
+
+    /* Left Navigation Bar — same as Projects screen */
+    .left-vertical-tabbar { width: 64px; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; z-index: 10; }
+    .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
+    .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .tab-btn:hover { background: var(--slate-surface); color: #ffffff; }
+    .tab-btn.active { background: var(--slate-surface); color: #ffffff; }
+    .main-nav-group { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+    /* Forms library workspace */
+    .forms-workspace { flex: 1; padding: 24px; overflow-y: auto; background: var(--bg-color); }
+    .forms-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .forms-panel-header h2 { font-size: 1.05rem; font-weight: 700; }
+    .forms-add-btn { background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .forms-add-btn:hover { background: var(--border-color); }
+    .forms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+    .form-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; cursor: pointer; transition: transform 0.15s, background 0.15s; }
+    .form-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.05); }
+    .form-card svg { width: 40px; height: 40px; stroke: var(--text-color); fill: none; stroke-width: 1.6; }
+    .form-card-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); line-height: 1.25; word-break: break-word; }
+
+    .forms-list-container { display: flex; flex-direction: column; gap: 2px; }
+    .form-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+    .form-row:hover { background: rgba(255,255,255,0.05); }
+    .form-row svg { width: 22px; height: 22px; stroke: var(--text-color); fill: none; stroke-width: 1.6; flex-shrink: 0; }
+    .form-row-name { font-size: 0.88rem; font-weight: 600; color: var(--text-color); }
+
+    /* Individual form view */
+    .form-sheet-wrapper { flex: 1; overflow-y: auto; padding: 32px; display: flex; justify-content: center; background: var(--bg-color); }
     .form-sheet {
       width: 100%;
       max-width: 720px;
@@ -57,79 +100,268 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 32px;
+      height: fit-content;
     }
     .form-sheet-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
     .form-sheet-icon { width: 44px; height: 44px; stroke: var(--text-color); fill: none; stroke-width: 1.5; flex-shrink: 0; }
     .form-sheet-title { font-size: 1.2rem; font-weight: 700; }
     .form-sheet-subtitle { font-size: 0.82rem; color: var(--subtext-color); margin-top: 2px; }
-
     .form-field-group { margin-bottom: 20px; }
     .form-field-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--subtext-color); margin-bottom: 6px; }
-    .form-field-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      background: var(--bg-color);
-      color: var(--text-color);
-      border-radius: 6px;
-      font-size: 0.9rem;
-      outline: none;
-      font-family: inherit;
-    }
+    .form-field-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; font-family: inherit; }
     textarea.form-field-input { resize: vertical; min-height: 90px; }
 
-    .form-sheet-empty { color: var(--subtext-color); font-size: 0.9rem; text-align: center; padding: 40px 0; }
+    /* Activity Feed — identical component/styling to the chat screen's */
+    .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
+    .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
+    .details-panel-title-group { display: flex; align-items: center; gap: 8px; }
+    .details-panel-title-group svg { width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0; }
+    .details-panel-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--subtext-color); }
+    .details-panel-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #25D366; animation: livePulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .activity-feed-card { background: transparent; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+    .activity-feed-title { font-size: 0.85rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px; }
+    .activity-feed-desc { font-size: 0.78rem; color: var(--subtext-color); line-height: 1.4; }
+    .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
+
+    /* Add Form modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 380px; width: 90%; position: relative; color: var(--text-color); border: 1px solid var(--border-color); }
+    .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
+    .modal-label { display: block; font-size: 0.82rem; color: var(--subtext-color); margin: 10px 0 4px 0; font-weight: 600; }
+    .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+    .btn-save { background: var(--paper-white); color: var(--jet-black); }
+    .btn-cancel { background: var(--border-color); color: var(--text-color); }
+    .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
+
+    @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
   </style>
 </head>
 <body>
 
   <header class="dashboard-header">
-    <button class="header-back-icon" onclick="goBack()" title="Back">
-      <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-    </button>
-    <div class="header-breadcrumb-path" id="breadcrumbBar"></div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="default-header-title" id="libraryHeaderTitle">
+        <h1>
+          <svg style="width:24px; height:24px; stroke:currentColor; stroke-width:2; fill:none;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+          <span>Project Forms</span>
+        </h1>
+      </div>
+      <div class="folder-header-nav" id="formHeaderNav" style="display:none;">
+        <button class="header-back-icon" onclick="backToLibrary()" title="Back">
+          <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div class="header-breadcrumb-path" id="breadcrumbBar"></div>
+      </div>
+    </div>
+
+    <div class="header-center" id="libraryHeaderCenter">
+      <input type="text" id="formSearchInput" class="search-input" placeholder="search forms.." oninput="renderFormsLibrary()" />
+      <div class="view-mode-toggle">
+        <button class="view-btn active" id="btnViewTile" onclick="setLibraryViewMode('grid')" title="Tile Grid View">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </button>
+        <button class="view-btn" id="btnViewList" onclick="setLibraryViewMode('list')" title="Detailed List View">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <main class="form-workspace">
-    <div class="form-sheet" id="formSheet"></div>
-  </main>
+  <div class="dashboard-body-split">
+
+    <aside class="left-vertical-tabbar">
+      <div class="main-nav-group">
+        <a href="../home" class="tab-btn" title="Home">
+          <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+            <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
+          </svg>
+        </a>
+        <a href="../index.html" class="tab-btn" title="Projects">
+          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        </a>
+        <button class="tab-btn active" title="Project forms">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+        </button>
+        <a href="../index.html" class="tab-btn" title="Schedule">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Add Form modal -->
+    <div class="modal-overlay" id="addFormModal">
+      <div class="modal-card">
+        <button class="close-btn" onclick="closeAddFormModal()">&times;</button>
+        <h3>Add Form</h3>
+        <label class="modal-label">Form name</label>
+        <input type="text" class="modal-input" id="newFormNameInput" placeholder="e.g. Daily Site Inspection Form">
+        <div class="modal-actions">
+          <button class="modal-btn btn-cancel" onclick="closeAddFormModal()">Cancel</button>
+          <button class="modal-btn btn-save" onclick="confirmAddForm()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forms library (list of all forms) -->
+    <main class="forms-workspace" id="formsLibraryWorkspace">
+      <div class="forms-panel-header">
+        <h2>Project Forms</h2>
+        <button class="forms-add-btn" onclick="openAddFormModal()">+ Add Form</button>
+      </div>
+      <div class="forms-grid" id="formsGrid"></div>
+    </main>
+
+    <!-- Individual form (shown when a form is opened via ?name=) -->
+    <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
+      <div class="form-sheet" id="formSheet"></div>
+    </main>
+
+    <aside class="activity-feed-panel">
+      <div class="details-panel-section-header">
+        <div class="details-panel-title-group">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="details-panel-title">Activity Feed</span>
+        </div>
+        <span class="details-panel-live-dot" title="Live"></span>
+      </div>
+      <div class="activity-feed-card">
+        <div class="activity-feed-title">New Project Initialized</div>
+        <div class="activity-feed-desc">Amber Holdings setup complete.</div>
+        <div class="activity-feed-time">1 hour ago</div>
+      </div>
+    </aside>
+  </div>
 
   <script>
-    function goBack() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const projectId = urlParams.get('projectId');
-      // Return to the specific project's Forms tab if we know which project this was opened
-      // from; otherwise fall back to the main Projects screen's own Project Forms library.
-      window.location.href = projectId ? `../index.html?id=${projectId}` : `../index.html`;
+    // This page is the REAL destination for the "Project forms" nav icon — a standalone
+    // library, not an in-page panel embedded in the Projects screen.
+
+    const FORMS_LIBRARY_KEY = 'dibadge_global_forms_library';
+    let libraryViewMode = 'grid';
+
+    function getDefaultForms() {
+      return [
+        'Tower B Foundation Log Sheet',
+        'Daily Site Inspection Form',
+        'Safety Compliance Checklist',
+        'Material Delivery Record',
+        'Concrete Pour Approval Form',
+        'Equipment Maintenance Log'
+      ];
     }
 
-    (function render() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const formName = urlParams.get('name');
-      const projectId = urlParams.get('projectId');
+    function getFormsLibrary() {
+      const stored = localStorage.getItem(FORMS_LIBRARY_KEY);
+      if (!stored) {
+        const defaults = getDefaultForms();
+        localStorage.setItem(FORMS_LIBRARY_KEY, JSON.stringify(defaults));
+        return defaults;
+      }
+      try {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : getDefaultForms();
+      } catch (e) {
+        return getDefaultForms();
+      }
+    }
 
-      const breadcrumb = document.getElementById('breadcrumbBar');
-      breadcrumb.innerHTML = `
-        <span class="breadcrumb-item" onclick="goBack()">${projectId ? 'Forms' : 'Project Forms'}</span>
+    function saveFormsLibrary(forms) {
+      localStorage.setItem(FORMS_LIBRARY_KEY, JSON.stringify(forms));
+    }
+
+    function setLibraryViewMode(mode) {
+      libraryViewMode = mode;
+      document.getElementById('btnViewTile').classList.toggle('active', mode === 'grid');
+      document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
+      renderFormsLibrary();
+    }
+
+    function renderFormsLibrary() {
+      const grid = document.getElementById('formsGrid');
+      const query = document.getElementById('formSearchInput').value.toLowerCase().trim();
+      const forms = getFormsLibrary().filter(name => name.toLowerCase().includes(query));
+
+      if (libraryViewMode === 'list') {
+        grid.className = 'forms-list-container';
+        grid.innerHTML = forms.map(name => `
+          <div class="form-row" title="${name}" onclick="openForm('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+            <span class="form-row-name">${name}</span>
+          </div>
+        `).join('');
+      } else {
+        grid.className = 'forms-grid';
+        grid.innerHTML = forms.map(name => `
+          <div class="form-card" title="${name}" onclick="openForm('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+            <div class="form-card-name">${name}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function openAddFormModal() {
+      document.getElementById('newFormNameInput').value = '';
+      document.getElementById('addFormModal').style.display = 'flex';
+    }
+    function closeAddFormModal() {
+      document.getElementById('addFormModal').style.display = 'none';
+    }
+    function confirmAddForm() {
+      const name = document.getElementById('newFormNameInput').value.trim();
+      if (!name) return;
+      const forms = getFormsLibrary();
+      forms.push(name);
+      saveFormsLibrary(forms);
+      closeAddFormModal();
+      renderFormsLibrary();
+    }
+
+    // ---- Opening / viewing a specific form ----
+
+    function openForm(name) {
+      window.history.pushState({}, '', `?name=${encodeURIComponent(name)}`);
+      showFormSheet(name);
+    }
+
+    function backToLibrary() {
+      window.history.pushState({}, '', window.location.pathname);
+      showLibrary();
+    }
+
+    function showLibrary() {
+      document.getElementById('formsLibraryWorkspace').style.display = 'block';
+      document.getElementById('formSheetWrapper').style.display = 'none';
+      document.getElementById('libraryHeaderTitle').style.display = 'flex';
+      document.getElementById('libraryHeaderCenter').style.display = 'flex';
+      document.getElementById('formHeaderNav').style.display = 'none';
+      renderFormsLibrary();
+    }
+
+    function showFormSheet(name) {
+      document.getElementById('formsLibraryWorkspace').style.display = 'none';
+      document.getElementById('formSheetWrapper').style.display = 'flex';
+      document.getElementById('libraryHeaderTitle').style.display = 'none';
+      document.getElementById('libraryHeaderCenter').style.display = 'none';
+      document.getElementById('formHeaderNav').style.display = 'flex';
+
+      document.getElementById('breadcrumbBar').innerHTML = `
+        <span class="breadcrumb-item" onclick="backToLibrary()">Project Forms</span>
         <span>&gt;</span>
-        <span class="breadcrumb-item active">${formName ? formName : 'Form'}</span>
+        <span class="breadcrumb-item active">${name}</span>
       `;
 
-      const sheet = document.getElementById('formSheet');
-      if (!formName) {
-        sheet.innerHTML = `<div class="form-sheet-empty">No form was specified.</div>`;
-        return;
-      }
-
-      sheet.innerHTML = `
+      document.getElementById('formSheet').innerHTML = `
         <div class="form-sheet-header">
           <svg class="form-sheet-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
           <div>
-            <div class="form-sheet-title">${formName}</div>
-            <div class="form-sheet-subtitle">${projectId ? 'Project form' : 'From the Project Forms library'}</div>
+            <div class="form-sheet-title">${name}</div>
+            <div class="form-sheet-subtitle">Project form</div>
           </div>
         </div>
-
         <div class="form-field-group">
           <label class="form-field-label">Site / Project</label>
           <input type="text" class="form-field-input" placeholder="Enter site or project name">
@@ -147,7 +379,24 @@
           <textarea class="form-field-input" placeholder="Enter details for this form..."></textarea>
         </div>
       `;
+    }
+
+    (function init() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const formName = urlParams.get('name');
+      if (formName) {
+        showFormSheet(formName);
+      } else {
+        showLibrary();
+      }
     })();
+
+    window.addEventListener('popstate', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const formName = urlParams.get('name');
+      if (formName) showFormSheet(formName);
+      else showLibrary();
+    });
   </script>
 </body>
 </html>
