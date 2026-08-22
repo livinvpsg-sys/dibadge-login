@@ -1903,6 +1903,20 @@ html, body {
     }
     .comment-send-btn svg { width: 18px; height: 18px; }
     .comment-send-btn:hover { opacity: 0.8; }
+    .comment-react-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      cursor: pointer;
+      padding: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .comment-react-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .comment-react-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
@@ -4735,9 +4749,6 @@ function renderPreviewTray() {
     function buildGroupCommentBarHtml(id) {
       return `
         <div class="group-comment-bar">
-          <button class="group-comment-icon-btn" onclick="quickReactOpen(event, '${id}')" title="React">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-          </button>
           <button class="group-comment-icon-btn" onclick="toggleCommentThread('${id}')" title="Comment" style="position:relative;">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             <span class="comment-count-label" id="comment-count-${id}">Comment</span>
@@ -4833,7 +4844,10 @@ function renderPreviewTray() {
             : '<div class="comment-empty">No comments yet</div>'}
         </div>
         <div class="comment-input-row">
-          <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
+          <button class="comment-react-btn" onclick="quickReactOpen(event, '${id}')" title="React">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+          </button>
+          <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
           <button class="comment-send-btn" onclick="addComment('${id}')" title="Send">
             <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
           </button>
