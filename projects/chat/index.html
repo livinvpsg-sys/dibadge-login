@@ -387,6 +387,110 @@ html, body {
       cursor: pointer;
     }
     .group-modal-ok-btn.danger { color: #ff5252; }
+
+    /* ---------- Import Form modal: mini folder browser ---------- */
+    .import-form-box {
+      background: var(--slate-surface, #1e1e1e);
+      border-radius: 20px;
+      padding: 24px;
+      width: 560px;
+      max-width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .import-form-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .import-form-title-group { display: flex; align-items: center; gap: 10px; }
+    .import-form-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: #8d6e63; color: #fff; font-size: 0.85rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    #importFormBreadcrumb { font-size: 0.95rem; font-weight: 600; color: #fff; }
+    .import-form-view-toggle {
+      display: flex;
+      background: #000000;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .import-form-view-btn {
+      background: transparent; border: none; color: var(--subtext-color);
+      padding: 6px 10px; border-radius: 6px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .import-form-view-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .import-form-view-btn.active { background: #fff; color: #000; }
+
+    .import-form-body {
+      overflow-y: auto;
+      min-height: 220px;
+      flex: 1;
+    }
+    .import-folder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+    }
+    .import-folder-card {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .import-folder-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.05); }
+    .import-folder-card.selected { background: rgba(20,184,166,0.15); border: 1px solid #14b8a6; }
+    .import-folder-card svg { width: 44px; height: 44px; stroke: #fff; fill: none; stroke-width: 1.6; margin-bottom: 4px; }
+    .import-folder-name { font-size: 0.8rem; font-weight: 600; color: #fff; line-height: 1.2; }
+    .import-folder-count { font-size: 0.68rem; color: var(--subtext-color); margin-top: 2px; }
+
+    .import-file-list { display: flex; flex-direction: column; gap: 4px; }
+    .import-file-back-row {
+      display: flex; align-items: center; gap: 8px; padding: 8px 4px;
+      cursor: pointer; color: var(--subtext-color); font-size: 0.85rem; font-weight: 600;
+    }
+    .import-file-back-row:hover { color: #fff; }
+    .import-file-back-row svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .import-file-row {
+      display: flex; align-items: center; gap: 10px; padding: 10px 8px;
+      border-radius: 8px; cursor: pointer;
+    }
+    .import-file-row:hover { background: rgba(255,255,255,0.05); }
+    .import-file-row.selected { background: rgba(20,184,166,0.15); border: 1px solid #14b8a6; }
+    .import-file-row svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .import-file-name { font-size: 0.85rem; color: #fff; }
+    .import-file-empty { font-size: 0.82rem; color: var(--subtext-color); font-style: italic; padding: 20px 4px; text-align: center; }
+
+    .import-form-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .import-form-cancel-btn, .import-form-import-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .import-form-cancel-btn { background: #000000; color: #fff; }
+    .import-form-import-btn { background: rgba(255,255,255,0.2); color: #fff; }
+    .import-form-import-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .import-form-import-btn:not(:disabled):hover { background: rgba(255,255,255,0.3); }
     .details-item-avatar {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -2381,14 +2485,16 @@ html, body {
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">FORMS</span>
-          <button class="details-panel-add-btn">+ Add</button>
+          <button class="details-panel-add-btn" onclick="openImportFormModal()">Import</button>
         </div>
-        <div class="details-item-row">
-          <div class="details-item-avatar" style="background:#2196f3;">T</div>
-          <span class="details-item-label">Tower B Foundation Log Sheet</span>
-          <button class="details-item-remove-btn" title="Remove">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+        <div id="formsListContainer">
+          <div class="details-item-row">
+            <div class="details-item-avatar" style="background:#2196f3;">T</div>
+            <span class="details-item-label">Tower B Foundation Log Sheet</span>
+            <button class="details-item-remove-btn" title="Remove" onclick="event.stopPropagation(); this.closest('.details-item-row').remove();">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2524,6 +2630,31 @@ html, body {
       <div class="group-modal-actions">
         <button class="group-modal-cancel-btn" onclick="closeGroupDeleteModal()">Cancel</button>
         <button class="group-modal-ok-btn danger" onclick="confirmGroupDelete()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Form modal: browses the project's own folders to pick a file to import as a Form -->
+  <div class="group-modal-overlay" id="importFormOverlay" onclick="closeImportFormModal()">
+    <div class="import-form-box" onclick="event.stopPropagation()">
+      <div class="import-form-header">
+        <div class="import-form-title-group">
+          <div class="import-form-avatar">A</div>
+          <span id="importFormBreadcrumb">Amber Holdings</span>
+        </div>
+        <div class="import-form-view-toggle">
+          <button class="import-form-view-btn active" id="importViewGridBtn" onclick="setImportFormViewMode('grid')" title="Grid view">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </button>
+          <button class="import-form-view-btn" id="importViewListBtn" onclick="setImportFormViewMode('list')" title="List view">
+            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      <div class="import-form-body" id="importFormBody"></div>
+      <div class="import-form-actions">
+        <button class="import-form-cancel-btn" onclick="closeImportFormModal()">Close</button>
+        <button class="import-form-import-btn" id="importFormConfirmBtn" onclick="confirmImportForm()" disabled>Import</button>
       </div>
     </div>
   </div>
@@ -4847,7 +4978,7 @@ function renderPreviewTray() {
           <button class="comment-react-btn" onclick="quickReactOpen(event, '${id}')" title="React">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
           </button>
-          <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
+          <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
           <button class="comment-send-btn" onclick="addComment('${id}')" title="Send">
             <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
           </button>
@@ -5166,6 +5297,90 @@ function renderPreviewTray() {
       if (groupContextTargetRow) groupContextTargetRow.remove();
       closeGroupDeleteModal();
       groupContextTargetRow = null;
+    }
+
+    // ===================== Import Form modal =====================
+    // Opens directly into the project's own dedicated "Forms" area (the Forms tab from the
+    // project's main screen sidebar) — not the general Site Photos/Reports/etc. folders, since
+    // form templates live in their own section there, separate from those file folders.
+
+    const PROJECT_FORMS_LIBRARY = [
+      'Tower B Foundation Log Sheet',
+      'Daily Site Inspection Form',
+      'Safety Compliance Checklist',
+      'Material Delivery Record',
+      'Concrete Pour Approval Form'
+    ];
+    let importFormViewMode = 'grid';
+    let importFormSelectedFile = null;
+
+    function openImportFormModal() {
+      importFormSelectedFile = null;
+      document.getElementById('importFormBreadcrumb').textContent = 'Amber Holdings / Forms';
+      document.getElementById('importFormOverlay').classList.add('active');
+      renderImportFormBody();
+    }
+
+    function closeImportFormModal() {
+      document.getElementById('importFormOverlay').classList.remove('active');
+    }
+
+    function setImportFormViewMode(mode) {
+      importFormViewMode = mode;
+      document.getElementById('importViewGridBtn').classList.toggle('active', mode === 'grid');
+      document.getElementById('importViewListBtn').classList.toggle('active', mode === 'list');
+      renderImportFormBody();
+    }
+
+    function selectImportFile(fileName) {
+      importFormSelectedFile = fileName;
+      updateImportConfirmState();
+      renderImportFormBody();
+    }
+
+    function updateImportConfirmState() {
+      const btn = document.getElementById('importFormConfirmBtn');
+      if (btn) btn.disabled = !importFormSelectedFile;
+    }
+
+    function renderImportFormBody() {
+      const body = document.getElementById('importFormBody');
+      if (!body) return;
+
+      if (importFormViewMode === 'grid') {
+        body.innerHTML = `<div class="import-folder-grid">${PROJECT_FORMS_LIBRARY.map(name => `
+          <div class="import-folder-card${importFormSelectedFile === name ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+            <div class="import-folder-name">${escapeHtml(name)}</div>
+          </div>
+        `).join('')}</div>`;
+      } else {
+        body.innerHTML = `<div class="import-file-list">${PROJECT_FORMS_LIBRARY.map(name => `
+          <div class="import-file-row${importFormSelectedFile === name ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span class="import-file-name">${escapeHtml(name)}</span>
+          </div>
+        `).join('')}</div>`;
+      }
+    }
+
+    function confirmImportForm() {
+      if (!importFormSelectedFile) return;
+      const container = document.getElementById('formsListContainer');
+      if (container) {
+        const initial = importFormSelectedFile.charAt(0).toUpperCase();
+        const row = document.createElement('div');
+        row.className = 'details-item-row';
+        row.innerHTML = `
+          <div class="details-item-avatar" style="background:#2196f3;">${initial}</div>
+          <span class="details-item-label">${escapeHtml(importFormSelectedFile)}</span>
+          <button class="details-item-remove-btn" title="Remove" onclick="event.stopPropagation(); this.closest('.details-item-row').remove();">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        `;
+        container.appendChild(row);
+      }
+      closeImportFormModal();
     }
   </script>
 </body>
