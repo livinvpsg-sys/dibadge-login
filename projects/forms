@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diBadge | Form</title>
+
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
+  <style>
+    :root {
+      --jet-black: #0f0f0f;
+      --paper-white: #f8f9fa;
+      --slate-surface: #1e1e1e;
+      --accent-white: #ffffff;
+      --muted-gray: #8e8e93;
+      --cool-ash: #a1a1a6;
+      --soft-border: #e5e5ea;
+
+      --bg-color: var(--paper-white);
+      --text-color: var(--jet-black);
+      --surface-color: var(--accent-white);
+      --header-bg: var(--paper-white);
+      --border-color: var(--soft-border);
+      --subtext-color: var(--cool-ash);
+    }
+    [data-theme="dark"] {
+      --bg-color: var(--jet-black);
+      --text-color: var(--accent-white);
+      --surface-color: var(--slate-surface);
+      --header-bg: #050505;
+      --border-color: #2c2c2e;
+      --subtext-color: var(--muted-gray);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    .dashboard-header { background: var(--header-bg); padding: 0 24px; display: flex; align-items: center; gap: 12px; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
+    .header-back-icon { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; }
+    .header-back-icon:hover { background: var(--surface-color); }
+    .header-breadcrumb-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 1.05rem; font-weight: 600; }
+    .breadcrumb-item { cursor: pointer; color: var(--subtext-color); }
+    .breadcrumb-item:hover { text-decoration: underline; }
+    .breadcrumb-item.active { color: var(--text-color); cursor: default; text-decoration: none; }
+
+    .form-workspace { flex: 1; overflow-y: auto; padding: 32px; display: flex; justify-content: center; }
+    .form-sheet {
+      width: 100%;
+      max-width: 720px;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+    }
+    .form-sheet-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+    .form-sheet-icon { width: 44px; height: 44px; stroke: var(--text-color); fill: none; stroke-width: 1.5; flex-shrink: 0; }
+    .form-sheet-title { font-size: 1.2rem; font-weight: 700; }
+    .form-sheet-subtitle { font-size: 0.82rem; color: var(--subtext-color); margin-top: 2px; }
+
+    .form-field-group { margin-bottom: 20px; }
+    .form-field-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--subtext-color); margin-bottom: 6px; }
+    .form-field-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-color);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      font-family: inherit;
+    }
+    textarea.form-field-input { resize: vertical; min-height: 90px; }
+
+    .form-sheet-empty { color: var(--subtext-color); font-size: 0.9rem; text-align: center; padding: 40px 0; }
+  </style>
+</head>
+<body>
+
+  <header class="dashboard-header">
+    <button class="header-back-icon" onclick="goBack()" title="Back">
+      <svg style="width:22px; height:22px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    </button>
+    <div class="header-breadcrumb-path" id="breadcrumbBar"></div>
+  </header>
+
+  <main class="form-workspace">
+    <div class="form-sheet" id="formSheet"></div>
+  </main>
+
+  <script>
+    function goBack() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('projectId');
+      // Return to the specific project's Forms tab if we know which project this was opened
+      // from; otherwise fall back to the main Projects screen's own Project Forms library.
+      window.location.href = projectId ? `../index.html?id=${projectId}` : `../index.html`;
+    }
+
+    (function render() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const formName = urlParams.get('name');
+      const projectId = urlParams.get('projectId');
+
+      const breadcrumb = document.getElementById('breadcrumbBar');
+      breadcrumb.innerHTML = `
+        <span class="breadcrumb-item" onclick="goBack()">${projectId ? 'Forms' : 'Project Forms'}</span>
+        <span>&gt;</span>
+        <span class="breadcrumb-item active">${formName ? formName : 'Form'}</span>
+      `;
+
+      const sheet = document.getElementById('formSheet');
+      if (!formName) {
+        sheet.innerHTML = `<div class="form-sheet-empty">No form was specified.</div>`;
+        return;
+      }
+
+      sheet.innerHTML = `
+        <div class="form-sheet-header">
+          <svg class="form-sheet-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+          <div>
+            <div class="form-sheet-title">${formName}</div>
+            <div class="form-sheet-subtitle">${projectId ? 'Project form' : 'From the Project Forms library'}</div>
+          </div>
+        </div>
+
+        <div class="form-field-group">
+          <label class="form-field-label">Site / Project</label>
+          <input type="text" class="form-field-input" placeholder="Enter site or project name">
+        </div>
+        <div class="form-field-group">
+          <label class="form-field-label">Date</label>
+          <input type="date" class="form-field-input">
+        </div>
+        <div class="form-field-group">
+          <label class="form-field-label">Prepared By</label>
+          <input type="text" class="form-field-input" placeholder="Your name">
+        </div>
+        <div class="form-field-group">
+          <label class="form-field-label">Notes</label>
+          <textarea class="form-field-input" placeholder="Enter details for this form..."></textarea>
+        </div>
+      `;
+    })();
+  </script>
+</body>
+</html>
