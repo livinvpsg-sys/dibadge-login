@@ -407,9 +407,7 @@ html, body {
     }
     .import-form-title-group { display: flex; align-items: center; gap: 10px; }
     .import-form-avatar {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: #8d6e63; color: #fff; font-size: 0.85rem; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      width: 22px; height: 22px; flex-shrink: 0;
     }
     #importFormBreadcrumb { font-size: 0.95rem; font-weight: 600; color: #fff; }
     .import-form-view-toggle {
@@ -2634,13 +2632,14 @@ html, body {
     </div>
   </div>
 
-  <!-- Import Form modal: browses the project's own folders to pick a file to import as a Form -->
+  <!-- Import Form modal: pulls from the standalone Project Forms library (forms/index.html) —
+       not this project's own folders, and not scoped to any single project. -->
   <div class="group-modal-overlay" id="importFormOverlay" onclick="closeImportFormModal()">
     <div class="import-form-box" onclick="event.stopPropagation()">
       <div class="import-form-header">
         <div class="import-form-title-group">
-          <div class="import-form-avatar">A</div>
-          <span id="importFormBreadcrumb">Amber Holdings</span>
+          <svg class="import-form-avatar" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+          <span id="importFormBreadcrumb">Project Forms</span>
         </div>
         <div class="import-form-view-toggle">
           <button class="import-form-view-btn active" id="importViewGridBtn" onclick="setImportFormViewMode('grid')" title="Grid view">
@@ -5303,21 +5302,38 @@ function renderPreviewTray() {
     // Opens directly into the project's own dedicated "Forms" area (the Forms tab from the
     // project's main screen sidebar) — not the general Site Photos/Reports/etc. folders, since
     // form templates live in their own section there, separate from those file folders.
+    // Reads the REAL forms list from localStorage, shared with the project's main screen page
+    // (same key pattern: dibadge_project_forms_<projectId>) — not a made-up placeholder list.
 
-    const PROJECT_FORMS_LIBRARY = [
+    const PROJECT_FORMS_DEFAULT = [
       'Tower B Foundation Log Sheet',
       'Daily Site Inspection Form',
       'Safety Compliance Checklist',
-      'Material Delivery Record',
-      'Concrete Pour Approval Form'
+      'Material Delivery Record'
     ];
+
+    // Reads the REAL Project Forms library — the same standalone library page (forms/index.html)
+    // and its localStorage key that "Project forms" in the main sidebar opens. Not a per-project
+    // or made-up list — this is the actual shared source of truth.
+    function getProjectFormsLibrary() {
+      const stored = localStorage.getItem('dibadge_global_forms_library');
+      if (!stored) return PROJECT_FORMS_DEFAULT.slice();
+      try {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : PROJECT_FORMS_DEFAULT.slice();
+      } catch (e) {
+        return PROJECT_FORMS_DEFAULT.slice();
+      }
+    }
+
     let importFormViewMode = 'grid';
-    let importFormSelectedFile = null;
+    let importFormSelectedFiles = new Set(); // multi-select — several forms can be imported in one go
 
     function openImportFormModal() {
-      importFormSelectedFile = null;
-      document.getElementById('importFormBreadcrumb').textContent = 'Amber Holdings / Forms';
+      importFormSelectedFiles = new Set();
+      document.getElementById('importFormBreadcrumb').textContent = 'Project Forms';
       document.getElementById('importFormOverlay').classList.add('active');
+      updateImportConfirmState();
       renderImportFormBody();
     }
 
@@ -5333,30 +5349,45 @@ function renderPreviewTray() {
     }
 
     function selectImportFile(fileName) {
-      importFormSelectedFile = fileName;
+      // Toggling — clicking an already-selected form deselects it, same as the chat's own
+      // multi-select-message pattern.
+      if (importFormSelectedFiles.has(fileName)) {
+        importFormSelectedFiles.delete(fileName);
+      } else {
+        importFormSelectedFiles.add(fileName);
+      }
       updateImportConfirmState();
       renderImportFormBody();
     }
 
     function updateImportConfirmState() {
       const btn = document.getElementById('importFormConfirmBtn');
-      if (btn) btn.disabled = !importFormSelectedFile;
+      if (!btn) return;
+      const count = importFormSelectedFiles.size;
+      btn.disabled = count === 0;
+      btn.textContent = count > 0 ? `Import (${count})` : 'Import';
     }
 
     function renderImportFormBody() {
       const body = document.getElementById('importFormBody');
       if (!body) return;
+      const forms = getProjectFormsLibrary();
+
+      if (forms.length === 0) {
+        body.innerHTML = `<div class="import-file-empty">No forms found in Project Forms yet.</div>`;
+        return;
+      }
 
       if (importFormViewMode === 'grid') {
-        body.innerHTML = `<div class="import-folder-grid">${PROJECT_FORMS_LIBRARY.map(name => `
-          <div class="import-folder-card${importFormSelectedFile === name ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+        body.innerHTML = `<div class="import-folder-grid">${forms.map(name => `
+          <div class="import-folder-card${importFormSelectedFiles.has(name) ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
             <div class="import-folder-name">${escapeHtml(name)}</div>
           </div>
         `).join('')}</div>`;
       } else {
-        body.innerHTML = `<div class="import-file-list">${PROJECT_FORMS_LIBRARY.map(name => `
-          <div class="import-file-row${importFormSelectedFile === name ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+        body.innerHTML = `<div class="import-file-list">${forms.map(name => `
+          <div class="import-file-row${importFormSelectedFiles.has(name) ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
             <span class="import-file-name">${escapeHtml(name)}</span>
           </div>
@@ -5365,20 +5396,22 @@ function renderPreviewTray() {
     }
 
     function confirmImportForm() {
-      if (!importFormSelectedFile) return;
+      if (importFormSelectedFiles.size === 0) return;
       const container = document.getElementById('formsListContainer');
       if (container) {
-        const initial = importFormSelectedFile.charAt(0).toUpperCase();
-        const row = document.createElement('div');
-        row.className = 'details-item-row';
-        row.innerHTML = `
-          <div class="details-item-avatar" style="background:#2196f3;">${initial}</div>
-          <span class="details-item-label">${escapeHtml(importFormSelectedFile)}</span>
-          <button class="details-item-remove-btn" title="Remove" onclick="event.stopPropagation(); this.closest('.details-item-row').remove();">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        `;
-        container.appendChild(row);
+        importFormSelectedFiles.forEach(formName => {
+          const initial = formName.charAt(0).toUpperCase();
+          const row = document.createElement('div');
+          row.className = 'details-item-row';
+          row.innerHTML = `
+            <div class="details-item-avatar" style="background:#2196f3;">${initial}</div>
+            <span class="details-item-label">${escapeHtml(formName)}</span>
+            <button class="details-item-remove-btn" title="Remove" onclick="event.stopPropagation(); this.closest('.details-item-row').remove();">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          `;
+          container.appendChild(row);
+        });
       }
       closeImportFormModal();
     }
