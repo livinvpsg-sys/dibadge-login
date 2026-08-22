@@ -258,7 +258,7 @@
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </button>
 
-        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Project forms">
+        <button class="tab-btn" id="btnNavForms" onclick="window.location.href='forms/index.html'" title="Project forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
 
@@ -331,32 +331,8 @@
       </div>
     </div>
 
-    <!-- Add Form modal for the main-screen Project Forms library -->
-    <div class="modal-overlay" id="addGlobalFormModal">
-      <div class="modal-card" style="max-width: 380px;">
-        <button class="close-btn" onclick="closeAddGlobalFormModal()">&times;</button>
-        <h3>Add Form</h3>
-        <label class="modal-label">Form name</label>
-        <input type="text" class="modal-input" id="newGlobalFormNameInput" placeholder="e.g. Daily Site Inspection Form">
-        <div class="modal-actions">
-          <button class="modal-btn btn-cancel" onclick="closeAddGlobalFormModal()">Cancel</button>
-          <button class="modal-btn btn-save" onclick="confirmAddGlobalForm()">Save</button>
-        </div>
-      </div>
-    </div>
-
     <main class="tiles-wrapper" id="mainGridWorkspace">
       <div id="projectDisplayContainer" style="width:100%;"></div>
-    </main>
-
-    <!-- Main-screen level "Project forms" tab — a global forms library, separate from a
-         specific project's own Forms sub-tab (that one lives in formsSubPanel below). -->
-    <main class="tiles-wrapper" id="mainFormsWorkspace" style="display:none; flex-direction:column;">
-      <div class="forms-panel-header">
-        <h2>Project Forms</h2>
-        <button class="forms-add-btn" onclick="openAddGlobalFormModal()">+ Add Form</button>
-      </div>
-      <div class="forms-grid" id="mainFormsGrid"></div>
     </main>
 
     <section class="folder-explorer-view" id="folderExplorerWorkspace">
@@ -478,7 +454,6 @@
       document.getElementById("btnViewList").classList.toggle("active", mode === 'list');
       if (activeOpenedProject && activeViewMode === 'folder') renderFolderView();
       else if (activeOpenedProject && activeViewMode === 'forms') renderFormsPanel();
-      else if (!activeOpenedProject && activeViewMode === 'forms') renderMainFormsPanel();
       else filterProjects();
     }
 
@@ -544,77 +519,16 @@
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       document.getElementById("mainGridWorkspace").style.display = tabKey === 'projects' ? "flex" : "none";
-      document.getElementById("mainFormsWorkspace").style.display = tabKey === 'forms' ? "flex" : "none";
       ['btnNavSuitcase', 'btnNavForms', 'btnNavSchedule'].forEach(id => {
         const btn = document.getElementById(id);
         if (btn) btn.classList.remove('active');
       });
-      const activeBtnId = { projects: 'btnNavSuitcase', forms: 'btnNavForms', schedule: 'btnNavSchedule' }[tabKey];
+      const activeBtnId = { projects: 'btnNavSuitcase', schedule: 'btnNavSchedule' }[tabKey];
       if (activeBtnId) {
         const btn = document.getElementById(activeBtnId);
         if (btn) btn.classList.add('active');
       }
       if (tabKey === 'projects') filterProjects();
-      if (tabKey === 'forms') renderMainFormsPanel();
-    }
-
-    // ---- Main-screen "Project Forms" library (global, not tied to any single project) ----
-
-    const GLOBAL_FORMS_KEY = 'dibadge_global_forms_library';
-
-    function getDefaultGlobalForms() {
-      return [
-        'Tower B Foundation Log Sheet',
-        'Daily Site Inspection Form',
-        'Safety Compliance Checklist',
-        'Material Delivery Record',
-        'Concrete Pour Approval Form',
-        'Equipment Maintenance Log'
-      ];
-    }
-
-    function getGlobalFormsLibrary() {
-      const stored = localStorage.getItem(GLOBAL_FORMS_KEY);
-      if (!stored) {
-        const defaults = getDefaultGlobalForms();
-        localStorage.setItem(GLOBAL_FORMS_KEY, JSON.stringify(defaults));
-        return defaults;
-      }
-      try {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : getDefaultGlobalForms();
-      } catch (e) {
-        return getDefaultGlobalForms();
-      }
-    }
-
-    function saveGlobalFormsLibrary(forms) {
-      localStorage.setItem(GLOBAL_FORMS_KEY, JSON.stringify(forms));
-    }
-
-    function renderMainFormsPanel() {
-      const grid = document.getElementById("mainFormsGrid");
-      const forms = getGlobalFormsLibrary();
-      renderFormEntries(grid, forms);
-    }
-
-    function openAddGlobalFormModal() {
-      document.getElementById('newGlobalFormNameInput').value = '';
-      document.getElementById('addGlobalFormModal').style.display = 'flex';
-    }
-
-    function closeAddGlobalFormModal() {
-      document.getElementById('addGlobalFormModal').style.display = 'none';
-    }
-
-    function confirmAddGlobalForm() {
-      const name = document.getElementById('newGlobalFormNameInput').value.trim();
-      if (!name) return;
-      const forms = getGlobalFormsLibrary();
-      forms.push(name);
-      saveGlobalFormsLibrary(forms);
-      closeAddGlobalFormModal();
-      renderMainFormsPanel();
     }
 
     function openProjectFolder(proj) {
