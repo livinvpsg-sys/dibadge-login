@@ -133,14 +133,26 @@
     textarea.underline-modal-input { resize: vertical; min-height: 50px; font-family: inherit; }
 
     /* Sub-view Panels */
-    .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; }
+    .sub-view-panel { display: none; flex: 1; padding: 24px; color: var(--text-color); overflow-y: auto; background: var(--bg-color); }
+    .sub-view-panel.active { display: block; }
 
-    /* Activity Feed */
-    .notifications-panel { width: 25%; min-width: 250px; max-width: 300px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; }
-    .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; }
-    .notifications-header svg { width: 18px; height: 18px; stroke: var(--paper-white); stroke-width: 2; fill: none; margin-right: 6px; }
-    .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
+    /* Forms tab: demo form templates for this project */
+    .forms-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .forms-panel-header h2 { font-size: 1.05rem; font-weight: 700; }
+    .forms-add-btn { background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .forms-add-btn:hover { background: var(--border-color); }
+    .forms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+    .form-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; cursor: pointer; transition: transform 0.15s, background 0.15s; }
+    .form-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.05); }
+    .form-card svg { width: 40px; height: 40px; stroke: var(--text-color); fill: none; stroke-width: 1.6; }
+    .form-card-name { font-size: 0.82rem; font-weight: 600; color: var(--text-color); line-height: 1.25; word-break: break-word; }
+
+    /* List-view row for forms, used when the header's list toggle is active */
+    .form-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+    .form-row:hover { background: rgba(255,255,255,0.05); }
+    .form-row svg { width: 22px; height: 22px; stroke: var(--text-color); fill: none; stroke-width: 1.6; flex-shrink: 0; }
+    .form-row-name { font-size: 0.88rem; font-weight: 600; color: var(--text-color); }
+    .forms-list-container { display: flex; flex-direction: column; gap: 2px; }
 
     /* Standard Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
@@ -163,7 +175,32 @@
     .context-menu-item.danger:hover { background: var(--error-red); color: white; }
     .context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-    @media (max-width: 1024px) { .notifications-panel { display: none; } }
+    @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
+
+    /* Activity Feed — ported exactly from the chat screen, so it's one shared design, not a duplicate */
+    .activity-feed-panel {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--surface-color);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 16px;
+      height: 100%;
+    }
+    .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
+    .details-panel-title-group { display: flex; align-items: center; gap: 8px; }
+    .details-panel-title-group svg { width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0; }
+    .details-panel-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--subtext-color); }
+    .details-panel-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #25D366; animation: livePulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .activity-feed-card { background: transparent; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+    .activity-feed-title { font-size: 0.85rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px; }
+    .activity-feed-desc { font-size: 0.78rem; color: var(--subtext-color); line-height: 1.4; }
+    .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
+    .activity-feed-empty { font-size: 0.78rem; color: var(--subtext-color); padding: 4px 2px; }
   </style>
 </head>
 <body onclick="hideContextMenus();">
@@ -221,7 +258,7 @@
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </button>
 
-        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Forms">
+        <button class="tab-btn" id="btnNavForms" onclick="switchMainViewTab('forms')" title="Project forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
 
@@ -280,8 +317,46 @@
       </div>
     </div>
 
+    <!-- Add Form modal -->
+    <div class="modal-overlay" id="addFormModal">
+      <div class="modal-card" style="max-width: 380px;">
+        <button class="close-btn" onclick="closeAddFormModal()">&times;</button>
+        <h3>Add Form</h3>
+        <label class="modal-label">Form name</label>
+        <input type="text" class="modal-input" id="newFormNameInput" placeholder="e.g. Daily Site Inspection Form">
+        <div class="modal-actions">
+          <button class="modal-btn btn-cancel" onclick="closeAddFormModal()">Cancel</button>
+          <button class="modal-btn btn-save" onclick="confirmAddForm()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Form modal for the main-screen Project Forms library -->
+    <div class="modal-overlay" id="addGlobalFormModal">
+      <div class="modal-card" style="max-width: 380px;">
+        <button class="close-btn" onclick="closeAddGlobalFormModal()">&times;</button>
+        <h3>Add Form</h3>
+        <label class="modal-label">Form name</label>
+        <input type="text" class="modal-input" id="newGlobalFormNameInput" placeholder="e.g. Daily Site Inspection Form">
+        <div class="modal-actions">
+          <button class="modal-btn btn-cancel" onclick="closeAddGlobalFormModal()">Cancel</button>
+          <button class="modal-btn btn-save" onclick="confirmAddGlobalForm()">Save</button>
+        </div>
+      </div>
+    </div>
+
     <main class="tiles-wrapper" id="mainGridWorkspace">
       <div id="projectDisplayContainer" style="width:100%;"></div>
+    </main>
+
+    <!-- Main-screen level "Project forms" tab — a global forms library, separate from a
+         specific project's own Forms sub-tab (that one lives in formsSubPanel below). -->
+    <main class="tiles-wrapper" id="mainFormsWorkspace" style="display:none; flex-direction:column;">
+      <div class="forms-panel-header">
+        <h2>Project Forms</h2>
+        <button class="forms-add-btn" onclick="openAddGlobalFormModal()">+ Add Form</button>
+      </div>
+      <div class="forms-grid" id="mainFormsGrid"></div>
     </main>
 
     <section class="folder-explorer-view" id="folderExplorerWorkspace">
@@ -294,18 +369,29 @@
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
     </section>
 
-    <!-- Right Activity Feed -->
-    <aside class="notifications-panel">
-      <div class="notifications-header">
-        <span><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg> Activity Feed</span>
-        <span style="font-size:0.75rem; background: var(--border-color); color: var(--text-color); padding:2px 8px; border-radius:10px;">Live</span>
+    <!-- Forms tab panel: demo form templates stored per-project, shared (via localStorage)
+         with this project's Chat screen so its Import modal can pull the real list. -->
+    <section class="sub-view-panel" id="formsSubPanel">
+      <div class="forms-panel-header">
+        <h2>Forms</h2>
+        <button class="forms-add-btn" onclick="openAddFormModal()">+ Add Form</button>
       </div>
-      <div class="notifications-list">
-        <div class="notification-item">
-          <div class="title">New Project Initialized</div>
-          <p style="color:var(--subtext-color);">Amber Holdings setup complete.</p>
-          <div class="time">1 hour ago</div>
+      <div class="forms-grid" id="formsGrid"></div>
+    </section>
+
+    <!-- Right Activity Feed — identical component/styling to the chat screen's, not a duplicate design -->
+    <aside class="activity-feed-panel">
+      <div class="details-panel-section-header">
+        <div class="details-panel-title-group">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="details-panel-title">Activity Feed</span>
         </div>
+        <span class="details-panel-live-dot" title="Live"></span>
+      </div>
+      <div class="activity-feed-card">
+        <div class="activity-feed-title">New Project Initialized</div>
+        <div class="activity-feed-desc">Amber Holdings setup complete.</div>
+        <div class="activity-feed-time">1 hour ago</div>
       </div>
     </aside>
   </div>
@@ -323,6 +409,39 @@
         { id: 'f-3', name: 'Reports & Worksheets', items: '0 Files', children: [], files: [] },
         { id: 'f-4', name: 'Drawings & Blueprints', items: '0 Files', children: [], files: [] }
       ];
+    }
+
+    // Demo form templates seeded for every project. Stored to localStorage per-project so the
+    // project's own Chat screen (a separate page) can read the SAME real list for its Import
+    // modal, instead of a made-up placeholder list.
+    function getDefaultForms() {
+      return [
+        'Tower B Foundation Log Sheet',
+        'Daily Site Inspection Form',
+        'Safety Compliance Checklist',
+        'Material Delivery Record'
+      ];
+    }
+
+    function formsStorageKey(projectId) {
+      return 'dibadge_project_forms_' + projectId;
+    }
+
+    function getProjectForms(projectId) {
+      const stored = localStorage.getItem(formsStorageKey(projectId));
+      if (!stored) return null;
+      try { return JSON.parse(stored); } catch (e) { return null; }
+    }
+
+    function saveProjectForms(projectId, forms) {
+      localStorage.setItem(formsStorageKey(projectId), JSON.stringify(forms));
+    }
+
+    // Ensures every project has a forms list in storage (seeding the demo set the first time).
+    function ensureProjectFormsSeeded(projectId) {
+      if (getProjectForms(projectId) === null) {
+        saveProjectForms(projectId, getDefaultForms());
+      }
     }
 
     const defaultProjects = [
@@ -358,7 +477,39 @@
       document.getElementById("btnViewTile").classList.toggle("active", mode === 'grid');
       document.getElementById("btnViewList").classList.toggle("active", mode === 'list');
       if (activeOpenedProject && activeViewMode === 'folder') renderFolderView();
+      else if (activeOpenedProject && activeViewMode === 'forms') renderFormsPanel();
+      else if (!activeOpenedProject && activeViewMode === 'forms') renderMainFormsPanel();
       else filterProjects();
+    }
+
+    // Shared by both the main-screen "Project Forms" library and a specific project's own
+    // Forms tab — renders as a card grid or a list, depending on the header's view toggle, and
+    // each entry opens that form in its own separate file (forms/index.html) when clicked.
+    function renderFormEntries(containerEl, forms) {
+      if (currentProjectDisplayMode === 'list') {
+        containerEl.className = 'forms-list-container';
+        containerEl.innerHTML = forms.map(name => `
+          <div class="form-row" title="${name}" onclick="openFormFile('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+            <span class="form-row-name">${name}</span>
+          </div>
+        `).join('');
+      } else {
+        containerEl.className = 'forms-grid';
+        containerEl.innerHTML = forms.map(name => `
+          <div class="form-card" title="${name}" onclick="openFormFile('${name.replace(/'/g, "\\'")}')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+            <div class="form-card-name">${name}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Opens the clicked form in its own separate file, passing which form + which project
+    // (if any) it was opened from.
+    function openFormFile(formName) {
+      const projectPart = activeOpenedProject ? `&projectId=${encodeURIComponent(activeOpenedProject.id)}` : '';
+      window.location.href = `forms/index.html?name=${encodeURIComponent(formName)}${projectPart}`;
     }
 
     function filterProjects() {
@@ -393,13 +544,85 @@
     function switchMainViewTab(tabKey) {
       activeViewMode = tabKey;
       document.getElementById("mainGridWorkspace").style.display = tabKey === 'projects' ? "flex" : "none";
+      document.getElementById("mainFormsWorkspace").style.display = tabKey === 'forms' ? "flex" : "none";
+      ['btnNavSuitcase', 'btnNavForms', 'btnNavSchedule'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+      });
+      const activeBtnId = { projects: 'btnNavSuitcase', forms: 'btnNavForms', schedule: 'btnNavSchedule' }[tabKey];
+      if (activeBtnId) {
+        const btn = document.getElementById(activeBtnId);
+        if (btn) btn.classList.add('active');
+      }
       if (tabKey === 'projects') filterProjects();
+      if (tabKey === 'forms') renderMainFormsPanel();
+    }
+
+    // ---- Main-screen "Project Forms" library (global, not tied to any single project) ----
+
+    const GLOBAL_FORMS_KEY = 'dibadge_global_forms_library';
+
+    function getDefaultGlobalForms() {
+      return [
+        'Tower B Foundation Log Sheet',
+        'Daily Site Inspection Form',
+        'Safety Compliance Checklist',
+        'Material Delivery Record',
+        'Concrete Pour Approval Form',
+        'Equipment Maintenance Log'
+      ];
+    }
+
+    function getGlobalFormsLibrary() {
+      const stored = localStorage.getItem(GLOBAL_FORMS_KEY);
+      if (!stored) {
+        const defaults = getDefaultGlobalForms();
+        localStorage.setItem(GLOBAL_FORMS_KEY, JSON.stringify(defaults));
+        return defaults;
+      }
+      try {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : getDefaultGlobalForms();
+      } catch (e) {
+        return getDefaultGlobalForms();
+      }
+    }
+
+    function saveGlobalFormsLibrary(forms) {
+      localStorage.setItem(GLOBAL_FORMS_KEY, JSON.stringify(forms));
+    }
+
+    function renderMainFormsPanel() {
+      const grid = document.getElementById("mainFormsGrid");
+      const forms = getGlobalFormsLibrary();
+      renderFormEntries(grid, forms);
+    }
+
+    function openAddGlobalFormModal() {
+      document.getElementById('newGlobalFormNameInput').value = '';
+      document.getElementById('addGlobalFormModal').style.display = 'flex';
+    }
+
+    function closeAddGlobalFormModal() {
+      document.getElementById('addGlobalFormModal').style.display = 'none';
+    }
+
+    function confirmAddGlobalForm() {
+      const name = document.getElementById('newGlobalFormNameInput').value.trim();
+      if (!name) return;
+      const forms = getGlobalFormsLibrary();
+      forms.push(name);
+      saveGlobalFormsLibrary(forms);
+      closeAddGlobalFormModal();
+      renderMainFormsPanel();
     }
 
     function openProjectFolder(proj) {
       activeOpenedProject = proj;
       folderObjectStack = [proj];
       activeViewMode = 'folder';
+
+      ensureProjectFormsSeeded(proj.id);
 
       document.getElementById("mainNavGroup").style.display = "none";
       document.getElementById("projectSubNav").style.display = "flex";
@@ -414,7 +637,46 @@
     function switchProjectSubTab(tabKey) {
       activeViewMode = tabKey;
       document.getElementById("folderExplorerWorkspace").style.display = tabKey === 'folder' ? "flex" : "none";
+      document.getElementById("formsSubPanel").classList.toggle("active", tabKey === 'forms');
       if (tabKey === 'folder') renderFolderView();
+      if (tabKey === 'forms') renderFormsPanel();
+
+      ['btnSubFolder', 'btnSubForms', 'btnSubBOQ', 'btnSubCompare', 'btnSubClaims', 'btnSubSchedule'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.remove('active');
+      });
+      const activeBtnId = { folder: 'btnSubFolder', forms: 'btnSubForms', compare: 'btnSubCompare', claims: 'btnSubClaims', schedule: 'btnSubSchedule' }[tabKey];
+      if (activeBtnId) {
+        const activeBtn = document.getElementById(activeBtnId);
+        if (activeBtn) activeBtn.classList.add('active');
+      }
+    }
+
+    function renderFormsPanel() {
+      if (!activeOpenedProject) return;
+      const grid = document.getElementById("formsGrid");
+      const forms = getProjectForms(activeOpenedProject.id) || getDefaultForms();
+      renderFormEntries(grid, forms);
+    }
+
+    function openAddFormModal() {
+      document.getElementById('newFormNameInput').value = '';
+      document.getElementById('addFormModal').style.display = 'flex';
+    }
+
+    function closeAddFormModal() {
+      document.getElementById('addFormModal').style.display = 'none';
+    }
+
+    function confirmAddForm() {
+      if (!activeOpenedProject) return;
+      const name = document.getElementById('newFormNameInput').value.trim();
+      if (!name) return;
+      const forms = getProjectForms(activeOpenedProject.id) || getDefaultForms();
+      forms.push(name);
+      saveProjectForms(activeOpenedProject.id, forms);
+      closeAddFormModal();
+      renderFormsPanel();
     }
 
     function getCurrentWorkspaceFolder() {
@@ -463,6 +725,7 @@
         document.getElementById("defaultHeaderTitle").style.display = "flex";
         document.getElementById("projectSearchInput").style.display = "";
         document.getElementById("folderExplorerWorkspace").style.display = "none";
+        document.getElementById("formsSubPanel").classList.remove("active");
         // Clean URL parameter when going back to main list
         window.history.replaceState({}, document.title, window.location.pathname);
         switchMainViewTab('projects');
@@ -481,7 +744,7 @@
         const client = prompt("Enter Client Name:");
         if (!client) return;
         const projects = getProjects();
-        projects.push({
+        const newProj = {
           id: 'proj-' + Date.now(),
           client: client,
           projectNo: `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -489,7 +752,9 @@
           remarks: 'Newly added project',
           year: document.getElementById("yearPicker").value,
           children: getDefaultSubFolders()
-        });
+        };
+        projects.push(newProj);
+        ensureProjectFormsSeeded(newProj.id);
         saveProjects(projects);
       }
     }
@@ -510,6 +775,9 @@
           return;
         }
       }
+      // Seed forms for every default project up front so Chat's Import modal always has data
+      // to read, even if that project's folder was never opened yet on this device.
+      getProjects().forEach(p => ensureProjectFormsSeeded(p.id));
       filterProjects();
     })();
   </script>
