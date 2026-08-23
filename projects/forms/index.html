@@ -43,6 +43,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
+    /* Themed scrollbar, matching the chat screen — not the browser default */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #000000; }
+    ::-webkit-scrollbar-thumb { background: var(--slate-surface, #1e1e1e); border-radius: 4px; border: 1px solid var(--border-color, #2c2c2e); }
+    ::-webkit-scrollbar-thumb:hover { background: #2c2c2e; }
+    * { scrollbar-width: thin; scrollbar-color: var(--slate-surface, #1e1e1e) #000000; }
+
     /* Header — same shell as the Projects screen */
     .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
     .default-header-title { display: flex; align-items: center; gap: 12px; }
@@ -166,6 +173,12 @@
     }
     .group-modal-input::placeholder { color: var(--subtext-color); }
     .group-modal-input:focus { border-bottom-color: var(--subtext-color); }
+    .group-modal-message {
+      font-size: 0.85rem;
+      color: var(--subtext-color);
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
     .group-modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -241,18 +254,18 @@
 
     <aside class="left-vertical-tabbar">
       <div class="main-nav-group">
-        <a href="../home" class="tab-btn" title="Home">
+        <a href="../home" class="tab-btn" title="Home" onclick="return handleNavAttempt(event, '../home')">
           <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
             <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
         </a>
-        <a href="../index.html" class="tab-btn" title="Projects">
+        <a href="../index.html" class="tab-btn" title="Projects" onclick="return handleNavAttempt(event, '../index.html')">
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </a>
         <button class="tab-btn active" title="Project forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
-        <a href="../index.html" class="tab-btn" title="Schedule">
+        <a href="../index.html" class="tab-btn" title="Schedule" onclick="return handleNavAttempt(event, '../index.html')">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </a>
       </div>
@@ -273,6 +286,19 @@
       </div>
     </div>
 
+    <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
+    <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Unsaved Changes</div>
+        <div class="group-modal-message">You have unsaved changes on this form. Save before leaving?</div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="cancelPendingNav()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="discardAndLeave()">Discard</button>
+          <button class="group-modal-ok-btn" onclick="saveAndLeave()">Save</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Forms library (list of all forms) -->
     <main class="forms-workspace" id="formsLibraryWorkspace">
       <div class="forms-panel-header">
@@ -283,7 +309,7 @@
 
     <!-- Individual form (shown when a form is opened via ?name=) -->
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
-      <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..."></div>
+      <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..." oninput="hasUnsavedChanges = true;"></div>
     </main>
 
     <aside class="activity-feed-panel">
@@ -390,14 +416,84 @@
 
     // ---- Opening / viewing a specific form ----
 
+    // ===================== Unsaved-changes tracking + persistence =====================
+    // In-app navigation (breadcrumb, sidebar, back arrow) is fully under our control and gets
+    // the custom confirmation styled like the chat's remove/delete popups. Actually closing or
+    // refreshing the browser tab is NOT something a webpage can style — browsers only allow
+    // their own plain native "leave site?" dialog for that (a hard security restriction, the
+    // same for every site), so that case uses the standard beforeunload prompt instead.
+
+    let hasUnsavedChanges = false;
+    let currentFormName = null;
+    let pendingNavUrl = null; // a real URL, or '__library__' for the in-page library view
+    const FORM_CONTENT_KEY_PREFIX = 'dibadge_form_content_';
+
+    function saveCurrentFormContent() {
+      if (!currentFormName) return;
+      const page = document.getElementById('formSheet');
+      localStorage.setItem(FORM_CONTENT_KEY_PREFIX + currentFormName, page.innerHTML);
+    }
+
+    function loadFormContent(name) {
+      return localStorage.getItem(FORM_CONTENT_KEY_PREFIX + name);
+    }
+
+    // Every in-app link/button that leaves the current form routes through this first.
+    function handleNavAttempt(event, url) {
+      if (!hasUnsavedChanges) return true; // nothing to protect — let it navigate normally
+      if (event) event.preventDefault();
+      pendingNavUrl = url;
+      document.getElementById('unsavedChangesOverlay').classList.add('active');
+      return false;
+    }
+
+    function cancelPendingNav() {
+      pendingNavUrl = null;
+      document.getElementById('unsavedChangesOverlay').classList.remove('active');
+    }
+
+    function discardAndLeave() {
+      hasUnsavedChanges = false;
+      document.getElementById('unsavedChangesOverlay').classList.remove('active');
+      proceedPendingNav();
+    }
+
+    function saveAndLeave() {
+      saveCurrentFormContent();
+      hasUnsavedChanges = false;
+      document.getElementById('unsavedChangesOverlay').classList.remove('active');
+      proceedPendingNav();
+    }
+
+    function proceedPendingNav() {
+      const url = pendingNavUrl;
+      pendingNavUrl = null;
+      if (url === '__library__') {
+        window.history.pushState({}, '', window.location.pathname);
+        showLibrary();
+      } else if (url) {
+        window.location.href = url;
+      }
+    }
+
+    // Native browser dialog only — cannot be replaced with the app's own styled popup.
+    window.addEventListener('beforeunload', function(e) {
+      if (!hasUnsavedChanges) return;
+      e.preventDefault();
+      e.returnValue = '';
+    });
+
     function openForm(name) {
       window.history.pushState({}, '', `?name=${encodeURIComponent(name)}`);
       showFormSheet(name);
     }
 
     function backToLibrary() {
-      window.history.pushState({}, '', window.location.pathname);
-      showLibrary();
+      handleNavAttempt(null, '__library__');
+      if (!hasUnsavedChanges) {
+        window.history.pushState({}, '', window.location.pathname);
+        showLibrary();
+      }
     }
 
     function showLibrary() {
@@ -422,13 +518,13 @@
         <span class="breadcrumb-item active">${name}</span>
       `;
 
-      // Blank A4 page, same idea as opening a new Word document — the form's name lives in
-      // the breadcrumb above, the page itself starts empty and ready to design.
+      // Blank A4 page, same idea as opening a new Word document — loads any previously saved
+      // content for this form, or starts empty if there is none yet.
+      currentFormName = name;
+      hasUnsavedChanges = false;
       const page = document.getElementById('formSheet');
-      if (!page.hasAttribute('data-loaded-for') || page.getAttribute('data-loaded-for') !== name) {
-        page.innerHTML = '';
-        page.setAttribute('data-loaded-for', name);
-      }
+      const saved = loadFormContent(name);
+      page.innerHTML = saved || '';
     }
 
     (function init() {
