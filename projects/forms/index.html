@@ -114,6 +114,7 @@
       line-height: 1.6;
       outline: none;
       box-sizing: border-box;
+      position: relative; /* positioning context for floating blocks like Question & Answer */
     }
     .a4-page:empty:before {
       content: attr(data-placeholder);
@@ -149,9 +150,68 @@
     .form-tool-divider { width: 28px; height: 1px; background: var(--border-color); margin: 6px 0; }
 
     /* Inserted question/options blocks — light styling since the page itself is white */
-    .inserted-question-block { margin: 10px 0; }
-    .inserted-question-label { font-weight: 700; margin-bottom: 6px; }
-    .inserted-answer-line { border-bottom: 1px solid #999; padding: 4px 2px; color: #888; min-height: 20px; }
+    /* Question & Answer — a floating, movable, resizable block (like a text box in Word) */
+    .qa-block {
+      position: absolute;
+      min-width: 160px;
+    }
+    .qa-block.qa-dragging { z-index: 50; }
+    .qa-move-zone {
+      position: absolute;
+      top: -6px; left: -6px;
+      width: 26px; height: 26px;
+      z-index: 5;
+    }
+    .qa-move-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #14b8a6;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: move;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      user-select: none;
+    }
+    .qa-move-zone:hover .qa-move-handle { display: flex; }
+    .qa-question-input {
+      display: block;
+      width: 100%;
+      border: none;
+      outline: none;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 4px 2px;
+      background: transparent;
+      color: #1a1a1a;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .qa-question-input::placeholder { color: #999; font-weight: 700; }
+    .qa-answer-box {
+      position: relative;
+      border: 1px solid #999;
+      border-radius: 4px;
+      min-height: 32px;
+      margin-top: 2px;
+      box-sizing: border-box;
+    }
+    .qa-resize-right {
+      position: absolute;
+      top: 0; right: -4px;
+      width: 8px; height: 100%;
+      cursor: ew-resize;
+    }
+    .qa-resize-bottom {
+      position: absolute;
+      left: 0; bottom: -4px;
+      width: 100%; height: 8px;
+      cursor: ns-resize;
+    }
     .inserted-options-block { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
     .inserted-option-pill { border: 1px solid #999; border-radius: 16px; padding: 6px 14px; display: inline-block; }
     .inserted-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
@@ -593,6 +653,9 @@
       const page = document.getElementById('formSheet');
       const saved = loadFormContent(name);
       page.innerHTML = saved || '';
+      // Re-attach drag/resize behavior to any Question & Answer blocks restored from storage —
+      // innerHTML assignment brings back the markup but not the JS listeners that were on it.
+      page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       document.getElementById('formToolsRail').style.display = 'flex';
     }
 
@@ -660,13 +723,108 @@
       hasUnsavedChanges = true;
     }
 
+    // Question & Answer — inserted as a floating block (not flowing text), so it can be freely
+    // moved and resized like a text box, independent of the surrounding document.
+    let qaBlockCascadeOffset = 0;
+
     function insertQuestionBlock() {
-      insertHtmlAtCursor(
-        '<div class="inserted-question-block">' +
-          '<div class="inserted-question-label">Question</div>' +
-          '<div class="inserted-answer-line">Answer</div>' +
-        '</div><br>'
-      );
+      const page = document.getElementById('formSheet');
+
+      const block = document.createElement('div');
+      block.className = 'qa-block';
+      block.contentEditable = 'false'; // an atomic block — its own <input> stays interactive,
+                                        // but the page's contenteditable doesn't intercept clicks/drags on it
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '380px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120; // so repeated inserts don't stack exactly on top of each other
+
+      block.innerHTML = `
+        <div class="qa-move-zone"><div class="qa-move-handle" title="Move">+</div></div>
+        <input type="text" class="qa-question-input" placeholder="Question">
+        <div class="qa-answer-box">
+          <div class="qa-resize-right"></div>
+          <div class="qa-resize-bottom"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireQaBlockInteractions(block);
+      hasUnsavedChanges = true;
+    }
+
+    function wireQaBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.qa-move-handle');
+      const rightHandle = block.querySelector('.qa-resize-right');
+      const bottomHandle = block.querySelector('.qa-resize-bottom');
+      const answerBox = block.querySelector('.qa-answer-box');
+
+      // Move — drag the "+" handle to reposition the whole block anywhere within the page
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('qa-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          block.style.left = newLeft + 'px';
+          block.style.top = newTop + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('qa-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // Resize width — right edge only (left edge stays fixed)
+      rightHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const startX = e.clientX;
+        const startWidth = block.offsetWidth;
+        function onMove(ev) {
+          const dx = ev.clientX - startX;
+          block.style.width = Math.max(140, startWidth + dx) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // Resize the answer box's height — bottom edge only (top edge stays fixed)
+      bottomHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const startY = e.clientY;
+        const startHeight = answerBox.offsetHeight;
+        function onMove(ev) {
+          const dy = ev.clientY - startY;
+          answerBox.style.minHeight = Math.max(28, startHeight + dy) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
     }
 
     function insertOptionsBlock() {
