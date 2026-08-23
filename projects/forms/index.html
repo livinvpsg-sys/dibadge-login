@@ -160,29 +160,34 @@
     .qa-block.qa-dragging { z-index: 50; }
     .qa-move-zone {
       position: absolute;
-      top: -6px; left: -6px;
-      width: 52px; height: 26px;
+      top: -38px; left: -2px;
+      width: 62px; height: 46px;
       z-index: 5;
-      pointer-events: auto; /* needs hover detection, but it's a small fixed corner zone */
+      pointer-events: auto; /* taller zone spans down to the block's corner so hovering there
+                                still triggers it, while the icons render at the top with
+                                visible breathing room above the block itself */
       display: flex;
-      gap: 4px;
+      align-items: flex-start;
+      gap: 6px;
     }
     .qa-move-handle, .qa-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
       user-select: none;
       flex-shrink: 0;
     }
-    .qa-move-handle { background: #14b8a6; cursor: move; }
-    .qa-delete-handle { background: #ff3b30; cursor: pointer; }
+    .qa-move-handle svg, .qa-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .qa-move-handle { cursor: move; }
+    .qa-delete-handle { cursor: pointer; }
+    .qa-delete-handle:hover { border-color: #ff3b30; }
+    .qa-delete-handle:hover svg { stroke: #ff3b30; }
     .qa-move-zone:hover .qa-move-handle,
     .qa-move-zone:hover .qa-delete-handle { display: flex; }
     .qa-question-input {
@@ -234,29 +239,32 @@
     .btn-block.btn-dragging { z-index: 50; }
     .btn-move-zone {
       position: absolute;
-      top: -6px; left: -6px;
-      width: 52px; height: 26px;
+      top: -38px; left: -2px;
+      width: 62px; height: 46px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
-      gap: 4px;
+      align-items: flex-start;
+      gap: 6px;
     }
     .btn-move-handle, .btn-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
-      width: 20px; height: 20px;
-      border-radius: 50%;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 700;
-      line-height: 1;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
       user-select: none;
       flex-shrink: 0;
     }
-    .btn-move-handle { background: #14b8a6; cursor: move; }
-    .btn-delete-handle { background: #ff3b30; cursor: pointer; }
+    .btn-move-handle svg, .btn-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .btn-move-handle { cursor: move; }
+    .btn-delete-handle { cursor: pointer; }
+    .btn-delete-handle:hover { border-color: #ff3b30; }
+    .btn-delete-handle:hover svg { stroke: #ff3b30; }
     .btn-move-zone:hover .btn-move-handle,
     .btn-move-zone:hover .btn-delete-handle { display: flex; }
     .btn-shape-wrapper { position: relative; }
@@ -906,8 +914,8 @@
 
       block.innerHTML = `
         <div class="qa-move-zone">
-          <div class="qa-move-handle" title="Move">+</div>
-          <div class="qa-delete-handle" title="Delete">&#10005;</div>
+          <div class="qa-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="qa-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <input type="text" class="qa-question-input" placeholder="Question">
         <div class="qa-answer-box">
@@ -1024,8 +1032,8 @@
 
       block.innerHTML = `
         <div class="btn-move-zone">
-          <div class="btn-move-handle" title="Move">+</div>
-          <div class="btn-delete-handle" title="Delete">&#10005;</div>
+          <div class="btn-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="btn-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="btn-shape-wrapper">
           <div class="btn-shape" contenteditable="true">Button</div>
