@@ -738,10 +738,27 @@
           }
         }
 
+        // A floating block (like Question & Answer) sits OUTSIDE the page's normal flow —
+        // it doesn't push other content down. So on an otherwise-blank page, the browser's
+        // caret lookup can snap to that block's content regardless of how far away you
+        // actually clicked. Reject that: only trust the resolved position if it's genuinely
+        // near where you clicked, and not inside a floating block at all.
+        let usableRange = null;
         if (range && page.contains(range.startContainer)) {
+          const insideFloatingBlock = range.startContainer.parentElement && range.startContainer.parentElement.closest('.qa-block');
+          const rect = range.getClientRects()[0] || range.getBoundingClientRect();
+          const closeEnough = rect && Math.abs(rect.top - e.clientY) < 60;
+          if (!insideFloatingBlock && closeEnough) usableRange = range;
+        }
+
+        if (usableRange) {
           page.focus();
           sel.removeAllRanges();
-          sel.addRange(range);
+          sel.addRange(usableRange);
+        } else if (page.textContent.trim() || page.querySelector('table, img')) {
+          // There's real content elsewhere on the page, just not near this click — the
+          // standard "clicked below everything" behavior is to land at the end of it.
+          placeCursorAtPageEnd();
         } else {
           placeCursorAtPageStart();
         }
@@ -754,6 +771,17 @@
       const range = document.createRange();
       range.selectNodeContents(page);
       range.collapse(true); // true = collapse to the START, not the end
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    function placeCursorAtPageEnd() {
+      const page = document.getElementById('formSheet');
+      page.focus();
+      const range = document.createRange();
+      range.selectNodeContents(page);
+      range.collapse(false); // false = collapse to the END
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(range);
