@@ -784,8 +784,7 @@
       const page = document.getElementById('formSheet');
       page.addEventListener('mouseup', function(e) {
         const sel = window.getSelection();
-        if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) return; // a real drag-selection — don't touch it
-        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; // browser already placed it correctly
+        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; // browser already placed a valid, typable cursor — never override this
 
         let range = null;
         if (document.caretRangeFromPoint) {
@@ -799,27 +798,10 @@
           }
         }
 
-        // A floating block (like Question & Answer) sits OUTSIDE the page's normal flow —
-        // it doesn't push other content down. So on an otherwise-blank page, the browser's
-        // caret lookup can snap to that block's content regardless of how far away you
-        // actually clicked. Reject that: only trust the resolved position if it's genuinely
-        // near where you clicked, and not inside a floating block at all.
-        let usableRange = null;
         if (range && page.contains(range.startContainer)) {
-          const insideFloatingBlock = range.startContainer.parentElement && range.startContainer.parentElement.closest('.qa-block, .btn-block');
-          const rect = range.getClientRects()[0] || range.getBoundingClientRect();
-          const closeEnough = rect && Math.abs(rect.top - e.clientY) < 60;
-          if (!insideFloatingBlock && closeEnough) usableRange = range;
-        }
-
-        if (usableRange) {
           page.focus();
           sel.removeAllRanges();
-          sel.addRange(usableRange);
-        } else if (page.textContent.trim() || page.querySelector('table, img')) {
-          // There's real content elsewhere on the page, just not near this click — the
-          // standard "clicked below everything" behavior is to land at the end of it.
-          placeCursorAtPageEnd();
+          sel.addRange(range);
         } else {
           placeCursorAtPageStart();
         }
