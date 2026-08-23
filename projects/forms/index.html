@@ -154,6 +154,8 @@
     .qa-block {
       position: absolute;
       min-width: 160px;
+      pointer-events: none; /* the wrapper itself never intercepts clicks — only its specific
+                                interactive children (below) re-enable pointer events */
     }
     .qa-block.qa-dragging { z-index: 50; }
     .qa-move-zone {
@@ -161,6 +163,7 @@
       top: -6px; left: -6px;
       width: 26px; height: 26px;
       z-index: 5;
+      pointer-events: auto; /* needs hover detection, but it's a small fixed corner zone */
     }
     .qa-move-handle {
       display: none;
@@ -190,6 +193,7 @@
       color: #1a1a1a;
       font-family: inherit;
       box-sizing: border-box;
+      pointer-events: auto; /* needs to be typable */
     }
     .qa-question-input::placeholder { color: #999; font-weight: 700; }
     .qa-answer-box {
@@ -199,18 +203,22 @@
       min-height: 32px;
       margin-top: 2px;
       box-sizing: border-box;
+      pointer-events: none; /* just a visual box — clicks pass through except the two thin
+                                resize lines below, so it never blocks content near/behind it */
     }
     .qa-resize-right {
       position: absolute;
-      top: 0; right: -4px;
-      width: 8px; height: 100%;
+      top: 6px; bottom: 6px; right: -2px;
+      width: 5px;
       cursor: ew-resize;
+      pointer-events: auto; /* thin precise strip right on the border line, not a wide zone */
     }
     .qa-resize-bottom {
       position: absolute;
-      left: 0; bottom: -4px;
-      width: 100%; height: 8px;
+      left: 6px; right: 6px; bottom: -2px;
+      height: 5px;
       cursor: ns-resize;
+      pointer-events: auto; /* thin precise strip right on the border line, not a wide zone */
     }
     .inserted-options-block { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
     .inserted-option-pill { border: 1px solid #999; border-radius: 16px; padding: 6px 14px; display: inline-block; }
