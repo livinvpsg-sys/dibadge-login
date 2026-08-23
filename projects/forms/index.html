@@ -120,6 +120,44 @@
       color: #999;
     }
 
+    /* Form-building tool rail */
+    .form-tools-rail {
+      width: 56px;
+      flex-shrink: 0;
+      background: var(--surface-color);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 6px;
+    }
+    .form-tool-btn {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .form-tool-btn:hover { background: var(--border-color); color: var(--text-color); }
+    .form-tool-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    .form-tool-divider { width: 28px; height: 1px; background: var(--border-color); margin: 6px 0; }
+
+    /* Inserted question/options blocks — light styling since the page itself is white */
+    .inserted-question-block { margin: 10px 0; }
+    .inserted-question-label { font-weight: 700; margin-bottom: 6px; }
+    .inserted-answer-line { border-bottom: 1px solid #999; padding: 4px 2px; color: #888; min-height: 20px; }
+    .inserted-options-block { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .inserted-option-pill { border: 1px solid #999; border-radius: 16px; padding: 6px 14px; display: inline-block; }
+    .inserted-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    .inserted-table td { border: 1px solid #999; padding: 8px; min-width: 60px; }
+    .inserted-image { max-width: 100%; margin: 12px 0; display: block; }
+
     /* Activity Feed — identical component/styling to the chat screen's */
     .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
     .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
@@ -290,10 +328,10 @@
     <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
         <div class="group-modal-title">Unsaved Changes</div>
-        <div class="group-modal-message">You have unsaved changes on this form. Save before leaving?</div>
+        <div class="group-modal-message">Save before leaving?</div>
         <div class="group-modal-actions">
           <button class="group-modal-cancel-btn" onclick="cancelPendingNav()">Cancel</button>
-          <button class="group-modal-ok-btn" onclick="discardAndLeave()">Discard</button>
+          <button class="group-modal-cancel-btn" onclick="discardAndLeave()">Discard</button>
           <button class="group-modal-ok-btn" onclick="saveAndLeave()">Save</button>
         </div>
       </div>
@@ -311,6 +349,35 @@
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
       <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..." oninput="hasUnsavedChanges = true;"></div>
     </main>
+
+    <!-- Form-building tool rail — only shown while editing a form, not in the library view -->
+    <aside class="form-tools-rail" id="formToolsRail" style="display:none;">
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionBlock()" title="Question &amp; Answer">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertOptionsBlock()" title="Options">
+        <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.5"></circle><circle cx="6" cy="17" r="2.5"></circle><line x1="12" y1="7" x2="21" y2="7"></line><line x1="12" y1="17" x2="21" y2="17"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault(); saveFormSelection();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+      </button>
+      <div class="form-tool-divider"></div>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="cycleTextAlign()" title="Text Align">
+        <svg viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault(); saveFormSelection();" onclick="document.getElementById('fillColorInput').click()" title="Fill Color">
+        <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault(); saveFormSelection();" onclick="document.getElementById('textColorInput').click()" title="Text Color">
+        <svg viewBox="0 0 24 24"><path d="M9 4l-5.5 14h2.2l1.2-3.4h6.2L14.3 18h2.2L11 4z"></path><path d="M7.7 12.6h6.6"></path><line x1="17" y1="20" x2="23" y2="20"></line></svg>
+      </button>
+      <input type="color" id="fillColorInput" style="display:none" onchange="restoreFormSelection(); applyFillColor(this.value);">
+      <input type="color" id="textColorInput" style="display:none" onchange="restoreFormSelection(); applyTextColor(this.value);">
+      <input type="file" id="formImageInput" accept="image/*" style="display:none" onchange="restoreFormSelection(); insertImageFromFile(this);">
+    </aside>
 
     <aside class="activity-feed-panel">
       <div class="details-panel-section-header">
@@ -499,6 +566,7 @@
     function showLibrary() {
       document.getElementById('formsLibraryWorkspace').style.display = 'block';
       document.getElementById('formSheetWrapper').style.display = 'none';
+      document.getElementById('formToolsRail').style.display = 'none';
       document.getElementById('libraryHeaderTitle').style.display = 'flex';
       document.getElementById('libraryHeaderCenter').style.display = 'flex';
       document.getElementById('formHeaderNav').style.display = 'none';
@@ -525,6 +593,7 @@
       const page = document.getElementById('formSheet');
       const saved = loadFormContent(name);
       page.innerHTML = saved || '';
+      document.getElementById('formToolsRail').style.display = 'flex';
     }
 
     (function init() {
@@ -543,6 +612,115 @@
       if (formName) showFormSheet(formName);
       else showLibrary();
     });
+
+    // ===================== Form-building tool rail =====================
+    // Every tool operates on the current cursor position / selection inside the A4 page.
+    // Buttons use onmousedown+preventDefault so clicking them never steals focus away from
+    // the page — that's what keeps the selection valid for insertion or execCommand calls.
+    // The two exceptions (color pickers, image file picker) hand off to native browser UI,
+    // which DOES steal focus — so those save the selection first and restore it once the
+    // native picker returns a value, before applying it.
+
+    let savedFormRange = null;
+
+    function saveFormSelection() {
+      const sel = window.getSelection();
+      const page = document.getElementById('formSheet');
+      if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) {
+        savedFormRange = sel.getRangeAt(0).cloneRange();
+      }
+    }
+
+    function restoreFormSelection() {
+      if (!savedFormRange) return;
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(savedFormRange);
+    }
+
+    function insertHtmlAtCursor(html) {
+      const page = document.getElementById('formSheet');
+      page.focus();
+      const sel = window.getSelection();
+      if (sel.rangeCount === 0 || !page.contains(sel.anchorNode)) {
+        page.insertAdjacentHTML('beforeend', html);
+      } else {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const frag = range.createContextualFragment(html);
+        const lastNode = frag.lastChild;
+        range.insertNode(frag);
+        if (lastNode) {
+          range.setStartAfter(lastNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+      hasUnsavedChanges = true;
+    }
+
+    function insertQuestionBlock() {
+      insertHtmlAtCursor(
+        '<div class="inserted-question-block">' +
+          '<div class="inserted-question-label">Question</div>' +
+          '<div class="inserted-answer-line">Answer</div>' +
+        '</div><br>'
+      );
+    }
+
+    function insertOptionsBlock() {
+      insertHtmlAtCursor(
+        '<div class="inserted-options-block">' +
+          '<span class="inserted-option-pill">Option 1</span>' +
+          '<span class="inserted-option-pill">Option 2</span>' +
+          '<span class="inserted-option-pill">Option 3</span>' +
+        '</div><br>'
+      );
+    }
+
+    function insertTable() {
+      let rows = '';
+      for (let r = 0; r < 3; r++) {
+        let cells = '';
+        for (let c = 0; c < 3; c++) cells += '<td>&nbsp;</td>';
+        rows += '<tr>' + cells + '</tr>';
+      }
+      insertHtmlAtCursor('<table class="inserted-table">' + rows + '</table><br>');
+    }
+
+    function insertImageFromFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        insertHtmlAtCursor('<img class="inserted-image" src="' + e.target.result + '"><br>');
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    const TEXT_ALIGN_COMMANDS = ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'];
+    let textAlignIndex = 0;
+
+    function cycleTextAlign() {
+      document.getElementById('formSheet').focus();
+      document.execCommand(TEXT_ALIGN_COMMANDS[textAlignIndex]);
+      textAlignIndex = (textAlignIndex + 1) % TEXT_ALIGN_COMMANDS.length;
+      hasUnsavedChanges = true;
+    }
+
+    function applyFillColor(color) {
+      document.getElementById('formSheet').focus();
+      document.execCommand('hiliteColor', false, color);
+      hasUnsavedChanges = true;
+    }
+
+    function applyTextColor(color) {
+      document.getElementById('formSheet').focus();
+      document.execCommand('foreColor', false, color);
+      hasUnsavedChanges = true;
+    }
   </script>
 </body>
 </html>
