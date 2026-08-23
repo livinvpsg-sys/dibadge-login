@@ -822,7 +822,17 @@
         return false;
       });
       if (!hasFlowContent) {
-        page.appendChild(document.createElement('br'));
+        // Fill the page with enough blank lines to span its height, so clicking at different
+        // VERTICAL positions lands on a nearby line, instead of the single point that exists
+        // when there's only one blank line. Horizontal position on a blank line still always
+        // resolves to its start — that's inherent to how text cursors work (a blank line has
+        // no characters to position "between"), true in every text editor, not fixable here.
+        const approxLineHeightPx = 25.6; // ~1rem font-size * 1.6 line-height
+        const usableHeightPx = 1123 - 144; // A4 page height minus its top+bottom padding
+        const lineCount = Math.max(1, Math.ceil(usableHeightPx / approxLineHeightPx));
+        for (let i = 0; i < lineCount; i++) {
+          page.appendChild(document.createElement('br'));
+        }
       }
     }
 
