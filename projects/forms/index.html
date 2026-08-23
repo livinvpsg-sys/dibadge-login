@@ -665,6 +665,12 @@
       // innerHTML assignment brings back the markup but not the JS listeners that were on it.
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       document.getElementById('formToolsRail').style.display = 'flex';
+
+      // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
+      // typing or using a tool immediately begins there, with no click needed first.
+      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, table, img').length === 0) {
+        placeCursorAtPageStart();
+      }
     }
 
     (function init() {
@@ -707,6 +713,50 @@
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(savedFormRange);
+    }
+
+    // Guarantees a real cursor lands wherever you click on the page — including blank space
+    // near/around a floating Question & Answer block — so the next tool or typed text starts
+    // exactly there. Only acts as a fallback: if the browser already placed a valid cursor (or
+    // you dragged to select a range of text), this leaves it alone rather than overriding it.
+    (function setupClickToPlaceCursor() {
+      const page = document.getElementById('formSheet');
+      page.addEventListener('mouseup', function(e) {
+        const sel = window.getSelection();
+        if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) return; // a real drag-selection — don't touch it
+        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; // browser already placed it correctly
+
+        let range = null;
+        if (document.caretRangeFromPoint) {
+          range = document.caretRangeFromPoint(e.clientX, e.clientY);
+        } else if (document.caretPositionFromPoint) {
+          const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+          if (pos && pos.offsetNode) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.collapse(true);
+          }
+        }
+
+        if (range && page.contains(range.startContainer)) {
+          page.focus();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          placeCursorAtPageStart();
+        }
+      });
+    })();
+
+    function placeCursorAtPageStart() {
+      const page = document.getElementById('formSheet');
+      page.focus();
+      const range = document.createRange();
+      range.selectNodeContents(page);
+      range.collapse(true); // true = collapse to the START, not the end
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
 
     function insertHtmlAtCursor(html) {
