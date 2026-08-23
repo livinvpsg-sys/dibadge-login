@@ -220,8 +220,68 @@
       cursor: ns-resize;
       pointer-events: auto; /* thin precise strip right on the border line, not a wide zone */
     }
-    .inserted-options-block { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
-    .inserted-option-pill { border: 1px solid #999; border-radius: 16px; padding: 6px 14px; display: inline-block; }
+
+    /* Button — same floating/movable/resizable pattern as Question & Answer, one editable shape */
+    .btn-block {
+      position: absolute;
+      min-width: 90px;
+      pointer-events: none;
+    }
+    .btn-block.btn-dragging { z-index: 50; }
+    .btn-move-zone {
+      position: absolute;
+      top: -6px; left: -6px;
+      width: 26px; height: 26px;
+      z-index: 5;
+      pointer-events: auto;
+    }
+    .btn-move-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #14b8a6;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      cursor: move;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+      user-select: none;
+    }
+    .btn-move-zone:hover .btn-move-handle { display: flex; }
+    .btn-shape-wrapper { position: relative; }
+    .btn-shape {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      border: 1px solid #999;
+      border-radius: 6px;
+      padding: 8px 16px;
+      background: #f0f0f0;
+      color: #1a1a1a;
+      font-weight: 600;
+      text-align: center;
+      outline: none;
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+    .btn-resize-right {
+      position: absolute;
+      top: 6px; bottom: 6px; right: -2px;
+      width: 5px;
+      cursor: ew-resize;
+      pointer-events: auto;
+    }
+    .btn-resize-bottom {
+      position: absolute;
+      left: 6px; right: 6px; bottom: -2px;
+      height: 5px;
+      cursor: ns-resize;
+      pointer-events: auto;
+    }
     .inserted-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
     .inserted-table td { border: 1px solid #999; padding: 8px; min-width: 60px; }
     .inserted-image { max-width: 100%; margin: 12px 0; display: block; }
@@ -423,8 +483,8 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionBlock()" title="Question &amp; Answer">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </button>
-      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertOptionsBlock()" title="Options">
-        <svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.5"></circle><circle cx="6" cy="17" r="2.5"></circle><line x1="12" y1="7" x2="21" y2="7"></line><line x1="12" y1="17" x2="21" y2="17"></line></svg>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertButtonBlock()" title="Button">
+        <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect></svg>
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
@@ -664,11 +724,12 @@
       // Re-attach drag/resize behavior to any Question & Answer blocks restored from storage —
       // innerHTML assignment brings back the markup but not the JS listeners that were on it.
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
+      page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       document.getElementById('formToolsRail').style.display = 'flex';
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
       // typing or using a tool immediately begins there, with no click needed first.
-      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, table, img').length === 0) {
+      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, table, img').length === 0) {
         placeCursorAtPageStart();
       }
     }
@@ -745,7 +806,7 @@
         // near where you clicked, and not inside a floating block at all.
         let usableRange = null;
         if (range && page.contains(range.startContainer)) {
-          const insideFloatingBlock = range.startContainer.parentElement && range.startContainer.parentElement.closest('.qa-block');
+          const insideFloatingBlock = range.startContainer.parentElement && range.startContainer.parentElement.closest('.qa-block, .btn-block');
           const rect = range.getClientRects()[0] || range.getBoundingClientRect();
           const closeEnough = rect && Math.abs(rect.top - e.clientY) < 60;
           if (!insideFloatingBlock && closeEnough) usableRange = range;
@@ -913,14 +974,98 @@
       });
     }
 
-    function insertOptionsBlock() {
-      insertHtmlAtCursor(
-        '<div class="inserted-options-block">' +
-          '<span class="inserted-option-pill">Option 1</span>' +
-          '<span class="inserted-option-pill">Option 2</span>' +
-          '<span class="inserted-option-pill">Option 3</span>' +
-        '</div><br>'
-      );
+    // Button — same floating-block idea as Question & Answer, one editable shape with its own
+    // move handle and edge-only resize handles.
+    function insertButtonBlock() {
+      const page = document.getElementById('formSheet');
+
+      const block = document.createElement('div');
+      block.className = 'btn-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '140px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="btn-move-zone"><div class="btn-move-handle" title="Move">+</div></div>
+        <div class="btn-shape-wrapper">
+          <div class="btn-shape" contenteditable="true">Button</div>
+          <div class="btn-resize-right"></div>
+          <div class="btn-resize-bottom"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireButtonBlockInteractions(block);
+      hasUnsavedChanges = true;
+    }
+
+    function wireButtonBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.btn-move-handle');
+      const rightHandle = block.querySelector('.btn-resize-right');
+      const bottomHandle = block.querySelector('.btn-resize-bottom');
+      const shape = block.querySelector('.btn-shape');
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('btn-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          block.style.left = Math.min(maxLeft, Math.max(0, startLeft + dx)) + 'px';
+          block.style.top = Math.min(maxTop, Math.max(0, startTop + dy)) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('btn-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      rightHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const startX = e.clientX;
+        const startWidth = block.offsetWidth;
+        function onMove(ev) {
+          block.style.width = Math.max(80, startWidth + (ev.clientX - startX)) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      bottomHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const startY = e.clientY;
+        const startHeight = shape.offsetHeight;
+        function onMove(ev) {
+          shape.style.minHeight = Math.max(28, startHeight + (ev.clientY - startY)) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
     }
 
     function insertTable() {
