@@ -2540,7 +2540,7 @@ html, body {
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">FORMS</span>
-          <button class="details-panel-add-btn" onclick="openImportFormModal()">Import</button>
+          <button class="details-panel-add-btn" onclick="openImportFormModal()">+ Add</button>
         </div>
         <div id="formsListContainer">
           <div class="details-item-row" oncontextmenu="openFormContextMenu(event)">
@@ -2775,7 +2775,7 @@ html, body {
       <div class="import-form-body" id="importFormBody"></div>
       <div class="import-form-actions">
         <button class="import-form-cancel-btn" onclick="closeImportFormModal()">Cancel</button>
-        <button class="import-form-import-btn" id="importFormConfirmBtn" onclick="confirmImportForm()" disabled>Import</button>
+        <button class="import-form-import-btn" id="importFormConfirmBtn" onclick="confirmImportForm()" disabled>Add</button>
       </div>
     </div>
   </div>
@@ -5878,7 +5878,7 @@ function renderPreviewTray() {
       if (!btn) return;
       const count = importFormSelectedFiles.size;
       btn.disabled = count === 0;
-      btn.textContent = count > 0 ? `Import (${count})` : 'Import';
+      btn.textContent = count > 0 ? `Add (${count})` : 'Add';
     }
 
     function renderImportFormBody() {
