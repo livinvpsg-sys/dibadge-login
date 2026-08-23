@@ -725,6 +725,7 @@
       // innerHTML assignment brings back the markup but not the JS listeners that were on it.
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
+      ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
@@ -808,6 +809,23 @@
       });
     })();
 
+    // A floating block (Question & Answer, Button) is position:absolute — it's removed from
+    // the page's normal flow entirely. If it's the ONLY thing on the page, there is no real
+    // flowing text position left anywhere for a cursor to rest in and accept typed characters,
+    // even in the "blank" space around it. This guarantees a genuine empty line always exists
+    // in the page's actual flow, so typing outside a floating block always works.
+    function ensureFlowAnchor() {
+      const page = document.getElementById('formSheet');
+      const hasFlowContent = Array.from(page.childNodes).some(function(n) {
+        if (n.nodeType === Node.TEXT_NODE) return true;
+        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block');
+        return false;
+      });
+      if (!hasFlowContent) {
+        page.appendChild(document.createElement('br'));
+      }
+    }
+
     function placeCursorAtPageStart() {
       const page = document.getElementById('formSheet');
       page.focus();
@@ -878,6 +896,7 @@
       `;
       page.appendChild(block);
       wireQaBlockInteractions(block);
+      ensureFlowAnchor();
       hasUnsavedChanges = true;
     }
 
@@ -979,6 +998,7 @@
       `;
       page.appendChild(block);
       wireButtonBlockInteractions(block);
+      ensureFlowAnchor();
       hasUnsavedChanges = true;
     }
 
