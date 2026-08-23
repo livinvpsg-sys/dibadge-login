@@ -72,6 +72,8 @@
     .tab-btn:hover { background: var(--slate-surface); color: #ffffff; }
     .tab-btn.active { background: var(--slate-surface); color: #ffffff; }
     .main-nav-group { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .fab-tab-btn { margin-top: auto; background: var(--paper-white); color: var(--jet-black); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); cursor: pointer; display: flex; }
+    .fab-tab-btn:hover { opacity: 0.9; transform: scale(1.05); }
 
     /* Forms library workspace */
     .forms-workspace { flex: 1; padding: 24px; overflow-y: auto; background: var(--bg-color); }
@@ -91,25 +93,25 @@
     .form-row svg { width: 22px; height: 22px; stroke: var(--text-color); fill: none; stroke-width: 1.6; flex-shrink: 0; }
     .form-row-name { font-size: 0.88rem; font-weight: 600; color: var(--text-color); }
 
-    /* Individual form view */
-    .form-sheet-wrapper { flex: 1; overflow-y: auto; padding: 32px; display: flex; justify-content: center; background: var(--bg-color); }
-    .form-sheet {
-      width: 100%;
-      max-width: 720px;
-      background: var(--surface-color);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 32px;
-      height: fit-content;
+    /* Individual form work screen — a blank A4 page, same idea as opening a new Word document */
+    .form-sheet-wrapper { flex: 1; overflow-y: auto; padding: 40px; display: flex; justify-content: center; background: var(--bg-color); }
+    .a4-page {
+      background: #ffffff;
+      width: 794px;       /* A4 at 96dpi */
+      min-height: 1123px;
+      max-width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.45);
+      padding: 72px 76px;
+      color: #1a1a1a;
+      font-size: 1rem;
+      line-height: 1.6;
+      outline: none;
+      box-sizing: border-box;
     }
-    .form-sheet-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
-    .form-sheet-icon { width: 44px; height: 44px; stroke: var(--text-color); fill: none; stroke-width: 1.5; flex-shrink: 0; }
-    .form-sheet-title { font-size: 1.2rem; font-weight: 700; }
-    .form-sheet-subtitle { font-size: 0.82rem; color: var(--subtext-color); margin-top: 2px; }
-    .form-field-group { margin-bottom: 20px; }
-    .form-field-label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--subtext-color); margin-bottom: 6px; }
-    .form-field-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.9rem; outline: none; font-family: inherit; }
-    textarea.form-field-input { resize: vertical; min-height: 90px; }
+    .a4-page:empty:before {
+      content: attr(data-placeholder);
+      color: #999;
+    }
 
     /* Activity Feed — identical component/styling to the chat screen's */
     .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
@@ -125,6 +127,71 @@
     .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
 
     /* Add Form modal */
+    /* Rename/New popups — dark rounded card, underline input, plain Cancel + pill OK */
+    .group-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .group-modal-overlay.active { display: flex; }
+    .group-modal-box {
+      background: var(--surface-color);
+      border-radius: 20px;
+      padding: 28px 24px 20px 24px;
+      width: 320px;
+      max-width: 100%;
+    }
+    .group-modal-title {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--text-color);
+      margin-bottom: 22px;
+    }
+    .group-modal-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-color);
+      font-size: 0.95rem;
+      padding: 6px 2px 10px 2px;
+      outline: none;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    .group-modal-input::placeholder { color: var(--subtext-color); }
+    .group-modal-input:focus { border-bottom-color: var(--subtext-color); }
+    .group-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 20px;
+    }
+    .group-modal-cancel-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .group-modal-ok-btn {
+      background: var(--border-color);
+      border: none;
+      color: var(--text-color);
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 10px 26px;
+      border-radius: 24px;
+      cursor: pointer;
+    }
+
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 380px; width: 90%; position: relative; color: var(--text-color); border: 1px solid var(--border-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
@@ -189,18 +256,19 @@
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </a>
       </div>
+      <button class="tab-btn fab-tab-btn" onclick="openAddFormModal()" title="Add Form">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
     </aside>
 
     <!-- Add Form modal -->
-    <div class="modal-overlay" id="addFormModal">
-      <div class="modal-card">
-        <button class="close-btn" onclick="closeAddFormModal()">&times;</button>
-        <h3>Add Form</h3>
-        <label class="modal-label">Form name</label>
-        <input type="text" class="modal-input" id="newFormNameInput" placeholder="e.g. Daily Site Inspection Form">
-        <div class="modal-actions">
-          <button class="modal-btn btn-cancel" onclick="closeAddFormModal()">Cancel</button>
-          <button class="modal-btn btn-save" onclick="confirmAddForm()">Save</button>
+    <div class="group-modal-overlay" id="addFormModal" onclick="closeAddFormModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">New Form</div>
+        <input type="text" class="group-modal-input" id="newFormNameInput" placeholder="Name" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddForm();}">
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeAddFormModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmAddForm()">OK</button>
         </div>
       </div>
     </div>
@@ -209,14 +277,13 @@
     <main class="forms-workspace" id="formsLibraryWorkspace">
       <div class="forms-panel-header">
         <h2>Project Forms</h2>
-        <button class="forms-add-btn" onclick="openAddFormModal()">+ Add Form</button>
       </div>
       <div class="forms-grid" id="formsGrid"></div>
     </main>
 
     <!-- Individual form (shown when a form is opened via ?name=) -->
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
-      <div class="form-sheet" id="formSheet"></div>
+      <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..."></div>
     </main>
 
     <aside class="activity-feed-panel">
@@ -305,10 +372,11 @@
 
     function openAddFormModal() {
       document.getElementById('newFormNameInput').value = '';
-      document.getElementById('addFormModal').style.display = 'flex';
+      document.getElementById('addFormModal').classList.add('active');
+      document.getElementById('newFormNameInput').focus();
     }
     function closeAddFormModal() {
-      document.getElementById('addFormModal').style.display = 'none';
+      document.getElementById('addFormModal').classList.remove('active');
     }
     function confirmAddForm() {
       const name = document.getElementById('newFormNameInput').value.trim();
@@ -317,7 +385,7 @@
       forms.push(name);
       saveFormsLibrary(forms);
       closeAddFormModal();
-      renderFormsLibrary();
+      openForm(name); // jump straight into the new form's work screen, ready to design
     }
 
     // ---- Opening / viewing a specific form ----
@@ -354,31 +422,13 @@
         <span class="breadcrumb-item active">${name}</span>
       `;
 
-      document.getElementById('formSheet').innerHTML = `
-        <div class="form-sheet-header">
-          <svg class="form-sheet-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-          <div>
-            <div class="form-sheet-title">${name}</div>
-            <div class="form-sheet-subtitle">Project form</div>
-          </div>
-        </div>
-        <div class="form-field-group">
-          <label class="form-field-label">Site / Project</label>
-          <input type="text" class="form-field-input" placeholder="Enter site or project name">
-        </div>
-        <div class="form-field-group">
-          <label class="form-field-label">Date</label>
-          <input type="date" class="form-field-input">
-        </div>
-        <div class="form-field-group">
-          <label class="form-field-label">Prepared By</label>
-          <input type="text" class="form-field-input" placeholder="Your name">
-        </div>
-        <div class="form-field-group">
-          <label class="form-field-label">Notes</label>
-          <textarea class="form-field-input" placeholder="Enter details for this form..."></textarea>
-        </div>
-      `;
+      // Blank A4 page, same idea as opening a new Word document — the form's name lives in
+      // the breadcrumb above, the page itself starts empty and ready to design.
+      const page = document.getElementById('formSheet');
+      if (!page.hasAttribute('data-loaded-for') || page.getAttribute('data-loaded-for') !== name) {
+        page.innerHTML = '';
+        page.setAttribute('data-loaded-for', name);
+      }
     }
 
     (function init() {
