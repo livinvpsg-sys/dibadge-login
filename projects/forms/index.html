@@ -161,26 +161,30 @@
     .qa-move-zone {
       position: absolute;
       top: -6px; left: -6px;
-      width: 26px; height: 26px;
+      width: 52px; height: 26px;
       z-index: 5;
       pointer-events: auto; /* needs hover detection, but it's a small fixed corner zone */
+      display: flex;
+      gap: 4px;
     }
-    .qa-move-handle {
+    .qa-move-handle, .qa-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
       width: 20px; height: 20px;
       border-radius: 50%;
-      background: #14b8a6;
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       line-height: 1;
-      cursor: move;
       box-shadow: 0 1px 4px rgba(0,0,0,0.35);
       user-select: none;
+      flex-shrink: 0;
     }
-    .qa-move-zone:hover .qa-move-handle { display: flex; }
+    .qa-move-handle { background: #14b8a6; cursor: move; }
+    .qa-delete-handle { background: #ff3b30; cursor: pointer; }
+    .qa-move-zone:hover .qa-move-handle,
+    .qa-move-zone:hover .qa-delete-handle { display: flex; }
     .qa-question-input {
       display: block;
       width: 100%;
@@ -231,26 +235,30 @@
     .btn-move-zone {
       position: absolute;
       top: -6px; left: -6px;
-      width: 26px; height: 26px;
+      width: 52px; height: 26px;
       z-index: 5;
       pointer-events: auto;
+      display: flex;
+      gap: 4px;
     }
-    .btn-move-handle {
+    .btn-move-handle, .btn-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
       width: 20px; height: 20px;
       border-radius: 50%;
-      background: #14b8a6;
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       line-height: 1;
-      cursor: move;
       box-shadow: 0 1px 4px rgba(0,0,0,0.35);
       user-select: none;
+      flex-shrink: 0;
     }
-    .btn-move-zone:hover .btn-move-handle { display: flex; }
+    .btn-move-handle { background: #14b8a6; cursor: move; }
+    .btn-delete-handle { background: #ff3b30; cursor: pointer; }
+    .btn-move-zone:hover .btn-move-handle,
+    .btn-move-zone:hover .btn-delete-handle { display: flex; }
     .btn-shape-wrapper { position: relative; }
     .btn-shape {
       display: flex;
@@ -897,7 +905,10 @@
       qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120; // so repeated inserts don't stack exactly on top of each other
 
       block.innerHTML = `
-        <div class="qa-move-zone"><div class="qa-move-handle" title="Move">+</div></div>
+        <div class="qa-move-zone">
+          <div class="qa-move-handle" title="Move">+</div>
+          <div class="qa-delete-handle" title="Delete">&#10005;</div>
+        </div>
         <input type="text" class="qa-question-input" placeholder="Question">
         <div class="qa-answer-box">
           <div class="qa-resize-right"></div>
@@ -913,9 +924,22 @@
     function wireQaBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.qa-move-handle');
+      const deleteHandle = block.querySelector('.qa-delete-handle');
       const rightHandle = block.querySelector('.qa-resize-right');
       const bottomHandle = block.querySelector('.qa-resize-bottom');
       const answerBox = block.querySelector('.qa-answer-box');
+
+      // Delete — removes this whole Question & Answer block from the page
+      deleteHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+      });
 
       // Move — drag the "+" handle to reposition the whole block anywhere within the page
       moveHandle.addEventListener('pointerdown', function(e) {
@@ -999,7 +1023,10 @@
       qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
 
       block.innerHTML = `
-        <div class="btn-move-zone"><div class="btn-move-handle" title="Move">+</div></div>
+        <div class="btn-move-zone">
+          <div class="btn-move-handle" title="Move">+</div>
+          <div class="btn-delete-handle" title="Delete">&#10005;</div>
+        </div>
         <div class="btn-shape-wrapper">
           <div class="btn-shape" contenteditable="true">Button</div>
           <div class="btn-resize-right"></div>
@@ -1015,9 +1042,22 @@
     function wireButtonBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.btn-move-handle');
+      const deleteHandle = block.querySelector('.btn-delete-handle');
       const rightHandle = block.querySelector('.btn-resize-right');
       const bottomHandle = block.querySelector('.btn-resize-bottom');
       const shape = block.querySelector('.btn-shape');
+
+      // Delete — removes this whole Button block from the page
+      deleteHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+      });
 
       moveHandle.addEventListener('pointerdown', function(e) {
         e.preventDefault();
