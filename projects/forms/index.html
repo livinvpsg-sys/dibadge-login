@@ -583,6 +583,18 @@
     const FORMS_LIBRARY_KEY = 'dibadge_global_forms_library';
     let libraryViewMode = 'grid';
 
+    // Declared early (before init() runs on page load) — showFormSheet() -> resetHistoryWithCurrentState()
+    // reads these on the very first load, and `let` bindings aren't usable before their own
+    // declaration line executes. Declaring them down near their functions (where they used to
+    // be) threw "Cannot access 'formHistory' before initialization" on load, which silently
+    // aborted the rest of this script's top-level execution — breaking Undo/Redo AND, as a
+    // side effect, every `let` declared further down the file, including the save toast's timer.
+    let formHistory = [];
+    let formHistoryIndex = -1;
+    let isRestoringHistory = false;
+    let historyDebounceTimer = null;
+    let saveToastTimer = null;
+
     function getDefaultForms() {
       return [
         'Tower B Foundation Log Sheet',
@@ -869,11 +881,6 @@
     // Snapshot-based: keeps full page.innerHTML states, since content here is a mix of typed
     // text and custom floating blocks (Question & Answer, Button) that don't fit a simple
     // text-only undo model.
-
-    let formHistory = [];
-    let formHistoryIndex = -1;
-    let isRestoringHistory = false; // guards against capturing our own undo/redo as new history
-    let historyDebounceTimer = null;
 
     function rewireAllBlocks() {
       const page = document.getElementById('formSheet');
@@ -1319,7 +1326,6 @@
     }
 
     // ===================== Save toast =====================
-    let saveToastTimer = null;
     function showSaveToast(message) {
       const toast = document.getElementById('saveToast');
       if (!toast) return;
