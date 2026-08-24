@@ -148,6 +148,29 @@
     .form-tool-btn:hover { background: var(--border-color); color: var(--text-color); }
     .form-tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .form-tool-btn:disabled:hover { background: transparent; }
+
+    /* Save confirmation toast */
+    .save-toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #1e1e1e;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 300;
+    }
+    .save-toast.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
     .form-tool-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .form-tool-divider { width: 28px; height: 1px; background: var(--border-color); margin: 6px 0; }
 
@@ -498,10 +521,10 @@
 
     <!-- Form-building tool rail — only shown while editing a form, not in the library view -->
     <aside class="form-tools-rail" id="formToolsRail" style="display:none;">
-      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="saveCurrentFormContent(); hasUnsavedChanges = false;" title="Save">
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="handleSaveClick()" title="Save">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
       </button>
-      <button class="form-tool-btn" id="formUndoBtn" onmousedown="event.preventDefault();" onclick="undoFormChange()" title="Undo">
+      <button class="form-tool-btn" id="formUndoBtn" onmousedown="event.preventDefault();" onclick="handleUndoClick()" title="Undo">
         <svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15-6.7L3 13"></path></svg>
       </button>
       <button class="form-tool-btn" id="formRedoBtn" onmousedown="event.preventDefault();" onclick="redoFormChange()" title="Redo">
@@ -550,6 +573,8 @@
       </div>
     </aside>
   </div>
+
+  <div class="save-toast" id="saveToast">Saved</div>
 
   <script>
     // This page is the REAL destination for the "Project forms" nav icon — a standalone
@@ -1286,6 +1311,32 @@
       document.execCommand('foreColor', false, color);
       hasUnsavedChanges = true;
       pushHistorySnapshot();
+    }
+
+    // ===================== Save toast =====================
+    let saveToastTimer = null;
+    function showSaveToast(message) {
+      const toast = document.getElementById('saveToast');
+      if (!toast) return;
+      toast.textContent = message || 'Saved';
+      toast.classList.add('active');
+      clearTimeout(saveToastTimer);
+      saveToastTimer = setTimeout(function() { toast.classList.remove('active'); }, 1800);
+    }
+
+    function handleSaveClick() {
+      saveCurrentFormContent();
+      hasUnsavedChanges = false;
+      showSaveToast('Saved');
+    }
+
+    // Undo button flushes any pending debounced typing snapshot first — otherwise clicking
+    // Undo right after typing (before the 500ms debounce fires) has nothing to undo yet and
+    // silently does nothing, which looks like a broken button.
+    function handleUndoClick() {
+      clearTimeout(historyDebounceTimer);
+      pushHistorySnapshot();
+      undoFormChange();
     }
   </script>
 </body>
