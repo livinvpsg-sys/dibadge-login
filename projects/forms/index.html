@@ -362,6 +362,12 @@
     .table-move-zone:hover .table-move-handle,
     .table-move-zone:hover .table-delete-handle { display: flex; }
 
+    .table-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-left: 22px;
+      margin-top: 22px;
+    }
     .table-block .inserted-table {
       border-collapse: collapse;
       pointer-events: auto;
@@ -374,33 +380,45 @@
       min-height: 16px;
       outline: none;
     }
-    .table-add-col-btn, .table-add-row-btn {
+
+    /* Hover the left margin (rows) or top margin (columns) — completely separate strips so
+       they never fight over the same pixels — and a "+" snaps to whichever boundary line is
+       nearest the cursor, matching Word's actual table-editing behavior. */
+    .table-row-margin {
+      position: absolute;
+      left: -22px; top: 0; bottom: 0;
+      width: 22px;
+      pointer-events: auto;
+      z-index: 5;
+    }
+    .table-col-margin {
+      position: absolute;
+      top: -22px; left: 0; right: 0;
+      height: 22px;
+      pointer-events: auto;
+      z-index: 5;
+    }
+    .table-row-insert-marker, .table-col-insert-marker {
       display: none;
+      position: absolute;
       align-items: center;
       justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 4px;
       background: #f0f0f0;
       border: 1px solid #999;
-      border-radius: 4px;
       color: #333;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 12px;
+      line-height: 1;
       cursor: pointer;
       pointer-events: auto;
-      z-index: 4;
     }
-    .table-add-col-btn {
-      position: absolute;
-      top: 0; bottom: 0; right: -26px;
-      width: 20px;
+    .table-row-insert-marker:hover, .table-col-insert-marker:hover {
+      background: #14b8a6;
+      color: #fff;
+      border-color: #14b8a6;
     }
-    .table-add-row-btn {
-      position: absolute;
-      left: 0; right: 0; bottom: -26px;
-      height: 20px;
-    }
-    .table-block:hover .table-add-col-btn,
-    .table-block:hover .table-add-row-btn { display: flex; }
-    .table-add-col-btn:hover, .table-add-row-btn:hover { background: #14b8a6; color: #fff; border-color: #14b8a6; }
     .inserted-image { max-width: 100%; margin: 12px 0; display: block; }
 
     /* Activity Feed — identical component/styling to the chat screen's */
@@ -1426,9 +1444,11 @@
           <div class="table-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
           <div class="table-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
-        <table class="inserted-table">${buildTableRowsHtml(rows, cols)}</table>
-        <button class="table-add-col-btn" title="Add column">+</button>
-        <button class="table-add-row-btn" title="Add row">+</button>
+        <div class="table-wrapper">
+          <table class="inserted-table">${buildTableRowsHtml(rows, cols)}</table>
+          <div class="table-row-margin"><div class="table-row-insert-marker" title="Insert row">+</div></div>
+          <div class="table-col-margin"><div class="table-col-insert-marker" title="Insert column">+</div></div>
+        </div>
       `;
       page.appendChild(block);
       wireTableBlockInteractions(block);
@@ -1441,8 +1461,6 @@
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.table-move-handle');
       const deleteHandle = block.querySelector('.table-delete-handle');
-      const addColBtn = block.querySelector('.table-add-col-btn');
-      const addRowBtn = block.querySelector('.table-add-row-btn');
       const table = block.querySelector('.inserted-table');
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
@@ -1481,35 +1499,108 @@
         document.addEventListener('pointerup', onUp);
       });
 
-      addColBtn.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
-      addColBtn.addEventListener('click', function(e) {
+      setupTableInsertMarkers(block);
+    }
+
+    // Rebuilds the hover-to-insert zones along every row boundary (including the very top and
+    // bottom) and every column boundary (including the very left and right) — matching Word's
+    // "hover any line, a + appears right there" behavior, not just one control per side.
+    // A single "+" per axis that snaps to whichever boundary line the cursor is nearest —
+    // hovering the left margin reveals it for rows, the top margin for columns. This avoids the
+    // overlap problem of many separate always-present zone strips competing for the same pixels.
+    function setupTableInsertMarkers(block) {
+      const table = block.querySelector('.inserted-table');
+      const rowMargin = block.querySelector('.table-row-margin');
+      const colMargin = block.querySelector('.table-col-margin');
+      const rowMarker = block.querySelector('.table-row-insert-marker');
+      const colMarker = block.querySelector('.table-col-insert-marker');
+      if (!table || !rowMargin || !colMargin) return;
+
+      rowMargin.addEventListener('mousemove', function(e) {
+        const rows = Array.from(table.rows);
+        if (rows.length === 0) return;
+        const marginRect = rowMargin.getBoundingClientRect();
+        const mouseY = e.clientY - marginRect.top;
+        const boundaries = [rows[0].offsetTop];
+        rows.forEach(function(r) { boundaries.push(r.offsetTop + r.offsetHeight); });
+        let nearestIdx = 0, nearestDist = Infinity;
+        boundaries.forEach(function(y, idx) {
+          const d = Math.abs(y - mouseY);
+          if (d < nearestDist) { nearestDist = d; nearestIdx = idx; }
+        });
+        rowMarker.style.display = 'flex';
+        rowMarker.style.top = (boundaries[nearestIdx] - 9) + 'px';
+        rowMarker.dataset.insertIndex = nearestIdx;
+      });
+      rowMargin.addEventListener('mouseleave', function() { rowMarker.style.display = 'none'; });
+
+      colMargin.addEventListener('mousemove', function(e) {
+        const rows = Array.from(table.rows);
+        if (rows.length === 0) return;
+        const cells = Array.from(rows[0].cells);
+        if (cells.length === 0) return;
+        const marginRect = colMargin.getBoundingClientRect();
+        const mouseX = e.clientX - marginRect.left;
+        const boundaries = [cells[0].offsetLeft];
+        cells.forEach(function(c) { boundaries.push(c.offsetLeft + c.offsetWidth); });
+        let nearestIdx = 0, nearestDist = Infinity;
+        boundaries.forEach(function(x, idx) {
+          const d = Math.abs(x - mouseX);
+          if (d < nearestDist) { nearestDist = d; nearestIdx = idx; }
+        });
+        colMarker.style.display = 'flex';
+        colMarker.style.left = (boundaries[nearestIdx] - 9) + 'px';
+        colMarker.dataset.insertIndex = nearestIdx;
+      });
+      colMargin.addEventListener('mouseleave', function() { colMarker.style.display = 'none'; });
+
+      rowMarker.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      rowMarker.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        Array.from(table.rows).forEach(function(row) {
-          const td = document.createElement('td');
-          td.contentEditable = 'true';
-          td.innerHTML = '&nbsp;';
-          row.appendChild(td);
-        });
+        insertTableRowAt(table, parseInt(rowMarker.dataset.insertIndex, 10) || 0);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       });
 
-      addRowBtn.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
-      addRowBtn.addEventListener('click', function(e) {
+      colMarker.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      colMarker.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        const colCount = table.rows.length > 0 ? table.rows[0].cells.length : 1;
-        const tr = document.createElement('tr');
-        for (let c = 0; c < colCount; c++) {
-          const td = document.createElement('td');
-          td.contentEditable = 'true';
-          td.innerHTML = '&nbsp;';
-          tr.appendChild(td);
-        }
-        table.appendChild(tr);
+        insertTableColAt(table, parseInt(colMarker.dataset.insertIndex, 10) || 0);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
+      });
+    }
+
+    function insertTableRowAt(table, index) {
+      const colCount = table.rows.length > 0 ? table.rows[0].cells.length : 1;
+      const tr = document.createElement('tr');
+      for (let c = 0; c < colCount; c++) {
+        const td = document.createElement('td');
+        td.contentEditable = 'true';
+        td.innerHTML = '&nbsp;';
+        tr.appendChild(td);
+      }
+      // A row's real parent isn't always <table> directly — browsers auto-wrap bare <tr>
+      // elements (from innerHTML) in an implicit <tbody>, so insertBefore/append must target
+      // that actual parent, not assume it's the table itself.
+      if (index >= table.rows.length) {
+        if (table.rows.length > 0) table.rows[table.rows.length - 1].parentNode.appendChild(tr);
+        else table.appendChild(tr);
+      } else {
+        const refRow = table.rows[index];
+        refRow.parentNode.insertBefore(tr, refRow);
+      }
+    }
+
+    function insertTableColAt(table, index) {
+      Array.from(table.rows).forEach(function(row) {
+        const td = document.createElement('td');
+        td.contentEditable = 'true';
+        td.innerHTML = '&nbsp;';
+        if (index >= row.cells.length) row.appendChild(td);
+        else row.insertBefore(td, row.cells[index]);
       });
     }
 
