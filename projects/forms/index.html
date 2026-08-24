@@ -146,8 +146,8 @@
       flex-shrink: 0;
     }
     .form-tool-btn:hover { background: var(--border-color); color: var(--text-color); }
-    .form-tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .form-tool-btn:disabled:hover { background: transparent; }
+    .form-tool-btn-inactive { opacity: 0.35; }
+    .form-tool-btn-inactive:hover { background: transparent; }
 
     /* Save confirmation toast */
     .save-toast {
@@ -906,8 +906,13 @@
     function updateUndoRedoButtons() {
       const undoBtn = document.getElementById('formUndoBtn');
       const redoBtn = document.getElementById('formRedoBtn');
-      if (undoBtn) undoBtn.disabled = formHistoryIndex <= 0;
-      if (redoBtn) redoBtn.disabled = formHistoryIndex >= formHistory.length - 1;
+      // Visual-only "looks inactive" state — deliberately NOT the real disabled property,
+      // which blocks the browser from firing onclick at all. A quick click right after typing
+      // (before the debounced snapshot lands) needs the click to still go through so its own
+      // flush-then-check logic can run; undoFormChange()/redoFormChange() already correctly
+      // no-op internally when there's genuinely nothing to undo/redo.
+      if (undoBtn) undoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex <= 0);
+      if (redoBtn) redoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex >= formHistory.length - 1);
     }
 
     function undoFormChange() {
