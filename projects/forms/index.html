@@ -323,8 +323,84 @@
       cursor: ns-resize;
       pointer-events: auto;
     }
-    .inserted-table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-    .inserted-table td { border: 1px solid #999; padding: 8px; min-width: 60px; }
+
+    /* Table — same floating-block pattern (move/delete), plus hover-revealed add-row and
+       add-column controls at its edges, like Word */
+    .table-block {
+      position: absolute;
+      pointer-events: none;
+    }
+    .table-block.table-dragging { z-index: 50; }
+    .table-move-zone {
+      position: absolute;
+      top: -38px; left: -2px;
+      width: 62px; height: 46px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .table-move-handle, .table-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .table-move-handle svg, .table-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .table-move-handle { cursor: move; }
+    .table-delete-handle { cursor: pointer; }
+    .table-delete-handle:hover { border-color: #ff3b30; }
+    .table-delete-handle:hover svg { stroke: #ff3b30; }
+    .table-move-zone:hover .table-move-handle,
+    .table-move-zone:hover .table-delete-handle { display: flex; }
+
+    .table-block .inserted-table {
+      border-collapse: collapse;
+      pointer-events: auto;
+      background: #fff;
+    }
+    .table-block .inserted-table td {
+      border: 1px solid #999;
+      padding: 8px 10px;
+      min-width: 50px;
+      min-height: 16px;
+      outline: none;
+    }
+    .table-add-col-btn, .table-add-row-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      border: 1px solid #999;
+      border-radius: 4px;
+      color: #333;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 4;
+    }
+    .table-add-col-btn {
+      position: absolute;
+      top: 0; bottom: 0; right: -26px;
+      width: 20px;
+    }
+    .table-add-row-btn {
+      position: absolute;
+      left: 0; right: 0; bottom: -26px;
+      height: 20px;
+    }
+    .table-block:hover .table-add-col-btn,
+    .table-block:hover .table-add-row-btn { display: flex; }
+    .table-add-col-btn:hover, .table-add-row-btn:hover { background: #14b8a6; color: #fff; border-color: #14b8a6; }
     .inserted-image { max-width: 100%; margin: 12px 0; display: block; }
 
     /* Activity Feed — identical component/styling to the chat screen's */
@@ -386,6 +462,9 @@
       margin-bottom: 22px;
       line-height: 1.4;
     }
+    .table-size-inputs-row { display: flex; gap: 20px; margin-bottom: 4px; }
+    .table-size-input-label { font-size: 0.72rem; color: var(--subtext-color); margin-bottom: 4px; }
+    .table-size-number-input { width: 70px; margin-bottom: 8px; }
     .group-modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -489,6 +568,27 @@
         <div class="group-modal-actions">
           <button class="group-modal-cancel-btn" onclick="closeAddFormModal()">Cancel</button>
           <button class="group-modal-ok-btn" onclick="confirmAddForm()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table size prompt -->
+    <div class="group-modal-overlay" id="tableSizeOverlay" onclick="closeTableSizeModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Insert Table</div>
+        <div class="table-size-inputs-row">
+          <div>
+            <div class="table-size-input-label">Columns</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="tableColsInput" min="1" max="15" value="3" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmInsertTable();}">
+          </div>
+          <div>
+            <div class="table-size-input-label">Rows</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="tableRowsInput" min="1" max="30" value="3" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmInsertTable();}">
+          </div>
+        </div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeTableSizeModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmInsertTable()">OK</button>
         </div>
       </div>
     </div>
@@ -790,13 +890,14 @@
       // innerHTML assignment brings back the markup but not the JS listeners that were on it.
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
+      page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
       resetHistoryWithCurrentState();
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
       // typing or using a tool immediately begins there, with no click needed first.
-      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, table, img').length === 0) {
+      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, img').length === 0) {
         placeCursorAtPageStart();
       }
     }
@@ -886,6 +987,7 @@
       const page = document.getElementById('formSheet');
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
+      page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
     }
 
     function pushHistorySnapshot() {
@@ -974,7 +1076,7 @@
       const page = document.getElementById('formSheet');
       const hasFlowContent = Array.from(page.childNodes).some(function(n) {
         if (n.nodeType === Node.TEXT_NODE) return true;
-        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block');
+        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block');
         return false;
       });
       if (!hasFlowContent) {
@@ -1279,14 +1381,136 @@
       });
     }
 
+    // Table — opens a size prompt, then inserts a floating block with the same move/delete
+    // pattern as Question & Answer and Button, plus hover-revealed add-row/add-column controls.
+
     function insertTable() {
-      let rows = '';
-      for (let r = 0; r < 3; r++) {
+      document.getElementById('tableColsInput').value = 3;
+      document.getElementById('tableRowsInput').value = 3;
+      document.getElementById('tableSizeOverlay').classList.add('active');
+      document.getElementById('tableColsInput').focus();
+    }
+
+    function closeTableSizeModal() {
+      document.getElementById('tableSizeOverlay').classList.remove('active');
+    }
+
+    function confirmInsertTable() {
+      const cols = Math.max(1, Math.min(15, parseInt(document.getElementById('tableColsInput').value, 10) || 3));
+      const rows = Math.max(1, Math.min(30, parseInt(document.getElementById('tableRowsInput').value, 10) || 3));
+      closeTableSizeModal();
+      createTableBlock(rows, cols);
+    }
+
+    function buildTableRowsHtml(rows, cols) {
+      let html = '';
+      for (let r = 0; r < rows; r++) {
         let cells = '';
-        for (let c = 0; c < 3; c++) cells += '<td>&nbsp;</td>';
-        rows += '<tr>' + cells + '</tr>';
+        for (let c = 0; c < cols; c++) cells += '<td contenteditable="true">&nbsp;</td>';
+        html += '<tr>' + cells + '</tr>';
       }
-      insertHtmlAtCursor('<table class="inserted-table">' + rows + '</table><br>');
+      return html;
+    }
+
+    function createTableBlock(rows, cols) {
+      const page = document.getElementById('formSheet');
+      const block = document.createElement('div');
+      block.className = 'table-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="table-move-zone">
+          <div class="table-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="table-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <table class="inserted-table">${buildTableRowsHtml(rows, cols)}</table>
+        <button class="table-add-col-btn" title="Add column">+</button>
+        <button class="table-add-row-btn" title="Add row">+</button>
+      `;
+      page.appendChild(block);
+      wireTableBlockInteractions(block);
+      ensureFlowAnchor();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireTableBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.table-move-handle');
+      const deleteHandle = block.querySelector('.table-delete-handle');
+      const addColBtn = block.querySelector('.table-add-col-btn');
+      const addRowBtn = block.querySelector('.table-add-row-btn');
+      const table = block.querySelector('.inserted-table');
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('table-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          block.style.left = Math.min(maxLeft, Math.max(0, startLeft + dx)) + 'px';
+          block.style.top = Math.min(maxTop, Math.max(0, startTop + dy)) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('table-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      addColBtn.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      addColBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        Array.from(table.rows).forEach(function(row) {
+          const td = document.createElement('td');
+          td.contentEditable = 'true';
+          td.innerHTML = '&nbsp;';
+          row.appendChild(td);
+        });
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      addRowBtn.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      addRowBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const colCount = table.rows.length > 0 ? table.rows[0].cells.length : 1;
+        const tr = document.createElement('tr');
+        for (let c = 0; c < colCount; c++) {
+          const td = document.createElement('td');
+          td.contentEditable = 'true';
+          td.innerHTML = '&nbsp;';
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
     }
 
     function insertImageFromFile(input) {
