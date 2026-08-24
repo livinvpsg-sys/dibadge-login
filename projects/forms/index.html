@@ -146,6 +146,8 @@
       flex-shrink: 0;
     }
     .form-tool-btn:hover { background: var(--border-color); color: var(--text-color); }
+    .form-tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .form-tool-btn:disabled:hover { background: transparent; }
     .form-tool-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .form-tool-divider { width: 28px; height: 1px; background: var(--border-color); margin: 6px 0; }
 
@@ -491,11 +493,21 @@
 
     <!-- Individual form (shown when a form is opened via ?name=) -->
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
-      <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..." oninput="hasUnsavedChanges = true;"></div>
+      <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..." oninput="handleFormPageInput();"></div>
     </main>
 
     <!-- Form-building tool rail — only shown while editing a form, not in the library view -->
     <aside class="form-tools-rail" id="formToolsRail" style="display:none;">
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="saveCurrentFormContent(); hasUnsavedChanges = false;" title="Save">
+        <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      </button>
+      <button class="form-tool-btn" id="formUndoBtn" onmousedown="event.preventDefault();" onclick="undoFormChange()" title="Undo">
+        <svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15-6.7L3 13"></path></svg>
+      </button>
+      <button class="form-tool-btn" id="formRedoBtn" onmousedown="event.preventDefault();" onclick="redoFormChange()" title="Redo">
+        <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 15-6.7L21 13"></path></svg>
+      </button>
+      <div class="form-tool-divider"></div>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionBlock()" title="Question &amp; Answer">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </button>
@@ -743,6 +755,7 @@
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
+      resetHistoryWithCurrentState();
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
       // typing or using a tool immediately begins there, with no click needed first.
@@ -827,6 +840,96 @@
 
     // A floating block (Question & Answer, Button) is position:absolute — it's removed from
     // the page's normal flow entirely. If it's the ONLY thing on the page, there is no real
+    // ===================== Undo / Redo history =====================
+    // Snapshot-based: keeps full page.innerHTML states, since content here is a mix of typed
+    // text and custom floating blocks (Question & Answer, Button) that don't fit a simple
+    // text-only undo model.
+
+    let formHistory = [];
+    let formHistoryIndex = -1;
+    let isRestoringHistory = false; // guards against capturing our own undo/redo as new history
+    let historyDebounceTimer = null;
+
+    function rewireAllBlocks() {
+      const page = document.getElementById('formSheet');
+      page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
+      page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
+    }
+
+    function pushHistorySnapshot() {
+      if (isRestoringHistory) return;
+      const page = document.getElementById('formSheet');
+      const snapshot = page.innerHTML;
+      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) return; // no real change
+      formHistory = formHistory.slice(0, formHistoryIndex + 1); // drop any redo branch
+      formHistory.push(snapshot);
+      formHistoryIndex = formHistory.length - 1;
+      if (formHistory.length > 50) {
+        formHistory.shift();
+        formHistoryIndex--;
+      }
+      updateUndoRedoButtons();
+    }
+
+    function resetHistoryWithCurrentState() {
+      const page = document.getElementById('formSheet');
+      formHistory = [page.innerHTML];
+      formHistoryIndex = 0;
+      updateUndoRedoButtons();
+    }
+
+    function updateUndoRedoButtons() {
+      const undoBtn = document.getElementById('formUndoBtn');
+      const redoBtn = document.getElementById('formRedoBtn');
+      if (undoBtn) undoBtn.disabled = formHistoryIndex <= 0;
+      if (redoBtn) redoBtn.disabled = formHistoryIndex >= formHistory.length - 1;
+    }
+
+    function undoFormChange() {
+      if (formHistoryIndex <= 0) return;
+      formHistoryIndex--;
+      isRestoringHistory = true;
+      document.getElementById('formSheet').innerHTML = formHistory[formHistoryIndex];
+      rewireAllBlocks();
+      isRestoringHistory = false;
+      hasUnsavedChanges = true;
+      updateUndoRedoButtons();
+    }
+
+    function redoFormChange() {
+      if (formHistoryIndex >= formHistory.length - 1) return;
+      formHistoryIndex++;
+      isRestoringHistory = true;
+      document.getElementById('formSheet').innerHTML = formHistory[formHistoryIndex];
+      rewireAllBlocks();
+      isRestoringHistory = false;
+      hasUnsavedChanges = true;
+      updateUndoRedoButtons();
+    }
+
+    // Called by the page's oninput — typing is continuous, so history snapshots are debounced
+    // to one per pause in typing, rather than one per keystroke.
+    function handleFormPageInput() {
+      hasUnsavedChanges = true;
+      clearTimeout(historyDebounceTimer);
+      historyDebounceTimer = setTimeout(pushHistorySnapshot, 500);
+    }
+
+    // Standard Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) shortcuts, same as the toolbar buttons
+    document.getElementById('formSheet').addEventListener('keydown', function(e) {
+      const ctrlOrCmd = e.ctrlKey || e.metaKey;
+      if (!ctrlOrCmd) return;
+      if (e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        clearTimeout(historyDebounceTimer);
+        pushHistorySnapshot(); // capture whatever was just typed before jumping back
+        undoFormChange();
+      } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+        e.preventDefault();
+        redoFormChange();
+      }
+    });
+
     // flowing text position left anywhere for a cursor to rest in and accept typed characters,
     // even in the "blank" space around it. This guarantees a genuine empty line always exists
     // in the page's actual flow, so typing outside a floating block always works.
@@ -894,6 +997,7 @@
         }
       }
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     // Question & Answer — inserted as a floating block (not flowing text), so it can be freely
@@ -927,6 +1031,7 @@
       wireQaBlockInteractions(block);
       ensureFlowAnchor();
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function wireQaBlockInteractions(block) {
@@ -947,6 +1052,7 @@
         e.stopPropagation();
         block.remove();
         hasUnsavedChanges = true;
+        pushHistorySnapshot();
       });
 
       // Move — drag the "+" handle to reposition the whole block anywhere within the page
@@ -973,6 +1079,7 @@
           block.classList.remove('qa-dragging');
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -992,6 +1099,7 @@
         function onUp() {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -1011,6 +1119,7 @@
         function onUp() {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -1045,6 +1154,7 @@
       wireButtonBlockInteractions(block);
       ensureFlowAnchor();
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function wireButtonBlockInteractions(block) {
@@ -1065,6 +1175,7 @@
         e.stopPropagation();
         block.remove();
         hasUnsavedChanges = true;
+        pushHistorySnapshot();
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
@@ -1088,6 +1199,7 @@
           block.classList.remove('btn-dragging');
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -1105,6 +1217,7 @@
         function onUp() {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -1122,6 +1235,7 @@
         function onUp() {
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
@@ -1157,18 +1271,21 @@
       document.execCommand(TEXT_ALIGN_COMMANDS[textAlignIndex]);
       textAlignIndex = (textAlignIndex + 1) % TEXT_ALIGN_COMMANDS.length;
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function applyFillColor(color) {
       document.getElementById('formSheet').focus();
       document.execCommand('hiliteColor', false, color);
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function applyTextColor(color) {
       document.getElementById('formSheet').focus();
       document.execCommand('foreColor', false, color);
       hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
   </script>
 </body>
