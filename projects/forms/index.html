@@ -333,15 +333,15 @@
     .table-block.table-dragging { z-index: 50; }
     .table-move-zone {
       position: absolute;
-      top: -38px; left: -2px;
-      width: 62px; height: 46px;
+      top: -26px; left: -2px;
+      width: 90px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
       align-items: flex-start;
       gap: 6px;
     }
-    .table-move-handle, .table-delete-handle {
+    .table-move-handle, .table-edit-handle, .table-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
@@ -354,12 +354,16 @@
       user-select: none;
       flex-shrink: 0;
     }
-    .table-move-handle svg, .table-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .table-move-handle svg, .table-edit-handle svg, .table-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
     .table-move-handle { cursor: move; }
+    .table-edit-handle { cursor: pointer; }
     .table-delete-handle { cursor: pointer; }
+    .table-edit-handle:hover { border-color: #14b8a6; }
+    .table-edit-handle:hover svg { stroke: #14b8a6; }
     .table-delete-handle:hover { border-color: #ff3b30; }
     .table-delete-handle:hover svg { stroke: #ff3b30; }
     .table-move-zone:hover .table-move-handle,
+    .table-move-zone:hover .table-edit-handle,
     .table-move-zone:hover .table-delete-handle { display: flex; }
 
     .table-wrapper {
@@ -415,11 +419,34 @@
       pointer-events: auto;
     }
     .table-row-insert-marker:hover, .table-col-insert-marker:hover {
-      background: #14b8a6;
+      background: #333;
       color: #fff;
-      border-color: #14b8a6;
+      border-color: #333;
     }
     .inserted-image { max-width: 100%; margin: 12px 0; display: block; }
+
+    /* Row/column resize — thin strips right on each INTERNAL boundary line (not the margins,
+       not the insert markers), giving a resize cursor and a visible highlight while dragging. */
+    .table-row-resize-handle {
+      position: absolute;
+      left: 0; right: 0;
+      height: 6px;
+      cursor: row-resize;
+      pointer-events: auto;
+      z-index: 7;
+    }
+    .table-col-resize-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 6px;
+      cursor: col-resize;
+      pointer-events: auto;
+      z-index: 7;
+    }
+    .table-row-resize-handle:hover, .table-row-resize-handle.table-resizing,
+    .table-col-resize-handle:hover, .table-col-resize-handle.table-resizing {
+      background: rgba(51,51,51,0.25);
+    }
 
     /* Activity Feed — identical component/styling to the chat screen's */
     .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
@@ -607,6 +634,37 @@
         <div class="group-modal-actions">
           <button class="group-modal-cancel-btn" onclick="closeTableSizeModal()">Cancel</button>
           <button class="group-modal-ok-btn" onclick="confirmInsertTable()">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Table modal: adjust column/row counts and uniform column width / row height -->
+    <div class="group-modal-overlay" id="tableEditOverlay" onclick="closeTableEditModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Edit Table</div>
+        <div class="table-size-inputs-row">
+          <div>
+            <div class="table-size-input-label">Columns</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="editTableColsInput" min="1" max="15">
+          </div>
+          <div>
+            <div class="table-size-input-label">Rows</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="editTableRowsInput" min="1" max="30">
+          </div>
+        </div>
+        <div class="table-size-inputs-row">
+          <div>
+            <div class="table-size-input-label">Column Width (px)</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="editTableColWidthInput" min="20" max="600">
+          </div>
+          <div>
+            <div class="table-size-input-label">Row Height (px)</div>
+            <input type="number" class="group-modal-input table-size-number-input" id="editTableRowHeightInput" min="16" max="300">
+          </div>
+        </div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeTableEditModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmTableEdit()">OK</button>
         </div>
       </div>
     </div>
@@ -1442,6 +1500,7 @@
       block.innerHTML = `
         <div class="table-move-zone">
           <div class="table-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="table-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="table-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="table-wrapper">
@@ -1460,6 +1519,7 @@
     function wireTableBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.table-move-handle');
+      const editHandle = block.querySelector('.table-edit-handle');
       const deleteHandle = block.querySelector('.table-delete-handle');
       const table = block.querySelector('.inserted-table');
 
@@ -1470,6 +1530,13 @@
         block.remove();
         hasUnsavedChanges = true;
         pushHistorySnapshot();
+      });
+
+      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      editHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openTableEditModal(block);
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
@@ -1500,11 +1567,9 @@
       });
 
       setupTableInsertMarkers(block);
+      setupTableResizeHandles(block);
     }
 
-    // Rebuilds the hover-to-insert zones along every row boundary (including the very top and
-    // bottom) and every column boundary (including the very left and right) — matching Word's
-    // "hover any line, a + appears right there" behavior, not just one control per side.
     // A single "+" per axis that snaps to whichever boundary line the cursor is nearest —
     // hovering the left margin reveals it for rows, the top margin for columns. This avoids the
     // overlap problem of many separate always-present zone strips competing for the same pixels.
@@ -1559,6 +1624,7 @@
         e.preventDefault();
         e.stopPropagation();
         insertTableRowAt(table, parseInt(rowMarker.dataset.insertIndex, 10) || 0);
+        setupTableResizeHandles(block);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       });
@@ -1568,9 +1634,149 @@
         e.preventDefault();
         e.stopPropagation();
         insertTableColAt(table, parseInt(colMarker.dataset.insertIndex, 10) || 0);
+        setupTableResizeHandles(block);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       });
+    }
+
+    // Resize handles sit right on each INTERNAL row/column boundary line — dragging one resizes
+    // that specific row's height or column's width. Rebuilt after every structural change since
+    // boundary positions shift.
+    function setupTableResizeHandles(block) {
+      const table = block.querySelector('.inserted-table');
+      const wrapper = block.querySelector('.table-wrapper');
+      if (!table || !wrapper) return;
+      wrapper.querySelectorAll('.table-row-resize-handle, .table-col-resize-handle').forEach(function(el) { el.remove(); });
+
+      const rows = Array.from(table.rows);
+      for (let i = 0; i < rows.length - 1; i++) {
+        const boundaryY = rows[i].offsetTop + rows[i].offsetHeight;
+        const handle = document.createElement('div');
+        handle.className = 'table-row-resize-handle';
+        handle.style.top = (boundaryY - 3) + 'px';
+        wrapper.appendChild(handle);
+        wireRowResizeHandle(block, handle, rows[i]);
+      }
+
+      if (rows.length > 0) {
+        const cells = Array.from(rows[0].cells);
+        for (let i = 0; i < cells.length - 1; i++) {
+          const boundaryX = cells[i].offsetLeft + cells[i].offsetWidth;
+          const handle = document.createElement('div');
+          handle.className = 'table-col-resize-handle';
+          handle.style.left = (boundaryX - 3) + 'px';
+          wrapper.appendChild(handle);
+          wireColResizeHandle(block, handle, table, i);
+        }
+      }
+    }
+
+    function wireRowResizeHandle(block, handle, row) {
+      handle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        handle.classList.add('table-resizing');
+        const startY = e.clientY;
+        const startHeight = row.offsetHeight;
+        function onMove(ev) {
+          const newHeight = Math.max(20, startHeight + (ev.clientY - startY));
+          row.style.height = newHeight + 'px';
+          Array.from(row.cells).forEach(function(td) { td.style.height = newHeight + 'px'; });
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          handle.classList.remove('table-resizing');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          setupTableResizeHandles(block); // reposition remaining handles to match the new height
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    function wireColResizeHandle(block, handle, table, colIndex) {
+      handle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        handle.classList.add('table-resizing');
+        const startX = e.clientX;
+        const cellsInCol = Array.from(table.rows).map(function(r) { return r.cells[colIndex]; }).filter(Boolean);
+        const startWidth = cellsInCol.length > 0 ? cellsInCol[0].offsetWidth : 50;
+        function onMove(ev) {
+          const newWidth = Math.max(30, startWidth + (ev.clientX - startX));
+          cellsInCol.forEach(function(td) { td.style.width = newWidth + 'px'; });
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          handle.classList.remove('table-resizing');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          setupTableResizeHandles(block); // reposition remaining handles to match the new width
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // ---------- Edit Table modal: column/row counts and uniform width/height ----------
+
+    let tableEditTargetBlock = null;
+
+    function openTableEditModal(block) {
+      tableEditTargetBlock = block;
+      const table = block.querySelector('.inserted-table');
+      const rowCount = table.rows.length;
+      const colCount = rowCount > 0 ? table.rows[0].cells.length : 1;
+      const firstCell = rowCount > 0 ? table.rows[0].cells[0] : null;
+      document.getElementById('editTableColsInput').value = colCount;
+      document.getElementById('editTableRowsInput').value = rowCount;
+      document.getElementById('editTableColWidthInput').value = firstCell ? Math.round(firstCell.offsetWidth) : 60;
+      document.getElementById('editTableRowHeightInput').value = rowCount > 0 ? Math.round(table.rows[0].offsetHeight) : 32;
+      document.getElementById('tableEditOverlay').classList.add('active');
+    }
+
+    function closeTableEditModal() {
+      document.getElementById('tableEditOverlay').classList.remove('active');
+      tableEditTargetBlock = null;
+    }
+
+    function confirmTableEdit() {
+      if (!tableEditTargetBlock) return;
+      const block = tableEditTargetBlock;
+      const table = block.querySelector('.inserted-table');
+      const targetCols = Math.max(1, Math.min(15, parseInt(document.getElementById('editTableColsInput').value, 10) || 1));
+      const targetRows = Math.max(1, Math.min(30, parseInt(document.getElementById('editTableRowsInput').value, 10) || 1));
+      const colWidth = Math.max(20, parseInt(document.getElementById('editTableColWidthInput').value, 10) || 60);
+      const rowHeight = Math.max(16, parseInt(document.getElementById('editTableRowHeightInput').value, 10) || 32);
+
+      while (table.rows.length < targetRows) insertTableRowAt(table, table.rows.length);
+      while (table.rows.length > targetRows) table.rows[table.rows.length - 1].remove();
+
+      const currentCols = table.rows.length > 0 ? table.rows[0].cells.length : 0;
+      if (currentCols < targetCols) {
+        for (let i = currentCols; i < targetCols; i++) insertTableColAt(table, table.rows[0] ? table.rows[0].cells.length : 0);
+      } else if (currentCols > targetCols) {
+        Array.from(table.rows).forEach(function(row) {
+          while (row.cells.length > targetCols) row.cells[row.cells.length - 1].remove();
+        });
+      }
+
+      Array.from(table.rows).forEach(function(row) {
+        row.style.height = rowHeight + 'px';
+        Array.from(row.cells).forEach(function(td) {
+          td.style.width = colWidth + 'px';
+          td.style.height = rowHeight + 'px';
+        });
+      });
+
+      closeTableEditModal();
+      setupTableResizeHandles(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function insertTableRowAt(table, index) {
