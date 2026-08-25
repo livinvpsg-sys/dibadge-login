@@ -1169,22 +1169,23 @@
       page.querySelectorAll('.snap-guideline').forEach(el => el.remove());
     }
 
-    function showSnapGuideline(page, type, pos) {
+ function showSnapGuideline(page, type, pos) {
       const line = document.createElement('div');
       line.className = 'snap-guideline ' + type;
       if (type === 'vertical') {
+        // pos is already relative to the .a4-page coordinate space
         line.style.left = pos + 'px';
         line.style.top = '0px';
-        line.style.height = page.scrollHeight + 'px';
+        line.style.height = page.clientHeight + 'px';
       } else {
         line.style.top = pos + 'px';
         line.style.left = '0px';
-        line.style.width = page.scrollWidth + 'px';
+        line.style.width = page.clientWidth + 'px';
       }
       page.appendChild(line);
     }
 
-   function handleBlockDrag(e, block) {
+    function handleBlockDrag(e, block) {
       e.preventDefault();
       e.stopPropagation();
       block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging');
@@ -1194,9 +1195,6 @@
       const startTop = parseFloat(block.style.top) || 0;
       const blockW = block.offsetWidth;
       const blockH = block.offsetHeight;
-
-      const pageComputedStyle = window.getComputedStyle(page);
-      const pagePaddingLeft = parseFloat(pageComputedStyle.paddingLeft) || 76;
 
       const otherBlocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block'))
         .filter(b => b !== block);
@@ -1213,13 +1211,12 @@
         let snappedX = false;
         let snappedY = false;
 
-        // Helper to evaluate potential X snap targets
         let targetLeft = newLeft;
 
-        // 1. Check Page Left Margin
-        if (Math.abs(newLeft - pagePaddingLeft) < snapThreshold) {
-          targetLeft = pagePaddingLeft;
-          showSnapGuideline(page, 'vertical', pagePaddingLeft);
+        // 1. Check Snapping to the A4 Page's inner left edge (0px relative to content box)
+        if (Math.abs(newLeft) < snapThreshold) {
+          targetLeft = 0;
+          showSnapGuideline(page, 'vertical', 0);
           snappedX = true;
         }
 
