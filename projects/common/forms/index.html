@@ -1185,7 +1185,7 @@
       page.appendChild(line);
     }
 
-    function handleBlockDrag(e, block) {
+   function handleBlockDrag(e, block) {
       e.preventDefault();
       e.stopPropagation();
       block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging');
@@ -1210,20 +1210,18 @@
         const snapThreshold = 8;
         let snappedX = false;
         let snappedY = false;
-
         let targetLeft = newLeft;
 
-        // 1. Check Snapping to the A4 Page's inner left edge (0px relative to content box)
+        // 1. Check Snapping to A4 Page's inner left edge (0px)
         if (Math.abs(newLeft) < snapThreshold) {
           targetLeft = 0;
           showSnapGuideline(page, 'vertical', 0);
           snappedX = true;
         }
 
-        // 2. Check other blocks for X alignment
+        // 2. Check other blocks for X alignment (Checking Left first, then Center, then Right explicitly)
         if (!snappedX) {
-          otherBlocks.forEach(other => {
-            if (snappedX) return;
+          for (let other of otherBlocks) {
             const oLeft = parseFloat(other.style.left) || 0;
             const oWidth = other.offsetWidth;
             const oRight = oLeft + oWidth;
@@ -1232,74 +1230,82 @@
             const curCenterX = newLeft + blockW / 2;
             const curRight = newLeft + blockW;
 
-            // Left to Left
+            // Priority A: Left-to-Left alignment
             if (Math.abs(newLeft - oLeft) < snapThreshold) {
               targetLeft = oLeft;
               showSnapGuideline(page, 'vertical', oLeft);
               snappedX = true;
+              break;
             }
-            // Center to Center X
+            // Priority B: Center-to-Center X alignment
             else if (Math.abs(curCenterX - oCenterX) < snapThreshold) {
               targetLeft = oCenterX - blockW / 2;
               showSnapGuideline(page, 'vertical', oCenterX);
               snappedX = true;
+              break;
             }
-            // Right to Right
+            // Priority C: Right-to-Right alignment
             else if (Math.abs(curRight - oRight) < snapThreshold) {
               targetLeft = oRight - blockW;
               showSnapGuideline(page, 'vertical', oRight);
               snappedX = true;
+              break;
             }
-            // Left to Right
+            // Priority D: Left-to-Right alignment (Adjacent layout)
             else if (Math.abs(newLeft - oRight) < snapThreshold) {
               targetLeft = oRight;
               showSnapGuideline(page, 'vertical', oRight);
               snappedX = true;
+              break;
             }
-            // Right to Left
+            // Priority E: Right-to-Left alignment (Adjacent layout)
             else if (Math.abs(curRight - oLeft) < snapThreshold) {
               targetLeft = oLeft - blockW;
               showSnapGuideline(page, 'vertical', oLeft);
               snappedX = true;
+              break;
             }
-          });
+          }
         }
 
         if (snappedX) {
           newLeft = targetLeft;
         }
 
-        // Y Alignment checks
+        // Y Alignment checks (Top, Center Y, Bottom)
         let targetTop = newTop;
         const curBottom = newTop + blockH;
         const curCenterY = newTop + blockH / 2;
 
-        otherBlocks.forEach(other => {
-          if (snappedY) return;
+        for (let other of otherBlocks) {
+          if (snappedY) break;
           const oTop = parseFloat(other.style.top) || 0;
           const oHeight = other.offsetHeight;
           const oBottom = oTop + oHeight;
           const oCenterY = oTop + oHeight / 2;
 
-          // Top to Top
+          // Top-to-Top
           if (Math.abs(newTop - oTop) < snapThreshold) {
             targetTop = oTop;
             showSnapGuideline(page, 'horizontal', oTop);
             snappedY = true;
+            break;
           }
-          // Center to Center Y
+          // Center-to-Center Y
           else if (Math.abs(curCenterY - oCenterY) < snapThreshold) {
             targetTop = oCenterY - blockH / 2;
             showSnapGuideline(page, 'horizontal', oCenterY);
             snappedY = true;
+            break;
           }
-          // Bottom to Bottom
+          // Bottom-to-Bottom
           else if (Math.abs(curBottom - oBottom) < snapThreshold) {
             targetTop = oBottom - blockH;
             showSnapGuideline(page, 'horizontal', oBottom);
             snappedY = true;
+            break;
           }
-        });
+        }
 
         if (snappedY) {
           newTop = targetTop;
@@ -1323,7 +1329,6 @@
       document.addEventListener('pointermove', onMove);
       document.addEventListener('pointerup', onUp);
     }
-
     let qaBlockCascadeOffset = 0;
 
     function insertQuestionBlock() {
