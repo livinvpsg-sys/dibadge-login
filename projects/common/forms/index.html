@@ -770,7 +770,7 @@
 
   <div class="save-toast" id="saveToast">Saved</div>
 
-  <script>
+ <script>
     // This page is the REAL destination for the "Project forms" nav icon — a standalone
     // library, not an in-page panel embedded in the Projects screen.
 
@@ -1164,7 +1164,7 @@
       pushHistorySnapshot();
     }
 
-    // --- PowerPoint Style Snapping Lines Engine ---
+    // --- Enhanced Snapping Engine (Optimized for Easy Left Alignment) ---
     function clearSnapGuidelines(page) {
       page.querySelectorAll('.snap-guideline').forEach(el => el.remove());
     }
@@ -1184,7 +1184,7 @@
       page.appendChild(line);
     }
 
-    function handleBlockDrag(e, block, moveHandleClass) {
+    function handleBlockDrag(e, block) {
       e.preventDefault();
       e.stopPropagation();
       block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging');
@@ -1195,7 +1195,10 @@
       const blockW = block.offsetWidth;
       const blockH = block.offsetHeight;
 
-      // Find all other alignment-capable blocks
+      // Extract left padding of the A4 sheet so objects easily snap to the left form margin
+      const pageComputedStyle = window.getComputedStyle(page);
+      const pagePaddingLeft = parseFloat(pageComputedStyle.paddingLeft) || 76;
+
       const otherBlocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block'))
         .filter(b => b !== block);
 
@@ -1207,7 +1210,8 @@
 
         clearSnapGuidelines(page);
 
-        const snapThreshold = 6;
+        // Increased snap threshold slightly (8px) to make left alignment feel effortless
+        const snapThreshold = 8;
         let snappedX = false;
         let snappedY = false;
 
@@ -1218,6 +1222,14 @@
         const curBottom = newTop + blockH;
         const curCenterY = newTop + blockH / 2;
 
+        // 1. Check Snapping with A4 Page Left Margin First
+        if (!snappedX && Math.abs(curLeft - pagePaddingLeft) < snapThreshold) {
+          newLeft = pagePaddingLeft;
+          showSnapGuideline(page, 'vertical', pagePaddingLeft);
+          snappedX = true;
+        }
+
+        // 2. Check Snapping against other elements
         otherBlocks.forEach(other => {
           const oLeft = parseFloat(other.style.left) || 0;
           const oWidth = other.offsetWidth;
@@ -1229,9 +1241,9 @@
           const oBottom = oTop + oHeight;
           const oCenterY = oTop + oHeight / 2;
 
-          // Check X alignments
+          // Check X alignments (Left-to-Left gets highest priority)
           if (!snappedX) {
-            // Left to Left
+            // Left to Left (Crucial for easy vertical columns)
             if (Math.abs(curLeft - oLeft) < snapThreshold) {
               newLeft = oLeft;
               showSnapGuideline(page, 'vertical', oLeft);
@@ -1873,6 +1885,6 @@
       pushHistorySnapshot();
       undoFormChange();
     }
-  </script>
+    </script>
 </body>
 </html>
