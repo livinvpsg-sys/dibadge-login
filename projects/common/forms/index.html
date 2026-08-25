@@ -565,6 +565,65 @@
     .btn-cancel { background: var(--border-color); color: var(--text-color); }
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
+/* Floating Image Block Styling */
+    .image-block {
+      position: absolute;
+      pointer-events: none;
+      display: inline-block;
+    }
+    .image-block.image-dragging { z-index: 50; }
+    .image-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 62px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .image-move-handle, .image-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .image-move-handle svg, .image-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .image-move-handle { cursor: move; }
+    .image-delete-handle { cursor: pointer; }
+    .image-delete-handle:hover { border-color: #ff3b30; }
+    .image-delete-handle:hover svg { stroke: #ff3b30; }
+    .image-move-zone:hover .image-move-handle,
+    .image-move-zone:hover .image-delete-handle { display: flex; }
+
+    .image-wrapper {
+      position: relative;
+      display: inline-block;
+      pointer-events: auto;
+    }
+    .image-wrapper img {
+      display: block;
+      max-width: none;
+      width: 100%;
+      height: auto;
+    }
+    .img-resize-right {
+      position: absolute; top: 6px; bottom: 6px; right: -2px; width: 5px; cursor: ew-resize; pointer-events: auto;
+    }
+    .img-resize-bottom {
+      position: absolute; left: 6px; right: 6px; bottom: -2px; height: 5px; cursor: ns-resize; pointer-events: auto;
+    }
+    .img-resize-corner {
+      position: absolute; right: -4px; bottom: -4px; width: 10px; height: 10px; background: #333; border: 1px solid #fff; cursor: nwse-resize; pointer-events: auto; border-radius: 2px;
+    }
+    
     @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
   </style>
 </head>
@@ -1165,30 +1224,30 @@
     }
 
     // --- Enhanced Snapping Engine (Optimized for Easy Left Alignment) ---
+  // --- Enhanced Snapping Engine (Fully Fixed Left/Center/Right Alignment) ---
     function clearSnapGuidelines(page) {
       page.querySelectorAll('.snap-guideline').forEach(el => el.remove());
     }
 
- function showSnapGuideline(page, type, pos) {
+    function showSnapGuideline(page, type, pos) {
       const line = document.createElement('div');
       line.className = 'snap-guideline ' + type;
       if (type === 'vertical') {
-        // pos is already relative to the .a4-page coordinate space
         line.style.left = pos + 'px';
         line.style.top = '0px';
-        line.style.height = page.clientHeight + 'px';
+        line.style.height = page.scrollHeight + 'px';
       } else {
         line.style.top = pos + 'px';
         line.style.left = '0px';
-        line.style.width = page.clientWidth + 'px';
+        line.style.width = page.scrollWidth + 'px';
       }
       page.appendChild(line);
     }
 
-   function handleBlockDrag(e, block) {
+    function handleBlockDrag(e, block) {
       e.preventDefault();
       e.stopPropagation();
-      block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging');
+      block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging', 'image-dragging');
       const page = document.getElementById('formSheet');
       const startX = e.clientX, startY = e.clientY;
       const startLeft = parseFloat(block.style.left) || 0;
@@ -1196,7 +1255,7 @@
       const blockW = block.offsetWidth;
       const blockH = block.offsetHeight;
 
-      const otherBlocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block'))
+      const otherBlocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block'))
         .filter(b => b !== block);
 
       function onMove(ev) {
@@ -1219,7 +1278,7 @@
           snappedX = true;
         }
 
-        // 2. Check other blocks for X alignment (Checking Left first, then Center, then Right explicitly)
+        // 2. Check other blocks for X alignment
         if (!snappedX) {
           for (let other of otherBlocks) {
             const oLeft = parseFloat(other.style.left) || 0;
@@ -1251,14 +1310,14 @@
               snappedX = true;
               break;
             }
-            // Priority D: Left-to-Right alignment (Adjacent layout)
+            // Priority D: Left-to-Right alignment
             else if (Math.abs(newLeft - oRight) < snapThreshold) {
               targetLeft = oRight;
               showSnapGuideline(page, 'vertical', oRight);
               snappedX = true;
               break;
             }
-            // Priority E: Right-to-Left alignment (Adjacent layout)
+            // Priority E: Right-to-Left alignment
             else if (Math.abs(curRight - oLeft) < snapThreshold) {
               targetLeft = oLeft - blockW;
               showSnapGuideline(page, 'vertical', oLeft);
@@ -1272,7 +1331,7 @@
           newLeft = targetLeft;
         }
 
-        // Y Alignment checks (Top, Center Y, Bottom)
+        // Y Alignment checks
         let targetTop = newTop;
         const curBottom = newTop + blockH;
         const curCenterY = newTop + blockH / 2;
@@ -1319,7 +1378,7 @@
       }
 
       function onUp() {
-        block.classList.remove('qa-dragging', 'btn-dragging', 'table-dragging');
+        block.classList.remove('qa-dragging', 'btn-dragging', 'table-dragging', 'image-dragging');
         clearSnapGuidelines(page);
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
@@ -1829,15 +1888,128 @@
       });
     }
 
-    function insertImageFromFile(input) {
+  function insertImageFromFile(input) {
       const file = input.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) {
-        insertHtmlAtCursor('<img class="inserted-image" src="' + e.target.result + '"><br>');
+        createImageBlock(e.target.result);
       };
       reader.readAsDataURL(file);
       input.value = '';
+    }
+
+    function createImageBlock(src) {
+      const page = document.getElementById('formSheet');
+      const block = document.createElement('div');
+      block.className = 'image-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="image-move-zone">
+          <div class="image-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="image-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="image-wrapper" style="width: 200px;">
+          <img src="${src}" />
+          <div class="img-resize-right"></div>
+          <div class="img-resize-bottom"></div>
+          <div class="img-resize-corner"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireImageBlockInteractions(block);
+      ensureFlowAnchor();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireImageBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.image-move-handle');
+      const deleteHandle = block.querySelector('.image-delete-handle');
+      const wrapper = block.querySelector('.image-wrapper');
+      const img = wrapper.querySelector('img');
+      const rightHandle = block.querySelector('.img-resize-right');
+      const bottomHandle = block.querySelector('.img-resize-bottom');
+      const cornerHandle = block.querySelector('.img-resize-corner');
+
+      deleteHandle.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      moveHandle.addEventListener('pointerdown', e => handleBlockDrag(e, block));
+
+      // Right handle: horizontal resize
+      rightHandle.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation();
+        const startX = e.clientX;
+        const startW = wrapper.offsetWidth;
+        function onMove(ev) {
+          wrapper.style.width = Math.max(40, startW + (ev.clientX - startX)) + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // Bottom handle: vertical resize
+      bottomHandle.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation();
+        const startY = e.clientY;
+        const startH = wrapper.offsetHeight;
+        function onMove(ev) {
+          wrapper.style.height = Math.max(40, startH + (ev.clientY - startY)) + 'px';
+          img.style.height = '100%';
+          img.style.objectFit = 'fill';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // Corner handle: proportional uniform scale up/down
+      cornerHandle.addEventListener('pointerdown', e => {
+        e.preventDefault(); e.stopPropagation();
+        const startX = e.clientX;
+        const startW = wrapper.offsetWidth;
+        const startH = wrapper.offsetHeight;
+        const aspect = startW / startH;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX;
+          const newW = Math.max(40, startW + dx);
+          const newH = newW / aspect;
+          wrapper.style.width = newW + 'px';
+          wrapper.style.height = newH + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
     }
 
     const TEXT_ALIGN_COMMANDS = ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'];
