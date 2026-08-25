@@ -121,6 +121,24 @@
       color: #999;
     }
 
+    /* Snapping guideline styles */
+    .snap-guideline {
+      position: absolute;
+      background-color: #ff3b30;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .snap-guideline.vertical {
+      width: 1px;
+      top: 0;
+      bottom: 0;
+    }
+    .snap-guideline.horizontal {
+      height: 1px;
+      left: 0;
+      right: 0;
+    }
+
     /* Form-building tool rail */
     .form-tools-rail {
       width: 56px;
@@ -759,12 +777,6 @@
     const FORMS_LIBRARY_KEY = 'dibadge_global_forms_library';
     let libraryViewMode = 'grid';
 
-    // Declared early (before init() runs on page load) — showFormSheet() -> resetHistoryWithCurrentState()
-    // reads these on the very first load, and `let` bindings aren't usable before their own
-    // declaration line executes. Declaring them down near their functions (where they used to
-    // be) threw "Cannot access 'formHistory' before initialization" on load, which silently
-    // aborted the rest of this script's top-level execution — breaking Undo/Redo AND, as a
-    // side effect, every `let` declared further down the file, including the save toast's timer.
     let formHistory = [];
     let formHistoryIndex = -1;
     let isRestoringHistory = false;
@@ -847,21 +859,12 @@
       forms.push(name);
       saveFormsLibrary(forms);
       closeAddFormModal();
-      openForm(name); // jump straight into the new form's work screen, ready to design
+      openForm(name); 
     }
-
-    // ---- Opening / viewing a specific form ----
-
-    // ===================== Unsaved-changes tracking + persistence =====================
-    // In-app navigation (breadcrumb, sidebar, back arrow) is fully under our control and gets
-    // the custom confirmation styled like the chat's remove/delete popups. Actually closing or
-    // refreshing the browser tab is NOT something a webpage can style — browsers only allow
-    // their own plain native "leave site?" dialog for that (a hard security restriction, the
-    // same for every site), so that case uses the standard beforeunload prompt instead.
 
     let hasUnsavedChanges = false;
     let currentFormName = null;
-    let pendingNavUrl = null; // a real URL, or '__library__' for the in-page library view
+    let pendingNavUrl = null; 
     const FORM_CONTENT_KEY_PREFIX = 'dibadge_form_content_';
 
     function saveCurrentFormContent() {
@@ -874,9 +877,8 @@
       return localStorage.getItem(FORM_CONTENT_KEY_PREFIX + name);
     }
 
-    // Every in-app link/button that leaves the current form routes through this first.
     function handleNavAttempt(event, url) {
-      if (!hasUnsavedChanges) return true; // nothing to protect — let it navigate normally
+      if (!hasUnsavedChanges) return true; 
       if (event) event.preventDefault();
       pendingNavUrl = url;
       document.getElementById('unsavedChangesOverlay').classList.add('active');
@@ -912,7 +914,6 @@
       }
     }
 
-    // Native browser dialog only — cannot be replaced with the app's own styled popup.
     window.addEventListener('beforeunload', function(e) {
       if (!hasUnsavedChanges) return;
       e.preventDefault();
@@ -955,15 +956,11 @@
         <span class="breadcrumb-item active">${name}</span>
       `;
 
-      // Blank A4 page, same idea as opening a new Word document — loads any previously saved
-      // content for this form, or starts empty if there is none yet.
       currentFormName = name;
       hasUnsavedChanges = false;
       const page = document.getElementById('formSheet');
       const saved = loadFormContent(name);
       page.innerHTML = saved || '';
-      // Re-attach drag/resize behavior to any Question & Answer blocks restored from storage —
-      // innerHTML assignment brings back the markup but not the JS listeners that were on it.
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
@@ -971,8 +968,6 @@
       document.getElementById('formToolsRail').style.display = 'flex';
       resetHistoryWithCurrentState();
 
-      // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
-      // typing or using a tool immediately begins there, with no click needed first.
       if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, img').length === 0) {
         placeCursorAtPageStart();
       }
@@ -995,14 +990,6 @@
       else showLibrary();
     });
 
-    // ===================== Form-building tool rail =====================
-    // Every tool operates on the current cursor position / selection inside the A4 page.
-    // Buttons use onmousedown+preventDefault so clicking them never steals focus away from
-    // the page — that's what keeps the selection valid for insertion or execCommand calls.
-    // The two exceptions (color pickers, image file picker) hand off to native browser UI,
-    // which DOES steal focus — so those save the selection first and restore it once the
-    // native picker returns a value, before applying it.
-
     let savedFormRange = null;
 
     function saveFormSelection() {
@@ -1020,15 +1007,11 @@
       sel.addRange(savedFormRange);
     }
 
-    // Guarantees a real cursor lands wherever you click on the page — including blank space
-    // near/around a floating Question & Answer block — so the next tool or typed text starts
-    // exactly there. Only acts as a fallback: if the browser already placed a valid cursor (or
-    // you dragged to select a range of text), this leaves it alone rather than overriding it.
     (function setupClickToPlaceCursor() {
       const page = document.getElementById('formSheet');
       page.addEventListener('mouseup', function(e) {
         const sel = window.getSelection();
-        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; // browser already placed a valid, typable cursor — never override this
+        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; 
 
         let range = null;
         if (document.caretRangeFromPoint) {
@@ -1052,13 +1035,6 @@
       });
     })();
 
-    // A floating block (Question & Answer, Button) is position:absolute — it's removed from
-    // the page's normal flow entirely. If it's the ONLY thing on the page, there is no real
-    // ===================== Undo / Redo history =====================
-    // Snapshot-based: keeps full page.innerHTML states, since content here is a mix of typed
-    // text and custom floating blocks (Question & Answer, Button) that don't fit a simple
-    // text-only undo model.
-
     function rewireAllBlocks() {
       const page = document.getElementById('formSheet');
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
@@ -1070,8 +1046,8 @@
       if (isRestoringHistory) return;
       const page = document.getElementById('formSheet');
       const snapshot = page.innerHTML;
-      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) return; // no real change
-      formHistory = formHistory.slice(0, formHistoryIndex + 1); // drop any redo branch
+      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) return; 
+      formHistory = formHistory.slice(0, formHistoryIndex + 1); 
       formHistory.push(snapshot);
       formHistoryIndex = formHistory.length - 1;
       if (formHistory.length > 50) {
@@ -1091,11 +1067,6 @@
     function updateUndoRedoButtons() {
       const undoBtn = document.getElementById('formUndoBtn');
       const redoBtn = document.getElementById('formRedoBtn');
-      // Visual-only "looks inactive" state — deliberately NOT the real disabled property,
-      // which blocks the browser from firing onclick at all. A quick click right after typing
-      // (before the debounced snapshot lands) needs the click to still go through so its own
-      // flush-then-check logic can run; undoFormChange()/redoFormChange() already correctly
-      // no-op internally when there's genuinely nothing to undo/redo.
       if (undoBtn) undoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex <= 0);
       if (redoBtn) redoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex >= formHistory.length - 1);
     }
@@ -1122,22 +1093,19 @@
       updateUndoRedoButtons();
     }
 
-    // Called by the page's oninput — typing is continuous, so history snapshots are debounced
-    // to one per pause in typing, rather than one per keystroke.
     function handleFormPageInput() {
       hasUnsavedChanges = true;
       clearTimeout(historyDebounceTimer);
       historyDebounceTimer = setTimeout(pushHistorySnapshot, 500);
     }
 
-    // Standard Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) shortcuts, same as the toolbar buttons
     document.getElementById('formSheet').addEventListener('keydown', function(e) {
       const ctrlOrCmd = e.ctrlKey || e.metaKey;
       if (!ctrlOrCmd) return;
       if (e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         clearTimeout(historyDebounceTimer);
-        pushHistorySnapshot(); // capture whatever was just typed before jumping back
+        pushHistorySnapshot(); 
         undoFormChange();
       } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
         e.preventDefault();
@@ -1145,24 +1113,16 @@
       }
     });
 
-    // flowing text position left anywhere for a cursor to rest in and accept typed characters,
-    // even in the "blank" space around it. This guarantees a genuine empty line always exists
-    // in the page's actual flow, so typing outside a floating block always works.
     function ensureFlowAnchor() {
       const page = document.getElementById('formSheet');
       const hasFlowContent = Array.from(page.childNodes).some(function(n) {
         if (n.nodeType === Node.TEXT_NODE) return true;
-        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block');
+        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block') && !n.classList.contains('snap-guideline');
         return false;
       });
       if (!hasFlowContent) {
-        // Fill the page with enough blank lines to span its height, so clicking at different
-        // VERTICAL positions lands on a nearby line, instead of the single point that exists
-        // when there's only one blank line. Horizontal position on a blank line still always
-        // resolves to its start — that's inherent to how text cursors work (a blank line has
-        // no characters to position "between"), true in every text editor, not fixable here.
-        const approxLineHeightPx = 25.6; // ~1rem font-size * 1.6 line-height
-        const usableHeightPx = 1123 - 144; // A4 page height minus its top+bottom padding
+        const approxLineHeightPx = 25.6; 
+        const usableHeightPx = 1123 - 144; 
         const lineCount = Math.max(1, Math.ceil(usableHeightPx / approxLineHeightPx));
         for (let i = 0; i < lineCount; i++) {
           page.appendChild(document.createElement('br'));
@@ -1175,18 +1135,7 @@
       page.focus();
       const range = document.createRange();
       range.selectNodeContents(page);
-      range.collapse(true); // true = collapse to the START, not the end
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    function placeCursorAtPageEnd() {
-      const page = document.getElementById('formSheet');
-      page.focus();
-      const range = document.createRange();
-      range.selectNodeContents(page);
-      range.collapse(false); // false = collapse to the END
+      range.collapse(true); 
       const sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(range);
@@ -1215,8 +1164,159 @@
       pushHistorySnapshot();
     }
 
-    // Question & Answer — inserted as a floating block (not flowing text), so it can be freely
-    // moved and resized like a text box, independent of the surrounding document.
+    // --- PowerPoint Style Snapping Lines Engine ---
+    function clearSnapGuidelines(page) {
+      page.querySelectorAll('.snap-guideline').forEach(el => el.remove());
+    }
+
+    function showSnapGuideline(page, type, pos) {
+      const line = document.createElement('div');
+      line.className = 'snap-guideline ' + type;
+      if (type === 'vertical') {
+        line.style.left = pos + 'px';
+        line.style.top = '0px';
+        line.style.height = page.scrollHeight + 'px';
+      } else {
+        line.style.top = pos + 'px';
+        line.style.left = '0px';
+        line.style.width = page.scrollWidth + 'px';
+      }
+      page.appendChild(line);
+    }
+
+    function handleBlockDrag(e, block, moveHandleClass) {
+      e.preventDefault();
+      e.stopPropagation();
+      block.classList.add('qa-dragging', 'btn-dragging', 'table-dragging');
+      const page = document.getElementById('formSheet');
+      const startX = e.clientX, startY = e.clientY;
+      const startLeft = parseFloat(block.style.left) || 0;
+      const startTop = parseFloat(block.style.top) || 0;
+      const blockW = block.offsetWidth;
+      const blockH = block.offsetHeight;
+
+      // Find all other alignment-capable blocks
+      const otherBlocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block'))
+        .filter(b => b !== block);
+
+      function onMove(ev) {
+        let dx = ev.clientX - startX;
+        let dy = ev.clientY - startY;
+        let newLeft = startLeft + dx;
+        let newTop = startTop + dy;
+
+        clearSnapGuidelines(page);
+
+        const snapThreshold = 6;
+        let snappedX = false;
+        let snappedY = false;
+
+        const curLeft = newLeft;
+        const curRight = newLeft + blockW;
+        const curCenterX = newLeft + blockW / 2;
+        const curTop = newTop;
+        const curBottom = newTop + blockH;
+        const curCenterY = newTop + blockH / 2;
+
+        otherBlocks.forEach(other => {
+          const oLeft = parseFloat(other.style.left) || 0;
+          const oWidth = other.offsetWidth;
+          const oRight = oLeft + oWidth;
+          const oCenterX = oLeft + oWidth / 2;
+
+          const oTop = parseFloat(other.style.top) || 0;
+          const oHeight = other.offsetHeight;
+          const oBottom = oTop + oHeight;
+          const oCenterY = oTop + oHeight / 2;
+
+          // Check X alignments
+          if (!snappedX) {
+            // Left to Left
+            if (Math.abs(curLeft - oLeft) < snapThreshold) {
+              newLeft = oLeft;
+              showSnapGuideline(page, 'vertical', oLeft);
+              snappedX = true;
+            }
+            // Right to Right
+            else if (Math.abs(curRight - oRight) < snapThreshold) {
+              newLeft = oRight - blockW;
+              showSnapGuideline(page, 'vertical', oRight);
+              snappedX = true;
+            }
+            // Center to Center X
+            else if (Math.abs(curCenterX - oCenterX) < snapThreshold) {
+              newLeft = oCenterX - blockW / 2;
+              showSnapGuideline(page, 'vertical', oCenterX);
+              snappedX = true;
+            }
+            // Left to Right
+            else if (Math.abs(curLeft - oRight) < snapThreshold) {
+              newLeft = oRight;
+              showSnapGuideline(page, 'vertical', oRight);
+              snappedX = true;
+            }
+            // Right to Left
+            else if (Math.abs(curRight - oLeft) < snapThreshold) {
+              newLeft = oLeft - blockW;
+              showSnapGuideline(page, 'vertical', oLeft);
+              snappedX = true;
+            }
+          }
+
+          // Check Y alignments
+          if (!snappedY) {
+            // Top to Top
+            if (Math.abs(curTop - oTop) < snapThreshold) {
+              newTop = oTop;
+              showSnapGuideline(page, 'horizontal', oTop);
+              snappedY = true;
+            }
+            // Bottom to Bottom
+            else if (Math.abs(curBottom - oBottom) < snapThreshold) {
+              newTop = oBottom - blockH;
+              showSnapGuideline(page, 'horizontal', oBottom);
+              snappedY = true;
+            }
+            // Center to Center Y
+            else if (Math.abs(curCenterY - oCenterY) < snapThreshold) {
+              newTop = oCenterY - blockH / 2;
+              showSnapGuideline(page, 'horizontal', oCenterY);
+              snappedY = true;
+            }
+            // Top to Bottom
+            else if (Math.abs(curTop - oBottom) < snapThreshold) {
+              newTop = oBottom;
+              showSnapGuideline(page, 'horizontal', oBottom);
+              snappedY = true;
+            }
+            // Bottom to Top
+            else if (Math.abs(curBottom - oTop) < snapThreshold) {
+              newTop = oTop - blockH;
+              showSnapGuideline(page, 'horizontal', oTop);
+              snappedY = true;
+            }
+          }
+        });
+
+        const maxLeft = Math.max(0, page.clientWidth - blockW);
+        const maxTop = Math.max(0, page.clientHeight - blockH);
+        block.style.left = Math.min(maxLeft, Math.max(0, newLeft)) + 'px';
+        block.style.top = Math.min(maxTop, Math.max(0, newTop)) + 'px';
+        hasUnsavedChanges = true;
+      }
+
+      function onUp() {
+        block.classList.remove('qa-dragging', 'btn-dragging', 'table-dragging');
+        clearSnapGuidelines(page);
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        pushHistorySnapshot();
+      }
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    }
+
     let qaBlockCascadeOffset = 0;
 
     function insertQuestionBlock() {
@@ -1224,12 +1324,11 @@
 
       const block = document.createElement('div');
       block.className = 'qa-block';
-      block.contentEditable = 'false'; // an atomic block — its own <input> stays interactive,
-                                        // but the page's contenteditable doesn't intercept clicks/drags on it
+      block.contentEditable = 'false'; 
       block.style.left = (20 + qaBlockCascadeOffset) + 'px';
       block.style.top = (20 + qaBlockCascadeOffset) + 'px';
       block.style.width = '380px';
-      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120; // so repeated inserts don't stack exactly on top of each other
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
 
       block.innerHTML = `
         <div class="qa-move-zone">
@@ -1257,7 +1356,6 @@
       const bottomHandle = block.querySelector('.qa-resize-bottom');
       const answerBox = block.querySelector('.qa-answer-box');
 
-      // Delete — removes this whole Question & Answer block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1270,37 +1368,10 @@
         pushHistorySnapshot();
       });
 
-      // Move — drag the "+" handle to reposition the whole block anywhere within the page
       moveHandle.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        block.classList.add('qa-dragging');
-        const startX = e.clientX, startY = e.clientY;
-        const startLeft = parseFloat(block.style.left) || 0;
-        const startTop = parseFloat(block.style.top) || 0;
-        const blockW = block.offsetWidth, blockH = block.offsetHeight;
-
-        function onMove(ev) {
-          const dx = ev.clientX - startX, dy = ev.clientY - startY;
-          const maxLeft = Math.max(0, page.clientWidth - blockW);
-          const maxTop = Math.max(0, page.clientHeight - blockH);
-          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
-          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
-          block.style.left = newLeft + 'px';
-          block.style.top = newTop + 'px';
-          hasUnsavedChanges = true;
-        }
-        function onUp() {
-          block.classList.remove('qa-dragging');
-          document.removeEventListener('pointermove', onMove);
-          document.removeEventListener('pointerup', onUp);
-          pushHistorySnapshot();
-        }
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
+        handleBlockDrag(e, block);
       });
 
-      // Resize width — right edge only (left edge stays fixed)
       rightHandle.addEventListener('pointerdown', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1320,7 +1391,6 @@
         document.addEventListener('pointerup', onUp);
       });
 
-      // Resize the answer box's height — bottom edge only (top edge stays fixed)
       bottomHandle.addEventListener('pointerdown', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1341,8 +1411,6 @@
       });
     }
 
-    // Button — same floating-block idea as Question & Answer, one editable shape with its own
-    // move handle and edge-only resize handles.
     function insertButtonBlock() {
       const page = document.getElementById('formSheet');
 
@@ -1380,7 +1448,6 @@
       const bottomHandle = block.querySelector('.btn-resize-bottom');
       const shape = block.querySelector('.btn-shape');
 
-      // Delete — removes this whole Button block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1394,30 +1461,7 @@
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        block.classList.add('btn-dragging');
-        const startX = e.clientX, startY = e.clientY;
-        const startLeft = parseFloat(block.style.left) || 0;
-        const startTop = parseFloat(block.style.top) || 0;
-        const blockW = block.offsetWidth, blockH = block.offsetHeight;
-
-        function onMove(ev) {
-          const dx = ev.clientX - startX, dy = ev.clientY - startY;
-          const maxLeft = Math.max(0, page.clientWidth - blockW);
-          const maxTop = Math.max(0, page.clientHeight - blockH);
-          block.style.left = Math.min(maxLeft, Math.max(0, startLeft + dx)) + 'px';
-          block.style.top = Math.min(maxTop, Math.max(0, startTop + dy)) + 'px';
-          hasUnsavedChanges = true;
-        }
-        function onUp() {
-          block.classList.remove('btn-dragging');
-          document.removeEventListener('pointermove', onMove);
-          document.removeEventListener('pointerup', onUp);
-          pushHistorySnapshot();
-        }
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
+        handleBlockDrag(e, block);
       });
 
       rightHandle.addEventListener('pointerdown', function(e) {
@@ -1456,9 +1500,6 @@
         document.addEventListener('pointerup', onUp);
       });
     }
-
-    // Table — opens a size prompt, then inserts a floating block with the same move/delete
-    // pattern as Question & Answer and Button, plus hover-revealed add-row/add-column controls.
 
     function insertTable() {
       document.getElementById('tableColsInput').value = 3;
@@ -1540,39 +1581,13 @@
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        block.classList.add('table-dragging');
-        const startX = e.clientX, startY = e.clientY;
-        const startLeft = parseFloat(block.style.left) || 0;
-        const startTop = parseFloat(block.style.top) || 0;
-        const blockW = block.offsetWidth, blockH = block.offsetHeight;
-
-        function onMove(ev) {
-          const dx = ev.clientX - startX, dy = ev.clientY - startY;
-          const maxLeft = Math.max(0, page.clientWidth - blockW);
-          const maxTop = Math.max(0, page.clientHeight - blockH);
-          block.style.left = Math.min(maxLeft, Math.max(0, startLeft + dx)) + 'px';
-          block.style.top = Math.min(maxTop, Math.max(0, startTop + dy)) + 'px';
-          hasUnsavedChanges = true;
-        }
-        function onUp() {
-          block.classList.remove('table-dragging');
-          document.removeEventListener('pointermove', onMove);
-          document.removeEventListener('pointerup', onUp);
-          pushHistorySnapshot();
-        }
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
+        handleBlockDrag(e, block);
       });
 
       setupTableInsertMarkers(block);
       setupTableResizeHandles(block);
     }
 
-    // A single "+" per axis that snaps to whichever boundary line the cursor is nearest —
-    // hovering the left margin reveals it for rows, the top margin for columns. This avoids the
-    // overlap problem of many separate always-present zone strips competing for the same pixels.
     function setupTableInsertMarkers(block) {
       const table = block.querySelector('.inserted-table');
       const rowMargin = block.querySelector('.table-row-margin');
@@ -1640,9 +1655,6 @@
       });
     }
 
-    // Resize handles sit right on each INTERNAL row/column boundary line — dragging one resizes
-    // that specific row's height or column's width. Rebuilt after every structural change since
-    // boundary positions shift.
     function setupTableResizeHandles(block) {
       const table = block.querySelector('.inserted-table');
       const wrapper = block.querySelector('.table-wrapper');
@@ -1689,7 +1701,7 @@
           handle.classList.remove('table-resizing');
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
-          setupTableResizeHandles(block); // reposition remaining handles to match the new height
+          setupTableResizeHandles(block); 
           pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
@@ -1714,15 +1726,13 @@
           handle.classList.remove('table-resizing');
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
-          setupTableResizeHandles(block); // reposition remaining handles to match the new width
+          setupTableResizeHandles(block); 
           pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
       });
     }
-
-    // ---------- Edit Table modal: column/row counts and uniform width/height ----------
 
     let tableEditTargetBlock = null;
 
@@ -1788,9 +1798,6 @@
         td.innerHTML = '&nbsp;';
         tr.appendChild(td);
       }
-      // A row's real parent isn't always <table> directly — browsers auto-wrap bare <tr>
-      // elements (from innerHTML) in an implicit <tbody>, so insertBefore/append must target
-      // that actual parent, not assume it's the table itself.
       if (index >= table.rows.length) {
         if (table.rows.length > 0) table.rows[table.rows.length - 1].parentNode.appendChild(tr);
         else table.appendChild(tr);
@@ -1846,7 +1853,6 @@
       pushHistorySnapshot();
     }
 
-    // ===================== Save toast =====================
     function showSaveToast(message) {
       const toast = document.getElementById('saveToast');
       if (!toast) return;
@@ -1862,9 +1868,6 @@
       showSaveToast('Saved');
     }
 
-    // Undo button flushes any pending debounced typing snapshot first — otherwise clicking
-    // Undo right after typing (before the 500ms debounce fires) has nothing to undo yet and
-    // silently does nothing, which looks like a broken button.
     function handleUndoClick() {
       clearTimeout(historyDebounceTimer);
       pushHistorySnapshot();
