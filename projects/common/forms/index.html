@@ -1165,15 +1165,35 @@
       return overlay;
     }
 
+    // A table-block's actual visible table sits offset from the block's own left/top by
+    // .table-wrapper's margin (reserved for the row/col insert-margin strips) — so alignment
+    // must measure against where the content visually starts, not the invisible block boundary,
+    // or a table would look misaligned even while snapped "correctly" by raw coordinates.
+    function getVisualOffset(block) {
+      if (!block.classList.contains('table-block')) return { dx: 0, dy: 0 };
+      const wrapper = block.querySelector('.table-wrapper');
+      if (!wrapper) return { dx: 0, dy: 0 };
+      const cs = getComputedStyle(wrapper);
+      return { dx: parseFloat(cs.marginLeft) || 0, dy: parseFloat(cs.marginTop) || 0 };
+    }
+
+    function getVisualBox(block, rawLeft, rawTop) {
+      const offset = getVisualOffset(block);
+      const inner = block.classList.contains('table-block') ? block.querySelector('.inserted-table') : null;
+      const w = inner ? inner.offsetWidth : block.offsetWidth;
+      const h = inner ? inner.offsetHeight : block.offsetHeight;
+      return { left: rawLeft + offset.dx, top: rawTop + offset.dy, width: w, height: h };
+    }
+
     function collectAlignmentEdges(page, excludeBlock) {
       const blocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
-        const left = parseFloat(b.style.left) || 0;
-        const top = parseFloat(b.style.top) || 0;
-        const w = b.offsetWidth, h = b.offsetHeight;
-        xs.push(left, left + w / 2, left + w);
-        ys.push(top, top + h / 2, top + h);
+        const rawLeft = parseFloat(b.style.left) || 0;
+        const rawTop = parseFloat(b.style.top) || 0;
+        const box = getVisualBox(b, rawLeft, rawTop);
+        xs.push(box.left, box.left + box.width / 2, box.left + box.width);
+        ys.push(box.top, box.top + box.height / 2, box.top + box.height);
       });
       // Page's own edges and center count as alignment targets too
       xs.push(0, page.clientWidth / 2, page.clientWidth);
@@ -1182,13 +1202,15 @@
     }
 
     function applyAlignmentSnap(page, block, candidateLeft, candidateTop) {
-      const w = block.offsetWidth, h = block.offsetHeight;
+      const offset = getVisualOffset(block);
+      const box = getVisualBox(block, candidateLeft, candidateTop);
+      const w = box.width, h = box.height;
       const edges = collectAlignmentEdges(page, block);
 
-      const candidateXs = { left: candidateLeft, centerX: candidateLeft + w / 2, right: candidateLeft + w };
-      const candidateYs = { top: candidateTop, centerY: candidateTop + h / 2, bottom: candidateTop + h };
+      const candidateXs = { left: box.left, centerX: box.left + w / 2, right: box.left + w };
+      const candidateYs = { top: box.top, centerY: box.top + h / 2, bottom: box.top + h };
 
-      let bestXDist = ALIGNMENT_SNAP_THRESHOLD + 1, guideX = null, snappedLeft = candidateLeft;
+      let bestXDist = ALIGNMENT_SNAP_THRESHOLD + 1, guideX = null, snappedVisualLeft = box.left;
       Object.keys(candidateXs).forEach(function(key) {
         const val = candidateXs[key];
         edges.xs.forEach(function(edgeX) {
@@ -1196,14 +1218,14 @@
           if (dist < bestXDist) {
             bestXDist = dist;
             guideX = edgeX;
-            if (key === 'left') snappedLeft = edgeX;
-            else if (key === 'centerX') snappedLeft = edgeX - w / 2;
-            else snappedLeft = edgeX - w;
+            if (key === 'left') snappedVisualLeft = edgeX;
+            else if (key === 'centerX') snappedVisualLeft = edgeX - w / 2;
+            else snappedVisualLeft = edgeX - w;
           }
         });
       });
 
-      let bestYDist = ALIGNMENT_SNAP_THRESHOLD + 1, guideY = null, snappedTop = candidateTop;
+      let bestYDist = ALIGNMENT_SNAP_THRESHOLD + 1, guideY = null, snappedVisualTop = box.top;
       Object.keys(candidateYs).forEach(function(key) {
         const val = candidateYs[key];
         edges.ys.forEach(function(edgeY) {
@@ -1211,15 +1233,19 @@
           if (dist < bestYDist) {
             bestYDist = dist;
             guideY = edgeY;
-            if (key === 'top') snappedTop = edgeY;
-            else if (key === 'centerY') snappedTop = edgeY - h / 2;
-            else snappedTop = edgeY - h;
+            if (key === 'top') snappedVisualTop = edgeY;
+            else if (key === 'centerY') snappedVisualTop = edgeY - h / 2;
+            else snappedVisualTop = edgeY - h;
           }
         });
       });
 
       renderAlignmentGuides(page, guideX, guideY);
 
+      // Convert the snapped VISUAL position back to the block's own raw left/top before
+      // returning — the caller sets block.style.left/top directly with this value.
+      const snappedLeft = snappedVisualLeft - offset.dx;
+      const snappedTop = snappedVisualTop - offset.dy;
       return {
         left: guideX !== null ? snappedLeft : candidateLeft,
         top: guideY !== null ? snappedTop : candidateTop
