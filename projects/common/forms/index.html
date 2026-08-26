@@ -181,7 +181,8 @@
       display: none;
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      /* left is computed dynamically in JS to align with the page's own right border,
+         since the page's horizontal position shifts with zoom level and window size */
       align-items: center;
       gap: 2px;
       background: var(--slate-surface, #1e1e1e);
@@ -2521,7 +2522,27 @@
       spacer.style.width = (baseWidth * currentZoomLevel) + 'px';
       spacer.style.height = (baseHeight * currentZoomLevel) + 'px';
       document.getElementById('zoomLevelLabel').textContent = Math.round(currentZoomLevel * 100) + '%';
+      positionZoomControl();
     }
+
+    // Keeps the zoom control's RIGHT edge aligned with the page's own right border, rather
+    // than a fixed viewport offset — since the page's rendered position shifts with zoom
+    // level and window size. Vertical position stays fixed near the bottom of the screen.
+    function positionZoomControl() {
+      const page = document.getElementById('formSheet');
+      const control = document.getElementById('zoomControl');
+      if (!page || !control || !control.classList.contains('active')) return;
+      const pageRect = page.getBoundingClientRect();
+      const controlWidth = control.offsetWidth;
+      let left = pageRect.right - controlWidth;
+      left = Math.max(8, Math.min(left, window.innerWidth - controlWidth - 8));
+      control.style.left = left + 'px';
+    }
+    window.addEventListener('resize', positionZoomControl);
+    (function() {
+      const wrapper = document.getElementById('formSheetWrapper');
+      if (wrapper) wrapper.addEventListener('scroll', positionZoomControl);
+    })();
 
     function zoomIn() {
       currentZoomLevel = Math.min(ZOOM_MAX, +(currentZoomLevel + ZOOM_STEP).toFixed(2));
