@@ -448,6 +448,115 @@
       background: rgba(51,51,51,0.25);
     }
 
+    /* Image block — same floating move/delete pattern as the other tools, plus a full
+       PowerPoint-style selection UI (red dashed outline, 8 resize handles, rotation handle)
+       shown only once the image itself is clicked. */
+    .image-block {
+      position: absolute;
+    }
+    .image-block.image-dragging { z-index: 50; }
+    .image-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 62px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .image-move-handle, .image-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .image-move-handle svg, .image-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .image-move-handle { cursor: move; }
+    .image-delete-handle { cursor: pointer; }
+    .image-delete-handle:hover { border-color: #ff3b30; }
+    .image-delete-handle:hover svg { stroke: #ff3b30; }
+    .image-move-zone:hover .image-move-handle,
+    .image-move-zone:hover .image-delete-handle { display: flex; }
+
+    .image-selection-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .inserted-image-el {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .image-selection-outline {
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 2px dashed #ff2d2d;
+      pointer-events: none;
+    }
+    .image-block.selected .image-selection-outline { display: block; }
+
+    .image-resize-handle {
+      display: none;
+      position: absolute;
+      width: 9px; height: 9px;
+      background: #fff;
+      border: 1.5px solid #ff2d2d;
+      border-radius: 2px;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .image-block.selected .image-resize-handle { display: block; }
+    .image-resize-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .image-resize-handle.handle-n  { top: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .image-resize-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .image-resize-handle.handle-e  { top: 50%; right: -5px; margin-top: -4.5px; cursor: ew-resize; }
+    .image-resize-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .image-resize-handle.handle-s  { bottom: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .image-resize-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .image-resize-handle.handle-w  { top: 50%; left: -5px; margin-top: -4.5px; cursor: ew-resize; }
+
+    .image-rotate-line {
+      display: none;
+      position: absolute;
+      top: -12px; left: 50%;
+      width: 1px; height: 12px;
+      background: #999;
+      pointer-events: none;
+    }
+    .image-block.selected .image-rotate-line { display: block; }
+    .image-rotate-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: -34px; left: 50%;
+      transform: translateX(-50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid #666;
+      cursor: grab;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .image-block.selected .image-rotate-handle { display: flex; }
+    .image-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
+
     /* Activity Feed — identical component/styling to the chat screen's */
     .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
     .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
@@ -716,7 +825,7 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
       </button>
-      <button class="form-tool-btn" onmousedown="event.preventDefault(); saveFormSelection();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
       </button>
       <div class="form-tool-divider"></div>
@@ -731,7 +840,7 @@
       </button>
       <input type="color" id="fillColorInput" style="display:none" onchange="restoreFormSelection(); applyFillColor(this.value);">
       <input type="color" id="textColorInput" style="display:none" onchange="restoreFormSelection(); applyTextColor(this.value);">
-      <input type="file" id="formImageInput" accept="image/*" style="display:none" onchange="restoreFormSelection(); insertImageFromFile(this);">
+      <input type="file" id="formImageInput" accept="image/*" style="display:none" onchange="insertImageFromFile(this);">
     </aside>
 
     <aside class="activity-feed-panel">
@@ -967,13 +1076,14 @@
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
+      page.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
       resetHistoryWithCurrentState();
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
       // typing or using a tool immediately begins there, with no click needed first.
-      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, img').length === 0) {
+      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block, img').length === 0) {
         placeCursorAtPageStart();
       }
     }
@@ -1062,6 +1172,7 @@
       page.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
+      page.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
     }
 
     function pushHistorySnapshot() {
@@ -1186,7 +1297,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -1291,7 +1402,7 @@
       const page = document.getElementById('formSheet');
       const hasFlowContent = Array.from(page.childNodes).some(function(n) {
         if (n.nodeType === Node.TEXT_NODE) return true;
-        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block');
+        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block') && !n.classList.contains('image-block');
         return false;
       });
       if (!hasFlowContent) {
@@ -1959,15 +2070,234 @@
       });
     }
 
+    // ---------- Image: floating block with full PowerPoint-style selection UI ----------
+
+    let selectedImageBlock = null;
+
+    function deselectAllImageBlocks() {
+      document.querySelectorAll('.image-block.selected').forEach(function(b) { b.classList.remove('selected'); });
+      selectedImageBlock = null;
+    }
+
+    // Clicking anywhere outside an image block deselects it — matches how PowerPoint's
+    // selection handles disappear once you click away from the shape.
+    document.addEventListener('mousedown', function(e) {
+      if (!e.target.closest('.image-block')) deselectAllImageBlocks();
+    });
+
+    function computeFitSize(naturalW, naturalH, maxW, maxH) {
+      let w = naturalW, h = naturalH;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      if (h > maxH) { w = w * (maxH / h); h = maxH; }
+      return { width: Math.max(20, Math.round(w)), height: Math.max(20, Math.round(h)) };
+    }
+
     function insertImageFromFile(input) {
       const file = input.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = function(e) {
-        insertHtmlAtCursor('<img class="inserted-image" src="' + e.target.result + '"><br>');
+        const img = new Image();
+        img.onload = function() {
+          const page = document.getElementById('formSheet');
+          // Never overflow the page — shrink to fit within it (preserving aspect ratio) if
+          // the source image is larger than the available space.
+          const fit = computeFitSize(img.naturalWidth, img.naturalHeight, page.clientWidth, page.clientHeight);
+          createImageBlock(e.target.result, fit.width, fit.height);
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
       input.value = '';
+    }
+
+    function createImageBlock(src, width, height) {
+      const page = document.getElementById('formSheet');
+      const block = document.createElement('div');
+      block.className = 'image-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = width + 'px';
+      block.style.height = height + 'px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="image-move-zone">
+          <div class="image-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="image-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="image-selection-wrapper">
+          <img class="inserted-image-el" src="${src}" draggable="false">
+          <div class="image-selection-outline"></div>
+          <div class="image-rotate-line"></div>
+          <div class="image-rotate-handle" title="Rotate"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.5-7.1"></path><polyline points="21 3 21 9 15 9"></polyline></svg></div>
+          <div class="image-resize-handle handle-nw" data-dir="nw"></div>
+          <div class="image-resize-handle handle-n" data-dir="n"></div>
+          <div class="image-resize-handle handle-ne" data-dir="ne"></div>
+          <div class="image-resize-handle handle-e" data-dir="e"></div>
+          <div class="image-resize-handle handle-se" data-dir="se"></div>
+          <div class="image-resize-handle handle-s" data-dir="s"></div>
+          <div class="image-resize-handle handle-sw" data-dir="sw"></div>
+          <div class="image-resize-handle handle-w" data-dir="w"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireImageBlockInteractions(block);
+      ensureFlowAnchor();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireImageBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.image-move-handle');
+      const deleteHandle = block.querySelector('.image-delete-handle');
+      const img = block.querySelector('.inserted-image-el');
+      const rotateHandle = block.querySelector('.image-rotate-handle');
+      const resizeHandles = block.querySelectorAll('.image-resize-handle');
+
+      // Click the image itself -> select it (shows the red dashed outline + handles)
+      img.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      img.addEventListener('click', function(e) {
+        e.stopPropagation();
+        deselectAllImageBlocks();
+        block.classList.add('selected');
+        selectedImageBlock = block;
+      });
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        if (selectedImageBlock === block) selectedImageBlock = null;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      // Move — same alignment-guide-aware dragging as the other block types
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('image-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('image-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // 8 resize handles — corners scale proportionally (anchored at the opposite corner),
+      // edge midpoints resize only that one side. Both are clamped so the image can never be
+      // dragged past the page's own edges.
+      resizeHandles.forEach(function(handle) {
+        const dir = handle.getAttribute('data-dir');
+        const isCorner = dir.length === 2;
+
+        handle.addEventListener('pointerdown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const pageRect = page.getBoundingClientRect();
+          const startLeft = parseFloat(block.style.left) || 0;
+          const startTop = parseFloat(block.style.top) || 0;
+          const startW = block.offsetWidth, startH = block.offsetHeight;
+          const aspect = startW / startH;
+
+          let anchorLeft, anchorTop, draggedX, draggedY;
+          if (isCorner) {
+            if (dir === 'nw') { anchorLeft = startLeft + startW; anchorTop = startTop + startH; draggedX = startLeft; draggedY = startTop; }
+            else if (dir === 'ne') { anchorLeft = startLeft; anchorTop = startTop + startH; draggedX = startLeft + startW; draggedY = startTop; }
+            else if (dir === 'sw') { anchorLeft = startLeft + startW; anchorTop = startTop; draggedX = startLeft; draggedY = startTop + startH; }
+            else { anchorLeft = startLeft; anchorTop = startTop; draggedX = startLeft + startW; draggedY = startTop + startH; } // se
+          }
+          const origDist = isCorner ? (Math.hypot(draggedX - anchorLeft, draggedY - anchorTop) || 1) : 0;
+
+          function onMove(ev) {
+            const mouseX = ev.clientX - pageRect.left;
+            const mouseY = ev.clientY - pageRect.top;
+            let newLeft = startLeft, newTop = startTop, newW = startW, newH = startH;
+
+            if (isCorner) {
+              const newDist = Math.hypot(mouseX - anchorLeft, mouseY - anchorTop);
+              const scale = Math.max(0.15, newDist / origDist);
+              newW = Math.max(20, startW * scale);
+              newH = newW / aspect;
+              if (dir === 'nw') { newLeft = anchorLeft - newW; newTop = anchorTop - newH; }
+              else if (dir === 'ne') { newLeft = anchorLeft; newTop = anchorTop - newH; }
+              else if (dir === 'sw') { newLeft = anchorLeft - newW; newTop = anchorTop; }
+              else { newLeft = anchorLeft; newTop = anchorTop; } // se
+            } else {
+              if (dir === 'e') { newW = Math.max(20, mouseX - startLeft); }
+              else if (dir === 'w') { newW = Math.max(20, startLeft + startW - mouseX); newLeft = startLeft + startW - newW; }
+              else if (dir === 's') { newH = Math.max(20, mouseY - startTop); }
+              else if (dir === 'n') { newH = Math.max(20, startTop + startH - mouseY); newTop = startTop + startH - newH; }
+            }
+
+            // Clamp to the page's own boundaries — resizing can never push the image outside it
+            if (newLeft < 0) { newW += newLeft; newLeft = 0; }
+            if (newTop < 0) { newH += newTop; newTop = 0; }
+            if (newLeft + newW > page.clientWidth) newW = page.clientWidth - newLeft;
+            if (newTop + newH > page.clientHeight) newH = page.clientHeight - newTop;
+            newW = Math.max(20, newW);
+            newH = Math.max(20, newH);
+
+            block.style.left = newLeft + 'px';
+            block.style.top = newTop + 'px';
+            block.style.width = newW + 'px';
+            block.style.height = newH + 'px';
+            hasUnsavedChanges = true;
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            pushHistorySnapshot();
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      });
+
+      // Rotation — drag around the block's own center
+      rotateHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        function onMove(ev) {
+          const rect = block.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+          block.style.transform = 'rotate(' + angle + 'deg)';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
     }
 
     const TEXT_ALIGN_COMMANDS = ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'];
