@@ -606,6 +606,191 @@
     .image-block.selected .image-rotate-handle { display: flex; }
     .image-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
 
+    /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
+       Table, and an edit popup for shape/text styling. */
+    .textbox-block {
+      position: absolute;
+    }
+    .textbox-block.textbox-dragging { z-index: 50; }
+    .textbox-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 90px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .textbox-move-handle, .textbox-edit-handle, .textbox-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .textbox-move-handle svg, .textbox-edit-handle svg, .textbox-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .textbox-move-handle { cursor: move; }
+    .textbox-edit-handle { cursor: pointer; }
+    .textbox-delete-handle { cursor: pointer; }
+    .textbox-edit-handle:hover { border-color: #14b8a6; }
+    .textbox-edit-handle:hover svg { stroke: #14b8a6; }
+    .textbox-delete-handle:hover { border-color: #ff3b30; }
+    .textbox-delete-handle:hover svg { stroke: #ff3b30; }
+    .textbox-move-zone:hover .textbox-move-handle,
+    .textbox-move-zone:hover .textbox-edit-handle,
+    .textbox-move-zone:hover .textbox-delete-handle { display: flex; }
+
+    .textbox-selection-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .textbox-content {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      background: transparent;
+      border: 1px dashed #bbb;
+      color: #1a1a1a;
+      font-size: 1rem;
+      line-height: 1.4;
+      outline: none;
+      overflow: hidden;
+      pointer-events: auto;
+      cursor: text;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* vertical align, changed via the edit popup */
+    }
+    .textbox-selection-outline {
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 2px dashed #ff2d2d;
+      pointer-events: none;
+    }
+    .textbox-block.selected .textbox-selection-outline { display: block; }
+
+    .textbox-resize-handle {
+      display: none;
+      position: absolute;
+      width: 9px; height: 9px;
+      background: #fff;
+      border: 1.5px solid #ff2d2d;
+      border-radius: 2px;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .textbox-block.selected .textbox-resize-handle { display: block; }
+    .textbox-resize-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .textbox-resize-handle.handle-n  { top: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .textbox-resize-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .textbox-resize-handle.handle-e  { top: 50%; right: -5px; margin-top: -4.5px; cursor: ew-resize; }
+    .textbox-resize-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .textbox-resize-handle.handle-s  { bottom: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .textbox-resize-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .textbox-resize-handle.handle-w  { top: 50%; left: -5px; margin-top: -4.5px; cursor: ew-resize; }
+
+    .textbox-rotate-line {
+      display: none;
+      position: absolute;
+      top: -12px; left: 50%;
+      width: 1px; height: 12px;
+      background: #999;
+      pointer-events: none;
+    }
+    .textbox-block.selected .textbox-rotate-line { display: block; }
+    .textbox-rotate-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: -34px; left: 50%;
+      transform: translateX(-50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid #666;
+      cursor: grab;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .textbox-block.selected .textbox-rotate-handle { display: flex; }
+    .textbox-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
+
+    /* Edit popup — sits in the empty dark space between the page and the tool rail */
+    .textbox-edit-popup {
+      display: none;
+      position: fixed;
+      flex-direction: column;
+      gap: 14px;
+      width: 210px;
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color, #2c2c2e);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 250;
+    }
+    .textbox-edit-popup.active { display: flex; }
+    .textbox-popup-section { display: flex; flex-direction: column; gap: 6px; }
+    .textbox-popup-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.4px; color: var(--subtext-color, #aaaaaa); text-transform: uppercase; }
+    .textbox-popup-row { display: flex; align-items: center; gap: 8px; }
+    .textbox-popup-color-input { width: 32px; height: 26px; border-radius: 6px; border: 1px solid var(--border-color); background: transparent; padding: 0; cursor: pointer; flex-shrink: 0; }
+    .textbox-popup-none-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .textbox-popup-none-btn:hover { background: rgba(255,255,255,0.08); }
+    .textbox-popup-toggle-btn {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.78rem;
+      padding: 7px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .textbox-popup-toggle-btn.active { background: #14b8a6; border-color: #14b8a6; }
+    .textbox-valign-row { display: flex; gap: 6px; }
+    .textbox-valign-btn {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 7px 4px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .textbox-valign-btn.active { background: #14b8a6; border-color: #14b8a6; }
+    .textbox-popup-close-btn {
+      align-self: flex-end;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+    .textbox-popup-close-btn:hover { background: rgba(255,255,255,0.18); }
+
     /* Activity Feed — identical component/styling to the chat screen's */
     .activity-feed-panel { width: 300px; flex-shrink: 0; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; padding: 16px; height: 100%; }
     .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
@@ -827,6 +1012,53 @@
       </div>
     </div>
 
+    <!-- Text Box edit popup — positioned dynamically in the empty space between the page
+         and the tool rail, not a centered modal like the ones above. -->
+    <div class="textbox-edit-popup" id="textboxEditPopup" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Fill</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="tbShapeFillInput" value="#ffffff" oninput="applyTextboxStyle('shapeFill', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('shapeFill', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Outline</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="tbShapeOutlineInput" value="#bbbbbb" oninput="applyTextboxStyle('shapeOutline', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('shapeOutline', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Effect</div>
+        <button class="textbox-popup-toggle-btn" id="tbShapeShadowBtn" onclick="toggleTextboxStyle('shapeShadow')">Drop Shadow</button>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Fill</div>
+        <input type="color" class="textbox-popup-color-input" id="tbTextFillInput" value="#1a1a1a" oninput="applyTextboxStyle('textFill', this.value)">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Outline</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="tbTextOutlineInput" value="#000000" oninput="applyTextboxStyle('textOutline', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('textOutline', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Effect</div>
+        <button class="textbox-popup-toggle-btn" id="tbTextShadowBtn" onclick="toggleTextboxStyle('textShadow')">Text Shadow</button>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Alignment</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="tbValignTop" onclick="applyTextboxStyle('valign', 'top')">Top</button>
+          <button class="textbox-valign-btn" id="tbValignMiddle" onclick="applyTextboxStyle('valign', 'middle')">Middle</button>
+          <button class="textbox-valign-btn" id="tbValignBottom" onclick="applyTextboxStyle('valign', 'bottom')">Bottom</button>
+        </div>
+      </div>
+      <button class="textbox-popup-close-btn" onclick="closeTextboxEditPopup()">Done</button>
+    </div>
+
     <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
     <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
@@ -878,6 +1110,9 @@
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTextBox()" title="Insert Text Box">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
       </button>
       <div class="form-tool-divider"></div>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="cycleTextAlign()" title="Text Align">
@@ -1137,6 +1372,7 @@
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       page.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
+      page.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
       ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
       document.getElementById('zoomControl').classList.add('active');
@@ -1145,7 +1381,7 @@
 
       // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
       // typing or using a tool immediately begins there, with no click needed first.
-      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block, img').length === 0) {
+      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block, .textbox-block, img').length === 0) {
         placeCursorAtPageStart();
       }
     }
@@ -1235,6 +1471,7 @@
       page.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       page.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
+      page.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
     }
 
     function pushHistorySnapshot() {
@@ -1359,7 +1596,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block, .textbox-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -1464,7 +1701,7 @@
       const page = document.getElementById('formSheet');
       const hasFlowContent = Array.from(page.childNodes).some(function(n) {
         if (n.nodeType === Node.TEXT_NODE) return true;
-        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block') && !n.classList.contains('image-block');
+        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block') && !n.classList.contains('image-block') && !n.classList.contains('textbox-block');
         return false;
       });
       if (!hasFlowContent) {
@@ -2232,10 +2469,11 @@
       selectedImageBlock = null;
     }
 
-    // Clicking anywhere outside an image block deselects it — matches how PowerPoint's
+    // Clicking anywhere outside a selectable block deselects it — matches how PowerPoint's
     // selection handles disappear once you click away from the shape.
     document.addEventListener('mousedown', function(e) {
       if (!e.target.closest('.image-block')) deselectAllImageBlocks();
+      if (!e.target.closest('.textbox-block') && !e.target.closest('.textbox-edit-popup')) deselectAllTextboxBlocks();
     });
 
     function computeFitSize(naturalW, naturalH, maxW, maxH) {
@@ -2451,6 +2689,299 @@
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
       });
+    }
+
+    // ---------- Text Box: same selection/rotate/resize UI as Image, plus a 3rd (edit) icon
+    // like Table, multi-line editable text, and a styling popup. ----------
+
+    let selectedTextboxBlock = null;
+    let textboxEditTargetBlock = null;
+
+    function deselectAllTextboxBlocks() {
+      document.querySelectorAll('.textbox-block.selected').forEach(function(b) { b.classList.remove('selected'); });
+      selectedTextboxBlock = null;
+    }
+
+    function insertTextBox() {
+      const page = document.getElementById('formSheet');
+      const block = document.createElement('div');
+      block.className = 'textbox-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '220px';
+      block.style.height = '90px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="textbox-move-zone">
+          <div class="textbox-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="textbox-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
+          <div class="textbox-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="textbox-selection-wrapper">
+          <div class="textbox-content" contenteditable="true">Text</div>
+          <div class="textbox-selection-outline"></div>
+          <div class="textbox-rotate-line"></div>
+          <div class="textbox-rotate-handle" title="Rotate"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.5-7.1"></path><polyline points="21 3 21 9 15 9"></polyline></svg></div>
+          <div class="textbox-resize-handle handle-nw" data-dir="nw"></div>
+          <div class="textbox-resize-handle handle-n" data-dir="n"></div>
+          <div class="textbox-resize-handle handle-ne" data-dir="ne"></div>
+          <div class="textbox-resize-handle handle-e" data-dir="e"></div>
+          <div class="textbox-resize-handle handle-se" data-dir="se"></div>
+          <div class="textbox-resize-handle handle-s" data-dir="s"></div>
+          <div class="textbox-resize-handle handle-sw" data-dir="sw"></div>
+          <div class="textbox-resize-handle handle-w" data-dir="w"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireTextboxBlockInteractions(block);
+      ensureFlowAnchor();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireTextboxBlockInteractions(block) {
+      const page = document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.textbox-move-handle');
+      const editHandle = block.querySelector('.textbox-edit-handle');
+      const deleteHandle = block.querySelector('.textbox-delete-handle');
+      const content = block.querySelector('.textbox-content');
+      const rotateHandle = block.querySelector('.textbox-rotate-handle');
+      const resizeHandles = block.querySelectorAll('.textbox-resize-handle');
+
+      // Click the text area -> select it (shows outline + handles) and focus it for typing
+      content.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      content.addEventListener('click', function(e) {
+        e.stopPropagation();
+        deselectAllTextboxBlocks();
+        deselectAllImageBlocks();
+        block.classList.add('selected');
+        selectedTextboxBlock = block;
+      });
+      content.addEventListener('input', function() {
+        hasUnsavedChanges = true;
+        clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = setTimeout(pushHistorySnapshot, 500);
+      });
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        if (selectedTextboxBlock === block) selectedTextboxBlock = null;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      editHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openTextboxEditPopup(block);
+      });
+
+      // Move — same alignment-guide-aware dragging as the other block types
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('textbox-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('textbox-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // 8 resize handles — corners scale the box AND the text size together (proportional,
+      // anchored at the opposite corner); edge midpoints resize ONLY the box, text stays fixed.
+      resizeHandles.forEach(function(handle) {
+        const dir = handle.getAttribute('data-dir');
+        const isCorner = dir.length === 2;
+
+        handle.addEventListener('pointerdown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const pageRect = page.getBoundingClientRect();
+          const startLeft = parseFloat(block.style.left) || 0;
+          const startTop = parseFloat(block.style.top) || 0;
+          const startW = block.offsetWidth, startH = block.offsetHeight;
+          const startFontSize = parseFloat(getComputedStyle(content).fontSize) || 16;
+
+          let anchorLeft, anchorTop, draggedX, draggedY;
+          if (isCorner) {
+            if (dir === 'nw') { anchorLeft = startLeft + startW; anchorTop = startTop + startH; draggedX = startLeft; draggedY = startTop; }
+            else if (dir === 'ne') { anchorLeft = startLeft; anchorTop = startTop + startH; draggedX = startLeft + startW; draggedY = startTop; }
+            else if (dir === 'sw') { anchorLeft = startLeft + startW; anchorTop = startTop; draggedX = startLeft; draggedY = startTop + startH; }
+            else { anchorLeft = startLeft; anchorTop = startTop; draggedX = startLeft + startW; draggedY = startTop + startH; } // se
+          }
+          const origDist = isCorner ? (Math.hypot(draggedX - anchorLeft, draggedY - anchorTop) || 1) : 0;
+
+          function onMove(ev) {
+            const mouseX = ev.clientX - pageRect.left;
+            const mouseY = ev.clientY - pageRect.top;
+            let newLeft = startLeft, newTop = startTop, newW = startW, newH = startH;
+
+            if (isCorner) {
+              const newDist = Math.hypot(mouseX - anchorLeft, mouseY - anchorTop);
+              const scale = Math.max(0.2, newDist / origDist);
+              newW = Math.max(40, startW * scale);
+              newH = Math.max(24, startH * scale);
+              if (dir === 'nw') { newLeft = anchorLeft - newW; newTop = anchorTop - newH; }
+              else if (dir === 'ne') { newLeft = anchorLeft; newTop = anchorTop - newH; }
+              else if (dir === 'sw') { newLeft = anchorLeft - newW; newTop = anchorTop; }
+              else { newLeft = anchorLeft; newTop = anchorTop; } // se
+              content.style.fontSize = Math.max(6, startFontSize * scale) + 'px';
+            } else {
+              if (dir === 'e') { newW = Math.max(40, mouseX - startLeft); }
+              else if (dir === 'w') { newW = Math.max(40, startLeft + startW - mouseX); newLeft = startLeft + startW - newW; }
+              else if (dir === 's') { newH = Math.max(24, mouseY - startTop); }
+              else if (dir === 'n') { newH = Math.max(24, startTop + startH - mouseY); newTop = startTop + startH - newH; }
+              // Edge handles resize ONLY the box — text size is left untouched
+            }
+
+            // Clamp to the page's own boundaries
+            if (newLeft < 0) { newW += newLeft; newLeft = 0; }
+            if (newTop < 0) { newH += newTop; newTop = 0; }
+            if (newLeft + newW > page.clientWidth) newW = page.clientWidth - newLeft;
+            if (newTop + newH > page.clientHeight) newH = page.clientHeight - newTop;
+            newW = Math.max(40, newW);
+            newH = Math.max(24, newH);
+
+            block.style.left = newLeft + 'px';
+            block.style.top = newTop + 'px';
+            block.style.width = newW + 'px';
+            block.style.height = newH + 'px';
+            hasUnsavedChanges = true;
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            pushHistorySnapshot();
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      });
+
+      // Rotation — drag around the block's own center
+      rotateHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        function onMove(ev) {
+          const rect = block.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+          block.style.transform = 'rotate(' + angle + 'deg)';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // ---------- Text Box edit popup: shape/text fill, outline, effects, vertical align ----------
+
+    function openTextboxEditPopup(block) {
+      textboxEditTargetBlock = block;
+      const content = block.querySelector('.textbox-content');
+
+      // Sync the popup's controls to this block's current styling
+      document.getElementById('tbShapeShadowBtn').classList.toggle('active', content.dataset.shapeShadow === '1');
+      document.getElementById('tbTextShadowBtn').classList.toggle('active', content.dataset.textShadow === '1');
+      const valign = content.dataset.valign || 'top';
+      document.getElementById('tbValignTop').classList.toggle('active', valign === 'top');
+      document.getElementById('tbValignMiddle').classList.toggle('active', valign === 'middle');
+      document.getElementById('tbValignBottom').classList.toggle('active', valign === 'bottom');
+
+      // Anchored just past the page's right edge — the gap between page and rail is often
+      // too narrow to fully contain a popup of usable width, so it starts right at that
+      // empty space and extends rightward as needed (rendering above the rail if it must,
+      // via z-index) rather than being squeezed into an impossibly tight strip.
+      const popup = document.getElementById('textboxEditPopup');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+    }
+
+    function closeTextboxEditPopup() {
+      document.getElementById('textboxEditPopup').classList.remove('active');
+      textboxEditTargetBlock = null;
+    }
+
+    function applyTextboxStyle(prop, value) {
+      if (!textboxEditTargetBlock) return;
+      const content = textboxEditTargetBlock.querySelector('.textbox-content');
+      if (prop === 'shapeFill') {
+        content.style.background = (value === 'none') ? 'transparent' : value;
+      } else if (prop === 'shapeOutline') {
+        content.style.borderColor = (value === 'none') ? 'transparent' : value;
+        content.style.borderStyle = (value === 'none') ? 'none' : 'solid';
+      } else if (prop === 'textFill') {
+        content.style.color = value;
+      } else if (prop === 'textOutline') {
+        content.style.webkitTextStroke = (value === 'none') ? '0px transparent' : '0.6px ' + value;
+      } else if (prop === 'valign') {
+        content.dataset.valign = value;
+        content.style.justifyContent = (value === 'top') ? 'flex-start' : (value === 'bottom') ? 'flex-end' : 'center';
+        document.getElementById('tbValignTop').classList.toggle('active', value === 'top');
+        document.getElementById('tbValignMiddle').classList.toggle('active', value === 'middle');
+        document.getElementById('tbValignBottom').classList.toggle('active', value === 'bottom');
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function toggleTextboxStyle(prop) {
+      if (!textboxEditTargetBlock) return;
+      const content = textboxEditTargetBlock.querySelector('.textbox-content');
+      if (prop === 'shapeShadow') {
+        const isOn = content.dataset.shapeShadow === '1';
+        content.dataset.shapeShadow = isOn ? '0' : '1';
+        content.style.boxShadow = isOn ? 'none' : '0 4px 14px rgba(0,0,0,0.35)';
+        document.getElementById('tbShapeShadowBtn').classList.toggle('active', !isOn);
+      } else if (prop === 'textShadow') {
+        const isOn = content.dataset.textShadow === '1';
+        content.dataset.textShadow = isOn ? '0' : '1';
+        content.style.textShadow = isOn ? 'none' : '1px 2px 3px rgba(0,0,0,0.4)';
+        document.getElementById('tbTextShadowBtn').classList.toggle('active', !isOn);
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     const TEXT_ALIGN_COMMANDS = ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'];
