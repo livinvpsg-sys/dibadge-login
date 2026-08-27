@@ -304,7 +304,8 @@
       pointer-events: auto; /* thin precise strip right on the border line, not a wide zone */
     }
 
-    /* Button — same floating/movable/resizable pattern as Question & Answer, one editable shape */
+    /* Button — same floating/movable/resizable pattern as Question & Answer, supports 1+
+       button shapes arranged in a row (still ONE draggable/resizable object as a group). */
     .btn-block {
       position: absolute;
       min-width: 90px;
@@ -314,14 +315,14 @@
     .btn-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 62px; height: 34px;
+      width: 90px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
       align-items: flex-start;
       gap: 6px;
     }
-    .btn-move-handle, .btn-delete-handle {
+    .btn-move-handle, .btn-edit-handle, .btn-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
@@ -334,15 +335,26 @@
       user-select: none;
       flex-shrink: 0;
     }
-    .btn-move-handle svg, .btn-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .btn-move-handle svg, .btn-edit-handle svg, .btn-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
     .btn-move-handle { cursor: move; }
+    .btn-edit-handle { cursor: pointer; }
     .btn-delete-handle { cursor: pointer; }
+    .btn-edit-handle:hover { border-color: #14b8a6; }
+    .btn-edit-handle:hover svg { stroke: #14b8a6; }
     .btn-delete-handle:hover { border-color: #ff3b30; }
     .btn-delete-handle:hover svg { stroke: #ff3b30; }
     .btn-move-zone:hover .btn-move-handle,
+    .btn-move-zone:hover .btn-edit-handle,
     .btn-move-zone:hover .btn-delete-handle { display: flex; }
     .btn-shape-wrapper { position: relative; }
+    .btn-shapes-container {
+      display: flex;
+      gap: 8px;
+    }
     .btn-shape {
+      flex: 1;
+      min-width: 0; /* without this, flex items refuse to shrink below their content's natural
+                        size, so multiple buttons would overflow the block's actual width */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -357,7 +369,16 @@
       outline: none;
       box-sizing: border-box;
       pointer-events: auto;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
+    /* Clicking a button (when actually using the form) highlights it and dims its siblings —
+       single-select choice behavior. Clicking the active one again clears the whole group. */
+    .btn-shape.btn-active { background: #14b8a6; border-color: #14b8a6; color: #fff; }
+    .btn-shapes-container.has-active .btn-shape:not(.btn-active) { opacity: 0.45; }
     .btn-resize-right {
       position: absolute;
       top: 6px; bottom: 6px; right: -2px;
@@ -1005,6 +1026,16 @@
             <input type="number" class="group-modal-input table-size-number-input" id="editTableRowHeightInput" min="16" max="300">
           </div>
         </div>
+        <div class="table-size-inputs-row">
+          <div>
+            <div class="table-size-input-label">Fill Color</div>
+            <input type="color" class="textbox-popup-color-input" id="editTableFillInput" value="#ffffff">
+          </div>
+          <div>
+            <div class="table-size-input-label">Outline Color</div>
+            <input type="color" class="textbox-popup-color-input" id="editTableOutlineInput" value="#999999">
+          </div>
+        </div>
         <div class="group-modal-actions">
           <button class="group-modal-cancel-btn" onclick="closeTableEditModal()">Cancel</button>
           <button class="group-modal-ok-btn" onclick="confirmTableEdit()">OK</button>
@@ -1057,6 +1088,61 @@
         </div>
       </div>
       <button class="textbox-popup-close-btn" onclick="closeTextboxEditPopup()">Done</button>
+    </div>
+
+    <!-- Button edit popup — same layout/style as the Text Box one, plus button-count and
+         inter-button spacing controls. -->
+    <div class="textbox-edit-popup" id="buttonEditPopup" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Number of Buttons</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="btnCountInput" min="1" max="10" style="margin-bottom:0;" onchange="applyButtonStyle('count', this.value)">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Spacing Between Buttons (px)</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="btnSpacingInput" min="0" max="80" style="margin-bottom:0;" onchange="applyButtonStyle('spacing', this.value)">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Fill</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="btnShapeFillInput" value="#f0f0f0" oninput="applyButtonStyle('shapeFill', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('shapeFill', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Outline</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="btnShapeOutlineInput" value="#999999" oninput="applyButtonStyle('shapeOutline', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('shapeOutline', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Shape Effect</div>
+        <button class="textbox-popup-toggle-btn" id="btnShapeShadowBtn" onclick="toggleButtonStyle('shapeShadow')">Drop Shadow</button>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Fill</div>
+        <input type="color" class="textbox-popup-color-input" id="btnTextFillInput" value="#1a1a1a" oninput="applyButtonStyle('textFill', this.value)">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Outline</div>
+        <div class="textbox-popup-row">
+          <input type="color" class="textbox-popup-color-input" id="btnTextOutlineInput" value="#000000" oninput="applyButtonStyle('textOutline', this.value)">
+          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('textOutline', 'none')">None</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Effect</div>
+        <button class="textbox-popup-toggle-btn" id="btnTextShadowBtn" onclick="toggleButtonStyle('textShadow')">Text Shadow</button>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Text Alignment</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="btnValignTop" onclick="applyButtonStyle('valign', 'top')">Top</button>
+          <button class="textbox-valign-btn" id="btnValignMiddle" onclick="applyButtonStyle('valign', 'middle')">Middle</button>
+          <button class="textbox-valign-btn" id="btnValignBottom" onclick="applyButtonStyle('valign', 'bottom')">Bottom</button>
+        </div>
+      </div>
+      <button class="textbox-popup-close-btn" onclick="closeButtonEditPopup()">Done</button>
     </div>
 
     <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
@@ -1908,10 +1994,13 @@
       block.innerHTML = `
         <div class="btn-move-zone">
           <div class="btn-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="btn-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="btn-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="btn-shape-wrapper">
-          <div class="btn-shape" contenteditable="true">Button</div>
+          <div class="btn-shapes-container">
+            <div class="btn-shape" contenteditable="true">Button</div>
+          </div>
           <div class="btn-resize-right"></div>
           <div class="btn-resize-bottom"></div>
         </div>
@@ -1923,13 +2012,38 @@
       pushHistorySnapshot();
     }
 
+    // Click a button shape (within a group of one or more) to highlight it and dim its
+    // siblings — single-select choice behavior. Clicking the already-active one again clears
+    // the whole group back to neutral.
+    function wireBtnShapeClick(shape, container) {
+      shape.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const wasActive = shape.classList.contains('btn-active');
+        container.querySelectorAll('.btn-shape').forEach(function(s) { s.classList.remove('btn-active'); });
+        if (!wasActive) {
+          shape.classList.add('btn-active');
+          container.classList.add('has-active');
+        } else {
+          container.classList.remove('has-active');
+        }
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+    }
+
     function wireButtonBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.btn-move-handle');
+      const editHandle = block.querySelector('.btn-edit-handle');
       const deleteHandle = block.querySelector('.btn-delete-handle');
       const rightHandle = block.querySelector('.btn-resize-right');
       const bottomHandle = block.querySelector('.btn-resize-bottom');
-      const shape = block.querySelector('.btn-shape');
+      const container = block.querySelector('.btn-shapes-container');
+
+      // Wire click-to-highlight for every button shape currently in the group
+      container.querySelectorAll('.btn-shape').forEach(function(shape) {
+        wireBtnShapeClick(shape, container);
+      });
 
       // Delete — removes this whole Button block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
@@ -1942,6 +2056,13 @@
         block.remove();
         hasUnsavedChanges = true;
         pushHistorySnapshot();
+      });
+
+      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      editHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openButtonEditPopup(block);
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
@@ -1997,9 +2118,11 @@
         e.preventDefault();
         e.stopPropagation();
         const startY = e.clientY;
-        const startHeight = shape.offsetHeight;
+        // Resizes the CONTAINER's height — with the default flex align-items:stretch, every
+        // button shape in the group automatically matches it, whether there's 1 or several.
+        const startHeight = container.offsetHeight;
         function onMove(ev) {
-          shape.style.minHeight = Math.max(28, startHeight + (ev.clientY - startY)) + 'px';
+          container.style.minHeight = Math.max(28, startHeight + (ev.clientY - startY)) + 'px';
           hasUnsavedChanges = true;
         }
         function onUp() {
@@ -2010,6 +2133,111 @@
         document.addEventListener('pointermove', onMove);
         document.addEventListener('pointerup', onUp);
       });
+    }
+
+    // ---------- Button edit popup: count, spacing, shape/text fill, outline, effects, align ----------
+
+    let buttonEditTargetBlock = null;
+
+    function openButtonEditPopup(block) {
+      buttonEditTargetBlock = block;
+      const container = block.querySelector('.btn-shapes-container');
+      const shapes = container.querySelectorAll('.btn-shape');
+      const firstShape = shapes[0];
+
+      document.getElementById('btnCountInput').value = shapes.length;
+      document.getElementById('btnSpacingInput').value = parseFloat(getComputedStyle(container).gap) || 0;
+      document.getElementById('btnShapeShadowBtn').classList.toggle('active', firstShape.dataset.shapeShadow === '1');
+      document.getElementById('btnTextShadowBtn').classList.toggle('active', firstShape.dataset.textShadow === '1');
+      const valign = firstShape.dataset.valign || 'middle';
+      document.getElementById('btnValignTop').classList.toggle('active', valign === 'top');
+      document.getElementById('btnValignMiddle').classList.toggle('active', valign === 'middle');
+      document.getElementById('btnValignBottom').classList.toggle('active', valign === 'bottom');
+
+      const popup = document.getElementById('buttonEditPopup');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+    }
+
+    function closeButtonEditPopup() {
+      document.getElementById('buttonEditPopup').classList.remove('active');
+      buttonEditTargetBlock = null;
+    }
+
+    function applyButtonStyle(prop, value) {
+      if (!buttonEditTargetBlock) return;
+      const container = buttonEditTargetBlock.querySelector('.btn-shapes-container');
+      const shapes = Array.from(container.querySelectorAll('.btn-shape'));
+
+      if (prop === 'count') {
+        const target = Math.max(1, Math.min(10, parseInt(value, 10) || 1));
+        if (shapes.length < target) {
+          for (let i = shapes.length; i < target; i++) {
+            const newShape = document.createElement('div');
+            newShape.className = 'btn-shape';
+            newShape.contentEditable = 'true';
+            newShape.textContent = 'Button';
+            container.appendChild(newShape);
+            wireBtnShapeClick(newShape, container);
+          }
+        } else if (shapes.length > target) {
+          for (let i = shapes.length - 1; i >= target; i--) shapes[i].remove();
+        }
+      } else if (prop === 'spacing') {
+        container.style.gap = Math.max(0, parseFloat(value) || 0) + 'px';
+      } else if (prop === 'shapeFill') {
+        shapes.forEach(function(s) { s.style.background = (value === 'none') ? 'transparent' : value; });
+      } else if (prop === 'shapeOutline') {
+        shapes.forEach(function(s) {
+          s.style.borderColor = (value === 'none') ? 'transparent' : value;
+          s.style.borderStyle = (value === 'none') ? 'none' : 'solid';
+        });
+      } else if (prop === 'textFill') {
+        shapes.forEach(function(s) { s.style.color = value; });
+      } else if (prop === 'textOutline') {
+        shapes.forEach(function(s) { s.style.webkitTextStroke = (value === 'none') ? '0px transparent' : '0.6px ' + value; });
+      } else if (prop === 'valign') {
+        shapes.forEach(function(s) {
+          s.dataset.valign = value;
+          s.style.alignItems = (value === 'top') ? 'flex-start' : (value === 'bottom') ? 'flex-end' : 'center';
+        });
+        document.getElementById('btnValignTop').classList.toggle('active', value === 'top');
+        document.getElementById('btnValignMiddle').classList.toggle('active', value === 'middle');
+        document.getElementById('btnValignBottom').classList.toggle('active', value === 'bottom');
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function toggleButtonStyle(prop) {
+      if (!buttonEditTargetBlock) return;
+      const shapes = Array.from(buttonEditTargetBlock.querySelectorAll('.btn-shape'));
+      if (shapes.length === 0) return;
+      if (prop === 'shapeShadow') {
+        const isOn = shapes[0].dataset.shapeShadow === '1';
+        shapes.forEach(function(s) {
+          s.dataset.shapeShadow = isOn ? '0' : '1';
+          s.style.boxShadow = isOn ? 'none' : '0 4px 14px rgba(0,0,0,0.35)';
+        });
+        document.getElementById('btnShapeShadowBtn').classList.toggle('active', !isOn);
+      } else if (prop === 'textShadow') {
+        const isOn = shapes[0].dataset.textShadow === '1';
+        shapes.forEach(function(s) {
+          s.dataset.textShadow = isOn ? '0' : '1';
+          s.style.textShadow = isOn ? 'none' : '1px 2px 3px rgba(0,0,0,0.4)';
+        });
+        document.getElementById('btnTextShadowBtn').classList.toggle('active', !isOn);
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     // Table — opens a size prompt, then inserts a floating block with the same move/delete
