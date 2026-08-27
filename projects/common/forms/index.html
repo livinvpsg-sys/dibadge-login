@@ -518,6 +518,15 @@
       background: rgba(51,51,51,0.25);
     }
 
+    /* Multi-cell selection highlight — doesn't touch background-color, so it never conflicts
+       with a cell's own fill color; works for both a drag-selected range and the whole table. */
+    .table-block .inserted-table td.table-cell-selected {
+      outline: 2px solid #14b8a6;
+      outline-offset: -2px;
+      position: relative;
+      z-index: 2;
+    }
+
     /* Image block — same floating move/delete pattern as the other tools, plus a full
        PowerPoint-style selection UI (red dashed outline, 8 resize handles, rotation handle)
        shown only once the image itself is clicked. */
@@ -1003,43 +1012,28 @@
     </div>
 
     <!-- Edit Table modal: adjust column/row counts and uniform column width / row height -->
-    <div class="group-modal-overlay" id="tableEditOverlay" onclick="closeTableEditModal()">
-      <div class="group-modal-box" onclick="event.stopPropagation()">
-        <div class="group-modal-title">Edit Table</div>
-        <div class="table-size-inputs-row">
-          <div>
-            <div class="table-size-input-label">Columns</div>
-            <input type="number" class="group-modal-input table-size-number-input" id="editTableColsInput" min="1" max="15">
-          </div>
-          <div>
-            <div class="table-size-input-label">Rows</div>
-            <input type="number" class="group-modal-input table-size-number-input" id="editTableRowsInput" min="1" max="30">
-          </div>
-        </div>
-        <div class="table-size-inputs-row">
-          <div>
-            <div class="table-size-input-label">Column Width (px)</div>
-            <input type="number" class="group-modal-input table-size-number-input" id="editTableColWidthInput" min="20" max="600">
-          </div>
-          <div>
-            <div class="table-size-input-label">Row Height (px)</div>
-            <input type="number" class="group-modal-input table-size-number-input" id="editTableRowHeightInput" min="16" max="300">
-          </div>
-        </div>
-        <div class="table-size-inputs-row">
-          <div>
-            <div class="table-size-input-label">Fill Color</div>
-            <input type="color" class="textbox-popup-color-input" id="editTableFillInput" value="#ffffff">
-          </div>
-          <div>
-            <div class="table-size-input-label">Outline Color</div>
-            <input type="color" class="textbox-popup-color-input" id="editTableOutlineInput" value="#999999">
-          </div>
-        </div>
-        <div class="group-modal-actions">
-          <button class="group-modal-cancel-btn" onclick="closeTableEditModal()">Cancel</button>
-          <button class="group-modal-ok-btn" onclick="confirmTableEdit()">OK</button>
-        </div>
+    <!-- Table edit popup — same fixed positioning pattern as Text Box / Button (not a
+         centered modal), anchored just outside the page's right edge. -->
+    <div class="textbox-edit-popup" id="tableEditOverlay" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Columns</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="editTableColsInput" min="1" max="15" style="margin-bottom:0;">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Rows</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="editTableRowsInput" min="1" max="30" style="margin-bottom:0;">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Column Width (px)</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="editTableColWidthInput" min="20" max="600" style="margin-bottom:0;">
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Row Height (px)</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="editTableRowHeightInput" min="16" max="300" style="margin-bottom:0;">
+      </div>
+      <div class="group-modal-actions" style="justify-content:space-between;">
+        <button class="group-modal-cancel-btn" onclick="closeTableEditModal()">Cancel</button>
+        <button class="group-modal-ok-btn" onclick="confirmTableEdit()">OK</button>
       </div>
     </div>
 
@@ -1191,9 +1185,6 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertButtonBlock()" title="Button">
         <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect></svg>
       </button>
-      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
-      </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
       </button>
@@ -1201,6 +1192,9 @@
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
       </button>
       <div class="form-tool-divider"></div>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+      </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="cycleTextAlign()" title="Text Align">
         <svg viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
       </button>
@@ -1209,6 +1203,15 @@
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault(); saveFormSelection();" onclick="document.getElementById('textColorInput').click()" title="Text Color">
         <svg viewBox="0 0 24 24"><path d="M9 4l-5.5 14h2.2l1.2-3.4h6.2L14.3 18h2.2L11 4z"></path><path d="M7.7 12.6h6.6"></path><line x1="17" y1="20" x2="23" y2="20"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('vertical')" title="Table Vertical Lines">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('horizontal')" title="Table Horizontal Lines">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('outer')" title="Table Outer Border">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect></svg>
       </button>
       <input type="color" id="fillColorInput" style="display:none" onchange="restoreFormSelection(); applyFillColor(this.value);">
       <input type="color" id="textColorInput" style="display:none" onchange="restoreFormSelection(); applyTextColor(this.value);">
@@ -2299,6 +2302,154 @@
       pushHistorySnapshot();
     }
 
+    // ===================== Table cell selection (multi-cell, like Excel/Word) =====================
+    // A single click on a cell places the text cursor there as normal (and implicitly selects
+    // just that cell for formatting). Clicking and dragging across cells builds a rectangular
+    // range selection, highlighted and tracked separately from the browser's own text
+    // selection, since formatting tools need to know which CELLS are targeted, not just text.
+
+    let tableSelectedCells = new Set();
+
+    function clearAllTableSelections() {
+      document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
+      tableSelectedCells = new Set();
+    }
+
+    function getCellPosition(table, cell) {
+      const row = cell.parentElement;
+      const rowIndex = Array.from(table.rows).indexOf(row);
+      const colIndex = Array.from(row.cells).indexOf(cell);
+      return { rowIndex: rowIndex, colIndex: colIndex };
+    }
+
+    function highlightCellRange(table, cellA, cellB) {
+      const posA = getCellPosition(table, cellA);
+      const posB = getCellPosition(table, cellB);
+      const minRow = Math.min(posA.rowIndex, posB.rowIndex), maxRow = Math.max(posA.rowIndex, posB.rowIndex);
+      const minCol = Math.min(posA.colIndex, posB.colIndex), maxCol = Math.max(posA.colIndex, posB.colIndex);
+
+      document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
+      tableSelectedCells = new Set();
+      Array.from(table.rows).forEach(function(row, rIdx) {
+        if (rIdx < minRow || rIdx > maxRow) return;
+        Array.from(row.cells).forEach(function(cell, cIdx) {
+          if (cIdx < minCol || cIdx > maxCol) return;
+          cell.classList.add('table-cell-selected');
+          tableSelectedCells.add(cell);
+        });
+      });
+    }
+
+    function selectWholeTable(table) {
+      document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
+      tableSelectedCells = new Set();
+      Array.from(table.rows).forEach(function(row) {
+        Array.from(row.cells).forEach(function(cell) {
+          cell.classList.add('table-cell-selected');
+          tableSelectedCells.add(cell);
+        });
+      });
+    }
+
+    function wireTableCellSelection(table) {
+      let isSelecting = false;
+      let startCell = null;
+
+      table.addEventListener('mousedown', function(e) {
+        const td = e.target.closest('td');
+        if (!td || !table.contains(td)) return;
+        isSelecting = true;
+        startCell = td;
+        // A plain click on one cell starts as just that single cell selected — if the user
+        // drags from here, mousemove below extends it into a real range.
+        document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
+        td.classList.add('table-cell-selected');
+        tableSelectedCells = new Set([td]);
+      });
+
+      table.addEventListener('mousemove', function(e) {
+        if (!isSelecting) return;
+        const td = e.target.closest('td');
+        if (!td || !table.contains(td)) return;
+        highlightCellRange(table, startCell, td);
+      });
+
+      document.addEventListener('mouseup', function() {
+        isSelecting = false;
+      });
+    }
+
+    // Deselect table cells when clicking anywhere outside any table — except the Fill/Text
+    // Color and border-toggle triggers, which need the table selection to survive their own
+    // click (those buttons aren't inside .table-block, so they'd otherwise clear the
+    // selection before the actual formatting action ever runs).
+    document.addEventListener('mousedown', function(e) {
+      if (e.target.closest('.table-block')) return;
+      if (e.target.id === 'fillColorInput' || e.target.id === 'textColorInput') return;
+      if (e.target.closest('button[title="Fill Color"]') || e.target.closest('button[title="Text Color"]')) return;
+      if (e.target.closest('button[title="Table Vertical Lines"]') || e.target.closest('button[title="Table Horizontal Lines"]') || e.target.closest('button[title="Table Outer Border"]')) return;
+      clearAllTableSelections();
+    });
+
+    // Vertical/Horizontal/Outer border toggles — apply to the current cell selection, or the
+    // whole table if nothing is specifically selected within it.
+    function toggleTableBorders(type) {
+      const cells = Array.from(tableSelectedCells);
+      if (cells.length === 0) return; // requires an explicit selection — whole table (click the
+                                        // move handle) or a cell range — never guesses which table
+      const table = cells[0].closest('table');
+
+      // Determine the selection's row/col bounds, needed for the "outer" (perimeter) case
+      const positions = cells.map(function(c) { return getCellPosition(table, c); });
+      const minRow = Math.min.apply(null, positions.map(function(p) { return p.rowIndex; }));
+      const maxRow = Math.max.apply(null, positions.map(function(p) { return p.rowIndex; }));
+      const minCol = Math.min.apply(null, positions.map(function(p) { return p.colIndex; }));
+      const maxCol = Math.max.apply(null, positions.map(function(p) { return p.colIndex; }));
+
+      // Toggle: if the majority of the RELEVANT sides currently show this border, turn it off;
+      // else turn it on. For "outer", each cell can have a different relevant side (top,
+      // bottom, left, or right, depending on which edge of the selection it's on) — checking
+      // the same side for every cell would misjudge the aggregate state.
+      const solid = '1px solid #999';
+      let onCount = 0, totalSides = 0;
+      cells.forEach(function(cell) {
+        const pos = getCellPosition(table, cell);
+        const cs = getComputedStyle(cell);
+        if (type === 'vertical') {
+          totalSides++;
+          if (cs.borderLeftStyle === 'solid') onCount++;
+        } else if (type === 'horizontal') {
+          totalSides++;
+          if (cs.borderTopStyle === 'solid') onCount++;
+        } else if (type === 'outer') {
+          if (pos.rowIndex === minRow) { totalSides++; if (cs.borderTopStyle === 'solid') onCount++; }
+          if (pos.rowIndex === maxRow) { totalSides++; if (cs.borderBottomStyle === 'solid') onCount++; }
+          if (pos.colIndex === minCol) { totalSides++; if (cs.borderLeftStyle === 'solid') onCount++; }
+          if (pos.colIndex === maxCol) { totalSides++; if (cs.borderRightStyle === 'solid') onCount++; }
+        }
+      });
+      const turnOn = totalSides === 0 || onCount < totalSides / 2;
+
+      cells.forEach(function(cell) {
+        const pos = getCellPosition(table, cell);
+        if (type === 'vertical') {
+          cell.style.borderLeft = turnOn ? solid : 'none';
+          cell.style.borderRight = turnOn ? solid : 'none';
+        } else if (type === 'horizontal') {
+          cell.style.borderTop = turnOn ? solid : 'none';
+          cell.style.borderBottom = turnOn ? solid : 'none';
+        } else if (type === 'outer') {
+          if (pos.rowIndex === minRow) cell.style.borderTop = turnOn ? solid : 'none';
+          if (pos.rowIndex === maxRow) cell.style.borderBottom = turnOn ? solid : 'none';
+          if (pos.colIndex === minCol) cell.style.borderLeft = turnOn ? solid : 'none';
+          if (pos.colIndex === maxCol) cell.style.borderRight = turnOn ? solid : 'none';
+        }
+      });
+
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
     function wireTableBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.table-move-handle');
@@ -2330,9 +2481,11 @@
         const startLeft = parseFloat(block.style.left) || 0;
         const startTop = parseFloat(block.style.top) || 0;
         const blockW = block.offsetWidth, blockH = block.offsetHeight;
+        let moved = false;
 
         function onMove(ev) {
           const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
           const maxLeft = Math.max(0, page.clientWidth - blockW);
           const maxTop = Math.max(0, page.clientHeight - blockH);
           const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
@@ -2347,6 +2500,10 @@
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           clearAlignmentGuides(page);
+          // A plain click (no real drag) on the move handle selects the WHOLE table, so any
+          // formatting tool used afterward (fill, text color, border lines) applies to every
+          // cell at once.
+          if (!moved) selectWholeTable(table);
           pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
@@ -2355,6 +2512,7 @@
 
       setupTableInsertMarkers(block);
       setupTableResizeHandles(block);
+      wireTableCellSelection(table);
     }
 
     // A single "+" per axis that snaps to whichever boundary line the cursor is nearest —
@@ -2614,7 +2772,18 @@
       document.getElementById('editTableRowsInput').value = rowCount;
       document.getElementById('editTableColWidthInput').value = firstCell ? Math.round(firstCell.offsetWidth) : 60;
       document.getElementById('editTableRowHeightInput').value = rowCount > 0 ? Math.round(table.rows[0].offsetHeight) : 32;
-      document.getElementById('tableEditOverlay').classList.add('active');
+
+      const popup = document.getElementById('tableEditOverlay');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
     }
 
     function closeTableEditModal() {
@@ -3224,6 +3393,14 @@
     }
 
     function applyFillColor(color) {
+      // If table cells are currently selected, fill applies to those cells instead of the
+      // page's own text selection.
+      if (tableSelectedCells.size > 0) {
+        tableSelectedCells.forEach(function(cell) { cell.style.background = color; });
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+        return;
+      }
       document.getElementById('formSheet').focus();
       document.execCommand('hiliteColor', false, color);
       hasUnsavedChanges = true;
@@ -3231,6 +3408,12 @@
     }
 
     function applyTextColor(color) {
+      if (tableSelectedCells.size > 0) {
+        tableSelectedCells.forEach(function(cell) { cell.style.color = color; });
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+        return;
+      }
       document.getElementById('formSheet').focus();
       document.execCommand('foreColor', false, color);
       hasUnsavedChanges = true;
