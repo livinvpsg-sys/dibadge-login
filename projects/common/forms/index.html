@@ -439,7 +439,6 @@
       display: block;
       width: 100%;
       border: none;
-      border-bottom: 1px solid #999;
       background: transparent;
       font-weight: 600;
       font-size: 0.95rem;
@@ -453,8 +452,6 @@
     .qopt-question-input::placeholder { color: #999; }
     .qopt-options-wrapper { position: relative; }
     .qopt-options-container {
-      border: 1px solid #999;
-      border-radius: 6px;
       padding: 8px 10px;
       background: #fff;
       pointer-events: auto;
@@ -467,6 +464,8 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .qopt-checkbox {
       flex-shrink: 0;
@@ -2053,12 +2052,40 @@
       pushHistorySnapshot();
     }
 
+    // Pressing Enter while typing an option adds a new option row right after it (like a
+    // checklist), instead of just inserting a line break inside the same text field.
+    function wireQoptOptionTextKeydown(textEl, block) {
+      textEl.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter' || e.shiftKey) return;
+        e.preventDefault();
+        const currentRow = textEl.closest('.qopt-option-row');
+        const container = block.querySelector('.qopt-options-container');
+        const newIndex = container.querySelectorAll('.qopt-option-row').length + 1;
+        currentRow.insertAdjacentHTML('afterend', buildQoptOptionRowHtml(newIndex));
+        const newRow = currentRow.nextElementSibling;
+        const newText = newRow.querySelector('.qopt-option-text');
+        wireQoptOptionTextKeydown(newText, block);
+        newText.focus();
+        const range = document.createRange();
+        range.selectNodeContents(newText);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+    }
+
     function wireQoptBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.qopt-move-handle');
       const editHandle = block.querySelector('.qopt-edit-handle');
       const deleteHandle = block.querySelector('.qopt-delete-handle');
       const rightHandle = block.querySelector('.qopt-resize-right');
+
+      block.querySelectorAll('.qopt-option-text').forEach(function(textEl) {
+        wireQoptOptionTextKeydown(textEl, block);
+      });
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
       deleteHandle.addEventListener('click', function(e) {
@@ -2153,12 +2180,15 @@
 
     function applyQoptOptionCount(value) {
       if (!qoptEditTargetBlock) return;
-      const container = qoptEditTargetBlock.querySelector('.qopt-options-container');
+      const block = qoptEditTargetBlock;
+      const container = block.querySelector('.qopt-options-container');
       const rows = container.querySelectorAll('.qopt-option-row');
       const target = Math.max(1, Math.min(20, parseInt(value, 10) || 1));
       if (rows.length < target) {
         for (let i = rows.length; i < target; i++) {
           container.insertAdjacentHTML('beforeend', buildQoptOptionRowHtml(i + 1));
+          const newText = container.lastElementChild.querySelector('.qopt-option-text');
+          wireQoptOptionTextKeydown(newText, block);
         }
       } else if (rows.length > target) {
         for (let i = rows.length - 1; i >= target; i--) rows[i].remove();
