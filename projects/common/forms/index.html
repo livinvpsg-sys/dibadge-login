@@ -466,6 +466,8 @@
     /* Clicking a button (when actually using the form) highlights it and dims its siblings —
        single-select choice behavior. Clicking the active one again clears the whole group. */
     .btn-shape.btn-active { background: #14b8a6; border-color: #14b8a6; color: #fff; }
+    /* Selected for STYLING (via the toolbar) — distinct from the bright/dim "chosen" state above */
+    .btn-block.style-selected .btn-shapes-container { outline: 2px dashed #14b8a6; outline-offset: 3px; }
     .btn-shapes-container.has-active .btn-shape:not(.btn-active) { opacity: 0.45; }
     .btn-resize-right {
       position: absolute;
@@ -556,6 +558,9 @@
       outline: none;
       word-wrap: break-word;
       overflow-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* vertical align, changed via the toolbar's Vertical Alignment flyout */
     }
 
     /* Hover the left margin (rows) or top margin (columns) — completely separate strips so
@@ -748,14 +753,14 @@
     .textbox-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 90px; height: 34px;
+      width: 62px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
       align-items: flex-start;
       gap: 6px;
     }
-    .textbox-move-handle, .textbox-edit-handle, .textbox-delete-handle {
+    .textbox-move-handle, .textbox-delete-handle {
       display: none;
       align-items: center;
       justify-content: center;
@@ -768,16 +773,12 @@
       user-select: none;
       flex-shrink: 0;
     }
-    .textbox-move-handle svg, .textbox-edit-handle svg, .textbox-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .textbox-move-handle svg, .textbox-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
     .textbox-move-handle { cursor: move; }
-    .textbox-edit-handle { cursor: pointer; }
     .textbox-delete-handle { cursor: pointer; }
-    .textbox-edit-handle:hover { border-color: #14b8a6; }
-    .textbox-edit-handle:hover svg { stroke: #14b8a6; }
     .textbox-delete-handle:hover { border-color: #ff3b30; }
     .textbox-delete-handle:hover svg { stroke: #ff3b30; }
     .textbox-move-zone:hover .textbox-move-handle,
-    .textbox-move-zone:hover .textbox-edit-handle,
     .textbox-move-zone:hover .textbox-delete-handle { display: flex; }
 
     .textbox-selection-wrapper {
@@ -1140,53 +1141,6 @@
       </div>
     </div>
 
-    <!-- Text Box edit popup — positioned dynamically in the empty space between the page
-         and the tool rail, not a centered modal like the ones above. -->
-    <div class="textbox-edit-popup" id="textboxEditPopup" onclick="event.stopPropagation()">
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Shape Fill</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="tbShapeFillInput" value="#ffffff" oninput="applyTextboxStyle('shapeFill', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('shapeFill', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Shape Outline</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="tbShapeOutlineInput" value="#bbbbbb" oninput="applyTextboxStyle('shapeOutline', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('shapeOutline', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Shape Effect</div>
-        <button class="textbox-popup-toggle-btn" id="tbShapeShadowBtn" onclick="toggleTextboxStyle('shapeShadow')">Drop Shadow</button>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Fill</div>
-        <input type="color" class="textbox-popup-color-input" id="tbTextFillInput" value="#1a1a1a" oninput="applyTextboxStyle('textFill', this.value)">
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Outline</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="tbTextOutlineInput" value="#000000" oninput="applyTextboxStyle('textOutline', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyTextboxStyle('textOutline', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Effect</div>
-        <button class="textbox-popup-toggle-btn" id="tbTextShadowBtn" onclick="toggleTextboxStyle('textShadow')">Text Shadow</button>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Alignment</div>
-        <div class="textbox-valign-row">
-          <button class="textbox-valign-btn" id="tbValignTop" onclick="applyTextboxStyle('valign', 'top')">Top</button>
-          <button class="textbox-valign-btn" id="tbValignMiddle" onclick="applyTextboxStyle('valign', 'middle')">Middle</button>
-          <button class="textbox-valign-btn" id="tbValignBottom" onclick="applyTextboxStyle('valign', 'bottom')">Bottom</button>
-        </div>
-      </div>
-      <button class="textbox-popup-close-btn" onclick="closeTextboxEditPopup()">Done</button>
-    </div>
-
     <!-- Button edit popup — same layout/style as the Text Box one, plus button-count and
          inter-button spacing controls. -->
     <div class="textbox-edit-popup" id="buttonEditPopup" onclick="event.stopPropagation()">
@@ -1199,45 +1153,8 @@
         <input type="number" class="group-modal-input table-size-number-input" id="btnSpacingInput" min="0" max="80" style="margin-bottom:0;" onchange="applyButtonStyle('spacing', this.value)">
       </div>
       <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Shape Fill</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="btnShapeFillInput" value="#f0f0f0" oninput="applyButtonStyle('shapeFill', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('shapeFill', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Shape Outline</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="btnShapeOutlineInput" value="#999999" oninput="applyButtonStyle('shapeOutline', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('shapeOutline', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
         <div class="textbox-popup-label">Shape Effect</div>
         <button class="textbox-popup-toggle-btn" id="btnShapeShadowBtn" onclick="toggleButtonStyle('shapeShadow')">Drop Shadow</button>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Fill</div>
-        <input type="color" class="textbox-popup-color-input" id="btnTextFillInput" value="#1a1a1a" oninput="applyButtonStyle('textFill', this.value)">
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Outline</div>
-        <div class="textbox-popup-row">
-          <input type="color" class="textbox-popup-color-input" id="btnTextOutlineInput" value="#000000" oninput="applyButtonStyle('textOutline', this.value)">
-          <button class="textbox-popup-none-btn" onclick="applyButtonStyle('textOutline', 'none')">None</button>
-        </div>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Effect</div>
-        <button class="textbox-popup-toggle-btn" id="btnTextShadowBtn" onclick="toggleButtonStyle('textShadow')">Text Shadow</button>
-      </div>
-      <div class="textbox-popup-section">
-        <div class="textbox-popup-label">Text Alignment</div>
-        <div class="textbox-valign-row">
-          <button class="textbox-valign-btn" id="btnValignTop" onclick="applyButtonStyle('valign', 'top')">Top</button>
-          <button class="textbox-valign-btn" id="btnValignMiddle" onclick="applyButtonStyle('valign', 'middle')">Middle</button>
-          <button class="textbox-valign-btn" id="btnValignBottom" onclick="applyButtonStyle('valign', 'bottom')">Bottom</button>
-        </div>
       </div>
       <button class="textbox-popup-close-btn" onclick="closeButtonEditPopup()">Done</button>
     </div>
@@ -1288,6 +1205,9 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertButtonBlock()" title="Button">
         <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect></svg>
       </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
+      </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
       </button>
@@ -1295,9 +1215,6 @@
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
       </button>
       <div class="form-tool-divider"></div>
-      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
-        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
-      </button>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'alignFlyout')" title="Text Align">
           <svg viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
@@ -1314,6 +1231,22 @@
           </button>
           <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="setTextAlign('justifyFull')" title="Justify">
             <svg viewBox="0 0 24 24"><line x1="21" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="21" y1="18" x2="3" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+      <div class="toolbar-flyout-group">
+        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'valignFlyout')" title="Vertical Alignment">
+          <svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="4"></line><line x1="4" y1="20" x2="20" y2="20"></line><line x1="12" y1="8" x2="12" y2="16"></line><polyline points="9 11 12 8 15 11"></polyline><polyline points="9 13 12 16 15 13"></polyline></svg>
+        </button>
+        <div class="toolbar-flyout" id="valignFlyout">
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="setVerticalAlign('top')" title="Align Top">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="4"></line><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="15" x2="16" y2="15"></line></svg>
+          </button>
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="setVerticalAlign('middle')" title="Align Middle">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="17" x2="16" y2="17"></line></svg>
+          </button>
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="setVerticalAlign('bottom')" title="Align Bottom">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"></line><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="14" x2="16" y2="14"></line></svg>
           </button>
         </div>
       </div>
@@ -1360,19 +1293,38 @@
         </div>
       </div>
       <div class="toolbar-flyout-group">
-        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'borderFlyout')" title="Table Borders">
+        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'borderFlyout')" title="Border">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect></svg>
         </button>
         <div class="toolbar-flyout" id="borderFlyout">
-          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('vertical'); closeAllToolbarFlyouts();" title="Vertical Lines">
+          <button class="toolbar-flyout-btn border-flyout-line-btn" onmousedown="event.preventDefault();" onclick="applyBorderAction('vertical'); closeAllToolbarFlyouts();" title="Vertical Lines">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
           </button>
-          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('horizontal'); closeAllToolbarFlyouts();" title="Horizontal Lines">
+          <button class="toolbar-flyout-btn border-flyout-line-btn" onmousedown="event.preventDefault();" onclick="applyBorderAction('horizontal'); closeAllToolbarFlyouts();" title="Horizontal Lines">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line></svg>
           </button>
-          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="toggleTableBorders('outer'); closeAllToolbarFlyouts();" title="Outer Border">
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="applyBorderAction('outer'); closeAllToolbarFlyouts();" title="Outer Border">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect></svg>
           </button>
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="toggleBorderColorPicker(event)" title="Border Color">
+            <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
+          </button>
+        </div>
+        <div class="color-picker-popover" id="borderColorPopover">
+          <div class="color-picker-swatches">
+            <button class="color-swatch" style="background:#000000" onmousedown="event.preventDefault();" onclick="pickBorderColor('#000000')" title="Black"></button>
+            <button class="color-swatch" style="background:#999999" onmousedown="event.preventDefault();" onclick="pickBorderColor('#999999')" title="Grey"></button>
+            <button class="color-swatch" style="background:#ffffff; border-color:#666;" onmousedown="event.preventDefault();" onclick="pickBorderColor('#ffffff')" title="White"></button>
+            <button class="color-swatch" style="background:#ff3b30" onmousedown="event.preventDefault();" onclick="pickBorderColor('#ff3b30')" title="Red"></button>
+            <button class="color-swatch" style="background:#ff9500" onmousedown="event.preventDefault();" onclick="pickBorderColor('#ff9500')" title="Orange"></button>
+            <button class="color-swatch" style="background:#34c759" onmousedown="event.preventDefault();" onclick="pickBorderColor('#34c759')" title="Green"></button>
+            <button class="color-swatch" style="background:#14b8a6" onmousedown="event.preventDefault();" onclick="pickBorderColor('#14b8a6')" title="Teal"></button>
+            <button class="color-swatch" style="background:#0a84ff" onmousedown="event.preventDefault();" onclick="pickBorderColor('#0a84ff')" title="Blue"></button>
+            <button class="color-swatch" style="background:#5856d6" onmousedown="event.preventDefault();" onclick="pickBorderColor('#5856d6')" title="Indigo"></button>
+            <button class="color-swatch" style="background:#af52de" onmousedown="event.preventDefault();" onclick="pickBorderColor('#af52de')" title="Purple"></button>
+            <input type="color" class="color-picker-custom-input" id="borderColorCustomInput" oninput="pickBorderColor(this.value)" title="Custom color">
+          </div>
+          <button class="color-picker-done-btn" onclick="closeColorPicker()">Done</button>
         </div>
       </div>
       <input type="file" id="formImageInput" accept="image/*" style="display:none" onchange="insertImageFromFile(this);">
@@ -2046,6 +1998,29 @@
 
     // Button — same floating-block idea as Question & Answer, one editable shape with its own
     // move handle and edge-only resize handles.
+    // Which button block is currently selected for STYLING (Fill Color, Text Color, Border,
+    // Vertical Alignment via the toolbar) — separate from clicking an individual button shape,
+    // which toggles its bright/dim "chosen" state for filling out the form instead.
+    let selectedButtonBlock = null;
+
+    function deselectAllButtonBlocks() {
+      document.querySelectorAll('.btn-block.style-selected').forEach(function(b) { b.classList.remove('style-selected'); });
+      selectedButtonBlock = null;
+    }
+
+    function selectButtonForStyling(block) {
+      deselectAllButtonBlocks();
+      deselectAllImageBlocks();
+      deselectAllTextboxBlocks();
+      clearAllTableSelections();
+      block.classList.add('style-selected');
+      selectedButtonBlock = block;
+    }
+
+    document.addEventListener('mousedown', function(e) {
+      if (!e.target.closest('.btn-block') && !e.target.closest('.toolbar-flyout-group')) deselectAllButtonBlocks();
+    });
+
     function insertButtonBlock() {
       const page = document.getElementById('formSheet');
 
@@ -2138,9 +2113,11 @@
         const startLeft = parseFloat(block.style.left) || 0;
         const startTop = parseFloat(block.style.top) || 0;
         const blockW = block.offsetWidth, blockH = block.offsetHeight;
+        let moved = false;
 
         function onMove(ev) {
           const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
           const maxLeft = Math.max(0, page.clientWidth - blockW);
           const maxTop = Math.max(0, page.clientHeight - blockH);
           const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
@@ -2155,6 +2132,9 @@
           document.removeEventListener('pointermove', onMove);
           document.removeEventListener('pointerup', onUp);
           clearAlignmentGuides(page);
+          // A plain click (no real drag) selects this button for styling — Fill Color, Text
+          // Color, Border, and Vertical Alignment then apply directly to it.
+          if (!moved) selectButtonForStyling(block);
           pushHistorySnapshot();
         }
         document.addEventListener('pointermove', onMove);
@@ -2436,6 +2416,9 @@
         if (!td || !table.contains(td)) return;
         isSelecting = true;
         startCell = td;
+        deselectAllButtonBlocks();
+        deselectAllTextboxBlocks();
+        deselectAllImageBlocks();
         // A plain click on one cell starts as just that single cell selected — if the user
         // drags from here, mousemove below extends it into a real range.
         document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
@@ -2965,10 +2948,14 @@
     }
 
     // Clicking anywhere outside a selectable block deselects it — matches how PowerPoint's
-    // selection handles disappear once you click away from the shape.
+    // selection handles disappear once you click away from the shape. Toolbar flyout groups
+    // (Fill Color, Text Color, Border, Vertical Alignment) are excluded — clicking them needs
+    // the current selection to survive so the formatting action actually has something to
+    // apply to, the same reason the table/button deselect listeners exclude them too.
     document.addEventListener('mousedown', function(e) {
+      if (e.target.closest('.toolbar-flyout-group')) return;
       if (!e.target.closest('.image-block')) deselectAllImageBlocks();
-      if (!e.target.closest('.textbox-block') && !e.target.closest('.textbox-edit-popup')) deselectAllTextboxBlocks();
+      if (!e.target.closest('.textbox-block')) deselectAllTextboxBlocks();
     });
 
     function computeFitSize(naturalW, naturalH, maxW, maxH) {
@@ -3047,6 +3034,9 @@
       img.addEventListener('click', function(e) {
         e.stopPropagation();
         deselectAllImageBlocks();
+        deselectAllButtonBlocks();
+        deselectAllTextboxBlocks();
+        clearAllTableSelections();
         block.classList.add('selected');
         selectedImageBlock = block;
       });
@@ -3185,11 +3175,11 @@
       });
     }
 
-    // ---------- Text Box: same selection/rotate/resize UI as Image, plus a 3rd (edit) icon
-    // like Table, multi-line editable text, and a styling popup. ----------
+    // ---------- Text Box: same selection/rotate/resize UI as Image, 2 icons (move/delete),
+    // multi-line editable text; styling now applied via the shared toolbar (Fill Color, Text
+    // Color, Border, Vertical Alignment) once selected, not its own popup. ----------
 
     let selectedTextboxBlock = null;
-    let textboxEditTargetBlock = null;
 
     function deselectAllTextboxBlocks() {
       document.querySelectorAll('.textbox-block.selected').forEach(function(b) { b.classList.remove('selected'); });
@@ -3210,7 +3200,6 @@
       block.innerHTML = `
         <div class="textbox-move-zone">
           <div class="textbox-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
-          <div class="textbox-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="textbox-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="textbox-selection-wrapper">
@@ -3237,7 +3226,6 @@
     function wireTextboxBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.textbox-move-handle');
-      const editHandle = block.querySelector('.textbox-edit-handle');
       const deleteHandle = block.querySelector('.textbox-delete-handle');
       const content = block.querySelector('.textbox-content');
       const rotateHandle = block.querySelector('.textbox-rotate-handle');
@@ -3249,6 +3237,8 @@
         e.stopPropagation();
         deselectAllTextboxBlocks();
         deselectAllImageBlocks();
+        deselectAllButtonBlocks();
+        clearAllTableSelections();
         block.classList.add('selected');
         selectedTextboxBlock = block;
       });
@@ -3266,13 +3256,6 @@
         if (selectedTextboxBlock === block) selectedTextboxBlock = null;
         hasUnsavedChanges = true;
         pushHistorySnapshot();
-      });
-
-      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
-      editHandle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openTextboxEditPopup(block);
       });
 
       // Move — same alignment-guide-aware dragging as the other block types
@@ -3400,83 +3383,6 @@
       });
     }
 
-    // ---------- Text Box edit popup: shape/text fill, outline, effects, vertical align ----------
-
-    function openTextboxEditPopup(block) {
-      textboxEditTargetBlock = block;
-      const content = block.querySelector('.textbox-content');
-
-      // Sync the popup's controls to this block's current styling
-      document.getElementById('tbShapeShadowBtn').classList.toggle('active', content.dataset.shapeShadow === '1');
-      document.getElementById('tbTextShadowBtn').classList.toggle('active', content.dataset.textShadow === '1');
-      const valign = content.dataset.valign || 'top';
-      document.getElementById('tbValignTop').classList.toggle('active', valign === 'top');
-      document.getElementById('tbValignMiddle').classList.toggle('active', valign === 'middle');
-      document.getElementById('tbValignBottom').classList.toggle('active', valign === 'bottom');
-
-      // Anchored just past the page's right edge — the gap between page and rail is often
-      // too narrow to fully contain a popup of usable width, so it starts right at that
-      // empty space and extends rightward as needed (rendering above the rail if it must,
-      // via z-index) rather than being squeezed into an impossibly tight strip.
-      const popup = document.getElementById('textboxEditPopup');
-      const page = document.getElementById('formSheet');
-      const pageRect = page.getBoundingClientRect();
-      popup.classList.add('active');
-      const popupWidth = popup.offsetWidth;
-      let left = pageRect.right + 10;
-      left = Math.min(left, window.innerWidth - popupWidth - 8);
-      let top = pageRect.top + 20;
-      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
-      popup.style.left = left + 'px';
-      popup.style.top = top + 'px';
-    }
-
-    function closeTextboxEditPopup() {
-      document.getElementById('textboxEditPopup').classList.remove('active');
-      textboxEditTargetBlock = null;
-    }
-
-    function applyTextboxStyle(prop, value) {
-      if (!textboxEditTargetBlock) return;
-      const content = textboxEditTargetBlock.querySelector('.textbox-content');
-      if (prop === 'shapeFill') {
-        content.style.background = (value === 'none') ? 'transparent' : value;
-      } else if (prop === 'shapeOutline') {
-        content.style.borderColor = (value === 'none') ? 'transparent' : value;
-        content.style.borderStyle = (value === 'none') ? 'none' : 'solid';
-      } else if (prop === 'textFill') {
-        content.style.color = value;
-      } else if (prop === 'textOutline') {
-        content.style.webkitTextStroke = (value === 'none') ? '0px transparent' : '0.6px ' + value;
-      } else if (prop === 'valign') {
-        content.dataset.valign = value;
-        content.style.justifyContent = (value === 'top') ? 'flex-start' : (value === 'bottom') ? 'flex-end' : 'center';
-        document.getElementById('tbValignTop').classList.toggle('active', value === 'top');
-        document.getElementById('tbValignMiddle').classList.toggle('active', value === 'middle');
-        document.getElementById('tbValignBottom').classList.toggle('active', value === 'bottom');
-      }
-      hasUnsavedChanges = true;
-      pushHistorySnapshot();
-    }
-
-    function toggleTextboxStyle(prop) {
-      if (!textboxEditTargetBlock) return;
-      const content = textboxEditTargetBlock.querySelector('.textbox-content');
-      if (prop === 'shapeShadow') {
-        const isOn = content.dataset.shapeShadow === '1';
-        content.dataset.shapeShadow = isOn ? '0' : '1';
-        content.style.boxShadow = isOn ? 'none' : '0 4px 14px rgba(0,0,0,0.35)';
-        document.getElementById('tbShapeShadowBtn').classList.toggle('active', !isOn);
-      } else if (prop === 'textShadow') {
-        const isOn = content.dataset.textShadow === '1';
-        content.dataset.textShadow = isOn ? '0' : '1';
-        content.style.textShadow = isOn ? 'none' : '1px 2px 3px rgba(0,0,0,0.4)';
-        document.getElementById('tbTextShadowBtn').classList.toggle('active', !isOn);
-      }
-      hasUnsavedChanges = true;
-      pushHistorySnapshot();
-    }
-
     // Explicit choice from the Align flyout, replacing the old blind-cycle behavior — the
     // user picks the exact alignment directly instead of clicking through states one by one.
     function setTextAlign(command) {
@@ -3508,7 +3414,10 @@
       const flyout = document.getElementById(flyoutId);
       const isOpen = flyout.classList.contains('active');
       closeAllToolbarFlyouts();
-      if (!isOpen) flyout.classList.add('active');
+      if (!isOpen) {
+        if (flyoutId === 'borderFlyout') updateBorderFlyoutForSelection();
+        flyout.classList.add('active');
+      }
     }
 
     function closeAllToolbarFlyouts() {
@@ -3521,13 +3430,28 @@
 
     // ===================== Custom color pickers (Fill Color / Text Color) =====================
     // Positioned right next to their trigger icon (unlike the native OS color picker, which
-    // can't be positioned at all). Picking a color that already has table cells selected
-    // applies immediately to all of them. With nothing pre-selected, it arms "paint mode" —
+    // can't be positioned at all). Picking a color applies directly to whatever is currently
+    // selected — table cells, a selected button, or a selected text box — in that priority
+    // order. With table cells specifically, having NONE selected arms "paint mode" instead —
     // the cursor becomes a fill icon, and clicking any individual cell fills just that one,
-    // Word/Excel-style, until "Done" is clicked.
+    // Word/Excel-style, until "Done" is clicked. Buttons and text boxes must be explicitly
+    // selected first (clicking their move handle / clicking into the text box).
 
     let colorPaintMode = null; // null | 'fill' | 'text'
     let colorPaintColor = null;
+
+    // Returns the elements that fill/text-color/border/alignment should currently affect —
+    // table cells, a selected button's shapes, or a selected text box's content — in that
+    // priority order. Returns null if nothing is selected.
+    function getFormatTargets() {
+      if (tableSelectedCells.size > 0) return { type: 'table', els: Array.from(tableSelectedCells) };
+      if (selectedButtonBlock) return { type: 'button', els: Array.from(selectedButtonBlock.querySelectorAll('.btn-shape')) };
+      if (selectedTextboxBlock) {
+        const content = selectedTextboxBlock.querySelector('.textbox-content');
+        return content ? { type: 'textbox', els: [content] } : null;
+      }
+      return null;
+    }
 
     function toggleColorPicker(event, type) {
       event.stopPropagation();
@@ -3540,13 +3464,13 @@
     }
 
     function pickColor(type, color) {
-      if (tableSelectedCells.size > 0) {
-        // Cells were already selected before opening the picker — apply to all of them now
+      const target = getFormatTargets();
+      if (target) {
         if (type === 'fill') applyFillColor(color);
         else applyTextColor(color);
-      } else {
-        // Nothing pre-selected — arm paint mode instead, so the next cell(s) clicked get this
-        // color, one at a time, without needing a drag-selection first.
+      } else if (type === 'fill') {
+        // Nothing selected — arm paint mode so the next TABLE cell clicked gets this color,
+        // one at a time, without needing a drag-selection first.
         colorPaintMode = type;
         colorPaintColor = color;
         setPaintCursor(true);
@@ -3585,31 +3509,99 @@
     })();
 
     function applyFillColor(color) {
-      // If table cells are currently selected, fill applies to those cells instead of the
-      // page's own text selection.
-      if (tableSelectedCells.size > 0) {
-        tableSelectedCells.forEach(function(cell) { cell.style.background = color; });
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
-        return;
-      }
-      document.getElementById('formSheet').focus();
-      document.execCommand('hiliteColor', false, color);
+      const target = getFormatTargets();
+      if (!target) return;
+      target.els.forEach(function(el) { el.style.background = color; });
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
 
     function applyTextColor(color) {
-      if (tableSelectedCells.size > 0) {
-        tableSelectedCells.forEach(function(cell) { cell.style.color = color; });
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
-        return;
-      }
-      document.getElementById('formSheet').focus();
-      document.execCommand('foreColor', false, color);
+      const target = getFormatTargets();
+      if (!target) return;
+      target.els.forEach(function(el) { el.style.color = color; });
       hasUnsavedChanges = true;
       pushHistorySnapshot();
+    }
+
+    // ===================== Border flyout: line toggles + color =====================
+    // Table gets all three (vertical/horizontal/outer) since it has real grid lines; a
+    // selected Button or Text Box only gets a simple outer-outline toggle, since neither has
+    // internal lines to speak of.
+
+    function applyBorderAction(type) {
+      if (tableSelectedCells.size > 0) {
+        toggleTableBorders(type);
+        return;
+      }
+      const target = getFormatTargets();
+      if (!target) return;
+      applySimpleBorderToggle(target.els);
+    }
+
+    function applySimpleBorderToggle(els) {
+      if (els.length === 0) return;
+      const solid = '1px solid #999';
+      const isOn = getComputedStyle(els[0]).borderStyle === 'solid';
+      els.forEach(function(el) { el.style.border = isOn ? 'none' : solid; });
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function toggleBorderColorPicker(event) {
+      event.stopPropagation();
+      const popover = document.getElementById('borderColorPopover');
+      const isOpen = popover.classList.contains('active');
+      closeAllToolbarFlyouts();
+      closeColorPicker();
+      if (!isOpen) popover.classList.add('active');
+    }
+
+    function pickBorderColor(color) {
+      const target = getFormatTargets();
+      if (!target) return;
+      target.els.forEach(function(el) {
+        el.style.borderTopColor = color;
+        el.style.borderBottomColor = color;
+        el.style.borderLeftColor = color;
+        el.style.borderRightColor = color;
+      });
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Shows only the relevant border-line options for whatever is currently selected — Table
+    // gets Vertical/Horizontal/Outer/Color, Button and Text Box only get Outer/Color.
+    function updateBorderFlyoutForSelection() {
+      const isTable = tableSelectedCells.size > 0;
+      document.querySelectorAll('.border-flyout-line-btn').forEach(function(btn) {
+        btn.style.display = isTable ? 'flex' : 'none';
+      });
+    }
+
+    // ===================== Vertical Alignment flyout =====================
+    // Applies to table cells, a selected button, or a selected text box, in that priority
+    // order — matching Fill Color / Text Color / Border.
+
+    function setVerticalAlign(pos) {
+      const target = getFormatTargets();
+      if (!target) return;
+      const justify = (pos === 'top') ? 'flex-start' : (pos === 'bottom') ? 'flex-end' : 'center';
+      target.els.forEach(function(el) {
+        if (target.type === 'table') {
+          // For a table, target.els are the <td> cells themselves — justifyContent has to go
+          // on the inner .table-cell-content div, since THAT'S the actual flex container.
+          const content = el.querySelector('.table-cell-content');
+          if (content) content.style.justifyContent = justify;
+        } else if (target.type === 'button') {
+          el.style.alignItems = justify; // .btn-shape is a row-flex, so cross-axis = alignItems
+        } else {
+          el.style.justifyContent = justify;
+        }
+      });
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+      closeAllToolbarFlyouts();
     }
 
     // ===================== Save toast =====================
