@@ -1266,7 +1266,7 @@
     <!-- Individual form (shown when a form is opened via ?name=) -->
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
       <div class="a4-zoom-spacer" id="a4ZoomSpacer">
-        <div class="a4-page" id="formSheet" contenteditable="true" data-placeholder="Start designing this form..." oninput="handleFormPageInput();"></div>
+        <div class="a4-page" id="formSheet" contenteditable="false" data-placeholder="Start designing this form..."></div>
       </div>
     </main>
 
@@ -1622,17 +1622,10 @@
       page.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       page.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       page.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
-      ensureFlowAnchor();
       document.getElementById('formToolsRail').style.display = 'flex';
       document.getElementById('zoomControl').classList.add('active');
       resetZoom();
       resetHistoryWithCurrentState();
-
-      // Empty page (new form, or nothing saved yet) — put the cursor at the very start so
-      // typing or using a tool immediately begins there, with no click needed first.
-      if (!page.textContent.trim() && page.querySelectorAll('.qa-block, .btn-block, .table-block, .image-block, .textbox-block, img').length === 0) {
-        placeCursorAtPageStart();
-      }
     }
 
     (function init() {
@@ -1676,38 +1669,6 @@
       sel.removeAllRanges();
       sel.addRange(savedFormRange);
     }
-
-    // Guarantees a real cursor lands wherever you click on the page — including blank space
-    // near/around a floating Question & Answer block — so the next tool or typed text starts
-    // exactly there. Only acts as a fallback: if the browser already placed a valid cursor (or
-    // you dragged to select a range of text), this leaves it alone rather than overriding it.
-    (function setupClickToPlaceCursor() {
-      const page = document.getElementById('formSheet');
-      page.addEventListener('mouseup', function(e) {
-        const sel = window.getSelection();
-        if (sel.rangeCount > 0 && page.contains(sel.anchorNode)) return; // browser already placed a valid, typable cursor — never override this
-
-        let range = null;
-        if (document.caretRangeFromPoint) {
-          range = document.caretRangeFromPoint(e.clientX, e.clientY);
-        } else if (document.caretPositionFromPoint) {
-          const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
-          if (pos && pos.offsetNode) {
-            range = document.createRange();
-            range.setStart(pos.offsetNode, pos.offset);
-            range.collapse(true);
-          }
-        }
-
-        if (range && page.contains(range.startContainer)) {
-          page.focus();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } else {
-          placeCursorAtPageStart();
-        }
-      });
-    })();
 
     // ===================== Undo / Redo history =====================
     // Snapshot-based: keeps full page.innerHTML states, since content here is a mix of typed
@@ -1777,14 +1738,6 @@
       isRestoringHistory = false;
       hasUnsavedChanges = true;
       updateUndoRedoButtons();
-    }
-
-    // Called by the page's oninput — typing is continuous, so history snapshots are debounced
-    // to one per pause in typing, rather than one per keystroke.
-    function handleFormPageInput() {
-      hasUnsavedChanges = true;
-      clearTimeout(historyDebounceTimer);
-      historyDebounceTimer = setTimeout(pushHistorySnapshot, 500);
     }
 
     // Standard Ctrl+Z / Ctrl+Y (or Ctrl+Shift+Z) shortcuts, same as the toolbar buttons
@@ -1941,55 +1894,6 @@
       if (overlay) overlay.innerHTML = '';
     }
 
-    // A floating block (Question & Answer, Button, Table) is position:absolute — it's removed
-    // from the page's normal flow entirely. If it's the ONLY thing on the page, there is no
-    // real flowing text position left anywhere for a cursor to rest in and accept typed
-    // characters, even in the "blank" space around it. This guarantees a genuine empty line
-    // always exists in the page's actual flow, so typing outside a floating block always works.
-    function ensureFlowAnchor() {
-      const page = document.getElementById('formSheet');
-      const hasFlowContent = Array.from(page.childNodes).some(function(n) {
-        if (n.nodeType === Node.TEXT_NODE) return true;
-        if (n.nodeType === Node.ELEMENT_NODE) return !n.classList.contains('qa-block') && !n.classList.contains('btn-block') && !n.classList.contains('table-block') && !n.classList.contains('image-block') && !n.classList.contains('textbox-block');
-        return false;
-      });
-      if (!hasFlowContent) {
-        // Fill the page with enough blank lines to span its height, so clicking at different
-        // VERTICAL positions lands on a nearby line, instead of the single point that exists
-        // when there's only one blank line. Horizontal position on a blank line still always
-        // resolves to its start — that's inherent to how text cursors work (a blank line has
-        // no characters to position "between"), true in every text editor, not fixable here.
-        const approxLineHeightPx = 25.6; // ~1rem font-size * 1.6 line-height
-        const usableHeightPx = 1123 - 144; // A4 page height minus its top+bottom padding
-        const lineCount = Math.max(1, Math.ceil(usableHeightPx / approxLineHeightPx));
-        for (let i = 0; i < lineCount; i++) {
-          page.appendChild(document.createElement('br'));
-        }
-      }
-    }
-
-    function placeCursorAtPageStart() {
-      const page = document.getElementById('formSheet');
-      page.focus();
-      const range = document.createRange();
-      range.selectNodeContents(page);
-      range.collapse(true); // true = collapse to the START, not the end
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
-    function placeCursorAtPageEnd() {
-      const page = document.getElementById('formSheet');
-      page.focus();
-      const range = document.createRange();
-      range.selectNodeContents(page);
-      range.collapse(false); // false = collapse to the END
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-
     function insertHtmlAtCursor(html) {
       const page = document.getElementById('formSheet');
       page.focus();
@@ -2042,7 +1946,6 @@
       `;
       page.appendChild(block);
       wireQaBlockInteractions(block);
-      ensureFlowAnchor();
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -2170,7 +2073,6 @@
       `;
       page.appendChild(block);
       wireButtonBlockInteractions(block);
-      ensureFlowAnchor();
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -2472,7 +2374,6 @@
       `;
       page.appendChild(block);
       wireTableBlockInteractions(block);
-      ensureFlowAnchor();
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3129,7 +3030,6 @@
       `;
       page.appendChild(block);
       wireImageBlockInteractions(block);
-      ensureFlowAnchor();
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3330,7 +3230,6 @@
       `;
       page.appendChild(block);
       wireTextboxBlockInteractions(block);
-      ensureFlowAnchor();
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
