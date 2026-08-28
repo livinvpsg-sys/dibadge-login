@@ -455,31 +455,34 @@
       padding: 8px 10px;
       background: #fff;
       pointer-events: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
       box-sizing: border-box;
-    }
-    .qopt-option-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .qopt-checkbox {
-      flex-shrink: 0;
-      width: 16px; height: 16px;
-      pointer-events: auto;
-      cursor: pointer;
-    }
-    .qopt-option-text {
-      flex: 1;
-      min-width: 0;
       outline: none;
       color: #1a1a1a;
       font-size: 0.9rem;
+      line-height: 1.9; /* extra vertical room so wrapped/manual-Enter lines don't feel cramped */
+    }
+    .qopt-checkbox-island {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+    }
+    .qopt-checkbox {
+      width: 15px; height: 15px;
       pointer-events: auto;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .qopt-opt-text {
+      display: inline-block;
+      min-width: 55px;
+      outline: none;
+      vertical-align: middle;
+    }
+    /* True placeholder, same idea as the Question input — shows only while genuinely empty,
+       disappears the instant the user types, no manual select-and-delete needed. */
+    .qopt-opt-text:empty:before {
+      content: 'Option';
+      color: #999;
     }
     .qopt-resize-right {
       position: absolute;
@@ -2019,8 +2022,12 @@
 
     let qoptEditTargetBlock = null;
 
-    function buildQoptOptionRowHtml(n) {
-      return `<div class="qopt-option-row"><input type="checkbox" class="qopt-checkbox"><div class="qopt-option-text" contenteditable="true">Option ${n}</div></div>`;
+    // Builds ONE inline checkbox+text pair — a non-editable checkbox "island" immediately
+    // followed by a genuinely empty text span (so :empty CSS gives it real placeholder
+    // behavior, exactly like the Question input), plus a little trailing space before whatever
+    // comes next on the same line.
+    function buildQoptInlineOptionHtml() {
+      return '<span class="qopt-checkbox-island" contenteditable="false"><input type="checkbox" class="qopt-checkbox"></span><span class="qopt-opt-text"></span>&nbsp;&nbsp;';
     }
 
     function insertQuestionOptionsBlock() {
@@ -2042,7 +2049,7 @@
         </div>
         <input type="text" class="qopt-question-input" placeholder="Question">
         <div class="qopt-options-wrapper">
-          <div class="qopt-options-container">${buildQoptOptionRowHtml(1)}</div>
+          <div class="qopt-options-container" contenteditable="true">${buildQoptInlineOptionHtml()}</div>
           <div class="qopt-resize-right"></div>
         </div>
       `;
@@ -2052,39 +2059,22 @@
       pushHistorySnapshot();
     }
 
-    // Pressing Enter while typing an option adds a new option row right after it (like a
-    // checklist), instead of just inserting a line break inside the same text field.
-    function wireQoptOptionTextKeydown(textEl, block) {
-      textEl.addEventListener('keydown', function(e) {
-        if (e.key !== 'Enter' || e.shiftKey) return;
-        e.preventDefault();
-        const currentRow = textEl.closest('.qopt-option-row');
-        const container = block.querySelector('.qopt-options-container');
-        const newIndex = container.querySelectorAll('.qopt-option-row').length + 1;
-        currentRow.insertAdjacentHTML('afterend', buildQoptOptionRowHtml(newIndex));
-        const newRow = currentRow.nextElementSibling;
-        const newText = newRow.querySelector('.qopt-option-text');
-        wireQoptOptionTextKeydown(newText, block);
-        newText.focus();
-        const range = document.createRange();
-        range.selectNodeContents(newText);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
-      });
-    }
-
     function wireQoptBlockInteractions(block) {
       const page = document.getElementById('formSheet');
       const moveHandle = block.querySelector('.qopt-move-handle');
       const editHandle = block.querySelector('.qopt-edit-handle');
       const deleteHandle = block.querySelector('.qopt-delete-handle');
       const rightHandle = block.querySelector('.qopt-resize-right');
+      const container = block.querySelector('.qopt-options-container');
 
-      block.querySelectorAll('.qopt-option-text').forEach(function(textEl) {
-        wireQoptOptionTextKeydown(textEl, block);
+      // One shared editable region for all the options — options sit inline, flowing and
+      // wrapping like words in a sentence, and pressing Enter behaves exactly like it does in
+      // normal text (pushes whatever comes after the cursor down to a new line). No custom
+      // Enter handling needed — that's just how a single contenteditable region already works.
+      container.addEventListener('input', function() {
+        hasUnsavedChanges = true;
+        clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = setTimeout(pushHistorySnapshot, 500);
       });
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
@@ -2157,7 +2147,7 @@
     function openQoptEditPopup(block) {
       qoptEditTargetBlock = block;
       const container = block.querySelector('.qopt-options-container');
-      const count = container.querySelectorAll('.qopt-option-row').length;
+      const count = container.querySelectorAll('.qopt-checkbox-island').length;
       document.getElementById('qoptCountInput').value = count;
 
       const popup = document.getElementById('qoptEditPopup');
@@ -2180,18 +2170,29 @@
 
     function applyQoptOptionCount(value) {
       if (!qoptEditTargetBlock) return;
-      const block = qoptEditTargetBlock;
-      const container = block.querySelector('.qopt-options-container');
-      const rows = container.querySelectorAll('.qopt-option-row');
+      const container = qoptEditTargetBlock.querySelector('.qopt-options-container');
+      const islands = Array.from(container.querySelectorAll('.qopt-checkbox-island'));
       const target = Math.max(1, Math.min(20, parseInt(value, 10) || 1));
-      if (rows.length < target) {
-        for (let i = rows.length; i < target; i++) {
-          container.insertAdjacentHTML('beforeend', buildQoptOptionRowHtml(i + 1));
-          const newText = container.lastElementChild.querySelector('.qopt-option-text');
-          wireQoptOptionTextKeydown(newText, block);
+      if (islands.length < target) {
+        // New options are appended at the END of the existing content — same line as the
+        // last option, flowing right after it, not forced onto a new line.
+        let addHtml = '';
+        for (let i = islands.length; i < target; i++) addHtml += buildQoptInlineOptionHtml();
+        container.insertAdjacentHTML('beforeend', addHtml);
+      } else if (islands.length > target) {
+        // Remove the LAST (islands.length - target) options — each checkbox island plus
+        // whatever sits between it and the next island (its text span and trailing spacing).
+        const toRemove = islands.length - target;
+        for (let i = 0; i < toRemove; i++) {
+          const island = islands[islands.length - 1 - i];
+          let node = island.nextSibling;
+          while (node && !(node.nodeType === 1 && node.classList.contains('qopt-checkbox-island'))) {
+            const next = node.nextSibling;
+            node.remove();
+            node = next;
+          }
+          island.remove();
         }
-      } else if (rows.length > target) {
-        for (let i = rows.length - 1; i >= target; i--) rows[i].remove();
       }
       hasUnsavedChanges = true;
       pushHistorySnapshot();
