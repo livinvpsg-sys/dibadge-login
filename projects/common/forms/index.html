@@ -162,6 +162,8 @@
       flex-shrink: 0;
     }
     .page-settings-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .page-settings-divider { width: 1px; align-self: stretch; background: var(--border-color, #2c2c2e); margin: 2px 2px; }
+    .page-settings-btn-danger:hover { background: rgba(255,59,48,0.15); color: #ff3b30; }
     .page-settings-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; }
     .a4-page-header-strip, .a4-page-footer-strip {
       width: 794px;
@@ -196,25 +198,6 @@
     .a4-page-unit.landscape .a4-page { width: 1123px; min-height: 794px; }
     .a4-page-unit.landscape .a4-page-header-strip,
     .a4-page-unit.landscape .a4-page-footer-strip { width: 1123px; }
-
-    .page-add-fab {
-      position: absolute;
-      /* top/left computed in JS, same reasoning as .zoom-control above */
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: #14b8a6;
-      border: none;
-      color: #fff;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-      z-index: 200;
-    }
-    .page-add-fab.active { display: flex; }
-    .page-add-fab:hover { background: #0d9488; }
-    .page-add-fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.4; fill: none; }
 
     /* Form-building tool rail */
     .form-tools-rail {
@@ -1392,6 +1375,30 @@
       </div>
     </div>
 
+    <!-- Add page: above or below the page whose settings-bar was clicked -->
+    <div class="group-modal-overlay" id="addPageOverlay" onclick="closeAddPageModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Add Page</div>
+        <div class="group-modal-message">Add the new page above or below this one?</div>
+        <div class="group-modal-actions" style="justify-content:space-between;">
+          <button class="group-modal-cancel-btn" onclick="resolveAddPage('above')">Above</button>
+          <button class="group-modal-ok-btn" onclick="resolveAddPage('below')">Below</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete page confirmation -->
+    <div class="group-modal-overlay" id="deletePageOverlay" onclick="closeDeletePageModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Delete Page?</div>
+        <div class="group-modal-message">This page and everything on it will be removed. This can't be undone once you leave the form.</div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeDeletePageModal()">Cancel</button>
+          <button class="group-modal-ok-btn" style="background:#ff3b30;" onclick="confirmDeletePage()">Delete</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
     <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
@@ -1420,7 +1427,7 @@
           <div class="a4-page-unit" id="pageUnit-0" data-page-index="0">
             <div class="a4-page-settings-bar">
               <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageColorPicker(event, 0)" title="Page Color">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 0 0 18 4.5 4.5 0 0 0 0-9 2 2 0 0 1 0-4 4.5 4.5 0 0 0 0-5z"></path></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.4 0 2.5-1.1 2.5-2.5 0-.6-.2-1.2-.6-1.6-.4-.5-.6-1-.6-1.6 0-1.4 1.1-2.5 2.5-2.5H18c2.2 0 4-1.8 4-4 0-4.4-4.9-8-10-8z"></path><circle cx="6.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="9.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="14.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="17.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle></svg>
               </button>
               <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageNumber(0)" title="Page Number">
                 <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><text x="12" y="16" font-size="10" text-anchor="middle" fill="currentColor" stroke="none">#</text></svg>
@@ -1434,6 +1441,13 @@
               <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageOrientation(0)" title="Orientation">
                 <svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1"></rect></svg>
               </button>
+              <div class="page-settings-divider"></div>
+              <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="promptAddPage(0)" title="Add Page">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              </button>
+              <button class="page-settings-btn page-settings-btn-danger" onmousedown="event.preventDefault();" onclick="promptDeletePage(0)" title="Delete Page">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              </button>
             </div>
             <div class="a4-page-header-strip" id="pageHeader-0" contenteditable="false" data-placeholder="Header"></div>
             <div class="a4-page" id="formSheet" contenteditable="false" data-placeholder="Start designing this form..."></div>
@@ -1442,9 +1456,6 @@
           </div>
         </div>
       </div>
-      <button class="page-add-fab" id="pageAddFab" onclick="addNewPage()" title="Add new page">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-      </button>
       <div class="zoom-control" id="zoomControl">
         <button class="zoom-btn" onclick="zoomOut()" title="Zoom out">&minus;</button>
         <span class="zoom-level-label" id="zoomLevelLabel" onclick="resetZoom()" title="Reset zoom">100%</span>
@@ -1847,10 +1858,17 @@
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       stack.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
       wireAllPageUnits();
+      renumberPages();
+      // Keep future page-index assignments clear of whatever this form already uses, in case
+      // a different form (with its own higher indices) was open earlier in this session.
+      pageUnitCounter = 0;
+      stack.querySelectorAll('.a4-page-unit').forEach(function(u) {
+        const n = parseInt(u.dataset.pageIndex, 10) || 0;
+        if (n > pageUnitCounter) pageUnitCounter = n;
+      });
       activePageEl = stack.querySelector('.a4-page');
       document.getElementById('formToolsRail').style.display = 'flex';
       document.getElementById('zoomControl').classList.add('active');
-      document.getElementById('pageAddFab').classList.add('active');
       resetZoom();
       resetHistoryWithCurrentState();
     }
@@ -4121,19 +4139,18 @@
     // CSS), so they scroll and stay attached to the page naturally — no viewport math needed.
     // This just re-parents them onto whichever page-unit is currently last, since that's where
     // a newly added page should visually anchor them.
-    // Positions the zoom control and "add page" FAB relative to the LAST page-unit's own
-    // position within the scrollable wrapper (not the viewport) — computed once here rather
-    // than on every scroll event, since position:absolute children of a scrollable ancestor
-    // naturally move together with its scrolled content once placed in that coordinate space.
-    // They stay OUTSIDE the page-unit itself (not real page content) so they're never captured
-    // in save/undo snapshots, which serialize the page stack's markup.
+    // Positions the zoom control relative to the LAST page-unit's own position within the
+    // scrollable wrapper (not the viewport) — computed once here rather than on every scroll
+    // event, since position:absolute children of a scrollable ancestor naturally move together
+    // with its scrolled content once placed in that coordinate space. It stays OUTSIDE the
+    // page-unit itself (not real page content) so it's never captured in save/undo snapshots,
+    // which serialize the page stack's markup.
     function moveZoomAndFabToLastPage() {
       const wrapper = document.getElementById('formSheetWrapper');
       const stack = document.getElementById('a4PagesStack');
       const units = stack ? stack.querySelectorAll('.a4-page-unit') : [];
       const lastUnit = units[units.length - 1];
       const control = document.getElementById('zoomControl');
-      const fab = document.getElementById('pageAddFab');
       if (!lastUnit || !wrapper) return;
 
       const unitRect = lastUnit.getBoundingClientRect();
@@ -4143,11 +4160,7 @@
 
       if (control) {
         control.style.top = (unitBottom - control.offsetHeight) + 'px';
-        control.style.left = (unitRight + 54) + 'px'; // just outside the page, clear of the FAB
-      }
-      if (fab) {
-        fab.style.top = (unitBottom - fab.offsetHeight / 2) + 'px';
-        fab.style.left = (unitRight - fab.offsetWidth / 2) + 'px'; // centered on the corner
+        control.style.left = (unitRight + 14) + 'px'; // just outside the page
       }
     }
     function positionZoomControl() { moveZoomAndFabToLastPage(); }
@@ -4177,18 +4190,11 @@
     }
     wireAllPageUnits();
 
-    function addNewPage() {
-      pageUnitCounter++;
-      const idx = pageUnitCounter;
-      const stack = document.getElementById('a4PagesStack');
-      const unit = document.createElement('div');
-      unit.className = 'a4-page-unit';
-      unit.id = 'pageUnit-' + idx;
-      unit.dataset.pageIndex = idx;
-      unit.innerHTML = `
+    function buildPageUnitHtml(idx) {
+      return `
         <div class="a4-page-settings-bar">
           <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageColorPicker(event, ${idx})" title="Page Color">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 3a9 9 0 0 0 0 18 4.5 4.5 0 0 0 0-9 2 2 0 0 1 0-4 4.5 4.5 0 0 0 0-5z"></path></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.4 0 2.5-1.1 2.5-2.5 0-.6-.2-1.2-.6-1.6-.4-.5-.6-1-.6-1.6 0-1.4 1.1-2.5 2.5-2.5H18c2.2 0 4-1.8 4-4 0-4.4-4.9-8-10-8z"></path><circle cx="6.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="9.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="14.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="17.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle></svg>
           </button>
           <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageNumber(${idx})" title="Page Number">
             <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><text x="12" y="16" font-size="10" text-anchor="middle" fill="currentColor" stroke="none">#</text></svg>
@@ -4202,13 +4208,50 @@
           <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageOrientation(${idx})" title="Orientation">
             <svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="1"></rect></svg>
           </button>
+          <div class="page-settings-divider"></div>
+          <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="promptAddPage(${idx})" title="Add Page">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="page-settings-btn page-settings-btn-danger" onmousedown="event.preventDefault();" onclick="promptDeletePage(${idx})" title="Delete Page">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+          </button>
         </div>
         <div class="a4-page-header-strip" id="pageHeader-${idx}" contenteditable="false" data-placeholder="Header"></div>
         <div class="a4-page" id="formSheet-${idx}" contenteditable="false" data-placeholder="Start designing this form..."></div>
         <div class="a4-page-footer-strip" id="pageFooter-${idx}" contenteditable="false" data-placeholder="Footer"></div>
-        <div class="a4-page-number" id="pageNumber-${idx}">${document.querySelectorAll('.a4-page-unit').length + 1}</div>
+        <div class="a4-page-number" id="pageNumber-${idx}">1</div>
       `;
-      stack.appendChild(unit);
+    }
+
+    // Page display NUMBERS reflect visual/DOM order (recalculated after every add/delete/
+    // reorder) — separate from data-page-index, which is a stable identity assigned once at
+    // creation and never reused, so the scope-choice modal can always find the right page.
+    function renumberPages() {
+      document.querySelectorAll('.a4-page-unit').forEach(function(unit, i) {
+        const numEl = unit.querySelector('.a4-page-number');
+        if (numEl) numEl.textContent = (i + 1);
+      });
+    }
+
+    function insertNewPageRelativeTo(refIdx, position) {
+      pageUnitCounter++;
+      const idx = pageUnitCounter;
+      const stack = document.getElementById('a4PagesStack');
+      const unit = document.createElement('div');
+      unit.className = 'a4-page-unit';
+      unit.id = 'pageUnit-' + idx;
+      unit.dataset.pageIndex = idx;
+      unit.innerHTML = buildPageUnitHtml(idx);
+
+      const refUnit = document.querySelector('.a4-page-unit[data-page-index="' + refIdx + '"]');
+      if (refUnit && position === 'above') {
+        refUnit.before(unit);
+      } else if (refUnit) {
+        refUnit.after(unit);
+      } else {
+        stack.appendChild(unit);
+      }
+      renumberPages();
       wireAllPageUnits();
       moveZoomAndFabToLastPage();
       activePageEl = unit.querySelector('.a4-page');
@@ -4218,6 +4261,48 @@
       setTimeout(function() {
         unit.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 50);
+    }
+
+    let pendingAddPageIdx = null;
+    function promptAddPage(idx) {
+      pendingAddPageIdx = idx;
+      document.getElementById('addPageOverlay').classList.add('active');
+    }
+    function closeAddPageModal() {
+      document.getElementById('addPageOverlay').classList.remove('active');
+      pendingAddPageIdx = null;
+    }
+    function resolveAddPage(position) {
+      const idx = pendingAddPageIdx;
+      closeAddPageModal();
+      if (idx === null) return;
+      insertNewPageRelativeTo(idx, position);
+    }
+
+    let pendingDeletePageIdx = null;
+    function promptDeletePage(idx) {
+      if (document.querySelectorAll('.a4-page-unit').length <= 1) return; // must keep at least one page
+      pendingDeletePageIdx = idx;
+      document.getElementById('deletePageOverlay').classList.add('active');
+    }
+    function closeDeletePageModal() {
+      document.getElementById('deletePageOverlay').classList.remove('active');
+      pendingDeletePageIdx = null;
+    }
+    function confirmDeletePage() {
+      const idx = pendingDeletePageIdx;
+      closeDeletePageModal();
+      if (idx === null) return;
+      const unit = document.querySelector('.a4-page-unit[data-page-index="' + idx + '"]');
+      if (!unit) return;
+      const wasActiveInside = activePageEl && unit.contains(activePageEl);
+      unit.remove();
+      renumberPages();
+      if (wasActiveInside) activePageEl = document.querySelector('.a4-page');
+      moveZoomAndFabToLastPage();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+      applyZoom();
     }
 
     // ---------- Page settings: color, page number, header/footer visibility, orientation ----------
