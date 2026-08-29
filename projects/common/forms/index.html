@@ -254,17 +254,17 @@
     .zoom-control {
       display: none;
       position: fixed;
-      /* Constant screen position — bottom-right of the viewport, always, regardless of how
-         many pages exist, current scroll position, or zoom level. Does not track any page. */
-      bottom: 20px;
-      right: 20px;
+      /* top/left computed in JS, close to the page's own bottom-right corner — see
+         positionZoomControl(), which only runs at load and on resize, never on scroll or
+         page-count changes, so the screen position stays genuinely constant. */
       align-items: center;
       gap: 2px;
-      background: var(--slate-surface, #1e1e1e);
-      border: 1px solid var(--border-color, #2c2c2e);
+      background: #2c2c2e; /* lighter than the app's default dark surfaces, so it stays visibly
+                               distinct even against a similarly-dark panel behind it */
+      border: 1px solid #48484a;
       border-radius: 24px;
       padding: 6px 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
       z-index: 200;
       white-space: nowrap;
     }
@@ -4155,15 +4155,26 @@
     // right — its dark background is nearly identical to the control's own, so anywhere under
     // that panel it becomes almost invisible. This keeps it just left of that panel instead,
     // recomputed only on resize (never on scroll/zoom/page-add, so it truly stays put).
+    // Computed only at initial load and on window resize — deliberately NOT recalculated when
+    // pages are added/deleted or the page is scrolled, so the screen position truly stays
+    // constant as the user asked, using the first page's edges as the reference (page width/
+    // position doesn't change with page count).
     function positionZoomControl() {
       const control = document.getElementById('zoomControl');
-      if (!control) return;
-      const panel = document.querySelector('.activity-feed-panel');
-      const panelVisible = panel && getComputedStyle(panel).display !== 'none';
-      const rightGap = panelVisible ? (window.innerWidth - panel.getBoundingClientRect().left + 20) : 20;
-      control.style.right = rightGap + 'px';
+      const page = document.getElementById('formSheet');
+      if (!control || !page) return;
+      const pageRect = page.getBoundingClientRect();
+
+      let left = pageRect.right + 14; // close to the page, just outside its right edge
+      left = Math.min(left, window.innerWidth - control.offsetWidth - 8); // stay fully on-screen
+      control.style.left = left + 'px';
+      control.style.right = 'auto';
+      let top = pageRect.bottom - control.offsetHeight; // same line as the page's bottom
+      top = Math.max(8, Math.min(top, window.innerHeight - control.offsetHeight - 8)); // stay reachable even if the page's bottom is off-screen
+      control.style.top = top + 'px';
+      control.style.bottom = 'auto';
     }
-    function moveZoomAndFabToLastPage() { positionZoomControl(); }
+    function moveZoomAndFabToLastPage() {}
     window.addEventListener('resize', positionZoomControl);
 
     // ===================== Multi-page management =====================
