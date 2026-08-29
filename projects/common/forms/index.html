@@ -1692,6 +1692,14 @@
 
     // Whichever .a4-page the user most recently clicked into — falls back to the first page.
     function getActivePage() {
+      if (activePageEl && !document.contains(activePageEl)) {
+        // Became detached — e.g. undo/redo replaced the whole page stack's markup wholesale,
+        // so the old node object no longer exists even though a fresh one with the same id
+        // does. Re-find it (or fall back to the first page) rather than silently appending
+        // into a node nobody can see anymore.
+        const freshById = activePageEl.id ? document.getElementById(activePageEl.id) : null;
+        activePageEl = freshById || document.getElementById('formSheet');
+      }
       return activePageEl || document.getElementById('formSheet');
     }
 
@@ -1913,6 +1921,7 @@
       document.getElementById('zoomControl').classList.add('active');
       resetZoom();
       resetHistoryWithCurrentState();
+      reapplyEditDisabledForActiveTarget();
     }
 
     (function init() {
@@ -1984,9 +1993,17 @@
       if (isRestoringHistory) return;
       syncLinkedStripIfNeeded();
       updateAllStripEmptyStates();
+      // The disabled-overlay divs (and the dimmed .hf-edit-disabled state) are transient UI,
+      // not real form content — if left in place they'd get baked into this snapshot as inert
+      // markup with no JS listener attached, breaking the mutual-exclusion toggle after any
+      // undo/redo. Strip them out before reading, then restore the correct current state after.
+      clearAllEditDisabledOverlays();
       const stack = document.getElementById('a4PagesStack');
       const snapshot = stack.innerHTML;
-      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) return; // no real change
+      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) {
+        reapplyEditDisabledForActiveTarget();
+        return; // no real change
+      }
       formHistory = formHistory.slice(0, formHistoryIndex + 1); // drop any redo branch
       formHistory.push(snapshot);
       formHistoryIndex = formHistory.length - 1;
@@ -1995,9 +2012,23 @@
         formHistoryIndex--;
       }
       updateUndoRedoButtons();
+      reapplyEditDisabledForActiveTarget();
     }
 
+    function clearAllEditDisabledOverlays() {
+      document.querySelectorAll('.hf-disabled-overlay').forEach(function(o) { o.remove(); });
+      document.querySelectorAll('.hf-edit-disabled').forEach(function(el) { el.classList.remove('hf-edit-disabled'); });
+    }
+
+    function reapplyEditDisabledForActiveTarget() {
+      const target = getActivePage(); // also re-attaches if it went stale
+      if (target.classList.contains('a4-page')) enterMainPageEditMode(target);
+      else enterHeaderFooterEditMode(target);
+    }
+
+
     function resetHistoryWithCurrentState() {
+      clearAllEditDisabledOverlays();
       const stack = document.getElementById('a4PagesStack');
       formHistory = [stack.innerHTML];
       formHistoryIndex = 0;
@@ -2022,6 +2053,7 @@
       isRestoringHistory = true;
       document.getElementById('a4PagesStack').innerHTML = formHistory[formHistoryIndex];
       rewireAllBlocks();
+      reapplyEditDisabledForActiveTarget(); // also re-attaches activePageEl if it went stale
       isRestoringHistory = false;
       hasUnsavedChanges = true;
       updateUndoRedoButtons();
@@ -2033,6 +2065,7 @@
       isRestoringHistory = true;
       document.getElementById('a4PagesStack').innerHTML = formHistory[formHistoryIndex];
       rewireAllBlocks();
+      reapplyEditDisabledForActiveTarget();
       isRestoringHistory = false;
       hasUnsavedChanges = true;
       updateUndoRedoButtons();
@@ -4497,6 +4530,17 @@
         action(document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]') || allUnits[0]);
         if (action.__isHfToggle) headerFooterLinked[action.__isHfToggle] = false;
       }
+      // If this action was toggling a header/footer ON, immediately make it the active edit
+      // target for the page that triggered it — otherwise the mutual-exclusion system would
+      // disable it right away (via pushHistorySnapshot below) before the user ever got a
+      // single click in, forcing an unnecessary extra double-click just to start using it.
+      if (action.__isHfToggle) {
+        const kind = action.__isHfToggle;
+        const triggerUnit = document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]');
+        const triggerStrip = triggerUnit ? triggerUnit.querySelector('.a4-page-' + kind + '-strip') : null;
+        if (triggerStrip && triggerStrip.classList.contains('active')) activePageEl = triggerStrip;
+        else activePageEl = document.getElementById('formSheet');
+      }
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -4556,6 +4600,12 @@
       } else if (action === 'remove') {
         sel.strip.classList.remove('active');
         sel.strip.innerHTML = '';
+        // Fall back to the main page as the active target — the strip we just removed is
+        // hidden now, so leaving it as the active insertion target would mean anything added
+        // next silently lands somewhere the user can no longer see.
+        const unit = sel.strip.closest('.a4-page-unit');
+        const page = unit ? unit.querySelector('.a4-page') : document.getElementById('formSheet');
+        enterMainPageEditMode(page);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       }
