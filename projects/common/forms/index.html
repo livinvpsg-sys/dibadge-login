@@ -253,11 +253,11 @@
     /* Floating zoom control, bottom-right of the screen — shown only while a form is open */
     .zoom-control {
       display: none;
-      position: absolute;
-      /* top/left are computed in JS relative to #formSheetWrapper (their positioned ancestor)
-         from the last page's own position plus current scroll offset — so once set, they
-         scroll together naturally with the page in the normal document flow, no per-scroll
-         recalculation needed. */
+      position: fixed;
+      /* Constant screen position — bottom-right of the viewport, always, regardless of how
+         many pages exist, current scroll position, or zoom level. Does not track any page. */
+      bottom: 20px;
+      right: 20px;
       align-items: center;
       gap: 2px;
       background: var(--slate-surface, #1e1e1e);
@@ -1249,7 +1249,7 @@
         <a href="../../index.html" class="tab-btn" title="Projects" onclick="return handleNavAttempt(event, '../../index.html')">
           <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
         </a>
-        <button class="tab-btn active" title="Project forms">
+        <button class="tab-btn active" title="Project forms" onclick="backToLibrary()">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
         <a href="../../index.html" class="tab-btn" title="Schedule" onclick="return handleNavAttempt(event, '../../index.html')">
@@ -1825,6 +1825,7 @@
       document.getElementById('libraryHeaderTitle').style.display = 'flex';
       document.getElementById('libraryHeaderCenter').style.display = 'flex';
       document.getElementById('formHeaderNav').style.display = 'none';
+      document.querySelector('.fab-tab-btn').style.display = 'flex';
       renderFormsLibrary();
     }
 
@@ -1834,6 +1835,7 @@
       document.getElementById('libraryHeaderTitle').style.display = 'none';
       document.getElementById('libraryHeaderCenter').style.display = 'none';
       document.getElementById('formHeaderNav').style.display = 'flex';
+      document.querySelector('.fab-tab-btn').style.display = 'none';
 
       document.getElementById('breadcrumbBar').innerHTML = `
         <span class="breadcrumb-item" onclick="backToLibrary()">Project Forms</span>
@@ -4145,26 +4147,11 @@
     // with its scrolled content once placed in that coordinate space. It stays OUTSIDE the
     // page-unit itself (not real page content) so it's never captured in save/undo snapshots,
     // which serialize the page stack's markup.
-    function moveZoomAndFabToLastPage() {
-      const wrapper = document.getElementById('formSheetWrapper');
-      const stack = document.getElementById('a4PagesStack');
-      const units = stack ? stack.querySelectorAll('.a4-page-unit') : [];
-      const lastUnit = units[units.length - 1];
-      const control = document.getElementById('zoomControl');
-      if (!lastUnit || !wrapper) return;
-
-      const unitRect = lastUnit.getBoundingClientRect();
-      const wrapperRect = wrapper.getBoundingClientRect();
-      const unitBottom = (unitRect.bottom - wrapperRect.top) + wrapper.scrollTop;
-      const unitRight = (unitRect.right - wrapperRect.left) + wrapper.scrollLeft;
-
-      if (control) {
-        control.style.top = (unitBottom - control.offsetHeight) + 'px';
-        control.style.left = (unitRight + 14) + 'px'; // just outside the page
-      }
-    }
-    function positionZoomControl() { moveZoomAndFabToLastPage(); }
-    window.addEventListener('resize', positionZoomControl);
+    // The zoom control is now pure CSS position:fixed (constant screen position) — kept as
+    // harmless no-ops since several call sites elsewhere still call these after page add/
+    // delete/zoom changes; removing every call individually isn't necessary or worth the risk.
+    function moveZoomAndFabToLastPage() {}
+    function positionZoomControl() {}
 
     // ===================== Multi-page management =====================
 
