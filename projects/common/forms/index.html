@@ -180,7 +180,7 @@
       display: none; /* shown only once toggled on for a page via the settings bar */
     }
     .a4-page-header-strip.active, .a4-page-footer-strip.active { display: block; }
-    .a4-page-header-strip:empty:before, .a4-page-footer-strip:empty:before {
+    .a4-page-header-strip.hf-empty:before, .a4-page-footer-strip.hf-empty:before {
       content: attr(data-placeholder);
       color: #bbb;
     }
@@ -195,6 +195,33 @@
       color: #888;
     }
     .a4-page-number.active { display: block; }
+
+    /* Mutual-exclusion editing: whichever of main page / header / footer is NOT currently
+       being worked in gets a translucent overlay over it — dimmed and click-through-blocked,
+       except a double-click switches editing back to it (Word-style). Overlay is added/removed
+       via JS rather than living in the static markup, since a permanent child would defeat the
+       :empty CSS placeholder check on an otherwise-blank page/strip. */
+    .hf-edit-disabled { opacity: 0.55; }
+    .hf-disabled-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(120,120,120,0.1);
+      z-index: 60;
+      cursor: pointer;
+    }
+
+    .hf-resize-handle {
+      position: absolute;
+      left: 0; right: 0;
+      height: 7px;
+      cursor: ns-resize;
+      z-index: 55;
+      pointer-events: auto;
+    }
+    .hf-resize-handle-bottom { bottom: -4px; }
+    .hf-resize-handle-top { top: -4px; }
+    .hf-resize-handle:hover { background: rgba(20,184,166,0.3); }
+
     .a4-page-unit.landscape .a4-page { width: 1123px; min-height: 794px; }
     .a4-page-unit.landscape .a4-page-header-strip,
     .a4-page-unit.landscape .a4-page-footer-strip { width: 1123px; }
@@ -1399,6 +1426,18 @@
       </div>
     </div>
 
+    <!-- This header/footer is linked across all pages — asked every time before editing -->
+    <div class="group-modal-overlay" id="hfChoiceOverlay" onclick="closeHfChoiceModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">This is shared across all pages</div>
+        <div class="group-modal-message">Edit it (changes appear on every page), or remove it from just this one page?</div>
+        <div class="group-modal-actions" style="justify-content:space-between;">
+          <button class="group-modal-cancel-btn" onclick="resolveHfChoice('remove')">Remove This Page Only</button>
+          <button class="group-modal-ok-btn" onclick="resolveHfChoice('edit')">Edit</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
     <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
@@ -1449,9 +1488,9 @@
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
               </button>
             </div>
-            <div class="a4-page-header-strip" id="pageHeader-0" contenteditable="false" data-placeholder="Header"></div>
+            <div class="a4-page-header-strip" id="pageHeader-0" contenteditable="false" data-placeholder="Header"><div class="hf-resize-handle hf-resize-handle-bottom" title="Drag to resize"></div></div>
             <div class="a4-page" id="formSheet" contenteditable="false" data-placeholder="Start designing this form..."></div>
-            <div class="a4-page-footer-strip" id="pageFooter-0" contenteditable="false" data-placeholder="Footer"></div>
+            <div class="a4-page-footer-strip" id="pageFooter-0" contenteditable="false" data-placeholder="Footer"><div class="hf-resize-handle hf-resize-handle-top" title="Drag to resize"></div></div>
             <div class="a4-page-number" id="pageNumber-0">1</div>
           </div>
         </div>
@@ -1869,6 +1908,7 @@
         if (n > pageUnitCounter) pageUnitCounter = n;
       });
       activePageEl = stack.querySelector('.a4-page');
+      updateAllStripEmptyStates();
       document.getElementById('formToolsRail').style.display = 'flex';
       document.getElementById('zoomControl').classList.add('active');
       resetZoom();
@@ -1924,17 +1964,26 @@
 
     function rewireAllBlocks() {
       const stack = document.getElementById('a4PagesStack');
-      stack.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
-      stack.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
-      stack.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
-      stack.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
-      stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
-      stack.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
+      rewireBlocksWithin(stack);
       wireAllPageUnits();
+    }
+
+    // Same idea as rewireAllBlocks, but scoped to any single container — used after syncing
+    // linked header/footer content into a strip via innerHTML, which brings back the markup
+    // but not the JS listeners that were on it.
+    function rewireBlocksWithin(container) {
+      container.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
+      container.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
+      container.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
+      container.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
+      container.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
+      container.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
     }
 
     function pushHistorySnapshot() {
       if (isRestoringHistory) return;
+      syncLinkedStripIfNeeded();
+      updateAllStripEmptyStates();
       const stack = document.getElementById('a4PagesStack');
       const snapshot = stack.innerHTML;
       if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) return; // no real change
@@ -4186,7 +4235,10 @@
         const page = unit.querySelector('.a4-page');
         if (page && !page.dataset.activeWired) {
           page.dataset.activeWired = '1';
-          page.addEventListener('mousedown', function() { activePageEl = page; });
+          page.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.hf-disabled-overlay')) return; // handled by the overlay itself
+            enterMainPageEditMode(page);
+          });
         }
         ['header', 'footer'].forEach(function(kind) {
           const strip = unit.querySelector('.a4-page-' + kind + '-strip');
@@ -4194,12 +4246,103 @@
             strip.dataset.wired = '1';
             // Same idea as the page itself — not directly typable, clicking it just makes it
             // the active target so toolbar tools (Q&A, Button, Table, etc.) insert here instead.
-            strip.addEventListener('mousedown', function() { activePageEl = strip; });
+            strip.addEventListener('mousedown', function(e) {
+              if (e.target.closest('.hf-disabled-overlay') || e.target.closest('.hf-resize-handle')) return;
+              attemptActivateStrip(strip, kind);
+            });
+            wireHfResizeHandle(strip, kind);
           }
         });
       });
     }
     wireAllPageUnits();
+
+    // ---------- Header/footer manual height resize — drag the boundary, Word-style ----------
+    function wireHfResizeHandle(strip, kind) {
+      const handle = strip.querySelector('.hf-resize-handle');
+      if (!handle) return;
+      handle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const startY = e.clientY;
+        const startHeight = strip.offsetHeight;
+        function onMove(ev) {
+          const dy = ev.clientY - startY;
+          // Dragging the footer's TOP edge upward should grow it (opposite sign from the
+          // header's BOTTOM edge, which grows when dragged downward).
+          const delta = kind === 'footer' ? -dy : dy;
+          strip.style.minHeight = Math.max(40, startHeight + delta) + 'px';
+        }
+        function onUp() {
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          hasUnsavedChanges = true;
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // ---------- Mutual-exclusion editing: main page vs. header/footer, Word-style ----------
+    // Whichever is NOT the current edit target gets dimmed and click-blocked, except a
+    // double-click on it switches editing back.
+
+    function setAreaEditDisabled(container, disabled) {
+      let overlay = container.querySelector('.hf-disabled-overlay');
+      if (disabled) {
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.className = 'hf-disabled-overlay';
+          overlay.title = 'Double-click to edit';
+          overlay.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (container.classList.contains('a4-page')) enterMainPageEditMode(container);
+            else attemptActivateStrip(container, container.classList.contains('a4-page-header-strip') ? 'header' : 'footer');
+          });
+          container.appendChild(overlay);
+        }
+        container.classList.add('hf-edit-disabled');
+      } else {
+        if (overlay) overlay.remove();
+        container.classList.remove('hf-edit-disabled');
+      }
+      updateAllStripEmptyStates();
+    }
+
+    function enterMainPageEditMode(page) {
+      activePageEl = page;
+      const unit = page.closest('.a4-page-unit');
+      if (unit) {
+        unit.querySelectorAll('.a4-page-header-strip, .a4-page-footer-strip').forEach(function(strip) {
+          if (strip.classList.contains('active')) setAreaEditDisabled(strip, true);
+        });
+      }
+      setAreaEditDisabled(page, false);
+    }
+
+    function enterHeaderFooterEditMode(strip) {
+      activePageEl = strip;
+      const unit = strip.closest('.a4-page-unit');
+      if (unit) {
+        const page = unit.querySelector('.a4-page');
+        if (page) setAreaEditDisabled(page, true);
+      }
+      setAreaEditDisabled(strip, false);
+    }
+
+    // A strip only counts as "empty" (showing its placeholder) when it has no real content
+    // besides its own resize handle / disabled-overlay — plain :empty no longer applies once
+    // those permanent/conditional children exist.
+    function updateAllStripEmptyStates() {
+      document.querySelectorAll('.a4-page-header-strip, .a4-page-footer-strip').forEach(function(strip) {
+        const hasContent = Array.from(strip.children).some(function(el) {
+          return !el.classList.contains('hf-resize-handle') && !el.classList.contains('hf-disabled-overlay');
+        });
+        strip.classList.toggle('hf-empty', !hasContent);
+      });
+    }
 
     function buildPageUnitHtml(idx) {
       return `
@@ -4227,9 +4370,9 @@
             <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
           </button>
         </div>
-        <div class="a4-page-header-strip" id="pageHeader-${idx}" contenteditable="false" data-placeholder="Header"></div>
+        <div class="a4-page-header-strip" id="pageHeader-${idx}" contenteditable="false" data-placeholder="Header"><div class="hf-resize-handle hf-resize-handle-bottom" title="Drag to resize"></div></div>
         <div class="a4-page" id="formSheet-${idx}" contenteditable="false" data-placeholder="Start designing this form..."></div>
-        <div class="a4-page-footer-strip" id="pageFooter-${idx}" contenteditable="false" data-placeholder="Footer"></div>
+        <div class="a4-page-footer-strip" id="pageFooter-${idx}" contenteditable="false" data-placeholder="Footer"><div class="hf-resize-handle hf-resize-handle-top" title="Drag to resize"></div></div>
         <div class="a4-page-number" id="pageNumber-${idx}">1</div>
       `;
     }
@@ -4340,11 +4483,82 @@
       const allUnits = document.querySelectorAll('.a4-page-unit');
       if (scope === 'all') {
         allUnits.forEach(function(u) { action(u); });
+        if (action.__isHfToggle) {
+          const kind = action.__isHfToggle;
+          headerFooterLinked[kind] = true;
+          // Unify content across every page right away, using whichever page triggered this
+          // as the source of truth, so "whatever's in it shows on every page" starts true
+          // immediately rather than only once someone next edits it.
+          const sourceUnit = document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]') || allUnits[0];
+          const sourceStrip = sourceUnit.querySelector('.a4-page-' + kind + '-strip');
+          if (sourceStrip) syncLinkedStrip(kind, sourceStrip);
+        }
       } else {
         action(document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]') || allUnits[0]);
+        if (action.__isHfToggle) headerFooterLinked[action.__isHfToggle] = false;
       }
       hasUnsavedChanges = true;
       pushHistorySnapshot();
+    }
+
+    // ---------- Linked header/footer: once "All Pages" is chosen, every page's header (or
+    // footer) shares the same content — edits to one sync to all the others. ----------
+
+    let headerFooterLinked = { header: false, footer: false };
+
+    function syncLinkedStrip(kind, sourceStrip) {
+      if (!headerFooterLinked[kind]) return;
+      const html = sourceStrip.innerHTML;
+      document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(strip) {
+        if (strip === sourceStrip || !strip.classList.contains('active')) return;
+        if (strip.innerHTML !== html) {
+          strip.innerHTML = html;
+          rewireBlocksWithin(strip);
+        }
+      });
+    }
+
+    // Called after every meaningful edit (see pushHistorySnapshot) — if the currently active
+    // target is a linked header/footer strip, propagate its latest content to the others.
+    function syncLinkedStripIfNeeded() {
+      if (!activePageEl) return;
+      let kind = null;
+      if (activePageEl.classList.contains('a4-page-header-strip')) kind = 'header';
+      else if (activePageEl.classList.contains('a4-page-footer-strip')) kind = 'footer';
+      if (!kind || !headerFooterLinked[kind]) return;
+      syncLinkedStrip(kind, activePageEl);
+    }
+
+    let pendingHfSelection = null; // { kind, strip }
+
+    // Clicking into a header/footer that's currently linked across all pages asks first:
+    // edit it (continues to sync everywhere), or remove it just for this one page.
+    function attemptActivateStrip(strip, kind) {
+      if (headerFooterLinked[kind]) {
+        pendingHfSelection = { kind: kind, strip: strip };
+        document.getElementById('hfChoiceOverlay').classList.add('active');
+      } else {
+        enterHeaderFooterEditMode(strip);
+      }
+    }
+
+    function closeHfChoiceModal() {
+      document.getElementById('hfChoiceOverlay').classList.remove('active');
+      pendingHfSelection = null;
+    }
+
+    function resolveHfChoice(action) {
+      const sel = pendingHfSelection;
+      closeHfChoiceModal();
+      if (!sel) return;
+      if (action === 'edit') {
+        enterHeaderFooterEditMode(sel.strip);
+      } else if (action === 'remove') {
+        sel.strip.classList.remove('active');
+        sel.strip.innerHTML = '';
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      }
     }
 
     let pendingPageColor = '#ffffff';
@@ -4391,6 +4605,7 @@
         if (strip) strip.classList.toggle('active');
       };
       apply.__scopeIdx = idx;
+      apply.__isHfToggle = kind;
       openPageScopeModal(apply);
     }
 
