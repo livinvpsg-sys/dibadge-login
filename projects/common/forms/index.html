@@ -4150,8 +4150,21 @@
     // The zoom control is now pure CSS position:fixed (constant screen position) — kept as
     // harmless no-ops since several call sites elsewhere still call these after page add/
     // delete/zoom changes; removing every call individually isn't necessary or worth the risk.
-    function moveZoomAndFabToLastPage() {}
-    function positionZoomControl() {}
+    // The zoom control's screen position stays constant regardless of scroll or page count
+    // (see the .zoom-control CSS), but it still needs to avoid the activity feed panel on the
+    // right — its dark background is nearly identical to the control's own, so anywhere under
+    // that panel it becomes almost invisible. This keeps it just left of that panel instead,
+    // recomputed only on resize (never on scroll/zoom/page-add, so it truly stays put).
+    function positionZoomControl() {
+      const control = document.getElementById('zoomControl');
+      if (!control) return;
+      const panel = document.querySelector('.activity-feed-panel');
+      const panelVisible = panel && getComputedStyle(panel).display !== 'none';
+      const rightGap = panelVisible ? (window.innerWidth - panel.getBoundingClientRect().left + 20) : 20;
+      control.style.right = rightGap + 'px';
+    }
+    function moveZoomAndFabToLastPage() { positionZoomControl(); }
+    window.addEventListener('resize', positionZoomControl);
 
     // ===================== Multi-page management =====================
 
