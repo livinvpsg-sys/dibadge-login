@@ -1427,13 +1427,13 @@
     </div>
 
     <!-- This header/footer is linked across all pages — asked every time before editing -->
-    <div class="group-modal-overlay" id="hfChoiceOverlay" onclick="closeHfChoiceModal()">
+    <div class="group-modal-overlay" id="hfDeleteEditOverlay" onclick="closeHfDeleteEditModal()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
-        <div class="group-modal-title">This is shared across all pages</div>
-        <div class="group-modal-message">Edit it (changes appear on every page), or remove it from just this one page?</div>
+        <div class="group-modal-title">Header/Footer</div>
+        <div class="group-modal-message">Delete it from every page, or edit it?</div>
         <div class="group-modal-actions" style="justify-content:space-between;">
-          <button class="group-modal-cancel-btn" onclick="resolveHfChoice('remove')">Remove This Page Only</button>
-          <button class="group-modal-ok-btn" onclick="resolveHfChoice('edit')">Edit</button>
+          <button class="group-modal-cancel-btn" style="color:#ff3b30;" onclick="resolveHfDeleteEdit('delete')">Delete</button>
+          <button class="group-modal-ok-btn" onclick="resolveHfDeleteEdit('edit')">Edit</button>
         </div>
       </div>
     </div>
@@ -1676,11 +1676,12 @@
     // Declared early (before init() runs on page load) — showFormSheet() -> resetHistoryWithCurrentState()
     // reads these on the very first load, and `let` bindings aren't usable before their own
     // declaration line executes. Declaring them down near their functions (where they used to
-    // be) threw "Cannot access 'formHistory' before initialization" on load, which silently
+    // be) threw "Cannot access '...' before initialization" on load, which silently
     // aborted the rest of this script's top-level execution — breaking Undo/Redo AND, as a
     // side effect, every `let` declared further down the file, including the save toast's timer.
-    let formHistory = [];
-    let formHistoryIndex = -1;
+    let mainHistories = {};                          // { pageElementId: { history: [...], index: N } }
+    let headerHistoryState = { history: [], index: -1 };
+    let footerHistoryState = { history: [], index: -1 };
     let isRestoringHistory = false;
     let historyDebounceTimer = null;
     let saveToastTimer = null;
@@ -1989,6 +1990,23 @@
       container.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
     }
 
+    // ===================== Per-section undo/redo =====================
+    // Main page, header, and footer each keep their OWN independent history. Main is further
+    // split per page (each page's body is its own thing), while header and footer are each
+    // ONE shared history — since their content is always identical across every page anyway.
+    // Whichever section is currently active decides which history the Undo/Redo buttons and
+    // Ctrl+Z apply to; the other two are completely untouched by it.
+    // (mainHistories / headerHistoryState / footerHistoryState are declared earlier in the
+    // file alongside the other pre-init state, for the TDZ reason explained up there.)
+
+    function getHistoryStateFor(target) {
+      if (target.classList.contains('a4-page-header-strip')) return headerHistoryState;
+      if (target.classList.contains('a4-page-footer-strip')) return footerHistoryState;
+      const id = target.id;
+      if (!mainHistories[id]) mainHistories[id] = { history: [], index: -1 };
+      return mainHistories[id];
+    }
+
     function pushHistorySnapshot() {
       if (isRestoringHistory) return;
       syncLinkedStripIfNeeded();
@@ -1998,18 +2016,19 @@
       // markup with no JS listener attached, breaking the mutual-exclusion toggle after any
       // undo/redo. Strip them out before reading, then restore the correct current state after.
       clearAllEditDisabledOverlays();
-      const stack = document.getElementById('a4PagesStack');
-      const snapshot = stack.innerHTML;
-      if (formHistory.length > 0 && formHistory[formHistoryIndex] === snapshot) {
+      const target = getActivePage();
+      const state = getHistoryStateFor(target);
+      const snapshot = target.innerHTML;
+      if (state.history.length > 0 && state.history[state.index] === snapshot) {
         reapplyEditDisabledForActiveTarget();
         return; // no real change
       }
-      formHistory = formHistory.slice(0, formHistoryIndex + 1); // drop any redo branch
-      formHistory.push(snapshot);
-      formHistoryIndex = formHistory.length - 1;
-      if (formHistory.length > 50) {
-        formHistory.shift();
-        formHistoryIndex--;
+      state.history = state.history.slice(0, state.index + 1); // drop any redo branch
+      state.history.push(snapshot);
+      state.index = state.history.length - 1;
+      if (state.history.length > 50) {
+        state.history.shift();
+        state.index--;
       }
       updateUndoRedoButtons();
       reapplyEditDisabledForActiveTarget();
@@ -2026,46 +2045,72 @@
       else enterHeaderFooterEditMode(target);
     }
 
-
+    // Sets up a starting history entry for every main page plus header/footer, so each has
+    // something to sit at index 0 — called on initial load and whenever a page is added.
     function resetHistoryWithCurrentState() {
       clearAllEditDisabledOverlays();
-      const stack = document.getElementById('a4PagesStack');
-      formHistory = [stack.innerHTML];
-      formHistoryIndex = 0;
+      mainHistories = {};
+      document.querySelectorAll('.a4-page').forEach(function(p) {
+        mainHistories[p.id] = { history: [p.innerHTML], index: 0 };
+      });
+      const headerStrip = document.querySelector('.a4-page-header-strip');
+      headerHistoryState = { history: [headerStrip ? headerStrip.innerHTML : ''], index: 0 };
+      const footerStrip = document.querySelector('.a4-page-footer-strip');
+      footerHistoryState = { history: [footerStrip ? footerStrip.innerHTML : ''], index: 0 };
       updateUndoRedoButtons();
     }
 
+    // Gives a brand-new page (just added) its own starting history entry, without touching
+    // any other page's, or header/footer's, existing undo/redo state.
     function updateUndoRedoButtons() {
       const undoBtn = document.getElementById('formUndoBtn');
       const redoBtn = document.getElementById('formRedoBtn');
+      const state = getHistoryStateFor(getActivePage());
       // Visual-only "looks inactive" state — deliberately NOT the real disabled property,
       // which blocks the browser from firing onclick at all. A quick click right after typing
       // (before the debounced snapshot lands) needs the click to still go through so its own
       // flush-then-check logic can run; undoFormChange()/redoFormChange() already correctly
       // no-op internally when there's genuinely nothing to undo/redo.
-      if (undoBtn) undoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex <= 0);
-      if (redoBtn) redoBtn.classList.toggle('form-tool-btn-inactive', formHistoryIndex >= formHistory.length - 1);
+      if (undoBtn) undoBtn.classList.toggle('form-tool-btn-inactive', state.index <= 0);
+      if (redoBtn) redoBtn.classList.toggle('form-tool-btn-inactive', state.index >= state.history.length - 1);
+    }
+
+    // Applies restored HTML to whichever kind of section it belongs to — header/footer go to
+    // EVERY strip of that kind (since they're always kept identical), main page goes only to
+    // that one specific page.
+    function restoreSectionContent(target, html) {
+      if (target.classList.contains('a4-page-header-strip') || target.classList.contains('a4-page-footer-strip')) {
+        const kind = target.classList.contains('a4-page-header-strip') ? 'header' : 'footer';
+        document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(strip) {
+          strip.innerHTML = html;
+          rewireBlocksWithin(strip);
+          wireHfResizeHandle(strip, kind); // innerHTML replace loses the resize handle's listener
+        });
+      } else {
+        target.innerHTML = html;
+        rewireBlocksWithin(target);
+      }
     }
 
     function undoFormChange() {
-      if (formHistoryIndex <= 0) return;
-      formHistoryIndex--;
+      const target = getActivePage();
+      const state = getHistoryStateFor(target);
+      if (state.index <= 0) return;
+      state.index--;
       isRestoringHistory = true;
-      document.getElementById('a4PagesStack').innerHTML = formHistory[formHistoryIndex];
-      rewireAllBlocks();
-      reapplyEditDisabledForActiveTarget(); // also re-attaches activePageEl if it went stale
+      restoreSectionContent(target, state.history[state.index]);
       isRestoringHistory = false;
       hasUnsavedChanges = true;
       updateUndoRedoButtons();
     }
 
     function redoFormChange() {
-      if (formHistoryIndex >= formHistory.length - 1) return;
-      formHistoryIndex++;
+      const target = getActivePage();
+      const state = getHistoryStateFor(target);
+      if (state.index >= state.history.length - 1) return;
+      state.index++;
       isRestoringHistory = true;
-      document.getElementById('a4PagesStack').innerHTML = formHistory[formHistoryIndex];
-      rewireAllBlocks();
-      reapplyEditDisabledForActiveTarget();
+      restoreSectionContent(target, state.history[state.index]);
       isRestoringHistory = false;
       hasUnsavedChanges = true;
       updateUndoRedoButtons();
@@ -4268,8 +4313,10 @@
         const page = unit.querySelector('.a4-page');
         if (page && !page.dataset.activeWired) {
           page.dataset.activeWired = '1';
-          page.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.hf-disabled-overlay')) return; // handled by the overlay itself
+          // Double-click always switches editing to whichever area was double-clicked, no
+          // matter its current state — works "at any instant", not just when it's disabled.
+          page.addEventListener('dblclick', function(e) {
+            if (e.target.closest('.hf-disabled-overlay')) return; // the overlay handles its own dblclick
             enterMainPageEditMode(page);
           });
         }
@@ -4277,11 +4324,9 @@
           const strip = unit.querySelector('.a4-page-' + kind + '-strip');
           if (strip && !strip.dataset.wired) {
             strip.dataset.wired = '1';
-            // Same idea as the page itself — not directly typable, clicking it just makes it
-            // the active target so toolbar tools (Q&A, Button, Table, etc.) insert here instead.
-            strip.addEventListener('mousedown', function(e) {
+            strip.addEventListener('dblclick', function(e) {
               if (e.target.closest('.hf-disabled-overlay') || e.target.closest('.hf-resize-handle')) return;
-              attemptActivateStrip(strip, kind);
+              enterHeaderFooterEditMode(strip);
             });
             wireHfResizeHandle(strip, kind);
           }
@@ -4332,7 +4377,7 @@
             e.preventDefault();
             e.stopPropagation();
             if (container.classList.contains('a4-page')) enterMainPageEditMode(container);
-            else attemptActivateStrip(container, container.classList.contains('a4-page-header-strip') ? 'header' : 'footer');
+            else enterHeaderFooterEditMode(container);
           });
           container.appendChild(overlay);
         }
@@ -4353,6 +4398,7 @@
         });
       }
       setAreaEditDisabled(page, false);
+      updateUndoRedoButtons();
     }
 
     function enterHeaderFooterEditMode(strip) {
@@ -4363,6 +4409,7 @@
         if (page) setAreaEditDisabled(page, true);
       }
       setAreaEditDisabled(strip, false);
+      updateUndoRedoButtons();
     }
 
     // A strip only counts as "empty" (showing its placeholder) when it has no real content
@@ -4573,44 +4620,6 @@
       syncLinkedStrip(kind, activePageEl);
     }
 
-    let pendingHfSelection = null; // { kind, strip }
-
-    // Clicking into a header/footer that's currently linked across all pages asks first:
-    // edit it (continues to sync everywhere), or remove it just for this one page.
-    function attemptActivateStrip(strip, kind) {
-      if (headerFooterLinked[kind]) {
-        pendingHfSelection = { kind: kind, strip: strip };
-        document.getElementById('hfChoiceOverlay').classList.add('active');
-      } else {
-        enterHeaderFooterEditMode(strip);
-      }
-    }
-
-    function closeHfChoiceModal() {
-      document.getElementById('hfChoiceOverlay').classList.remove('active');
-      pendingHfSelection = null;
-    }
-
-    function resolveHfChoice(action) {
-      const sel = pendingHfSelection;
-      closeHfChoiceModal();
-      if (!sel) return;
-      if (action === 'edit') {
-        enterHeaderFooterEditMode(sel.strip);
-      } else if (action === 'remove') {
-        sel.strip.classList.remove('active');
-        sel.strip.innerHTML = '';
-        // Fall back to the main page as the active target — the strip we just removed is
-        // hidden now, so leaving it as the active insertion target would mean anything added
-        // next silently lands somewhere the user can no longer see.
-        const unit = sel.strip.closest('.a4-page-unit');
-        const page = unit ? unit.querySelector('.a4-page') : document.getElementById('formSheet');
-        enterMainPageEditMode(page);
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
-      }
-    }
-
     let pendingPageColor = '#ffffff';
 
     function togglePageColorPicker(event, idx) {
@@ -4650,13 +4659,52 @@
     }
 
     function togglePageStrip(idx, kind) {
-      const apply = function(unit) {
-        const strip = unit.querySelector('.a4-page-' + kind + '-strip');
-        if (strip) strip.classList.toggle('active');
-      };
-      apply.__scopeIdx = idx;
-      apply.__isHfToggle = kind;
-      openPageScopeModal(apply);
+      const anyActive = document.querySelector('.a4-page-' + kind + '-strip.active');
+      if (!anyActive) {
+        // First time — just show it on every page immediately, no scope question. Header/
+        // footer are always identical across every page, no per-page choice to make.
+        document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(strip) {
+          strip.classList.add('active');
+        });
+        headerFooterLinked[kind] = true;
+        const triggerUnit = document.querySelector('.a4-page-unit[data-page-index="' + idx + '"]');
+        const triggerStrip = triggerUnit ? triggerUnit.querySelector('.a4-page-' + kind + '-strip') : null;
+        activePageEl = triggerStrip || document.getElementById('formSheet');
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      } else {
+        // Already showing — ask whether to delete it (everywhere) or just go edit it.
+        pendingHfDeleteKind = kind;
+        document.getElementById('hfDeleteEditOverlay').classList.add('active');
+      }
+    }
+
+    let pendingHfDeleteKind = null;
+
+    function closeHfDeleteEditModal() {
+      document.getElementById('hfDeleteEditOverlay').classList.remove('active');
+      pendingHfDeleteKind = null;
+    }
+
+    function resolveHfDeleteEdit(action) {
+      const kind = pendingHfDeleteKind;
+      closeHfDeleteEditModal();
+      if (!kind) return;
+      if (action === 'delete') {
+        document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(strip) {
+          strip.classList.remove('active');
+          strip.innerHTML = '';
+        });
+        headerFooterLinked[kind] = false;
+        if (activePageEl && activePageEl.classList.contains('a4-page-' + kind + '-strip')) {
+          enterMainPageEditMode(document.getElementById('formSheet'));
+        }
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      } else {
+        const strip = document.querySelector('.a4-page-' + kind + '-strip.active');
+        if (strip) enterHeaderFooterEditMode(strip);
+      }
     }
 
     function togglePageOrientation(idx) {
