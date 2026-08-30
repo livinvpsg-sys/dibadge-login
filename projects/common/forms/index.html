@@ -954,6 +954,117 @@
     .image-block.selected .image-rotate-handle { display: flex; }
     .image-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
 
+    /* ===================== Shapes: Line, Circle, Rectangle ===================== */
+    .shape-block { position: absolute; }
+    .shape-block.shape-dragging { z-index: 50; }
+    .shape-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 62px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .shape-move-handle, .shape-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .shape-move-handle svg, .shape-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .shape-move-handle { cursor: move; }
+    .shape-delete-handle { cursor: pointer; }
+    .shape-delete-handle:hover { border-color: #ff3b30; }
+    .shape-delete-handle:hover svg { stroke: #ff3b30; }
+    .shape-move-zone:hover .shape-move-handle,
+    .shape-move-zone:hover .shape-delete-handle { display: flex; }
+
+    .shape-selection-wrapper { position: relative; width: 100%; height: 100%; pointer-events: auto; cursor: pointer; }
+    .shape-visual { width: 100%; height: 100%; box-sizing: border-box; background: transparent; display: block; }
+    .shape-visual.shape-visual-rect { border: 2px solid #333; }
+    .shape-visual.shape-visual-circle { border: 2px solid #333; border-radius: 50%; }
+
+    .shape-selection-outline {
+      display: none;
+      position: absolute;
+      inset: 0;
+      border: 2px dashed #ff2d2d;
+      pointer-events: none;
+    }
+    .shape-block.selected .shape-selection-outline { display: block; }
+
+    .shape-resize-handle {
+      display: none;
+      position: absolute;
+      width: 9px; height: 9px;
+      background: #fff;
+      border: 1.5px solid #ff2d2d;
+      border-radius: 2px;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .shape-block.selected .shape-resize-handle { display: block; }
+    .shape-resize-handle.handle-nw { top: -5px; left: -5px; cursor: nwse-resize; }
+    .shape-resize-handle.handle-n  { top: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .shape-resize-handle.handle-ne { top: -5px; right: -5px; cursor: nesw-resize; }
+    .shape-resize-handle.handle-e  { top: 50%; right: -5px; margin-top: -4.5px; cursor: ew-resize; }
+    .shape-resize-handle.handle-se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+    .shape-resize-handle.handle-s  { bottom: -5px; left: 50%; margin-left: -4.5px; cursor: ns-resize; }
+    .shape-resize-handle.handle-sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+    .shape-resize-handle.handle-w  { top: 50%; left: -5px; margin-top: -4.5px; cursor: ew-resize; }
+
+    .shape-rotate-line {
+      display: none;
+      position: absolute;
+      top: -12px; left: 50%;
+      width: 1px; height: 12px;
+      background: #999;
+      pointer-events: none;
+    }
+    .shape-block.selected .shape-rotate-line { display: block; }
+    .shape-rotate-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: -34px; left: 50%;
+      transform: translateX(-50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid #666;
+      cursor: grab;
+      pointer-events: auto;
+      z-index: 6;
+    }
+    .shape-block.selected .shape-rotate-handle { display: flex; }
+    .shape-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
+
+    /* Line shape — just an SVG diagonal plus two draggable endpoint handles, no box resize */
+    .shape-line-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .shape-line-endpoint {
+      display: none;
+      position: absolute;
+      width: 11px; height: 11px;
+      margin-left: -5.5px; margin-top: -5.5px;
+      background: #fff;
+      border: 1.5px solid #ff2d2d;
+      border-radius: 50%;
+      pointer-events: auto;
+      cursor: move;
+      z-index: 6;
+    }
+    .shape-block.selected .shape-line-endpoint { display: block; }
+
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
     .textbox-block {
@@ -1546,6 +1657,22 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTextBox()" title="Insert Text Box">
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
       </button>
+      <div class="toolbar-flyout-group">
+        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'shapesFlyout')" title="Shapes">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><circle cx="17.5" cy="6.5" r="3.5"></circle><line x1="3" y1="18" x2="19" y2="18"></line></svg>
+        </button>
+        <div class="toolbar-flyout" id="shapesFlyout">
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="insertShapeBlock('line'); closeAllToolbarFlyouts();" title="Line">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="4"></line></svg>
+          </button>
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="insertShapeBlock('circle'); closeAllToolbarFlyouts();" title="Circle">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle></svg>
+          </button>
+          <button class="toolbar-flyout-btn" onmousedown="event.preventDefault();" onclick="insertShapeBlock('rect'); closeAllToolbarFlyouts();" title="Rectangle">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"></rect></svg>
+          </button>
+        </div>
+      </div>
       <div class="form-tool-divider"></div>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'alignFlyout')" title="Text Align">
@@ -1626,7 +1753,7 @@
       </div>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'borderFlyout')" title="Border">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect></svg>
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="2 2"></line><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="2 2"></line></svg>
         </button>
         <div class="toolbar-flyout" id="borderFlyout">
           <button class="toolbar-flyout-btn border-flyout-line-btn" onmousedown="event.preventDefault();" onclick="applyBorderAction('vertical'); closeAllToolbarFlyouts();" title="Vertical Lines">
@@ -1923,6 +2050,7 @@
       stack.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       stack.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
+      stack.querySelectorAll('.shape-block').forEach(block => wireShapeBlockInteractions(block));
       wireAllPageUnits();
       reinitPageNumberSettingsFromDom();
       renumberPages();
@@ -2005,6 +2133,7 @@
       container.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       container.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       container.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
+      container.querySelectorAll('.shape-block').forEach(block => wireShapeBlockInteractions(block));
     }
 
     // ===================== Per-section undo/redo =====================
@@ -2191,7 +2320,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .btn-block, .table-block, .image-block, .textbox-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .btn-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -2635,6 +2764,7 @@
       deselectAllButtonBlocks();
       deselectAllImageBlocks();
       deselectAllTextboxBlocks();
+      deselectAllShapeBlocks();
       clearAllTableSelections();
       block.classList.add('style-selected');
       selectedButtonBlock = block;
@@ -2928,6 +3058,7 @@
         deselectAllButtonBlocks();
         deselectAllTextboxBlocks();
         deselectAllImageBlocks();
+        deselectAllShapeBlocks();
         // A plain click on one cell starts as just that single cell selected — if the user
         // drags from here, mousemove below extends it into a real range.
         document.querySelectorAll('.table-cell-selected').forEach(function(c) { c.classList.remove('table-cell-selected'); });
@@ -3465,6 +3596,7 @@
       if (e.target.closest('.toolbar-flyout-group')) return;
       if (!e.target.closest('.image-block')) deselectAllImageBlocks();
       if (!e.target.closest('.textbox-block')) deselectAllTextboxBlocks();
+      if (!e.target.closest('.shape-block')) deselectAllShapeBlocks();
     });
 
     function computeFitSize(naturalW, naturalH, maxW, maxH) {
@@ -3545,6 +3677,7 @@
         deselectAllImageBlocks();
         deselectAllButtonBlocks();
         deselectAllTextboxBlocks();
+        deselectAllShapeBlocks();
         clearAllTableSelections();
         block.classList.add('selected');
         selectedImageBlock = block;
@@ -3684,6 +3817,356 @@
       });
     }
 
+    // ---------- Shapes: Line, Circle, Rectangle. Circle/Rectangle share the same
+    // selection/move/8-handle-resize UI as Image (corners scale, edges resize one side);
+    // Rectangle additionally gets a rotate handle like Text Box. Line only has 2 draggable
+    // endpoints — no box resize, no rotation (rotating a 2-point line is meaningless). ----------
+
+    function insertShapeBlock(type) {
+      if (type === 'line') { insertLineShape(); return; }
+      const page = getActivePage();
+      const block = document.createElement('div');
+      block.className = 'shape-block';
+      block.contentEditable = 'false';
+      block.dataset.shapeType = type;
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '160px';
+      block.style.height = (type === 'circle') ? '160px' : '100px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      const rotateBits = (type === 'rect')
+        ? '<div class="shape-rotate-line"></div><div class="shape-rotate-handle" title="Rotate"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.5-7.1"></path><polyline points="21 3 21 9 15 9"></polyline></svg></div>'
+        : '';
+
+      block.innerHTML = `
+        <div class="shape-move-zone">
+          <div class="shape-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="shape-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="shape-selection-wrapper">
+          <div class="shape-visual shape-visual-${type === 'circle' ? 'circle' : 'rect'}"></div>
+          <div class="shape-selection-outline"></div>
+          ${rotateBits}
+          <div class="shape-resize-handle handle-nw" data-dir="nw"></div>
+          <div class="shape-resize-handle handle-n" data-dir="n"></div>
+          <div class="shape-resize-handle handle-ne" data-dir="ne"></div>
+          <div class="shape-resize-handle handle-e" data-dir="e"></div>
+          <div class="shape-resize-handle handle-se" data-dir="se"></div>
+          <div class="shape-resize-handle handle-s" data-dir="s"></div>
+          <div class="shape-resize-handle handle-sw" data-dir="sw"></div>
+          <div class="shape-resize-handle handle-w" data-dir="w"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      wireShapeBlockInteractions(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    let selectedShapeBlock = null;
+
+    function deselectAllShapeBlocks() {
+      document.querySelectorAll('.shape-block.selected').forEach(function(b) { b.classList.remove('selected'); });
+      selectedShapeBlock = null;
+    }
+
+    function selectShapeBlock(block) {
+      deselectAllShapeBlocks();
+      deselectAllImageBlocks();
+      deselectAllButtonBlocks();
+      deselectAllTextboxBlocks();
+      clearAllTableSelections();
+      block.classList.add('selected');
+      selectedShapeBlock = block;
+    }
+
+    function wireShapeBlockInteractions(block) {
+      if (block.dataset.shapeType === 'line') { wireLineShapeInteractions(block); return; }
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.shape-move-handle');
+      const deleteHandle = block.querySelector('.shape-delete-handle');
+      const wrapper = block.querySelector('.shape-selection-wrapper');
+      const rotateHandle = block.querySelector('.shape-rotate-handle');
+      const resizeHandles = block.querySelectorAll('.shape-resize-handle');
+
+      wrapper.addEventListener('pointerdown', function(e) {
+        if (e.target.closest('.shape-resize-handle') || e.target.closest('.shape-rotate-handle')) return;
+        e.stopPropagation();
+      });
+      wrapper.addEventListener('click', function(e) {
+        if (e.target.closest('.shape-resize-handle') || e.target.closest('.shape-rotate-handle')) return;
+        e.stopPropagation();
+        selectShapeBlock(block);
+      });
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        if (selectedShapeBlock === block) selectedShapeBlock = null;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      // Move — same alignment-guide-aware dragging as the other block types
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('shape-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('shape-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      // 8 resize handles — corners scale proportionally (anchored at the opposite corner),
+      // edge midpoints resize only that one side. Both clamped to the page's own edges.
+      resizeHandles.forEach(function(handle) {
+        const dir = handle.getAttribute('data-dir');
+        const isCorner = dir.length === 2;
+
+        handle.addEventListener('pointerdown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const pageRect = page.getBoundingClientRect();
+          const startLeft = parseFloat(block.style.left) || 0;
+          const startTop = parseFloat(block.style.top) || 0;
+          const startW = block.offsetWidth, startH = block.offsetHeight;
+          const aspect = startW / startH;
+
+          let anchorLeft, anchorTop, draggedX, draggedY;
+          if (isCorner) {
+            if (dir === 'nw') { anchorLeft = startLeft + startW; anchorTop = startTop + startH; draggedX = startLeft; draggedY = startTop; }
+            else if (dir === 'ne') { anchorLeft = startLeft; anchorTop = startTop + startH; draggedX = startLeft + startW; draggedY = startTop; }
+            else if (dir === 'sw') { anchorLeft = startLeft + startW; anchorTop = startTop; draggedX = startLeft; draggedY = startTop + startH; }
+            else { anchorLeft = startLeft; anchorTop = startTop; draggedX = startLeft + startW; draggedY = startTop + startH; } // se
+          }
+          const origDist = isCorner ? (Math.hypot(draggedX - anchorLeft, draggedY - anchorTop) || 1) : 0;
+
+          function onMove(ev) {
+            const mouseX = ev.clientX - pageRect.left;
+            const mouseY = ev.clientY - pageRect.top;
+            let newLeft = startLeft, newTop = startTop, newW = startW, newH = startH;
+
+            if (isCorner) {
+              const newDist = Math.hypot(mouseX - anchorLeft, mouseY - anchorTop);
+              const scale = Math.max(0.15, newDist / origDist);
+              newW = Math.max(20, startW * scale);
+              newH = newW / aspect;
+              if (dir === 'nw') { newLeft = anchorLeft - newW; newTop = anchorTop - newH; }
+              else if (dir === 'ne') { newLeft = anchorLeft; newTop = anchorTop - newH; }
+              else if (dir === 'sw') { newLeft = anchorLeft - newW; newTop = anchorTop; }
+              else { newLeft = anchorLeft; newTop = anchorTop; } // se
+            } else {
+              if (dir === 'e') { newW = Math.max(20, mouseX - startLeft); }
+              else if (dir === 'w') { newW = Math.max(20, startLeft + startW - mouseX); newLeft = startLeft + startW - newW; }
+              else if (dir === 's') { newH = Math.max(20, mouseY - startTop); }
+              else if (dir === 'n') { newH = Math.max(20, startTop + startH - mouseY); newTop = startTop + startH - newH; }
+            }
+
+            if (newLeft < 0) { newW += newLeft; newLeft = 0; }
+            if (newTop < 0) { newH += newTop; newTop = 0; }
+            if (newLeft + newW > page.clientWidth) newW = page.clientWidth - newLeft;
+            if (newTop + newH > page.clientHeight) newH = page.clientHeight - newTop;
+            newW = Math.max(20, newW);
+            newH = Math.max(20, newH);
+
+            block.style.left = newLeft + 'px';
+            block.style.top = newTop + 'px';
+            block.style.width = newW + 'px';
+            block.style.height = newH + 'px';
+            hasUnsavedChanges = true;
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            pushHistorySnapshot();
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      });
+
+      if (rotateHandle) {
+        rotateHandle.addEventListener('pointerdown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          function onMove(ev) {
+            const rect = block.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const angle = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+            block.style.transform = 'rotate(' + angle + 'deg)';
+            hasUnsavedChanges = true;
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            pushHistorySnapshot();
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      }
+    }
+
+    // ---------- Line: a bounding block sized to fit both endpoints (plus a little padding
+    // for the handles), storing the two points in page-relative coordinates. ----------
+
+    function insertLineShape() {
+      const page = getActivePage();
+      const block = document.createElement('div');
+      block.className = 'shape-block';
+      block.contentEditable = 'false';
+      block.dataset.shapeType = 'line';
+      const x1 = 20 + qaBlockCascadeOffset, y1 = 20 + qaBlockCascadeOffset, x2 = x1 + 140, y2 = y1 + 80;
+      block.dataset.x1 = x1; block.dataset.y1 = y1; block.dataset.x2 = x2; block.dataset.y2 = y2;
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="shape-move-zone">
+          <div class="shape-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="shape-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="shape-selection-wrapper">
+          <svg class="shape-line-svg"><line class="shape-line-el" stroke="#333" stroke-width="2"></line></svg>
+          <div class="shape-selection-outline"></div>
+          <div class="shape-line-endpoint" data-pt="1" title="Drag endpoint"></div>
+          <div class="shape-line-endpoint" data-pt="2" title="Drag endpoint"></div>
+        </div>
+      `;
+      page.appendChild(block);
+      updateLineGeometry(block);
+      wireLineShapeInteractions(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function updateLineGeometry(block) {
+      const x1 = parseFloat(block.dataset.x1), y1 = parseFloat(block.dataset.y1);
+      const x2 = parseFloat(block.dataset.x2), y2 = parseFloat(block.dataset.y2);
+      const pad = 8;
+      const left = Math.min(x1, x2) - pad;
+      const top = Math.min(y1, y2) - pad;
+      const width = Math.abs(x2 - x1) + pad * 2;
+      const height = Math.abs(y2 - y1) + pad * 2;
+      block.style.left = left + 'px';
+      block.style.top = top + 'px';
+      block.style.width = width + 'px';
+      block.style.height = height + 'px';
+
+      const lineEl = block.querySelector('.shape-line-el');
+      lineEl.setAttribute('x1', x1 - left);
+      lineEl.setAttribute('y1', y1 - top);
+      lineEl.setAttribute('x2', x2 - left);
+      lineEl.setAttribute('y2', y2 - top);
+      lineEl.style.pointerEvents = 'stroke';
+
+      const pts = block.querySelectorAll('.shape-line-endpoint');
+      pts[0].style.left = (x1 - left) + 'px';
+      pts[0].style.top = (y1 - top) + 'px';
+      pts[1].style.left = (x2 - left) + 'px';
+      pts[1].style.top = (y2 - top) + 'px';
+    }
+
+    function wireLineShapeInteractions(block) {
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.shape-move-handle');
+      const deleteHandle = block.querySelector('.shape-delete-handle');
+      const lineEl = block.querySelector('.shape-line-el');
+      const endpoints = block.querySelectorAll('.shape-line-endpoint');
+
+      lineEl.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      lineEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        selectShapeBlock(block);
+      });
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        if (selectedShapeBlock === block) selectedShapeBlock = null;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('shape-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startX1 = parseFloat(block.dataset.x1), startY1 = parseFloat(block.dataset.y1);
+        const startX2 = parseFloat(block.dataset.x2), startY2 = parseFloat(block.dataset.y2);
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          block.dataset.x1 = startX1 + dx; block.dataset.y1 = startY1 + dy;
+          block.dataset.x2 = startX2 + dx; block.dataset.y2 = startY2 + dy;
+          updateLineGeometry(block);
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('shape-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+
+      endpoints.forEach(function(ep) {
+        ep.addEventListener('pointerdown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          selectShapeBlock(block);
+          const which = ep.getAttribute('data-pt');
+          const pageRect = page.getBoundingClientRect();
+
+          function onMove(ev) {
+            const mouseX = ev.clientX - pageRect.left;
+            const mouseY = ev.clientY - pageRect.top;
+            if (which === '1') { block.dataset.x1 = mouseX; block.dataset.y1 = mouseY; }
+            else { block.dataset.x2 = mouseX; block.dataset.y2 = mouseY; }
+            updateLineGeometry(block);
+            hasUnsavedChanges = true;
+          }
+          function onUp() {
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            pushHistorySnapshot();
+          }
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      });
+    }
+
     // ---------- Text Box: same selection/rotate/resize UI as Image, 2 icons (move/delete),
     // multi-line editable text; styling now applied via the shared toolbar (Fill Color, Text
     // Color, Border, Vertical Alignment) once selected, not its own popup. ----------
@@ -3747,6 +4230,7 @@
         deselectAllTextboxBlocks();
         deselectAllImageBlocks();
         deselectAllButtonBlocks();
+        deselectAllShapeBlocks();
         clearAllTableSelections();
         block.classList.add('selected');
         selectedTextboxBlock = block;
@@ -3959,6 +4443,14 @@
         const content = selectedTextboxBlock.querySelector('.textbox-content');
         return content ? { type: 'textbox', els: [content] } : null;
       }
+      if (selectedShapeBlock) {
+        if (selectedShapeBlock.dataset.shapeType === 'line') {
+          const lineEl = selectedShapeBlock.querySelector('.shape-line-el');
+          return lineEl ? { type: 'shape-line', els: [lineEl] } : null;
+        }
+        const visual = selectedShapeBlock.querySelector('.shape-visual');
+        return visual ? { type: 'shape', els: [visual] } : null;
+      }
       return null;
     }
 
@@ -4032,7 +4524,15 @@
     function applyFillColor(color) {
       const target = getFormatTargets();
       if (!target) return;
-      target.els.forEach(function(el) { el.style.background = color; });
+      // Shapes are outline-only objects — Fill Color changes their border/stroke instead of a
+      // background, since that's the only visible color they actually have.
+      if (target.type === 'shape') {
+        target.els.forEach(function(el) { el.style.borderColor = color; });
+      } else if (target.type === 'shape-line') {
+        target.els.forEach(function(el) { el.setAttribute('stroke', color); });
+      } else {
+        target.els.forEach(function(el) { el.style.background = color; });
+      }
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
