@@ -1120,6 +1120,23 @@
       color: var(--text-color, #fff);
     }
     .person-mock-contact:hover { background: rgba(255,255,255,0.08); }
+    .person-mock-contact-multi { display: flex; align-items: center; gap: 10px; }
+    .person-mock-checkbox { width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+    .person-add-fab {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #14b8a6;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 8px;
+      pointer-events: auto;
+    }
+    .person-add-fab:hover { background: #0d9488; }
+    .person-add-fab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.4; fill: none; }
     .person-move-zone {
       position: absolute;
       top: -26px; left: -2px;
@@ -1627,10 +1644,6 @@
           <button class="textbox-valign-btn" id="personModeSingle" onclick="setPersonMode('single')">One Person</button>
           <button class="textbox-valign-btn" id="personModeMultiple" onclick="setPersonMode('multiple')">Multiple Persons</button>
         </div>
-      </div>
-      <div class="textbox-popup-section" id="personCountSection" style="display:none;">
-        <div class="textbox-popup-label">How Many</div>
-        <input type="number" class="group-modal-input table-size-number-input" id="personCountInput" min="2" max="30" style="margin-bottom:0;" onchange="applyPersonCount(this.value)">
       </div>
       <button class="textbox-popup-close-btn" onclick="closePersonEditPopup()">Done</button>
     </div>
@@ -2888,8 +2901,8 @@
           <button class="person-scan-btn" title="Scan QR (mock — real scanning happens on the mobile app)" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonScanMock(this);">
             <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
           </button>
-          <button class="person-contact-btn" title="Add from contacts (mock — real contacts come from the mobile app)" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonContactMock(this);">
-            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+          <button class="person-contact-btn" title="Contacts" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonContactMock(this);">
+            <svg viewBox="0 0 24 24"><path d="M6 2h13a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><line x1="3.3" y1="7" x2="5" y2="7"></line><line x1="3.3" y1="12" x2="5" y2="12"></line><line x1="3.3" y1="17" x2="5" y2="17"></line><circle cx="12.5" cy="10" r="2"></circle><path d="M9 16.5c0-1.9 1.6-3 3.5-3s3.5 1.1 3.5 3"></path></svg>
           </button>
         </div>
       `;
@@ -2914,6 +2927,9 @@
         </div>
         <input type="text" class="person-heading-input" placeholder="Heading (e.g. Workers Name)">
         <div class="person-slots-container">${buildPersonSlotHtml()}</div>
+        <button class="person-add-fab" title="Add another person" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherPersonSlot(this.closest('.person-block'));" style="display:none;">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
       `;
       page.appendChild(block);
       wirePersonBlockInteractions(block);
@@ -2984,9 +3000,6 @@
       const mode = block.dataset.personMode || 'single';
       document.getElementById('personModeSingle').classList.toggle('active', mode === 'single');
       document.getElementById('personModeMultiple').classList.toggle('active', mode === 'multiple');
-      document.getElementById('personCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
-      const count = block.querySelectorAll('.person-slot').length;
-      document.getElementById('personCountInput').value = Math.max(2, count);
 
       const popup = document.getElementById('personEditPopup');
       const page = document.getElementById('formSheet');
@@ -3011,33 +3024,26 @@
       personEditTargetBlock.dataset.personMode = mode;
       document.getElementById('personModeSingle').classList.toggle('active', mode === 'single');
       document.getElementById('personModeMultiple').classList.toggle('active', mode === 'multiple');
-      document.getElementById('personCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
 
+      // Both modes start from a single slot — the difference is purely whether the "add
+      // another" FAB is available afterward, not how many slots you start with.
       const container = personEditTargetBlock.querySelector('.person-slots-container');
-      if (mode === 'single') {
-        container.innerHTML = buildPersonSlotHtml();
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
-      } else {
-        const currentCount = container.querySelectorAll('.person-slot').length;
-        const target = currentCount < 2 ? 2 : currentCount;
-        document.getElementById('personCountInput').value = target;
-        applyPersonCount(target); // saves history itself
-      }
+      container.innerHTML = buildPersonSlotHtml();
+      updatePersonAddFabVisibility(personEditTargetBlock);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
-    function applyPersonCount(value) {
-      if (!personEditTargetBlock) return;
-      const container = personEditTargetBlock.querySelector('.person-slots-container');
-      const rows = container.querySelectorAll('.person-slot');
-      const target = Math.max(2, Math.min(30, parseInt(value, 10) || 2));
-      if (rows.length < target) {
-        for (let i = rows.length; i < target; i++) {
-          container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
-        }
-      } else if (rows.length > target) {
-        for (let i = rows.length - 1; i >= target; i--) rows[i].remove();
-      }
+    // Shown only in Multiple Persons mode — lets you add as many more people as needed, with
+    // no upper limit.
+    function updatePersonAddFabVisibility(block) {
+      const fab = block.querySelector('.person-add-fab');
+      if (fab) fab.style.display = (block.dataset.personMode === 'multiple') ? 'flex' : 'none';
+    }
+
+    function addAnotherPersonSlot(block) {
+      const container = block.querySelector('.person-slots-container');
+      container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3047,9 +3053,15 @@
     // simulates picking a result so the object itself is fully testable end to end. ----------
 
     let personPickerTargetSlot = null;
+    let personPickerTargetBlock = null;
+    let personPickerMode = 'scan'; // 'scan' | 'contact-single' | 'contact-multi'
+
+    const MOCK_CONTACTS = ['Rajesh Kumar (rajesh.k)', 'Priya Singh (priya.s)', 'Amit Patel (amit.p)', 'Sunita Rao (sunita.r)', 'Vikram Mehta (vikram.m)'];
 
     function openPersonScanMock(btn) {
+      personPickerMode = 'scan';
       personPickerTargetSlot = btn.closest('.person-slot').querySelector('.person-slot-input');
+      personPickerTargetBlock = btn.closest('.person-block');
       document.getElementById('personPickerTitle').textContent = 'Scan QR Code';
       document.getElementById('personPickerMessage').textContent =
         'Mock only — on the real mobile app this opens the camera and scans another user\u2019s account QR code directly. Type a value below to simulate what gets added.';
@@ -3057,22 +3069,40 @@
       document.getElementById('personPickerInput').value = '';
       document.getElementById('personPickerContactList').style.display = 'none';
       document.getElementById('personPickerConfirmBtn').style.display = 'inline-block';
+      document.getElementById('personPickerConfirmBtn').textContent = 'Add';
       document.getElementById('personPickerOverlay').classList.add('active');
       document.getElementById('personPickerInput').focus();
     }
 
+    // In Multiple Persons mode this shows "Recent Contacts" with checkboxes for multi-select;
+    // in One Person mode it's a simple single-tap list, same as before.
     function openPersonContactMock(btn) {
-      personPickerTargetSlot = btn.closest('.person-slot').querySelector('.person-slot-input');
-      document.getElementById('personPickerTitle').textContent = 'Add from Contacts';
-      document.getElementById('personPickerMessage').textContent =
-        'Mock only — on the real mobile app this lists your device contacts who have diBadge accounts. Pick one below to simulate that.';
+      const slot = btn.closest('.person-slot');
+      const block = btn.closest('.person-block');
+      personPickerTargetSlot = slot.querySelector('.person-slot-input');
+      personPickerTargetBlock = block;
+      const isMultiple = block && block.dataset.personMode === 'multiple';
+      personPickerMode = isMultiple ? 'contact-multi' : 'contact-single';
+
+      document.getElementById('personPickerTitle').textContent = isMultiple ? 'Recent Contacts' : 'Contacts';
+      document.getElementById('personPickerMessage').textContent = isMultiple
+        ? 'Mock only — on the real mobile app this lists your recent contacts with diBadge accounts. Select as many as you need, then add them all at once.'
+        : 'Mock only — on the real mobile app this lists your device contacts who have diBadge accounts. Pick one below to simulate that.';
       document.getElementById('personPickerInput').style.display = 'none';
-      document.getElementById('personPickerConfirmBtn').style.display = 'none';
-      const mockContacts = ['Rajesh Kumar (rajesh.k)', 'Priya Singh (priya.s)', 'Amit Patel (amit.p)', 'Sunita Rao (sunita.r)', 'Vikram Mehta (vikram.m)'];
+
       const listEl = document.getElementById('personPickerContactList');
-      listEl.innerHTML = mockContacts.map(function(c) {
-        return '<div class="person-mock-contact" onclick="selectMockContact(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</div>';
-      }).join('');
+      if (isMultiple) {
+        listEl.innerHTML = MOCK_CONTACTS.map(function(c, i) {
+          return '<label class="person-mock-contact person-mock-contact-multi"><input type="checkbox" class="person-mock-checkbox" value="' + i + '"> ' + c + '</label>';
+        }).join('');
+        document.getElementById('personPickerConfirmBtn').style.display = 'inline-block';
+        document.getElementById('personPickerConfirmBtn').textContent = 'Add Selected';
+      } else {
+        listEl.innerHTML = MOCK_CONTACTS.map(function(c) {
+          return '<div class="person-mock-contact" onclick="selectMockContact(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</div>';
+        }).join('');
+        document.getElementById('personPickerConfirmBtn').style.display = 'none';
+      }
       listEl.style.display = 'block';
       document.getElementById('personPickerOverlay').classList.add('active');
     }
@@ -3086,12 +3116,33 @@
       closePersonPickerModal();
     }
 
+    // The one "Add"/"Add Selected" button in the modal — branches on what flow opened it,
+    // rather than swapping its click handler around, so there's only ever one code path in.
     function confirmPersonPicker() {
-      const input = document.getElementById('personPickerInput');
-      if (personPickerTargetSlot && input.value.trim()) {
-        personPickerTargetSlot.textContent = input.value.trim();
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
+      if (personPickerMode === 'contact-multi') {
+        const checked = Array.from(document.querySelectorAll('.person-mock-checkbox:checked')).map(function(cb) {
+          return MOCK_CONTACTS[parseInt(cb.value, 10)];
+        });
+        if (checked.length > 0) {
+          if (personPickerTargetSlot) personPickerTargetSlot.textContent = checked[0];
+          if (personPickerTargetBlock) {
+            const container = personPickerTargetBlock.querySelector('.person-slots-container');
+            for (let i = 1; i < checked.length; i++) {
+              container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
+              container.lastElementChild.querySelector('.person-slot-input').textContent = checked[i];
+            }
+          }
+          hasUnsavedChanges = true;
+          pushHistorySnapshot();
+        }
+      } else {
+        // scan mode — the only other flow with a visible "Add" button
+        const input = document.getElementById('personPickerInput');
+        if (personPickerTargetSlot && input.value.trim()) {
+          personPickerTargetSlot.textContent = input.value.trim();
+          hasUnsavedChanges = true;
+          pushHistorySnapshot();
+        }
       }
       closePersonPickerModal();
     }
@@ -3099,6 +3150,7 @@
     function closePersonPickerModal() {
       document.getElementById('personPickerOverlay').classList.remove('active');
       personPickerTargetSlot = null;
+      personPickerTargetBlock = null;
     }
 
     // <input> elements don't automatically reflect typed text back into the HTML value=""
