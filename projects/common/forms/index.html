@@ -1103,6 +1103,116 @@
     }
     .shape-block.selected .shape-line-endpoint { display: block; }
 
+    /* ===================== Person/Username object ===================== */
+    /* A place to attach one or more people to a form — heading above, like Question & Answer,
+       with a box below holding one or more "slot" rows. Each slot is a design-time
+       placeholder for how a real person gets attached at fill-out time on the mobile app
+       (typing a username/phone, scanning their QR code, or picking from contacts) — this
+       builder can't perform those device-level actions itself, so it just reserves the
+       structure and shows what each slot is for. */
+    .person-block { position: absolute; }
+    .person-block.person-dragging { z-index: 50; }
+    .person-mock-contact {
+      padding: 9px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--text-color, #fff);
+    }
+    .person-mock-contact:hover { background: rgba(255,255,255,0.08); }
+    .person-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 90px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .person-move-handle, .person-edit-handle, .person-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .person-move-handle svg, .person-edit-handle svg, .person-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .person-move-handle { cursor: move; }
+    .person-edit-handle { cursor: pointer; }
+    .person-delete-handle { cursor: pointer; }
+    .person-edit-handle:hover { border-color: #14b8a6; }
+    .person-edit-handle:hover svg { stroke: #14b8a6; }
+    .person-delete-handle:hover { border-color: #ff3b30; }
+    .person-delete-handle:hover svg { stroke: #ff3b30; }
+    .person-move-zone:hover .person-move-handle,
+    .person-move-zone:hover .person-edit-handle,
+    .person-move-zone:hover .person-delete-handle { display: flex; }
+
+    .person-heading-input {
+      display: block;
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      padding: 2px 2px 6px 2px;
+      margin-bottom: 8px;
+      outline: none;
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+    .person-heading-input::placeholder { color: #999; }
+    .person-slots-container {
+      border: 1px solid #999;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #fff;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-sizing: border-box;
+    }
+    .person-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .person-slot-icon { flex-shrink: 0; width: 18px; height: 18px; stroke: #888; fill: none; stroke-width: 1.7; }
+    .person-slot-input {
+      flex: 1;
+      min-width: 0;
+      outline: none;
+      color: #1a1a1a;
+      font-size: 0.85rem;
+      pointer-events: auto;
+      padding: 3px 2px;
+      border-bottom: 1px solid #ddd;
+    }
+    .person-slot-input:empty:before { content: attr(data-placeholder); color: #aaa; }
+    .person-scan-btn, .person-contact-btn {
+      flex-shrink: 0;
+      width: 24px; height: 24px;
+      border-radius: 5px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .person-scan-btn svg, .person-contact-btn svg { width: 14px; height: 14px; stroke: #666; fill: none; stroke-width: 1.7; }
+    .person-scan-btn:hover, .person-contact-btn:hover { background: #e0e0e0; }
+
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
     .textbox-block {
@@ -1509,6 +1619,22 @@
       <button class="textbox-popup-close-btn" onclick="closeQoptEditPopup()">Done</button>
     </div>
 
+    <!-- Person/Username object edit popup — one person, or multiple with a count -->
+    <div class="textbox-edit-popup" id="personEditPopup" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Number of People</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="personModeSingle" onclick="setPersonMode('single')">One Person</button>
+          <button class="textbox-valign-btn" id="personModeMultiple" onclick="setPersonMode('multiple')">Multiple Persons</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section" id="personCountSection" style="display:none;">
+        <div class="textbox-popup-label">How Many</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="personCountInput" min="2" max="30" style="margin-bottom:0;" onchange="applyPersonCount(this.value)">
+      </div>
+      <button class="textbox-popup-close-btn" onclick="closePersonEditPopup()">Done</button>
+    </div>
+
     <!-- Page Number settings — position, alignment, and style. Always shown on every page in
          chronological order; this just configures how, not whether. -->
     <div class="textbox-edit-popup" id="pageNumberPopup" onclick="event.stopPropagation()">
@@ -1602,6 +1728,22 @@
       </div>
     </div>
 
+    <!-- Scan QR / Add Contact mock picker — real scanning and real contacts only exist on the
+         mobile app, which this prototype doesn't have; this simulates the result so the form
+         object itself is fully testable. -->
+    <div class="group-modal-overlay" id="personPickerOverlay" onclick="closePersonPickerModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title" id="personPickerTitle">Scan QR Code</div>
+        <div class="group-modal-message" id="personPickerMessage"></div>
+        <input type="text" class="group-modal-input" id="personPickerInput" placeholder="Simulated scanned value" style="margin-top:10px;">
+        <div id="personPickerContactList" style="display:none; max-height:220px; overflow-y:auto; margin-top:10px;"></div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closePersonPickerModal()">Cancel</button>
+          <button class="group-modal-ok-btn" id="personPickerConfirmBtn" onclick="confirmPersonPicker()">Add</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Unsaved changes prompt — same styling as the chat's remove/delete confirmations -->
     <div class="group-modal-overlay" id="unsavedChangesOverlay" onclick="cancelPendingNav()">
       <div class="group-modal-box" onclick="event.stopPropagation()">
@@ -1682,6 +1824,9 @@
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionOptionsBlock()" title="Question &amp; Options">
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="4" height="4" rx="1"></rect><line x1="10" y1="6" x2="21" y2="6"></line><rect x="3" y="10" width="4" height="4" rx="1"></rect><line x1="10" y1="12" x2="21" y2="12"></line><rect x="3" y="16" width="4" height="4" rx="1"></rect><line x1="10" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertPersonBlock()" title="Add Person">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6.5 7-6.5s7 3 7 6.5"></path></svg>
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertButtonBlock()" title="Button">
         <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect></svg>
@@ -2118,6 +2263,7 @@
       // brings back the markup but not the JS listeners that were on it.
       stack.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       stack.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
+      stack.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
       stack.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       stack.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2201,6 +2347,7 @@
     function rewireBlocksWithin(container) {
       container.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       container.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
+      container.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
       container.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       container.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       container.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2392,7 +2539,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .btn-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .person-block, .btn-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -2594,6 +2741,7 @@
       const deleteHandle = block.querySelector('.qopt-delete-handle');
       const rightHandle = block.querySelector('.qopt-resize-right');
       const container = block.querySelector('.qopt-options-container');
+      wireInputValueSync(block.querySelector('.qopt-question-input'));
 
       // One shared editable region for all the options — options sit inline, flowing and
       // wrapping like words in a sentence, and pressing Enter behaves exactly like it does in
@@ -2726,6 +2874,246 @@
       pushHistorySnapshot();
     }
 
+    // ---------- Person/Username object: heading + one or more "slot" rows, each a design-time
+    // placeholder for how a real person gets attached at fill-out time (type username/phone,
+    // scan their QR, or pick from contacts) on the mobile app — this builder can't perform
+    // those device-level actions itself, so it just reserves the structure and shows what each
+    // slot is for. ----------
+
+    function buildPersonSlotHtml() {
+      return `
+        <div class="person-slot">
+          <svg class="person-slot-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6.5 7-6.5s7 3 7 6.5"></path></svg>
+          <div class="person-slot-input" contenteditable="true" data-placeholder="Type username or phone"></div>
+          <button class="person-scan-btn" title="Scan QR (mock — real scanning happens on the mobile app)" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonScanMock(this);">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+          </button>
+          <button class="person-contact-btn" title="Add from contacts (mock — real contacts come from the mobile app)" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonContactMock(this);">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    function insertPersonBlock() {
+      const page = getActivePage();
+      const block = document.createElement('div');
+      block.className = 'person-block';
+      block.contentEditable = 'false';
+      block.dataset.personMode = 'single';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '320px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="person-move-zone">
+          <div class="person-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="person-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
+          <div class="person-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <input type="text" class="person-heading-input" placeholder="Heading (e.g. Workers Name)">
+        <div class="person-slots-container">${buildPersonSlotHtml()}</div>
+      `;
+      page.appendChild(block);
+      wirePersonBlockInteractions(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wirePersonBlockInteractions(block) {
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.person-move-handle');
+      const editHandle = block.querySelector('.person-edit-handle');
+      const deleteHandle = block.querySelector('.person-delete-handle');
+      wireInputValueSync(block.querySelector('.person-heading-input'));
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        if (personEditTargetBlock === block) personEditTargetBlock = null;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      editHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPersonEditPopup(block);
+      });
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('person-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('person-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    let personEditTargetBlock = null;
+
+    function openPersonEditPopup(block) {
+      personEditTargetBlock = block;
+      const mode = block.dataset.personMode || 'single';
+      document.getElementById('personModeSingle').classList.toggle('active', mode === 'single');
+      document.getElementById('personModeMultiple').classList.toggle('active', mode === 'multiple');
+      document.getElementById('personCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
+      const count = block.querySelectorAll('.person-slot').length;
+      document.getElementById('personCountInput').value = Math.max(2, count);
+
+      const popup = document.getElementById('personEditPopup');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+    }
+
+    function closePersonEditPopup() {
+      document.getElementById('personEditPopup').classList.remove('active');
+      personEditTargetBlock = null;
+    }
+
+    function setPersonMode(mode) {
+      if (!personEditTargetBlock) return;
+      personEditTargetBlock.dataset.personMode = mode;
+      document.getElementById('personModeSingle').classList.toggle('active', mode === 'single');
+      document.getElementById('personModeMultiple').classList.toggle('active', mode === 'multiple');
+      document.getElementById('personCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
+
+      const container = personEditTargetBlock.querySelector('.person-slots-container');
+      if (mode === 'single') {
+        container.innerHTML = buildPersonSlotHtml();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      } else {
+        const currentCount = container.querySelectorAll('.person-slot').length;
+        const target = currentCount < 2 ? 2 : currentCount;
+        document.getElementById('personCountInput').value = target;
+        applyPersonCount(target); // saves history itself
+      }
+    }
+
+    function applyPersonCount(value) {
+      if (!personEditTargetBlock) return;
+      const container = personEditTargetBlock.querySelector('.person-slots-container');
+      const rows = container.querySelectorAll('.person-slot');
+      const target = Math.max(2, Math.min(30, parseInt(value, 10) || 2));
+      if (rows.length < target) {
+        for (let i = rows.length; i < target; i++) {
+          container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
+        }
+      } else if (rows.length > target) {
+        for (let i = rows.length - 1; i >= target; i--) rows[i].remove();
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // ---------- Scan QR / Add Contact — both are mocks. Real QR-to-account scanning and real
+    // device contacts only exist on the mobile app, which isn't part of this prototype; this
+    // simulates picking a result so the object itself is fully testable end to end. ----------
+
+    let personPickerTargetSlot = null;
+
+    function openPersonScanMock(btn) {
+      personPickerTargetSlot = btn.closest('.person-slot').querySelector('.person-slot-input');
+      document.getElementById('personPickerTitle').textContent = 'Scan QR Code';
+      document.getElementById('personPickerMessage').textContent =
+        'Mock only — on the real mobile app this opens the camera and scans another user\u2019s account QR code directly. Type a value below to simulate what gets added.';
+      document.getElementById('personPickerInput').style.display = 'block';
+      document.getElementById('personPickerInput').value = '';
+      document.getElementById('personPickerContactList').style.display = 'none';
+      document.getElementById('personPickerConfirmBtn').style.display = 'inline-block';
+      document.getElementById('personPickerOverlay').classList.add('active');
+      document.getElementById('personPickerInput').focus();
+    }
+
+    function openPersonContactMock(btn) {
+      personPickerTargetSlot = btn.closest('.person-slot').querySelector('.person-slot-input');
+      document.getElementById('personPickerTitle').textContent = 'Add from Contacts';
+      document.getElementById('personPickerMessage').textContent =
+        'Mock only — on the real mobile app this lists your device contacts who have diBadge accounts. Pick one below to simulate that.';
+      document.getElementById('personPickerInput').style.display = 'none';
+      document.getElementById('personPickerConfirmBtn').style.display = 'none';
+      const mockContacts = ['Rajesh Kumar (rajesh.k)', 'Priya Singh (priya.s)', 'Amit Patel (amit.p)', 'Sunita Rao (sunita.r)', 'Vikram Mehta (vikram.m)'];
+      const listEl = document.getElementById('personPickerContactList');
+      listEl.innerHTML = mockContacts.map(function(c) {
+        return '<div class="person-mock-contact" onclick="selectMockContact(\'' + c.replace(/'/g, "\\'") + '\')">' + c + '</div>';
+      }).join('');
+      listEl.style.display = 'block';
+      document.getElementById('personPickerOverlay').classList.add('active');
+    }
+
+    function selectMockContact(name) {
+      if (personPickerTargetSlot) {
+        personPickerTargetSlot.textContent = name;
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      }
+      closePersonPickerModal();
+    }
+
+    function confirmPersonPicker() {
+      const input = document.getElementById('personPickerInput');
+      if (personPickerTargetSlot && input.value.trim()) {
+        personPickerTargetSlot.textContent = input.value.trim();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      }
+      closePersonPickerModal();
+    }
+
+    function closePersonPickerModal() {
+      document.getElementById('personPickerOverlay').classList.remove('active');
+      personPickerTargetSlot = null;
+    }
+
+    // <input> elements don't automatically reflect typed text back into the HTML value=""
+    // attribute — only the live .value PROPERTY changes. Since save/undo capture state via
+    // innerHTML (a plain HTML string), anything typed into one of these would otherwise be
+    // silently lost on reload, since innerHTML serialization only sees the ORIGINAL attribute,
+    // never the live value. This keeps the attribute in sync on every keystroke.
+    function wireInputValueSync(input) {
+      if (!input || input.dataset.valueSyncWired) return;
+      input.dataset.valueSyncWired = '1';
+      input.addEventListener('input', function() {
+        input.setAttribute('value', input.value);
+      });
+    }
+
     function wireQaBlockInteractions(block) {
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.qa-move-handle');
@@ -2733,6 +3121,7 @@
       const rightHandle = block.querySelector('.qa-resize-right');
       const bottomHandle = block.querySelector('.qa-resize-bottom');
       const answerBox = block.querySelector('.qa-answer-box');
+      wireInputValueSync(block.querySelector('.qa-question-input'));
 
       // Delete — removes this whole Question & Answer block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
