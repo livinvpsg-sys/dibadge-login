@@ -672,14 +672,13 @@
       white-space: nowrap;
       text-overflow: ellipsis;
     }
-    /* Clicking a button (when actually using the form) highlights it and dims its siblings —
-       single-select choice behavior. Clicking the active one again clears the whole group.
-       The active one is indicated by a border accent, not a color/text flip — dimming the
-       OTHER buttons via opacity is what signals selection, applied to the whole button. */
-    .btn-shape.btn-active { border: 2px solid #14b8a6; }
-    /* Selected for STYLING (via the toolbar) — distinct from the bright/dim "chosen" state above */
+    /* Dimmed (border, background, and text together, as one unit) until actually clicked/
+       chosen — a freshly inserted button starts dim, same as an unselected sibling once
+       another is picked. Clicking the active one again clears the whole group back to dim. */
+    .btn-shape { opacity: 0.5; }
+    .btn-shape.btn-active { opacity: 1; }
+    /* Selected for STYLING (via the toolbar) — distinct from the dim/normal "chosen" state above */
     .btn-block.style-selected .btn-shapes-container { outline: 2px dashed #14b8a6; outline-offset: 3px; }
-    .btn-shapes-container.has-active .btn-shape:not(.btn-active) { opacity: 0.45; }
     .btn-resize-right {
       position: absolute;
       top: 6px; bottom: 6px; right: -2px;
