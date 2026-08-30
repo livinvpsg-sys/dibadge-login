@@ -120,7 +120,7 @@
       position: relative; /* positioning context for floating blocks like Question & Answer */
       transform-origin: top center;
     }
-    .a4-page:empty:before {
+    .a4-page.page-empty:before {
       content: attr(data-placeholder);
       color: #999;
     }
@@ -1505,9 +1505,8 @@
               </button>
             </div>
             <div class="a4-page-header-strip" id="pageHeader-0" contenteditable="false" data-placeholder="Header"><div class="hf-resize-handle hf-resize-handle-bottom" title="Drag to resize"></div></div>
-            <div class="a4-page" id="formSheet" contenteditable="false" data-placeholder="Start designing this form..."></div>
+            <div class="a4-page" id="formSheet" contenteditable="false" data-placeholder="Start designing this form..."><div class="a4-page-number" id="pageNumber-0">1</div></div>
             <div class="a4-page-footer-strip" id="pageFooter-0" contenteditable="false" data-placeholder="Footer"><div class="hf-resize-handle hf-resize-handle-top" title="Drag to resize"></div></div>
-            <div class="a4-page-number" id="pageNumber-0">1</div>
           </div>
         </div>
       </div>
@@ -4354,6 +4353,20 @@
         });
         strip.classList.toggle('hf-empty', !hasContent);
       });
+      updateMainPageEmptyStates();
+    }
+
+    // Same idea as the header/footer version above — the page number now lives inside the
+    // main page itself (so it stays visually within the page's own bounds, not outside it),
+    // which means plain :empty no longer works for the "Start designing this form..."
+    // placeholder either, since a page-number child is always present.
+    function updateMainPageEmptyStates() {
+      document.querySelectorAll('.a4-page').forEach(function(page) {
+        const hasContent = Array.from(page.children).some(function(el) {
+          return !el.classList.contains('a4-page-number') && !el.classList.contains('hf-disabled-overlay');
+        });
+        page.classList.toggle('page-empty', !hasContent);
+      });
     }
 
     function buildPageUnitHtml(idx) {
@@ -4383,9 +4396,8 @@
           </button>
         </div>
         <div class="a4-page-header-strip" id="pageHeader-${idx}" contenteditable="false" data-placeholder="Header"><div class="hf-resize-handle hf-resize-handle-bottom" title="Drag to resize"></div></div>
-        <div class="a4-page" id="formSheet-${idx}" contenteditable="false" data-placeholder="Start designing this form..."></div>
+        <div class="a4-page" id="formSheet-${idx}" contenteditable="false" data-placeholder="Start designing this form..."><div class="a4-page-number" id="pageNumber-${idx}">1</div></div>
         <div class="a4-page-footer-strip" id="pageFooter-${idx}" contenteditable="false" data-placeholder="Footer"><div class="hf-resize-handle hf-resize-handle-top" title="Drag to resize"></div></div>
-        <div class="a4-page-number" id="pageNumber-${idx}">1</div>
       `;
     }
 
