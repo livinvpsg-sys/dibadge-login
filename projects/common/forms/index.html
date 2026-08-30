@@ -955,7 +955,7 @@
     .image-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
 
     /* ===================== Shapes: Line, Circle, Rectangle ===================== */
-    .shape-block { position: absolute; }
+    .shape-block { position: absolute; pointer-events: none; }
     .shape-block.shape-dragging { z-index: 50; }
     .shape-move-zone {
       position: absolute;
@@ -988,10 +988,9 @@
     .shape-move-zone:hover .shape-move-handle,
     .shape-move-zone:hover .shape-delete-handle { display: flex; }
 
-    .shape-selection-wrapper { position: relative; width: 100%; height: 100%; pointer-events: auto; cursor: pointer; }
-    .shape-visual { width: 100%; height: 100%; box-sizing: border-box; background: transparent; display: block; }
-    .shape-visual.shape-visual-rect { border: 2px solid #333; }
-    .shape-visual.shape-visual-circle { border: 2px solid #333; border-radius: 50%; }
+    .shape-selection-wrapper { position: relative; width: 100%; height: 100%; pointer-events: none; }
+    .shape-visual-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .shape-visual-el { pointer-events: stroke; cursor: pointer; }
 
     .shape-selection-outline {
       display: none;
@@ -1049,8 +1048,12 @@
     .shape-block.selected .shape-rotate-handle { display: flex; }
     .shape-rotate-handle svg { width: 13px; height: 13px; stroke: #333; stroke-width: 2; fill: none; }
 
-    /* Line shape — just an SVG diagonal plus two draggable endpoint handles, no box resize */
+    /* Line shape — just an SVG diagonal plus two draggable endpoint handles, no box resize,
+       no bounding-box outline. A separate, wider, invisible line handles clicks (much easier
+       to hit than the thin 2px visible stroke); the visible one is purely decorative. */
     .shape-line-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .shape-line-hit { pointer-events: stroke; cursor: pointer; }
+    .shape-line-el { pointer-events: none; }
     .shape-line-endpoint {
       display: none;
       position: absolute;
@@ -3845,7 +3848,9 @@
           <div class="shape-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="shape-selection-wrapper">
-          <div class="shape-visual shape-visual-${type === 'circle' ? 'circle' : 'rect'}"></div>
+          <svg class="shape-visual-svg">${type === 'circle'
+            ? '<ellipse class="shape-visual-el" cx="50%" cy="50%" rx="49%" ry="49%" fill="none" stroke="#333" stroke-width="2"></ellipse>'
+            : '<rect class="shape-visual-el" x="1%" y="1%" width="98%" height="98%" fill="none" stroke="#333" stroke-width="2"></rect>'}</svg>
           <div class="shape-selection-outline"></div>
           ${rotateBits}
           <div class="shape-resize-handle handle-nw" data-dir="nw"></div>
@@ -3886,16 +3891,15 @@
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.shape-move-handle');
       const deleteHandle = block.querySelector('.shape-delete-handle');
-      const wrapper = block.querySelector('.shape-selection-wrapper');
+      const visualEl = block.querySelector('.shape-visual-el');
       const rotateHandle = block.querySelector('.shape-rotate-handle');
       const resizeHandles = block.querySelectorAll('.shape-resize-handle');
 
-      wrapper.addEventListener('pointerdown', function(e) {
-        if (e.target.closest('.shape-resize-handle') || e.target.closest('.shape-rotate-handle')) return;
-        e.stopPropagation();
-      });
-      wrapper.addEventListener('click', function(e) {
-        if (e.target.closest('.shape-resize-handle') || e.target.closest('.shape-rotate-handle')) return;
+      // Bound to the actual visible stroke (SVG pointer-events:stroke — see CSS), not the
+      // full bounding box, so clicking inside/through the shape's transparent interior falls
+      // through to whatever's underneath instead of always grabbing this shape first.
+      visualEl.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      visualEl.addEventListener('click', function(e) {
         e.stopPropagation();
         selectShapeBlock(block);
       });
@@ -4052,8 +4056,10 @@
           <div class="shape-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
         </div>
         <div class="shape-selection-wrapper">
-          <svg class="shape-line-svg"><line class="shape-line-el" stroke="#333" stroke-width="2"></line></svg>
-          <div class="shape-selection-outline"></div>
+          <svg class="shape-line-svg">
+            <line class="shape-line-hit" stroke="transparent" stroke-width="16"></line>
+            <line class="shape-line-el" stroke="#333" stroke-width="2"></line>
+          </svg>
           <div class="shape-line-endpoint" data-pt="1" title="Drag endpoint"></div>
           <div class="shape-line-endpoint" data-pt="2" title="Drag endpoint"></div>
         </div>
@@ -4068,7 +4074,7 @@
     function updateLineGeometry(block) {
       const x1 = parseFloat(block.dataset.x1), y1 = parseFloat(block.dataset.y1);
       const x2 = parseFloat(block.dataset.x2), y2 = parseFloat(block.dataset.y2);
-      const pad = 8;
+      const pad = 10; // half the invisible hit-line's stroke width, so it's never clipped
       const left = Math.min(x1, x2) - pad;
       const top = Math.min(y1, y2) - pad;
       const width = Math.abs(x2 - x1) + pad * 2;
@@ -4079,11 +4085,13 @@
       block.style.height = height + 'px';
 
       const lineEl = block.querySelector('.shape-line-el');
-      lineEl.setAttribute('x1', x1 - left);
-      lineEl.setAttribute('y1', y1 - top);
-      lineEl.setAttribute('x2', x2 - left);
-      lineEl.setAttribute('y2', y2 - top);
-      lineEl.style.pointerEvents = 'stroke';
+      const hitEl = block.querySelector('.shape-line-hit');
+      [lineEl, hitEl].forEach(function(el) {
+        el.setAttribute('x1', x1 - left);
+        el.setAttribute('y1', y1 - top);
+        el.setAttribute('x2', x2 - left);
+        el.setAttribute('y2', y2 - top);
+      });
 
       const pts = block.querySelectorAll('.shape-line-endpoint');
       pts[0].style.left = (x1 - left) + 'px';
@@ -4096,11 +4104,11 @@
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.shape-move-handle');
       const deleteHandle = block.querySelector('.shape-delete-handle');
-      const lineEl = block.querySelector('.shape-line-el');
+      const hitEl = block.querySelector('.shape-line-hit');
       const endpoints = block.querySelectorAll('.shape-line-endpoint');
 
-      lineEl.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
-      lineEl.addEventListener('click', function(e) {
+      hitEl.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      hitEl.addEventListener('click', function(e) {
         e.stopPropagation();
         selectShapeBlock(block);
       });
@@ -4444,12 +4452,12 @@
         return content ? { type: 'textbox', els: [content] } : null;
       }
       if (selectedShapeBlock) {
-        if (selectedShapeBlock.dataset.shapeType === 'line') {
-          const lineEl = selectedShapeBlock.querySelector('.shape-line-el');
-          return lineEl ? { type: 'shape-line', els: [lineEl] } : null;
-        }
-        const visual = selectedShapeBlock.querySelector('.shape-visual');
-        return visual ? { type: 'shape', els: [visual] } : null;
+        // Rect/circle/line are all SVG-stroked outline shapes now, so they share one handling
+        // path — Fill Color sets the stroke attribute on whichever element is the actual
+        // visible line for this shape type.
+        const selector = selectedShapeBlock.dataset.shapeType === 'line' ? '.shape-line-el' : '.shape-visual-el';
+        const el = selectedShapeBlock.querySelector(selector);
+        return el ? { type: 'shape', els: [el] } : null;
       }
       return null;
     }
@@ -4524,11 +4532,9 @@
     function applyFillColor(color) {
       const target = getFormatTargets();
       if (!target) return;
-      // Shapes are outline-only objects — Fill Color changes their border/stroke instead of a
+      // Shapes are outline-only SVG objects — Fill Color sets their stroke instead of a
       // background, since that's the only visible color they actually have.
       if (target.type === 'shape') {
-        target.els.forEach(function(el) { el.style.borderColor = color; });
-      } else if (target.type === 'shape-line') {
         target.els.forEach(function(el) { el.setAttribute('stroke', color); });
       } else {
         target.els.forEach(function(el) { el.style.background = color; });
