@@ -187,14 +187,16 @@
     .a4-page-footer-strip { border-top: none; }
     .a4-page-header-strip { border-bottom: none; }
     .a4-page-number {
-      display: none;
+      display: block;
       position: absolute;
-      bottom: 8px;
-      right: 20px;
       font-size: 0.78rem;
       color: #888;
     }
-    .a4-page-number.active { display: block; }
+    .a4-page-number.pgnum-top { top: 20px; }
+    .a4-page-number.pgnum-bottom { bottom: 8px; }
+    .a4-page-number.pgnum-left { left: 20px; right: auto; transform: none; }
+    .a4-page-number.pgnum-right { right: 20px; left: auto; transform: none; }
+    .a4-page-number.pgnum-center { left: 50%; right: auto; transform: translateX(-50%); }
 
     /* Mutual-exclusion editing: whichever of main page / header / footer is NOT currently
        being worked in gets a translucent overlay over it — dimmed and click-through-blocked,
@@ -1359,6 +1361,35 @@
       <button class="textbox-popup-close-btn" onclick="closeQoptEditPopup()">Done</button>
     </div>
 
+    <!-- Page Number settings — position, alignment, and style. Always shown on every page in
+         chronological order; this just configures how, not whether. -->
+    <div class="textbox-edit-popup" id="pageNumberPopup" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Position</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="pgnumPosTop" onclick="setPageNumberSetting('position', 'top')">Top</button>
+          <button class="textbox-valign-btn" id="pgnumPosBottom" onclick="setPageNumberSetting('position', 'bottom')">Bottom</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Alignment</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="pgnumAlignLeft" onclick="setPageNumberSetting('align', 'left')">Left</button>
+          <button class="textbox-valign-btn" id="pgnumAlignCenter" onclick="setPageNumberSetting('align', 'center')">Center</button>
+          <button class="textbox-valign-btn" id="pgnumAlignRight" onclick="setPageNumberSetting('align', 'right')">Right</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Style</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="pgnumStylePlain" onclick="setPageNumberSetting('style', 'plain')">1</button>
+          <button class="textbox-valign-btn" id="pgnumStylePage" onclick="setPageNumberSetting('style', 'page')">Page 1</button>
+          <button class="textbox-valign-btn" id="pgnumStyleFraction" onclick="setPageNumberSetting('style', 'fraction')">1 / N</button>
+        </div>
+      </div>
+      <button class="textbox-popup-close-btn" onclick="closePageNumberPopup()">Done</button>
+    </div>
+
     <!-- Page Color popover — same pattern as Fill/Text/Border color -->
     <div class="color-picker-popover" id="pageColorPopover" onclick="event.stopPropagation()">
       <div class="color-picker-swatches">
@@ -1453,7 +1484,7 @@
               <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageColorPicker(event, 0)" title="Page Color">
                 <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.4 0 2.5-1.1 2.5-2.5 0-.6-.2-1.2-.6-1.6-.4-.5-.6-1-.6-1.6 0-1.4 1.1-2.5 2.5-2.5H18c2.2 0 4-1.8 4-4 0-4.4-4.9-8-10-8z"></path><circle cx="6.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="9.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="14.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="17.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle></svg>
               </button>
-              <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageNumber(0)" title="Page Number">
+              <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="openPageNumberPopup(event)" title="Page Number">
                 <svg viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="15" rx="1.5"></rect><text x="14" y="14" font-size="7.5" text-anchor="middle" style="fill:currentColor;stroke:none;font-weight:700;">2</text><rect x="4" y="7" width="12" height="15" rx="1.5" style="fill:#1e1e1e;"></rect><text x="10" y="18.5" font-size="7.5" text-anchor="middle" style="fill:currentColor;stroke:none;font-weight:700;">1</text></svg>
               </button>
               <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageStrip(0, 'header')" title="Header">
@@ -1675,6 +1706,7 @@
     const ZOOM_MIN = 0.4, ZOOM_MAX = 2, ZOOM_STEP = 0.1;
     let activePageEl = null;      // which .a4-page tools currently insert into
     let pageUnitCounter = 0;      // next index for a newly added page-unit
+    let pageNumberSettings = { position: 'bottom', align: 'right', style: 'plain' };
     let pendingScopeAction = null; // function(scope) queued while the current/all-pages modal is open
 
     // Whichever .a4-page the user most recently clicked into — falls back to the first page.
@@ -1894,6 +1926,7 @@
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
       stack.querySelectorAll('.textbox-block').forEach(block => wireTextboxBlockInteractions(block));
       wireAllPageUnits();
+      reinitPageNumberSettingsFromDom();
       renumberPages();
       // Keep future page-index assignments clear of whatever this form already uses, in case
       // a different form (with its own higher indices) was open earlier in this session.
@@ -4329,7 +4362,7 @@
           <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageColorPicker(event, ${idx})" title="Page Color">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.4 0 2.5-1.1 2.5-2.5 0-.6-.2-1.2-.6-1.6-.4-.5-.6-1-.6-1.6 0-1.4 1.1-2.5 2.5-2.5H18c2.2 0 4-1.8 4-4 0-4.4-4.9-8-10-8z"></path><circle cx="6.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="9.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="14.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="17.5" cy="11.5" r="1.4" fill="currentColor" stroke="none"></circle></svg>
           </button>
-          <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageNumber(${idx})" title="Page Number">
+          <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="openPageNumberPopup(event)" title="Page Number">
             <svg viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="15" rx="1.5"></rect><text x="14" y="14" font-size="7.5" text-anchor="middle" style="fill:currentColor;stroke:none;font-weight:700;">2</text><rect x="4" y="7" width="12" height="15" rx="1.5" style="fill:#1e1e1e;"></rect><text x="10" y="18.5" font-size="7.5" text-anchor="middle" style="fill:currentColor;stroke:none;font-weight:700;">1</text></svg>
           </button>
           <button class="page-settings-btn" onmousedown="event.preventDefault();" onclick="togglePageStrip(${idx}, 'header')" title="Header">
@@ -4360,10 +4393,90 @@
     // reorder) — separate from data-page-index, which is a stable identity assigned once at
     // creation and never reused, so the scope-choice modal can always find the right page.
     function renumberPages() {
-      document.querySelectorAll('.a4-page-unit').forEach(function(unit, i) {
+      renderAllPageNumbers();
+    }
+
+    // ---------- Page numbers: always on, chronological, same style/position/alignment
+    // everywhere — configured once via the popup, not per-page. ----------
+    // (pageNumberSettings is declared earlier in the file alongside the other pre-init state,
+    // for the TDZ reason explained up there.)
+
+    function formatPageNumberText(n, total, style) {
+      if (style === 'page') return 'Page ' + n;
+      if (style === 'fraction') return n + ' / ' + total;
+      return String(n);
+    }
+
+    function renderAllPageNumbers() {
+      const units = document.querySelectorAll('.a4-page-unit');
+      const total = units.length;
+      units.forEach(function(unit, i) {
         const numEl = unit.querySelector('.a4-page-number');
-        if (numEl) numEl.textContent = (i + 1);
+        const btn = unit.querySelector('button[title="Page Number"]');
+        if (numEl) {
+          numEl.textContent = formatPageNumberText(i + 1, total, pageNumberSettings.style);
+          numEl.classList.remove('pgnum-top', 'pgnum-bottom', 'pgnum-left', 'pgnum-center', 'pgnum-right',
+            'pgnum-style-plain', 'pgnum-style-page', 'pgnum-style-fraction');
+          numEl.classList.add('pgnum-' + pageNumberSettings.position, 'pgnum-' + pageNumberSettings.align,
+            'pgnum-style-' + pageNumberSettings.style);
+        }
+        // The settings icon only makes sense once, on whichever page is currently first —
+        // page numbers themselves apply everywhere regardless.
+        if (btn) btn.style.display = (i === 0) ? 'flex' : 'none';
       });
+    }
+
+    // Reconstructs pageNumberSettings from the DOM after a fresh load — the setting itself
+    // isn't saved separately, but its effect (classes on each .a4-page-number) is, since
+    // that's real markup captured in the page stack's own saved innerHTML.
+    function reinitPageNumberSettingsFromDom() {
+      const numEl = document.querySelector('.a4-page-number');
+      if (!numEl) return;
+      pageNumberSettings.position = numEl.classList.contains('pgnum-top') ? 'top' : 'bottom';
+      if (numEl.classList.contains('pgnum-left')) pageNumberSettings.align = 'left';
+      else if (numEl.classList.contains('pgnum-center')) pageNumberSettings.align = 'center';
+      else pageNumberSettings.align = 'right';
+      if (numEl.classList.contains('pgnum-style-page')) pageNumberSettings.style = 'page';
+      else if (numEl.classList.contains('pgnum-style-fraction')) pageNumberSettings.style = 'fraction';
+      else pageNumberSettings.style = 'plain';
+    }
+
+    function openPageNumberPopup(event) {
+      const popup = document.getElementById('pageNumberPopup');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+      syncPageNumberPopupUI();
+    }
+
+    function closePageNumberPopup() {
+      document.getElementById('pageNumberPopup').classList.remove('active');
+    }
+
+    function setPageNumberSetting(key, value) {
+      pageNumberSettings[key] = value;
+      renderAllPageNumbers();
+      syncPageNumberPopupUI();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function syncPageNumberPopupUI() {
+      document.getElementById('pgnumPosTop').classList.toggle('active', pageNumberSettings.position === 'top');
+      document.getElementById('pgnumPosBottom').classList.toggle('active', pageNumberSettings.position === 'bottom');
+      document.getElementById('pgnumAlignLeft').classList.toggle('active', pageNumberSettings.align === 'left');
+      document.getElementById('pgnumAlignCenter').classList.toggle('active', pageNumberSettings.align === 'center');
+      document.getElementById('pgnumAlignRight').classList.toggle('active', pageNumberSettings.align === 'right');
+      document.getElementById('pgnumStylePlain').classList.toggle('active', pageNumberSettings.style === 'plain');
+      document.getElementById('pgnumStylePage').classList.toggle('active', pageNumberSettings.style === 'page');
+      document.getElementById('pgnumStyleFraction').classList.toggle('active', pageNumberSettings.style === 'fraction');
     }
 
     function insertNewPageRelativeTo(refIdx, position) {
@@ -4557,15 +4670,6 @@
       const apply = function(unit) {
         const page = unit.querySelector('.a4-page');
         if (page) page.style.background = color;
-      };
-      apply.__scopeIdx = idx;
-      openPageScopeModal(apply);
-    }
-
-    function togglePageNumber(idx) {
-      const apply = function(unit) {
-        const numEl = unit.querySelector('.a4-page-number');
-        if (numEl) numEl.classList.toggle('active');
       };
       apply.__scopeIdx = idx;
       openPageScopeModal(apply);
