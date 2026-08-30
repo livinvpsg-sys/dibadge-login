@@ -372,6 +372,11 @@
       gap: 1px !important;
       max-height: 420px;
       overflow-y: auto;
+      /* Opens UPWARD from the trigger instead of downward — the Border icon sits low in the
+         toolbar rail, so a tall list anchored at the top would run off the bottom of the
+         screen and become impossible to see or scroll to. */
+      top: auto !important;
+      bottom: 0 !important;
     }
     .border-menu-item {
       display: flex;
@@ -1744,7 +1749,7 @@
       </div>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleColorPicker(event, 'fill')" title="Fill Color">
-          <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
+          <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z" style="fill:#ff3b30;"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
         </button>
         <div class="color-picker-popover" id="fillColorPopover">
           <div class="color-picker-swatches">
@@ -1836,15 +1841,10 @@
           </button>
           <div class="border-menu-divider"></div>
           <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="toggleBorderColorPicker(event)">
-            <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
+            <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z" style="fill:#ff3b30;"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
             <span>Border Color</span>
           </button>
         </div>
-      </div>
-      <div class="toolbar-flyout-group">
-        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleBorderColorPicker(event)" title="Border Color">
-          <svg viewBox="0 0 24 24"><path d="M19 11l-6-6-9 9 6 6z"></path><path d="M4 14l6 6"></path><line x1="19" y1="11" x2="19" y2="20"></line><line x1="15" y1="20" x2="23" y2="20"></line></svg>
-        </button>
         <div class="color-picker-popover" id="borderColorPopover">
           <div class="color-picker-swatches">
             <button class="color-swatch color-swatch-none" onmousedown="event.preventDefault();" onclick="pickBorderColor('none')" title="No Color"></button>
@@ -4614,8 +4614,9 @@
     document.addEventListener('mousedown', function(e) {
       if (colorPaintMode) return;
       if (e.target.closest('.color-picker-popover')) return;
+      if (e.target.closest('.toolbar-flyout-group')) return;
       if (e.target.closest('button[title="Fill Color"]') || e.target.closest('button[title="Text Color"]') ||
-          e.target.closest('button[title="Border Color"]') || e.target.closest('button[title="Page Color"]')) return;
+          e.target.closest('button[title="Page Color"]')) return;
       closeColorPicker();
     });
 
