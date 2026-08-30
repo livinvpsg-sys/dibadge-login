@@ -4344,12 +4344,23 @@
         e.stopPropagation();
         const startY = e.clientY;
         const startHeight = strip.offsetHeight;
+        function applyHeight(px) {
+          // Header/footer height stays identical everywhere too, same as their content —
+          // apply to every same-kind strip while linked, not just the one being dragged.
+          if (headerFooterLinked[kind]) {
+            document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(s) {
+              s.style.minHeight = px + 'px';
+            });
+          } else {
+            strip.style.minHeight = px + 'px';
+          }
+        }
         function onMove(ev) {
           const dy = ev.clientY - startY;
           // Dragging the footer's TOP edge upward should grow it (opposite sign from the
           // header's BOTTOM edge, which grows when dragged downward).
           const delta = kind === 'footer' ? -dy : dy;
-          strip.style.minHeight = Math.max(40, startHeight + delta) + 'px';
+          applyHeight(Math.max(40, startHeight + delta));
         }
         function onUp() {
           document.removeEventListener('pointermove', onMove);
@@ -4487,6 +4498,20 @@
       }
       renumberPages();
       wireAllPageUnits();
+      // Header/footer are meant to always be identical everywhere — if either is currently
+      // linked, this new page needs to start out already showing the same content (and the
+      // same manually-adjusted height), not blank and disconnected from the rest.
+      ['header', 'footer'].forEach(function(kind) {
+        if (!headerFooterLinked[kind]) return;
+        const newStrip = unit.querySelector('.a4-page-' + kind + '-strip');
+        const sourceStrip = document.querySelector('.a4-page-' + kind + '-strip.active');
+        if (!newStrip || !sourceStrip || sourceStrip === newStrip) return;
+        newStrip.classList.add('active');
+        newStrip.innerHTML = sourceStrip.innerHTML;
+        if (sourceStrip.style.minHeight) newStrip.style.minHeight = sourceStrip.style.minHeight;
+        rewireBlocksWithin(newStrip);
+        wireHfResizeHandle(newStrip, kind); // innerHTML replace above lost the handle's own listener
+      });
       moveZoomAndFabToLastPage();
       activePageEl = unit.querySelector('.a4-page');
       hasUnsavedChanges = true;
