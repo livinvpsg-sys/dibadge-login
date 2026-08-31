@@ -3637,11 +3637,18 @@
     // Native date inputs have the exact same value-vs-attribute persistence gap as plain text
     // inputs (see wireInputValueSync) — picking a date only updates the live .value property,
     // never the value="" attribute that innerHTML-based saving actually captures.
+    // Native date inputs have the exact same value-vs-attribute persistence gap as plain text
+    // inputs (see wireInputValueSync) — picking a date only updates the live .value property,
+    // never the value="" attribute that innerHTML-based saving actually captures. Also, any
+    // date being changed can push the window's last allowed day earlier or later, so the FAB's
+    // enabled state needs rechecking on every edit, not just on add/remove.
     function wireOneDateSlotInput(input) {
       if (!input || input._valueSyncWired) return;
       input._valueSyncWired = true;
       input.addEventListener('input', function() {
         input.setAttribute('value', input.value);
+        const block = input.closest('.date-block');
+        if (block) updateDateAddFabEnabledState(block);
       });
       input.addEventListener('click', function() {
         if (input.showPicker) { try { input.showPicker(); } catch (e) {} }
@@ -3656,8 +3663,7 @@
       document.getElementById('dateModeSingle').classList.toggle('active', mode === 'single');
       document.getElementById('dateModeMultiple').classList.toggle('active', mode === 'multiple');
       document.getElementById('dateCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
-      const currentCount = block.querySelectorAll('.date-slot').length;
-      document.getElementById('dateCountInput').value = Math.max(2, parseInt(block.dataset.dateCount, 10) || currentCount || 2);
+      document.getElementById('dateCountInput').value = parseInt(block.dataset.dateCount, 10) || 2;
 
       const popup = document.getElementById('dateEditPopup');
       const page = document.getElementById('formSheet');
@@ -3677,6 +3683,9 @@
       dateEditTargetBlock = null;
     }
 
+    // Multiple mode does NOT pre-fill several date buttons — it still shows just the one date
+    // it already had, plus the "+" FAB, so dates get added one at a time as each day is
+    // actually submitted (which may skip days), never a batch of pre-guessed dates.
     function setDateMode(mode) {
       if (!dateEditTargetBlock) return;
       const block = dateEditTargetBlock;
@@ -3693,36 +3702,22 @@
         delete block.dataset.dateCount;
         updateDateSlotsMultiState(block);
         updateDateAddFabVisibility(block);
-        hasUnsavedChanges = true;
-        pushHistorySnapshot();
       } else {
-        document.getElementById('dateCountInput').value = 2;
-        applyDateCount(2); // saves history itself
+        if (!block.dataset.dateCount) block.dataset.dateCount = '2';
+        document.getElementById('dateCountInput').value = block.dataset.dateCount;
+        updateDateAddFabVisibility(block);
       }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
-    // Setting the count regenerates every slot as consecutive days starting from whatever the
-    // first slot's date currently is — 7 dates starting the 1st means the 1st through the 7th,
-    // not 7 blank copies of today. The count also becomes a hard cap: see addAnotherDateSlot.
+    // Just sets the cap — does not add or regenerate any date buttons itself.
     function applyDateCount(value) {
       if (!dateEditTargetBlock) return;
       const block = dateEditTargetBlock;
       const target = Math.max(1, Math.min(60, parseInt(value, 10) || 1));
       block.dataset.dateCount = String(target);
-
-      const container = block.querySelector('.date-slots-container');
-      const firstInput = container.querySelector('.date-slot-input');
-      const firstDateStr = (firstInput && firstInput.value) ? firstInput.value : todayIsoDate();
-      const firstDate = new Date(firstDateStr + 'T00:00:00');
-      container.innerHTML = '';
-      for (let i = 0; i < target; i++) {
-        const d = new Date(firstDate);
-        d.setDate(d.getDate() + i);
-        container.insertAdjacentHTML('beforeend', buildDateSlotHtml(isoFromDate(d)));
-      }
-      container.querySelectorAll('.date-slot-input').forEach(function(inp) { wireOneDateSlotInput(inp); });
-      updateDateSlotsMultiState(block);
-      updateDateAddFabVisibility(block);
+      updateDateAddFabEnabledState(block);
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3736,31 +3731,45 @@
       updateDateAddFabEnabledState(block);
     }
 
-    // Once the slot count reaches the Number of Dates cap, the FAB disables itself — a pending
-    // date entry beyond that count is not allowed, even if the person adding dates wants one.
+    // The cap is measured in calendar days from the FIRST date, not in how many date buttons
+    // have actually been added — e.g. Number of Dates = 4 starting the 31st defines the window
+    // 31st–3rd. Someone can submit the 31st, the 1st, skip the 2nd, and go straight to the
+    // 3rd — only 3 real entries — but the 3rd is still the last day in that window, so once any
+    // entered date reaches it, the window is used up and no more dates can be added, even
+    // though fewer than 4 buttons exist.
     function updateDateAddFabEnabledState(block) {
       const fab = block.querySelector('.date-add-fab');
       if (!fab) return;
       const limit = parseInt(block.dataset.dateCount, 10);
-      const count = block.querySelectorAll('.date-slot').length;
-      const atLimit = !!limit && count >= limit;
-      fab.disabled = atLimit;
-      fab.title = atLimit ? 'Number of Dates limit reached' : 'Add another date';
+      if (!limit) { fab.disabled = false; fab.title = 'Add another date'; return; }
+
+      const inputs = Array.from(block.querySelectorAll('.date-slot-input'));
+      if (inputs.length === 0) { fab.disabled = false; fab.title = 'Add another date'; return; }
+
+      const firstStr = inputs[0].value || todayIsoDate();
+      const windowEnd = new Date(firstStr + 'T00:00:00');
+      windowEnd.setDate(windowEnd.getDate() + (limit - 1));
+
+      const reachedEnd = inputs.some(function(inp) {
+        if (!inp.value) return false;
+        return new Date(inp.value + 'T00:00:00').getTime() >= windowEnd.getTime();
+      });
+
+      fab.disabled = reachedEnd;
+      fab.title = reachedEnd ? 'Number of Dates limit reached' : 'Add another date';
     }
 
     function addAnotherDateSlot(block) {
+      const fab = block.querySelector('.date-add-fab');
+      if (fab && fab.disabled) return; // the date window is already used up
+
       const container = block.querySelector('.date-slots-container');
-      const limit = parseInt(block.dataset.dateCount, 10);
-      const currentCount = container.querySelectorAll('.date-slot').length;
-      if (limit && currentCount >= limit) return; // hard cap — no more dates allowed
+      const inputs = Array.from(container.querySelectorAll('.date-slot-input'));
+      const lastStr = (inputs.length ? inputs[inputs.length - 1].value : '') || todayIsoDate();
+      const suggested = new Date(lastStr + 'T00:00:00');
+      suggested.setDate(suggested.getDate() + 1); // just a starting suggestion — freely editable
 
-      const firstInput = container.querySelector('.date-slot-input');
-      const firstDateStr = (firstInput && firstInput.value) ? firstInput.value : todayIsoDate();
-      const firstDate = new Date(firstDateStr + 'T00:00:00');
-      const nextDate = new Date(firstDate);
-      nextDate.setDate(nextDate.getDate() + currentCount);
-
-      container.insertAdjacentHTML('beforeend', buildDateSlotHtml(isoFromDate(nextDate)));
+      container.insertAdjacentHTML('beforeend', buildDateSlotHtml(isoFromDate(suggested)));
       wireOneDateSlotInput(container.lastElementChild.querySelector('.date-slot-input'));
       updateDateSlotsMultiState(block);
       updateDateAddFabEnabledState(block);
