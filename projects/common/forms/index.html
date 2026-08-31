@@ -525,9 +525,10 @@
       width: 100%;
       border: none;
       outline: none;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 4px 2px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 2px 2px 6px 2px;
+      margin-bottom: 8px;
       background: transparent;
       color: #1a1a1a;
       font-family: inherit;
@@ -537,7 +538,7 @@
       word-break: break-word;
       overflow-wrap: break-word;
     }
-    .qa-question-input:empty:before { content: attr(data-placeholder); color: #999; font-weight: 700; }
+    .qa-question-input:empty:before { content: attr(data-placeholder); color: #999; }
     .qa-answer-box {
       position: relative;
       border: 1px solid #999;
@@ -719,9 +720,9 @@
       width: auto;
       border: none;
       outline: none;
-      font-weight: 700;
-      font-size: 1rem;
-      padding: 4px 2px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 2px 2px 6px 2px;
       background: transparent;
       color: #1a1a1a;
       font-family: inherit;
@@ -730,7 +731,7 @@
       word-break: break-word;
       overflow-wrap: break-word;
     }
-    .btn-question-input:empty:before { content: attr(data-placeholder); color: #999; font-weight: 700; }
+    .btn-question-input:empty:before { content: attr(data-placeholder); color: #999; }
     .btn-shapes-container {
       display: flex;
       gap: 8px;
@@ -2848,6 +2849,22 @@
       pushHistorySnapshot();
     }
 
+    // Extends a question's typing width all the way to the page's right edge, independent of
+    // the (possibly much narrower) answer box / options / buttons sitting below it — so
+    // wrapping happens when text reaches the actual page edge or Enter is pressed, not
+    // whatever width that other element happens to be. Called on insert, on load/rewire (both
+    // go through the block's own wireXBlockInteractions), and again on every move since the
+    // available space changes with the block's position.
+    function updateQuestionRowWidth(block) {
+      const row = block.querySelector('.qa-question-row, .qopt-question-row, .btn-question-row');
+      if (!row) return;
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      if (!page) return;
+      const blockLeft = parseFloat(block.style.left) || 0;
+      const available = page.clientWidth - blockLeft - 20;
+      row.style.width = Math.max(120, available) + 'px';
+    }
+
     function wireQoptBlockInteractions(block) {
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.qopt-move-handle');
@@ -2855,6 +2872,7 @@
       const deleteHandle = block.querySelector('.qopt-delete-handle');
       const rightHandle = block.querySelector('.qopt-resize-right');
       const container = block.querySelector('.qopt-options-container');
+      updateQuestionRowWidth(block);
 
       // One shared editable region for all the options — options sit inline, flowing and
       // wrapping like words in a sentence, and pressing Enter behaves exactly like it does in
@@ -2901,6 +2919,7 @@
           const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
           block.style.left = snapped.left + 'px';
           block.style.top = snapped.top + 'px';
+          updateQuestionRowWidth(block);
           hasUnsavedChanges = true;
         }
         function onUp() {
@@ -3388,6 +3407,7 @@
       const rightHandle = block.querySelector('.qa-resize-right');
       const bottomHandle = block.querySelector('.qa-resize-bottom');
       const answerBox = block.querySelector('.qa-answer-box');
+      updateQuestionRowWidth(block);
 
       // Delete — removes this whole Question & Answer block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
@@ -3421,6 +3441,7 @@
           const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
           block.style.left = snapped.left + 'px';
           block.style.top = snapped.top + 'px';
+          updateQuestionRowWidth(block);
           hasUnsavedChanges = true;
         }
         function onUp() {
@@ -3564,6 +3585,7 @@
       const rightHandle = block.querySelector('.btn-resize-right');
       const bottomHandle = block.querySelector('.btn-resize-bottom');
       const container = block.querySelector('.btn-shapes-container');
+      updateQuestionRowWidth(block);
 
       // Wire click-to-highlight for every button shape currently in the group
       container.querySelectorAll('.btn-shape').forEach(function(shape) {
@@ -3610,6 +3632,7 @@
           const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
           block.style.left = snapped.left + 'px';
           block.style.top = snapped.top + 'px';
+          updateQuestionRowWidth(block);
           hasUnsavedChanges = true;
         }
         function onUp() {
