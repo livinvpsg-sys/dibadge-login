@@ -1319,14 +1319,14 @@
     .date-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 90px; height: 34px;
+      width: 118px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
       align-items: flex-start;
       gap: 6px;
     }
-    .date-move-handle, .date-delete-handle {
+    .date-move-handle, .date-delete-handle, .date-edit-handle {
       display: none;
       align-items: center;
       justify-content: center;
@@ -1339,12 +1339,16 @@
       user-select: none;
       flex-shrink: 0;
     }
-    .date-move-handle svg, .date-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .date-move-handle svg, .date-delete-handle svg, .date-edit-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
     .date-move-handle { cursor: move; }
+    .date-edit-handle { cursor: pointer; }
+    .date-edit-handle:hover { border-color: #14b8a6; }
+    .date-edit-handle:hover svg { stroke: #14b8a6; }
     .date-delete-handle { cursor: pointer; }
     .date-delete-handle:hover { border-color: #ff3b30; }
     .date-delete-handle:hover svg { stroke: #ff3b30; }
     .date-move-zone:hover .date-move-handle,
+    .date-move-zone:hover .date-edit-handle,
     .date-move-zone:hover .date-delete-handle,
     .date-move-zone:hover .required-toggle-handle { display: flex; }
 
@@ -1420,6 +1424,8 @@
     }
     .date-add-fab:hover { background: #0d9488; }
     .date-add-fab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+    .date-add-fab:disabled { background: #ccc; cursor: not-allowed; }
+    .date-add-fab:disabled:hover { background: #ccc; }
 
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
@@ -1850,6 +1856,24 @@
         </div>
       </div>
       <button class="textbox-popup-close-btn" onclick="closePersonEditPopup()">Done</button>
+    </div>
+
+    <!-- Date object edit popup — one date, or multiple with a count. Multiple auto-fills as
+         consecutive days starting from the first date, and the count is a hard cap on how
+         many can ever be added, not just a starting suggestion. -->
+    <div class="textbox-edit-popup" id="dateEditPopup" onclick="event.stopPropagation()">
+      <div class="textbox-popup-section">
+        <div class="textbox-popup-label">Number of Dates</div>
+        <div class="textbox-valign-row">
+          <button class="textbox-valign-btn" id="dateModeSingle" onclick="setDateMode('single')">One Date</button>
+          <button class="textbox-valign-btn" id="dateModeMultiple" onclick="setDateMode('multiple')">Multiple Dates</button>
+        </div>
+      </div>
+      <div class="textbox-popup-section" id="dateCountSection" style="display:none;">
+        <div class="textbox-popup-label">Number of Dates</div>
+        <input type="number" class="group-modal-input table-size-number-input" id="dateCountInput" min="2" max="60" style="margin-bottom:0;" onchange="applyDateCount(this.value)">
+      </div>
+      <button class="textbox-popup-close-btn" onclick="closeDateEditPopup()">Done</button>
     </div>
 
     <!-- Page Number settings — position, alignment, and style. Always shown on every page in
@@ -3500,10 +3524,11 @@
       return d.getFullYear() + '-' + mm + '-' + dd;
     }
 
-    function buildDateSlotHtml() {
+    function buildDateSlotHtml(dateValue) {
+      const val = dateValue || todayIsoDate();
       return `
         <div class="date-slot">
-          <input type="date" class="date-slot-input" value="${todayIsoDate()}">
+          <input type="date" class="date-slot-input" value="${val}">
           <button class="date-slot-delete-btn" title="Remove this date" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); removeDateSlot(this);">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -3511,11 +3536,18 @@
       `;
     }
 
+    function isoFromDate(d) {
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
     function insertDateBlock() {
       const page = getActivePage();
       const block = document.createElement('div');
       block.className = 'date-block';
       block.contentEditable = 'false';
+      block.dataset.dateMode = 'single';
       block.style.left = (20 + qaBlockCascadeOffset) + 'px';
       block.style.top = (20 + qaBlockCascadeOffset) + 'px';
       block.style.width = '260px';
@@ -3524,6 +3556,7 @@
       block.innerHTML = `
         <div class="date-move-zone">
           <div class="date-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="date-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="date-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
           <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
         </div>
@@ -3532,7 +3565,7 @@
           <div class="date-heading-input" contenteditable="true" data-placeholder="Heading (e.g. Issue Date)"></div>
         </div>
         <div class="date-slots-container">${buildDateSlotHtml()}</div>
-        <button class="date-add-fab" title="Add another date" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherDateSlot(this.closest('.date-block'));">
+        <button class="date-add-fab" title="Add another date" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherDateSlot(this.closest('.date-block'));" style="display:none;">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       `;
@@ -3545,9 +3578,11 @@
     function wireDateBlockInteractions(block) {
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.date-move-handle');
+      const editHandle = block.querySelector('.date-edit-handle');
       const deleteHandle = block.querySelector('.date-delete-handle');
       block.querySelectorAll('.date-slot-input').forEach(function(input) { wireOneDateSlotInput(input); });
       updateDateSlotsMultiState(block);
+      updateDateAddFabVisibility(block);
       updateQuestionRowWidth(block);
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
@@ -3557,6 +3592,13 @@
         block.remove();
         hasUnsavedChanges = true;
         pushHistorySnapshot();
+      });
+
+      editHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      editHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDateEditPopup(block);
       });
 
       moveHandle.addEventListener('pointerdown', function(e) {
@@ -3606,11 +3648,122 @@
       });
     }
 
+    let dateEditTargetBlock = null;
+
+    function openDateEditPopup(block) {
+      dateEditTargetBlock = block;
+      const mode = block.dataset.dateMode || 'single';
+      document.getElementById('dateModeSingle').classList.toggle('active', mode === 'single');
+      document.getElementById('dateModeMultiple').classList.toggle('active', mode === 'multiple');
+      document.getElementById('dateCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
+      const currentCount = block.querySelectorAll('.date-slot').length;
+      document.getElementById('dateCountInput').value = Math.max(2, parseInt(block.dataset.dateCount, 10) || currentCount || 2);
+
+      const popup = document.getElementById('dateEditPopup');
+      const page = document.getElementById('formSheet');
+      const pageRect = page.getBoundingClientRect();
+      popup.classList.add('active');
+      const popupWidth = popup.offsetWidth;
+      let left = pageRect.right + 10;
+      left = Math.min(left, window.innerWidth - popupWidth - 8);
+      let top = pageRect.top + 20;
+      top = Math.max(8, Math.min(top, window.innerHeight - popup.offsetHeight - 8));
+      popup.style.left = left + 'px';
+      popup.style.top = top + 'px';
+    }
+
+    function closeDateEditPopup() {
+      document.getElementById('dateEditPopup').classList.remove('active');
+      dateEditTargetBlock = null;
+    }
+
+    function setDateMode(mode) {
+      if (!dateEditTargetBlock) return;
+      const block = dateEditTargetBlock;
+      block.dataset.dateMode = mode;
+      document.getElementById('dateModeSingle').classList.toggle('active', mode === 'single');
+      document.getElementById('dateModeMultiple').classList.toggle('active', mode === 'multiple');
+      document.getElementById('dateCountSection').style.display = (mode === 'multiple') ? 'block' : 'none';
+
+      if (mode === 'single') {
+        const container = block.querySelector('.date-slots-container');
+        const firstVal = container.querySelector('.date-slot-input') ? container.querySelector('.date-slot-input').value : todayIsoDate();
+        container.innerHTML = buildDateSlotHtml(firstVal);
+        wireOneDateSlotInput(container.querySelector('.date-slot-input'));
+        delete block.dataset.dateCount;
+        updateDateSlotsMultiState(block);
+        updateDateAddFabVisibility(block);
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      } else {
+        document.getElementById('dateCountInput').value = 2;
+        applyDateCount(2); // saves history itself
+      }
+    }
+
+    // Setting the count regenerates every slot as consecutive days starting from whatever the
+    // first slot's date currently is — 7 dates starting the 1st means the 1st through the 7th,
+    // not 7 blank copies of today. The count also becomes a hard cap: see addAnotherDateSlot.
+    function applyDateCount(value) {
+      if (!dateEditTargetBlock) return;
+      const block = dateEditTargetBlock;
+      const target = Math.max(1, Math.min(60, parseInt(value, 10) || 1));
+      block.dataset.dateCount = String(target);
+
+      const container = block.querySelector('.date-slots-container');
+      const firstInput = container.querySelector('.date-slot-input');
+      const firstDateStr = (firstInput && firstInput.value) ? firstInput.value : todayIsoDate();
+      const firstDate = new Date(firstDateStr + 'T00:00:00');
+      container.innerHTML = '';
+      for (let i = 0; i < target; i++) {
+        const d = new Date(firstDate);
+        d.setDate(d.getDate() + i);
+        container.insertAdjacentHTML('beforeend', buildDateSlotHtml(isoFromDate(d)));
+      }
+      container.querySelectorAll('.date-slot-input').forEach(function(inp) { wireOneDateSlotInput(inp); });
+      updateDateSlotsMultiState(block);
+      updateDateAddFabVisibility(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // The FAB is only shown in Multiple mode; One Date has nothing to add.
+    function updateDateAddFabVisibility(block) {
+      const fab = block.querySelector('.date-add-fab');
+      if (!fab) return;
+      const mode = block.dataset.dateMode || 'single';
+      fab.style.display = (mode === 'multiple') ? 'flex' : 'none';
+      updateDateAddFabEnabledState(block);
+    }
+
+    // Once the slot count reaches the Number of Dates cap, the FAB disables itself — a pending
+    // date entry beyond that count is not allowed, even if the person adding dates wants one.
+    function updateDateAddFabEnabledState(block) {
+      const fab = block.querySelector('.date-add-fab');
+      if (!fab) return;
+      const limit = parseInt(block.dataset.dateCount, 10);
+      const count = block.querySelectorAll('.date-slot').length;
+      const atLimit = !!limit && count >= limit;
+      fab.disabled = atLimit;
+      fab.title = atLimit ? 'Number of Dates limit reached' : 'Add another date';
+    }
+
     function addAnotherDateSlot(block) {
       const container = block.querySelector('.date-slots-container');
-      container.insertAdjacentHTML('beforeend', buildDateSlotHtml());
+      const limit = parseInt(block.dataset.dateCount, 10);
+      const currentCount = container.querySelectorAll('.date-slot').length;
+      if (limit && currentCount >= limit) return; // hard cap — no more dates allowed
+
+      const firstInput = container.querySelector('.date-slot-input');
+      const firstDateStr = (firstInput && firstInput.value) ? firstInput.value : todayIsoDate();
+      const firstDate = new Date(firstDateStr + 'T00:00:00');
+      const nextDate = new Date(firstDate);
+      nextDate.setDate(nextDate.getDate() + currentCount);
+
+      container.insertAdjacentHTML('beforeend', buildDateSlotHtml(isoFromDate(nextDate)));
       wireOneDateSlotInput(container.lastElementChild.querySelector('.date-slot-input'));
       updateDateSlotsMultiState(block);
+      updateDateAddFabEnabledState(block);
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3626,6 +3779,7 @@
         wireOneDateSlotInput(container.querySelector('.date-slot-input'));
       }
       updateDateSlotsMultiState(block);
+      updateDateAddFabEnabledState(block);
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
