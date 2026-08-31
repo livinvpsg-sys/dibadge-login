@@ -471,7 +471,7 @@
     .qa-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 62px; height: 34px;
+      width: 90px; height: 34px;
       z-index: 5;
       pointer-events: auto; /* taller zone spans down to the block's corner so hovering there
                                 still triggers it, while the icons render at the top with
@@ -480,7 +480,7 @@
       align-items: flex-start;
       gap: 6px;
     }
-    .qa-move-handle, .qa-delete-handle {
+    .qa-move-handle, .qa-delete-handle, .required-toggle-handle {
       display: none;
       align-items: center;
       justify-content: center;
@@ -499,7 +499,27 @@
     .qa-delete-handle:hover { border-color: #ff3b30; }
     .qa-delete-handle:hover svg { stroke: #ff3b30; }
     .qa-move-zone:hover .qa-move-handle,
-    .qa-move-zone:hover .qa-delete-handle { display: flex; }
+    .qa-move-zone:hover .qa-delete-handle,
+    .qa-move-zone:hover .required-toggle-handle { display: flex; }
+    /* Shared "mark as required" toggle — used by Q&A, Question & Options, and the Contact
+       object only, per the actual form fields that need a required indicator. Clicking it
+       shows/hides a red asterisk on that object's own heading/question text. */
+    .required-toggle-handle { cursor: pointer; }
+    .required-toggle-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .required-toggle-handle:hover { border-color: #ff3b30; }
+    .required-toggle-handle:hover svg { stroke: #ff3b30; }
+    .required-toggle-handle.required-active { background: #fff0f0; border-color: #ff3b30; }
+    .required-toggle-handle.required-active svg { stroke: #ff3b30; fill: #ff3b30; }
+    .required-marker {
+      display: none;
+      color: #ff3b30;
+      font-weight: 800;
+      margin-right: 3px;
+      flex-shrink: 0;
+    }
+    .required-marker.active { display: inline; }
+    .qa-question-row { display: flex; align-items: center; }
+    .qa-question-row .qa-question-input { flex: 1; width: auto; }
     .qa-question-input {
       display: block;
       width: 100%;
@@ -551,7 +571,7 @@
     .qopt-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 90px; height: 34px;
+      width: 118px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
@@ -581,8 +601,11 @@
     .qopt-delete-handle:hover svg { stroke: #ff3b30; }
     .qopt-move-zone:hover .qopt-move-handle,
     .qopt-move-zone:hover .qopt-edit-handle,
-    .qopt-move-zone:hover .qopt-delete-handle { display: flex; }
+    .qopt-move-zone:hover .qopt-delete-handle,
+    .qopt-move-zone:hover .required-toggle-handle { display: flex; }
 
+    .qopt-question-row { display: flex; align-items: center; }
+    .qopt-question-row .qopt-question-input { flex: 1; width: auto; }
     .qopt-question-input {
       display: block;
       width: 100%;
@@ -651,7 +674,7 @@
     .btn-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 62px; height: 34px;
+      width: 90px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
@@ -677,8 +700,23 @@
     .btn-delete-handle:hover { border-color: #ff3b30; }
     .btn-delete-handle:hover svg { stroke: #ff3b30; }
     .btn-move-zone:hover .btn-move-handle,
-    .btn-move-zone:hover .btn-delete-handle { display: flex; }
+    .btn-move-zone:hover .btn-delete-handle,
+    .btn-move-zone:hover .required-toggle-handle { display: flex; }
     .btn-shape-wrapper { position: relative; }
+    .btn-question-row { display: flex; align-items: center; pointer-events: auto; margin-bottom: 4px; }
+    .btn-question-input {
+      flex: 1;
+      width: auto;
+      border: none;
+      outline: none;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 4px 2px;
+      background: transparent;
+      color: #1a1a1a;
+      font-family: inherit;
+      pointer-events: auto;
+    }
     .btn-shapes-container {
       display: flex;
       gap: 8px;
@@ -1122,6 +1160,7 @@
     .person-mock-contact:hover { background: rgba(255,255,255,0.08); }
     .person-mock-contact-multi { display: flex; align-items: center; gap: 10px; }
     .person-mock-checkbox { width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+    .person-bottom-row { display: flex; align-items: center; margin-top: 8px; }
     .person-add-fab {
       display: none;
       align-items: center;
@@ -1132,15 +1171,29 @@
       border: none;
       color: #fff;
       cursor: pointer;
-      margin-top: 8px;
       pointer-events: auto;
     }
     .person-add-fab:hover { background: #0d9488; }
     .person-add-fab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+    .person-send-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #0a84ff;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+      margin-left: auto;
+    }
+    .person-send-btn:hover { background: #0870d6; }
+    .person-send-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: currentColor; stroke-width: 1; }
     .person-move-zone {
       position: absolute;
       top: -26px; left: -2px;
-      width: 90px; height: 34px;
+      width: 118px; height: 34px;
       z-index: 5;
       pointer-events: auto;
       display: flex;
@@ -1170,8 +1223,11 @@
     .person-delete-handle:hover svg { stroke: #ff3b30; }
     .person-move-zone:hover .person-move-handle,
     .person-move-zone:hover .person-edit-handle,
-    .person-move-zone:hover .person-delete-handle { display: flex; }
+    .person-move-zone:hover .person-delete-handle,
+    .person-move-zone:hover .required-toggle-handle { display: flex; }
 
+    .person-heading-row { display: flex; align-items: center; }
+    .person-heading-row .person-heading-input { flex: 1; width: auto; }
     .person-heading-input {
       display: block;
       width: 100%;
@@ -1215,7 +1271,7 @@
       border-bottom: 1px solid #ddd;
     }
     .person-slot-input:empty:before { content: attr(data-placeholder); color: #aaa; }
-    .person-scan-btn, .person-contact-btn {
+    .person-scan-btn, .person-contact-btn, .person-slot-delete-btn {
       flex-shrink: 0;
       width: 24px; height: 24px;
       border-radius: 5px;
@@ -1227,8 +1283,18 @@
       pointer-events: auto;
       cursor: pointer;
     }
-    .person-scan-btn svg, .person-contact-btn svg { width: 14px; height: 14px; stroke: #666; fill: none; stroke-width: 1.7; }
+    .person-scan-btn svg, .person-contact-btn svg, .person-slot-delete-btn svg { width: 14px; height: 14px; stroke: #666; fill: none; stroke-width: 1.7; }
     .person-scan-btn:hover, .person-contact-btn:hover { background: #e0e0e0; }
+    .person-slot-delete-btn:hover { background: #ffe0e0; border-color: #ff3b30; }
+    .person-slot-delete-btn:hover svg { stroke: #ff3b30; }
+    .person-slot-delete-btn.person-slot-sent {
+      background: #e6f7f0;
+      border-color: #14b8a6;
+      cursor: default;
+    }
+    .person-slot-delete-btn.person-slot-sent svg { stroke: #14b8a6; }
+    .person-slot-delete-btn.person-slot-sent:hover { background: #e6f7f0; border-color: #14b8a6; }
+    .person-slot-delete-btn.person-slot-sent:hover svg { stroke: #14b8a6; }
 
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
@@ -2691,8 +2757,12 @@
         <div class="qa-move-zone">
           <div class="qa-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
           <div class="qa-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+          <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
         </div>
-        <input type="text" class="qa-question-input" placeholder="Question">
+        <div class="qa-question-row">
+          <span class="required-marker">*</span>
+          <input type="text" class="qa-question-input" placeholder="Question">
+        </div>
         <div class="qa-answer-box">
           <div class="qa-resize-right"></div>
           <div class="qa-resize-bottom"></div>
@@ -2734,8 +2804,12 @@
           <div class="qopt-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
           <div class="qopt-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="qopt-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+          <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
         </div>
-        <input type="text" class="qopt-question-input" placeholder="Question">
+        <div class="qopt-question-row">
+          <span class="required-marker">*</span>
+          <input type="text" class="qopt-question-input" placeholder="Question">
+        </div>
         <div class="qopt-options-wrapper">
           <div class="qopt-options-container" contenteditable="true">${buildQoptInlineOptionHtml()}</div>
           <div class="qopt-resize-right"></div>
@@ -2904,6 +2978,9 @@
           <button class="person-contact-btn" title="Contacts" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); openPersonContactMock(this);">
             <svg viewBox="0 0 24 24"><path d="M6 2h13a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><line x1="3.3" y1="7" x2="5" y2="7"></line><line x1="3.3" y1="12" x2="5" y2="12"></line><line x1="3.3" y1="17" x2="5" y2="17"></line><circle cx="12.5" cy="10" r="2"></circle><path d="M9 16.5c0-1.9 1.6-3 3.5-3s3.5 1.1 3.5 3"></path></svg>
           </button>
+          <button class="person-slot-delete-btn" title="Remove this person" style="display:none;" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); removePersonSlot(this);">
+            <svg class="person-slot-delete-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
         </div>
       `;
     }
@@ -2924,12 +3001,21 @@
           <div class="person-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
           <div class="person-edit-handle" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
           <div class="person-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+          <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
         </div>
-        <input type="text" class="person-heading-input" placeholder="Heading (e.g. Workers Name)">
+        <div class="person-heading-row">
+          <span class="required-marker">*</span>
+          <input type="text" class="person-heading-input" placeholder="Heading (e.g. Workers Name)">
+        </div>
         <div class="person-slots-container">${buildPersonSlotHtml()}</div>
-        <button class="person-add-fab" title="Add another person" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherPersonSlot(this.closest('.person-block'));" style="display:none;">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
+        <div class="person-bottom-row">
+          <button class="person-add-fab" title="Add another person" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherPersonSlot(this.closest('.person-block'));" style="display:none;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          </button>
+          <button class="person-send-btn" title="Send for digital signature (mock — real sending happens once the mobile app exists)" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); sendPersonFormMock(this.closest('.person-block'));">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
       `;
       page.appendChild(block);
       wirePersonBlockInteractions(block);
@@ -2943,6 +3029,7 @@
       const editHandle = block.querySelector('.person-edit-handle');
       const deleteHandle = block.querySelector('.person-delete-handle');
       wireInputValueSync(block.querySelector('.person-heading-input'));
+      block.querySelectorAll('.person-slot').forEach(function(slot) { wireOnePersonSlot(slot); });
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
       deleteHandle.addEventListener('click', function(e) {
@@ -3029,6 +3116,7 @@
       // another" FAB is available afterward, not how many slots you start with.
       const container = personEditTargetBlock.querySelector('.person-slots-container');
       container.innerHTML = buildPersonSlotHtml();
+      wireOnePersonSlot(container.querySelector('.person-slot'));
       updatePersonAddFabVisibility(personEditTargetBlock);
       hasUnsavedChanges = true;
       pushHistorySnapshot();
@@ -3044,6 +3132,84 @@
     function addAnotherPersonSlot(block) {
       const container = block.querySelector('.person-slots-container');
       container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
+      wireOnePersonSlot(container.lastElementChild);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Wires the content-based icon swap for one slot: empty shows Scan/Contacts (ways to add
+    // this person), filled shows just a delete button (the only thing left to do once a
+    // person's in place is remove them).
+    function wireOnePersonSlot(slot) {
+      if (!slot || slot._personSlotWired) return;
+      slot._personSlotWired = true;
+      const input = slot.querySelector('.person-slot-input');
+      input.addEventListener('input', function() { updateSlotButtonVisibility(slot); });
+      updateSlotButtonVisibility(slot); // also sets correct initial state for reloaded slots
+
+      // The "sent" class survives reload (it's a real HTML class), but disabling the click
+      // was only a runtime JS property, not something innerHTML captures — so a reloaded
+      // "sent" slot needs its click re-disabled here, or the tick mark would be clickable
+      // again despite looking done.
+      const deleteBtn = slot.querySelector('.person-slot-delete-btn');
+      if (deleteBtn.classList.contains('person-slot-sent')) deleteBtn.onclick = null;
+    }
+
+    function updateSlotButtonVisibility(slot) {
+      const input = slot.querySelector('.person-slot-input');
+      const hasValue = input.textContent.trim().length > 0;
+      slot.querySelector('.person-scan-btn').style.display = hasValue ? 'none' : 'flex';
+      slot.querySelector('.person-contact-btn').style.display = hasValue ? 'none' : 'flex';
+      slot.querySelector('.person-slot-delete-btn').style.display = hasValue ? 'flex' : 'none';
+    }
+
+    // Removes just this one person, not the whole object. Always leaves at least one (empty)
+    // slot behind so there's still somewhere to add the next person.
+    function removePersonSlot(btn) {
+      const slot = btn.closest('.person-slot');
+      const block = btn.closest('.person-block');
+      const container = block.querySelector('.person-slots-container');
+      slot.remove();
+      if (container.querySelectorAll('.person-slot').length === 0) {
+        container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
+        wireOnePersonSlot(container.lastElementChild);
+      }
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Called after any add-a-person operation (scan, single contact, multi-contact) — clears
+    // out any OTHER slots left empty from earlier, so filled entries always sit contiguously
+    // with no gaps in between, no matter which slot the add button was clicked from.
+    function removeEmptyPersonSlots(block) {
+      if (!block) return;
+      block.querySelectorAll('.person-slot').forEach(function(slot) {
+        const input = slot.querySelector('.person-slot-input');
+        if (!input.textContent.trim()) slot.remove();
+      });
+      const container = block.querySelector('.person-slots-container');
+      if (container.querySelectorAll('.person-slot').length === 0) {
+        container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
+        wireOnePersonSlot(container.lastElementChild);
+      }
+    }
+
+    // Mock only — there's no real backend or mobile app here to actually deliver a signature
+    // request. This just simulates the visual state change: each filled person's delete
+    // button becomes a tick mark, showing they've been "sent" and are awaiting signature.
+    function sendPersonFormMock(block) {
+      const filledSlots = Array.from(block.querySelectorAll('.person-slot')).filter(function(slot) {
+        return slot.querySelector('.person-slot-input').textContent.trim().length > 0;
+      });
+      if (filledSlots.length === 0) return;
+      filledSlots.forEach(function(slot) {
+        const btn = slot.querySelector('.person-slot-delete-btn');
+        btn.classList.add('person-slot-sent');
+        btn.title = 'Sent — awaiting signature (mock)';
+        btn.onclick = null;
+        btn.querySelector('.person-slot-delete-icon').outerHTML =
+          '<svg class="person-slot-delete-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      });
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
@@ -3110,6 +3276,8 @@
     function selectMockContact(name) {
       if (personPickerTargetSlot) {
         personPickerTargetSlot.textContent = name;
+        updateSlotButtonVisibility(personPickerTargetSlot.closest('.person-slot'));
+        removeEmptyPersonSlots(personPickerTargetBlock);
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       }
@@ -3129,8 +3297,13 @@
             const container = personPickerTargetBlock.querySelector('.person-slots-container');
             for (let i = 1; i < checked.length; i++) {
               container.insertAdjacentHTML('beforeend', buildPersonSlotHtml());
-              container.lastElementChild.querySelector('.person-slot-input').textContent = checked[i];
+              const newSlot = container.lastElementChild;
+              newSlot.querySelector('.person-slot-input').textContent = checked[i];
+              wireOnePersonSlot(newSlot);
+              updateSlotButtonVisibility(newSlot);
             }
+            if (personPickerTargetSlot) updateSlotButtonVisibility(personPickerTargetSlot.closest('.person-slot'));
+            removeEmptyPersonSlots(personPickerTargetBlock);
           }
           hasUnsavedChanges = true;
           pushHistorySnapshot();
@@ -3140,6 +3313,8 @@
         const input = document.getElementById('personPickerInput');
         if (personPickerTargetSlot && input.value.trim()) {
           personPickerTargetSlot.textContent = input.value.trim();
+          updateSlotButtonVisibility(personPickerTargetSlot.closest('.person-slot'));
+          removeEmptyPersonSlots(personPickerTargetBlock);
           hasUnsavedChanges = true;
           pushHistorySnapshot();
         }
@@ -3159,11 +3334,25 @@
     // silently lost on reload, since innerHTML serialization only sees the ORIGINAL attribute,
     // never the live value. This keeps the attribute in sync on every keystroke.
     function wireInputValueSync(input) {
-      if (!input || input.dataset.valueSyncWired) return;
-      input.dataset.valueSyncWired = '1';
+      if (!input || input._valueSyncWired) return;
+      input._valueSyncWired = true;
       input.addEventListener('input', function() {
         input.setAttribute('value', input.value);
       });
+    }
+
+    // Shared by Q&A, Question & Options, and the Contact object — the only field types that
+    // actually need a "required" indicator. Toggles a red asterisk on that object's own
+    // heading/question text.
+    function toggleRequiredMarker(btn) {
+      const block = btn.closest('.qa-block, .qopt-block, .person-block, .btn-block');
+      if (!block) return;
+      const marker = block.querySelector('.required-marker');
+      if (!marker) return;
+      const isActive = marker.classList.toggle('active');
+      btn.classList.toggle('required-active', isActive);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
     }
 
     function wireQaBlockInteractions(block) {
@@ -3302,6 +3491,11 @@
         <div class="btn-move-zone">
           <div class="btn-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
           <div class="btn-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+          <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
+        </div>
+        <div class="btn-question-row">
+          <span class="required-marker">*</span>
+          <input type="text" class="btn-question-input" placeholder="Question">
         </div>
         <div class="btn-shape-wrapper">
           <div class="btn-shapes-container">
@@ -3343,6 +3537,7 @@
       const rightHandle = block.querySelector('.btn-resize-right');
       const bottomHandle = block.querySelector('.btn-resize-bottom');
       const container = block.querySelector('.btn-shapes-container');
+      wireInputValueSync(block.querySelector('.btn-question-input'));
 
       // Wire click-to-highlight for every button shape currently in the group
       container.querySelectorAll('.btn-shape').forEach(function(shape) {
