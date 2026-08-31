@@ -518,7 +518,7 @@
       flex-shrink: 0;
     }
     .required-marker.active { display: inline; }
-    .qa-question-row { display: flex; align-items: center; }
+    .qa-question-row { display: flex; align-items: flex-start; }
     .qa-question-row .qa-question-input { flex: 1; width: auto; }
     .qa-question-input {
       display: block;
@@ -533,8 +533,11 @@
       font-family: inherit;
       box-sizing: border-box;
       pointer-events: auto; /* needs to be typable */
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
-    .qa-question-input::placeholder { color: #999; font-weight: 700; }
+    .qa-question-input:empty:before { content: attr(data-placeholder); color: #999; font-weight: 700; }
     .qa-answer-box {
       position: relative;
       border: 1px solid #999;
@@ -604,7 +607,7 @@
     .qopt-move-zone:hover .qopt-delete-handle,
     .qopt-move-zone:hover .required-toggle-handle { display: flex; }
 
-    .qopt-question-row { display: flex; align-items: center; }
+    .qopt-question-row { display: flex; align-items: flex-start; }
     .qopt-question-row .qopt-question-input { flex: 1; width: auto; }
     .qopt-question-input {
       display: block;
@@ -619,8 +622,11 @@
       outline: none;
       box-sizing: border-box;
       pointer-events: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
-    .qopt-question-input::placeholder { color: #999; }
+    .qopt-question-input:empty:before { content: attr(data-placeholder); color: #999; }
     .qopt-options-wrapper { position: relative; }
     .qopt-options-container {
       padding: 8px 10px;
@@ -707,7 +713,7 @@
     .btn-move-zone:hover .btn-delete-handle,
     .btn-move-zone:hover .required-toggle-handle { display: flex; }
     .btn-shape-wrapper { position: relative; }
-    .btn-question-row { display: flex; align-items: center; pointer-events: auto; margin-bottom: 4px; }
+    .btn-question-row { display: flex; align-items: flex-start; pointer-events: auto; margin-bottom: 4px; }
     .btn-question-input {
       flex: 1;
       width: auto;
@@ -720,8 +726,11 @@
       color: #1a1a1a;
       font-family: inherit;
       pointer-events: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
-    .btn-question-input::placeholder { color: #999; font-weight: 700; }
+    .btn-question-input:empty:before { content: attr(data-placeholder); color: #999; font-weight: 700; }
     .btn-shapes-container {
       display: flex;
       gap: 8px;
@@ -2779,7 +2788,7 @@
         </div>
         <div class="qa-question-row">
           <span class="required-marker">*</span>
-          <input type="text" class="qa-question-input" placeholder="Question">
+          <div class="qa-question-input" contenteditable="true" data-placeholder="Question"></div>
         </div>
         <div class="qa-answer-box">
           <div class="qa-resize-right"></div>
@@ -2826,7 +2835,7 @@
         </div>
         <div class="qopt-question-row">
           <span class="required-marker">*</span>
-          <input type="text" class="qopt-question-input" placeholder="Question">
+          <div class="qopt-question-input" contenteditable="true" data-placeholder="Question"></div>
         </div>
         <div class="qopt-options-wrapper">
           <div class="qopt-options-container" contenteditable="true">${buildQoptInlineOptionHtml()}</div>
@@ -2846,7 +2855,6 @@
       const deleteHandle = block.querySelector('.qopt-delete-handle');
       const rightHandle = block.querySelector('.qopt-resize-right');
       const container = block.querySelector('.qopt-options-container');
-      wireInputValueSync(block.querySelector('.qopt-question-input'));
 
       // One shared editable region for all the options — options sit inline, flowing and
       // wrapping like words in a sentence, and pressing Enter behaves exactly like it does in
@@ -3380,7 +3388,6 @@
       const rightHandle = block.querySelector('.qa-resize-right');
       const bottomHandle = block.querySelector('.qa-resize-bottom');
       const answerBox = block.querySelector('.qa-answer-box');
-      wireInputValueSync(block.querySelector('.qa-question-input'));
 
       // Delete — removes this whole Question & Answer block from the page
       deleteHandle.addEventListener('pointerdown', function(e) {
@@ -3514,7 +3521,7 @@
         </div>
         <div class="btn-question-row">
           <span class="required-marker">*</span>
-          <input type="text" class="btn-question-input" placeholder="Question">
+          <div class="btn-question-input" contenteditable="true" data-placeholder="Question"></div>
         </div>
         <div class="btn-shape-wrapper">
           <div class="btn-shapes-container">
@@ -3557,7 +3564,6 @@
       const rightHandle = block.querySelector('.btn-resize-right');
       const bottomHandle = block.querySelector('.btn-resize-bottom');
       const container = block.querySelector('.btn-shapes-container');
-      wireInputValueSync(block.querySelector('.btn-question-input'));
 
       // Wire click-to-highlight for every button shape currently in the group
       container.querySelectorAll('.btn-shape').forEach(function(shape) {
