@@ -1311,6 +1311,116 @@
     .person-slot-delete-btn.person-slot-sent:hover { background: #e6f7f0; border-color: #14b8a6; }
     .person-slot-delete-btn.person-slot-sent:hover svg { stroke: #14b8a6; }
 
+    /* Date — a heading, then one or more date entries styled like the Button object (defaults
+       to today, click opens the native calendar picker), plus a FAB to add more entries for
+       forms that need several dates (e.g. a week-long issue period). */
+    .date-block { position: absolute; }
+    .date-block.date-dragging { z-index: 50; }
+    .date-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 90px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .date-move-handle, .date-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .date-move-handle svg, .date-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .date-move-handle { cursor: move; }
+    .date-delete-handle { cursor: pointer; }
+    .date-delete-handle:hover { border-color: #ff3b30; }
+    .date-delete-handle:hover svg { stroke: #ff3b30; }
+    .date-move-zone:hover .date-move-handle,
+    .date-move-zone:hover .date-delete-handle,
+    .date-move-zone:hover .required-toggle-handle { display: flex; }
+
+    .date-heading-row { display: flex; align-items: flex-start; }
+    .date-heading-row .date-heading-input { flex: 1; width: auto; }
+    .date-heading-input {
+      display: block;
+      width: 100%;
+      border: none;
+      outline: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 2px 2px 6px 2px;
+      margin-bottom: 8px;
+      background: transparent;
+      color: #1a1a1a;
+      font-family: inherit;
+      box-sizing: border-box;
+      pointer-events: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    .date-heading-input:empty:before { content: attr(data-placeholder); color: #999; }
+
+    .date-slots-container { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; pointer-events: auto; }
+    .date-slot { position: relative; display: inline-flex; }
+    .date-slot-input {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #f0f0f0;
+      border: 1px solid #999;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #1a1a1a;
+      cursor: pointer;
+      pointer-events: auto;
+      box-sizing: border-box;
+    }
+    .date-slot-delete-btn {
+      display: none;
+      position: absolute;
+      top: -8px; right: -8px;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1.5px solid #999;
+      cursor: pointer;
+      pointer-events: auto;
+      z-index: 2;
+    }
+    .date-slot-delete-btn svg { width: 10px; height: 10px; stroke: #666; stroke-width: 2.2; fill: none; }
+    .date-slot-delete-btn:hover { border-color: #ff3b30; }
+    .date-slot-delete-btn:hover svg { stroke: #ff3b30; }
+    .date-slots-container.date-multi .date-slot-delete-btn { display: flex; }
+    .date-add-fab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: #14b8a6;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      pointer-events: auto;
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+    .date-add-fab:hover { background: #0d9488; }
+    .date-add-fab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
     .textbox-block {
@@ -1938,6 +2048,9 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertPersonBlock()" title="Add Person">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6.5 7-6.5s7 3 7 6.5"></path></svg>
       </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertDateBlock()" title="Date">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
       </button>
@@ -2371,6 +2484,7 @@
       stack.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       stack.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
       stack.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
+      stack.querySelectorAll('.date-block').forEach(block => wireDateBlockInteractions(block));
       stack.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       stack.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2455,6 +2569,7 @@
       container.querySelectorAll('.qa-block').forEach(block => wireQaBlockInteractions(block));
       container.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
       container.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
+      container.querySelectorAll('.date-block').forEach(block => wireDateBlockInteractions(block));
       container.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       container.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       container.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2646,7 +2761,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .person-block, .btn-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .person-block, .btn-block, .date-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -2856,7 +2971,7 @@
     // go through the block's own wireXBlockInteractions), and again on every move since the
     // available space changes with the block's position.
     function updateQuestionRowWidth(block) {
-      const row = block.querySelector('.qa-question-row, .qopt-question-row, .btn-question-row');
+      const row = block.querySelector('.qa-question-row, .qopt-question-row, .btn-question-row, .date-heading-row');
       if (!row) return;
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       if (!page) return;
@@ -3373,6 +3488,156 @@
       personPickerTargetBlock = null;
     }
 
+    // ---------- Date object: a heading, then one or more date entries styled like a button.
+    // Each defaults to today and opens the native calendar picker on click. The "+" FAB adds
+    // as many more date entries as needed — e.g. a permit issued across a week can just get
+    // one entry added per day, with no fixed count baked into the object. ----------
+
+    function todayIsoDate() {
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + mm + '-' + dd;
+    }
+
+    function buildDateSlotHtml() {
+      return `
+        <div class="date-slot">
+          <input type="date" class="date-slot-input" value="${todayIsoDate()}">
+          <button class="date-slot-delete-btn" title="Remove this date" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); removeDateSlot(this);">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    function insertDateBlock() {
+      const page = getActivePage();
+      const block = document.createElement('div');
+      block.className = 'date-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.width = '260px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="date-move-zone">
+          <div class="date-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="date-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+          <div class="required-toggle-handle" title="Mark as required" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); toggleRequiredMarker(this);"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"></line><line x1="4.5" y1="7.5" x2="19.5" y2="16.5"></line><line x1="19.5" y1="7.5" x2="4.5" y2="16.5"></line></svg></div>
+        </div>
+        <div class="date-heading-row">
+          <span class="required-marker">*</span>
+          <div class="date-heading-input" contenteditable="true" data-placeholder="Heading (e.g. Issue Date)"></div>
+        </div>
+        <div class="date-slots-container">${buildDateSlotHtml()}</div>
+        <button class="date-add-fab" title="Add another date" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addAnotherDateSlot(this.closest('.date-block'));">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      `;
+      page.appendChild(block);
+      wireDateBlockInteractions(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireDateBlockInteractions(block) {
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.date-move-handle');
+      const deleteHandle = block.querySelector('.date-delete-handle');
+      block.querySelectorAll('.date-slot-input').forEach(function(input) { wireOneDateSlotInput(input); });
+      updateDateSlotsMultiState(block);
+      updateQuestionRowWidth(block);
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('date-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          updateQuestionRowWidth(block);
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('date-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // Native date inputs have the exact same value-vs-attribute persistence gap as plain text
+    // inputs (see wireInputValueSync) — picking a date only updates the live .value property,
+    // never the value="" attribute that innerHTML-based saving actually captures.
+    function wireOneDateSlotInput(input) {
+      if (!input || input._valueSyncWired) return;
+      input._valueSyncWired = true;
+      input.addEventListener('input', function() {
+        input.setAttribute('value', input.value);
+      });
+      input.addEventListener('click', function() {
+        if (input.showPicker) { try { input.showPicker(); } catch (e) {} }
+      });
+    }
+
+    function addAnotherDateSlot(block) {
+      const container = block.querySelector('.date-slots-container');
+      container.insertAdjacentHTML('beforeend', buildDateSlotHtml());
+      wireOneDateSlotInput(container.lastElementChild.querySelector('.date-slot-input'));
+      updateDateSlotsMultiState(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Always leaves at least one date behind — matches the same rule the Contact object uses.
+    function removeDateSlot(btn) {
+      const slot = btn.closest('.date-slot');
+      const block = btn.closest('.date-block');
+      const container = block.querySelector('.date-slots-container');
+      slot.remove();
+      if (container.querySelectorAll('.date-slot').length === 0) {
+        container.insertAdjacentHTML('beforeend', buildDateSlotHtml());
+        wireOneDateSlotInput(container.querySelector('.date-slot-input'));
+      }
+      updateDateSlotsMultiState(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // The per-slot delete (×) only makes sense once there's more than one date — with a
+    // single date there's nothing to disambiguate it from, so it stays hidden.
+    function updateDateSlotsMultiState(block) {
+      const container = block.querySelector('.date-slots-container');
+      const count = container.querySelectorAll('.date-slot').length;
+      container.classList.toggle('date-multi', count > 1);
+    }
+
     // <input> elements don't automatically reflect typed text back into the HTML value=""
     // attribute — only the live .value PROPERTY changes. Since save/undo capture state via
     // innerHTML (a plain HTML string), anything typed into one of these would otherwise be
@@ -3390,7 +3655,7 @@
     // actually need a "required" indicator. Toggles a red asterisk on that object's own
     // heading/question text.
     function toggleRequiredMarker(btn) {
-      const block = btn.closest('.qa-block, .qopt-block, .person-block, .btn-block');
+      const block = btn.closest('.qa-block, .qopt-block, .person-block, .btn-block, .date-block');
       if (!block) return;
       const marker = block.querySelector('.required-marker');
       if (!marker) return;
