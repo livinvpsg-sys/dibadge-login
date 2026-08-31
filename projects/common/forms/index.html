@@ -1427,6 +1427,63 @@
     .date-add-fab:disabled { background: #ccc; cursor: not-allowed; }
     .date-add-fab:disabled:hover { background: #ccc; }
 
+    /* Submit Button — a single dedicated action button for submitting the form. Distinct from
+       the Question & Buttons object (which is for multiple-choice answers): this one is the
+       final action, styled as a primary CTA, and clicking it (a plain click, not a drag)
+       triggers submission — currently a mock, since there's no real backend to submit to yet. */
+    .submit-block { position: absolute; }
+    .submit-block.submit-dragging { z-index: 50; }
+    .submit-move-zone {
+      position: absolute;
+      top: -26px; left: -2px;
+      width: 62px; height: 34px;
+      z-index: 5;
+      pointer-events: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .submit-move-handle, .submit-delete-handle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 5px;
+      background: #ffffff;
+      border: 1.5px solid #666;
+      color: #333;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .submit-move-handle svg, .submit-delete-handle svg { width: 15px; height: 15px; stroke: #333; stroke-width: 1.8; fill: none; }
+    .submit-move-handle { cursor: move; }
+    .submit-delete-handle { cursor: pointer; }
+    .submit-delete-handle:hover { border-color: #ff3b30; }
+    .submit-delete-handle:hover svg { stroke: #ff3b30; }
+    .submit-move-zone:hover .submit-move-handle,
+    .submit-move-zone:hover .submit-delete-handle { display: flex; }
+    .submit-btn-shape {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 100px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      background: #14b8a6;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-align: center;
+      cursor: pointer;
+      pointer-events: auto;
+      box-sizing: border-box;
+      border: none;
+      outline: none;
+      user-select: none;
+    }
+    .submit-btn-shape:hover { background: #0d9488; }
+
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
     .textbox-block {
@@ -1876,6 +1933,18 @@
       <button class="textbox-popup-close-btn" onclick="closeDateEditPopup()">Done</button>
     </div>
 
+    <!-- Submit Button mock confirmation — there's no real backend yet to submit a completed
+         form to, so this simulates what clicking Submit will eventually do. -->
+    <div class="group-modal-overlay" id="submitMockOverlay" onclick="closeSubmitMockOverlay()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Form Submitted</div>
+        <div class="group-modal-message">Mock only — there's no backend yet to actually submit this form to. Once one exists, this button will send the completed form for review.</div>
+        <div class="group-modal-actions">
+          <button class="group-modal-ok-btn" onclick="closeSubmitMockOverlay()" style="width:100%;">OK</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Page Number settings — position, alignment, and style. Always shown on every page in
          chronological order; this just configures how, not whether. -->
     <div class="textbox-edit-popup" id="pageNumberPopup" onclick="event.stopPropagation()">
@@ -2074,6 +2143,9 @@
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertDateBlock()" title="Date">
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertSubmitBlock()" title="Submit Button">
+        <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect><polyline points="8 12 11 15 16 10"></polyline></svg>
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTable()" title="Table">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="12" y1="3" x2="12" y2="21"></line></svg>
@@ -2509,6 +2581,7 @@
       stack.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
       stack.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
       stack.querySelectorAll('.date-block').forEach(block => wireDateBlockInteractions(block));
+      stack.querySelectorAll('.submit-block').forEach(block => wireSubmitBlockInteractions(block));
       stack.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       stack.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       stack.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2594,6 +2667,7 @@
       container.querySelectorAll('.qopt-block').forEach(block => wireQoptBlockInteractions(block));
       container.querySelectorAll('.person-block').forEach(block => wirePersonBlockInteractions(block));
       container.querySelectorAll('.date-block').forEach(block => wireDateBlockInteractions(block));
+      container.querySelectorAll('.submit-block').forEach(block => wireSubmitBlockInteractions(block));
       container.querySelectorAll('.btn-block').forEach(block => wireButtonBlockInteractions(block));
       container.querySelectorAll('.table-block').forEach(block => wireTableBlockInteractions(block));
       container.querySelectorAll('.image-block').forEach(block => wireImageBlockInteractions(block));
@@ -2785,7 +2859,7 @@
     }
 
     function collectAlignmentEdges(page, excludeBlock) {
-      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .person-block, .btn-block, .date-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
+      const blocks = Array.from(page.querySelectorAll('.qa-block, .qopt-block, .person-block, .btn-block, .date-block, .submit-block, .table-block, .image-block, .textbox-block, .shape-block')).filter(function(b) { return b !== excludeBlock; });
       const xs = [], ys = [];
       blocks.forEach(function(b) {
         const rawLeft = parseFloat(b.style.left) || 0;
@@ -3799,6 +3873,89 @@
       const container = block.querySelector('.date-slots-container');
       const count = container.querySelectorAll('.date-slot').length;
       container.classList.toggle('date-multi', count > 1);
+    }
+
+    // ---------- Submit Button: a single dedicated action button for submitting the form.
+    // Clicking it (a plain click on the shape, not the move handle) triggers submission —
+    // currently a mock, since there's no real backend yet to submit a completed form to. ----------
+
+    function insertSubmitBlock() {
+      const page = getActivePage();
+      const block = document.createElement('div');
+      block.className = 'submit-block';
+      block.contentEditable = 'false';
+      block.style.left = (20 + qaBlockCascadeOffset) + 'px';
+      block.style.top = (20 + qaBlockCascadeOffset) + 'px';
+      qaBlockCascadeOffset = (qaBlockCascadeOffset + 24) % 120;
+
+      block.innerHTML = `
+        <div class="submit-move-zone">
+          <div class="submit-move-handle" title="Move"><svg viewBox="0 0 24 24"><polyline points="5 9 2 12 5 15"></polyline><polyline points="9 5 12 2 15 5"></polyline><polyline points="15 19 12 22 9 19"></polyline><polyline points="19 9 22 12 19 15"></polyline><line x1="2" y1="12" x2="22" y2="12"></line><line x1="12" y1="2" x2="12" y2="22"></line></svg></div>
+          <div class="submit-delete-handle" title="Delete"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg></div>
+        </div>
+        <div class="submit-btn-shape">Submit</div>
+      `;
+      page.appendChild(block);
+      wireSubmitBlockInteractions(block);
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function wireSubmitBlockInteractions(block) {
+      const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
+      const moveHandle = block.querySelector('.submit-move-handle');
+      const deleteHandle = block.querySelector('.submit-delete-handle');
+      const shape = block.querySelector('.submit-btn-shape');
+
+      shape.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+      shape.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('submitMockOverlay').classList.add('active');
+      });
+
+      deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
+      deleteHandle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.remove();
+        hasUnsavedChanges = true;
+        pushHistorySnapshot();
+      });
+
+      moveHandle.addEventListener('pointerdown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        block.classList.add('submit-dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const startLeft = parseFloat(block.style.left) || 0;
+        const startTop = parseFloat(block.style.top) || 0;
+        const blockW = block.offsetWidth, blockH = block.offsetHeight;
+
+        function onMove(ev) {
+          const dx = ev.clientX - startX, dy = ev.clientY - startY;
+          const maxLeft = Math.max(0, page.clientWidth - blockW);
+          const maxTop = Math.max(0, page.clientHeight - blockH);
+          const newLeft = Math.min(maxLeft, Math.max(0, startLeft + dx));
+          const newTop = Math.min(maxTop, Math.max(0, startTop + dy));
+          const snapped = applyAlignmentSnap(page, block, newLeft, newTop);
+          block.style.left = snapped.left + 'px';
+          block.style.top = snapped.top + 'px';
+          hasUnsavedChanges = true;
+        }
+        function onUp() {
+          block.classList.remove('submit-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          clearAlignmentGuides(page);
+          pushHistorySnapshot();
+        }
+        document.addEventListener('pointermove', onMove);
+        document.addEventListener('pointerup', onUp);
+      });
+    }
+
+    function closeSubmitMockOverlay() {
+      document.getElementById('submitMockOverlay').classList.remove('active');
     }
 
     // <input> elements don't automatically reflect typed text back into the HTML value=""
