@@ -549,9 +549,25 @@
       min-height: 32px;
       margin-top: 2px;
       box-sizing: border-box;
-      pointer-events: none; /* just a visual box — clicks pass through except the two thin
-                                resize lines below, so it never blocks content near/behind it */
+      pointer-events: none; /* just a visual box — clicks pass through except the answer text
+                                area and the two thin resize lines, which set their own
+                                pointer-events back to auto */
     }
+    .qa-answer-text {
+      position: absolute;
+      inset: 0;
+      padding: 5px 7px;
+      outline: none;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      font-family: inherit;
+      pointer-events: auto;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    .qa-answer-text:empty:before { content: attr(data-placeholder); color: #999; }
     .qa-resize-right {
       position: absolute;
       top: 6px; bottom: 6px; right: -2px;
@@ -1486,6 +1502,11 @@
       user-select: none;
     }
     .submit-btn-shape:hover { background: #0d9488; }
+    .form-field-missing-highlight {
+      outline: 2px solid #ff3b30 !important;
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
 
     /* Text Box — same selection/rotate/resize pattern as Image, plus a 3rd (edit) icon like
        Table, and an edit popup for shape/text styling. */
@@ -1956,6 +1977,19 @@
         <div class="group-modal-message">Mock only — there's no backend yet to actually submit this form to. Once one exists, this button will send the completed form for review.</div>
         <div class="group-modal-actions">
           <button class="group-modal-ok-btn" onclick="closeSubmitMockOverlay()" style="width:100%;">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shown instead of the submit confirmation when a required (*) field hasn't been
+         answered — Submit is blocked until every required Q&A, Question & Options, or
+         Question & Buttons field has a real answer. -->
+    <div class="group-modal-overlay" id="submitValidationOverlay" onclick="closeSubmitValidationOverlay()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Missing Required Fields</div>
+        <div class="group-modal-message">Please complete every field marked with a red asterisk (*) before submitting.</div>
+        <div class="group-modal-actions">
+          <button class="group-modal-ok-btn" onclick="closeSubmitValidationOverlay()" style="width:100%;">OK</button>
         </div>
       </div>
     </div>
@@ -3056,6 +3090,7 @@
           <div class="qa-question-input" contenteditable="true" data-placeholder="Question"></div>
         </div>
         <div class="qa-answer-box">
+          <div class="qa-answer-text" contenteditable="true" data-placeholder="Answer"></div>
           <div class="qa-resize-right"></div>
           <div class="qa-resize-bottom"></div>
         </div>
@@ -3952,6 +3987,55 @@
       pushHistorySnapshot();
     }
 
+    // Checks every required (*) Q&A, Question & Options, and Question & Buttons field across
+    // the whole form (all pages, not just the one Submit happens to sit on) and returns
+    // whichever ones are still unanswered — an empty answer, no option checked, or no button
+    // chosen respectively.
+    function validateRequiredFormFields() {
+      const stack = document.getElementById('a4PagesStack');
+      if (!stack) return [];
+      const missing = [];
+
+      stack.querySelectorAll('.qa-block').forEach(function(block) {
+        const marker = block.querySelector('.required-marker');
+        if (!marker || !marker.classList.contains('active')) return;
+        const answerText = block.querySelector('.qa-answer-text');
+        if (!answerText || !answerText.textContent.trim()) missing.push(block);
+      });
+
+      stack.querySelectorAll('.qopt-block').forEach(function(block) {
+        const marker = block.querySelector('.required-marker');
+        if (!marker || !marker.classList.contains('active')) return;
+        if (!block.querySelector('.qopt-checkbox:checked')) missing.push(block);
+      });
+
+      stack.querySelectorAll('.btn-block').forEach(function(block) {
+        const marker = block.querySelector('.required-marker');
+        if (!marker || !marker.classList.contains('active')) return;
+        if (!block.querySelector('.btn-shape.btn-active')) missing.push(block);
+      });
+
+      return missing;
+    }
+
+    function handleSubmitButtonClick() {
+      document.querySelectorAll('.form-field-missing-highlight').forEach(function(el) {
+        el.classList.remove('form-field-missing-highlight');
+      });
+      const missing = validateRequiredFormFields();
+      if (missing.length > 0) {
+        missing.forEach(function(block) { block.classList.add('form-field-missing-highlight'); });
+        missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById('submitValidationOverlay').classList.add('active');
+        return;
+      }
+      document.getElementById('submitMockOverlay').classList.add('active');
+    }
+
+    function closeSubmitValidationOverlay() {
+      document.getElementById('submitValidationOverlay').classList.remove('active');
+    }
+
     function wireSubmitBlockInteractions(block) {
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.submit-move-handle');
@@ -3961,7 +4045,7 @@
       shape.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
       shape.addEventListener('click', function(e) {
         e.stopPropagation();
-        document.getElementById('submitMockOverlay').classList.add('active');
+        handleSubmitButtonClick();
       });
 
       deleteHandle.addEventListener('pointerdown', function(e) { e.preventDefault(); e.stopPropagation(); });
