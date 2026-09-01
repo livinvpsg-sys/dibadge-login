@@ -230,16 +230,17 @@
 
     /* Form-building tool rail */
     .form-tools-rail {
-      width: 62px;
+      width: 106px;
       flex-shrink: 0;
       background: var(--surface-color);
       border-left: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
+      flex-wrap: wrap;
+      align-content: flex-start;
       align-items: center;
-      padding: 8px 0;
+      padding: 8px 6px;
       gap: 5px;
-      overflow-y: auto;
     }
     .form-tool-btn {
       width: 36px; height: 36px;
@@ -375,11 +376,10 @@
       gap: 1px !important;
       max-height: 420px;
       overflow-y: auto;
-      /* Opens UPWARD from the trigger instead of downward — the Border icon sits low in the
-         toolbar rail, so a tall list anchored at the top would run off the bottom of the
-         screen and become impossible to see or scroll to. */
-      top: auto !important;
-      bottom: 0 !important;
+      /* Vertical direction (open upward vs downward) is decided dynamically in JS based on
+         the trigger's actual screen position — see positionBorderFlyout() — since this list
+         is tall enough that a fixed direction runs off whichever edge is closer, and where
+         the trigger sits changes with toolbar layout (e.g. one column vs two). */
     }
     .border-menu-item {
       display: flex;
@@ -6062,6 +6062,25 @@
       if (!isOpen) {
         if (flyoutId === 'borderFlyout') updateBorderFlyoutForSelection();
         flyout.classList.add('active');
+        positionBorderFlyout(flyout, event.currentTarget);
+      }
+    }
+
+    // Only the Border flyout is tall enough to need this — picks whichever direction
+    // (opening upward or downward from the trigger) actually has room, rather than assuming
+    // a fixed direction that only holds for one particular toolbar layout.
+    function positionBorderFlyout(flyout, trigger) {
+      if (!flyout.classList.contains('border-flyout-vertical')) return;
+      const triggerRect = trigger.getBoundingClientRect();
+      const flyoutHeight = Math.min(flyout.scrollHeight, 420);
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+      if (spaceBelow >= flyoutHeight || spaceBelow >= spaceAbove) {
+        flyout.style.top = '0';
+        flyout.style.bottom = 'auto';
+      } else {
+        flyout.style.top = 'auto';
+        flyout.style.bottom = '0';
       }
     }
 
