@@ -2172,12 +2172,6 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="handleSaveClick()" title="Save">
         <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
       </button>
-      <button class="form-tool-btn" id="formUndoBtn" onmousedown="event.preventDefault();" onclick="handleUndoClick()" title="Undo">
-        <svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15-6.7L3 13"></path></svg>
-      </button>
-      <button class="form-tool-btn" id="formRedoBtn" onmousedown="event.preventDefault();" onclick="redoFormChange()" title="Redo">
-        <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 15-6.7L21 13"></path></svg>
-      </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionBlock()" title="Question &amp; Answer">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </button>
@@ -2186,6 +2180,9 @@
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertButtonBlock()" title="Question &amp; Buttons">
         <svg viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="8" rx="4"></rect></svg>
+      </button>
+      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTextBox()" title="Insert Text Box">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
       </button>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertPersonBlock()" title="Add Person">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c0-3.5 3-6.5 7-6.5s7 3 7 6.5"></path></svg>
@@ -2202,8 +2199,8 @@
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="document.getElementById('formImageInput').click()" title="Insert Picture">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
       </button>
-      <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertTextBox()" title="Insert Text Box">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1"></rect><line x1="7" y1="9" x2="17" y2="9"></line><line x1="7" y1="13" x2="14" y2="13"></line></svg>
+      <button class="form-tool-btn" id="formUndoBtn" onmousedown="event.preventDefault();" onclick="handleUndoClick()" title="Undo">
+        <svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-15-6.7L3 13"></path></svg>
       </button>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'shapesFlyout')" title="Shapes">
@@ -2404,6 +2401,9 @@
           <button class="color-picker-done-btn" onclick="closeColorPicker()">Done</button>
         </div>
       </div>
+      <button class="form-tool-btn" id="formRedoBtn" onmousedown="event.preventDefault();" onclick="redoFormChange()" title="Redo">
+        <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 15-6.7L21 13"></path></svg>
+      </button>
       <input type="file" id="formImageInput" accept="image/*" style="display:none" onchange="insertImageFromFile(this);">
     </aside>
 
