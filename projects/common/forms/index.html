@@ -255,6 +255,8 @@
     .form-tool-btn:hover { background: var(--border-color); color: var(--text-color); }
     .form-tool-btn-inactive { opacity: 0.35; }
     .form-tool-btn-inactive:hover { background: transparent; }
+    .form-tool-btn.format-toggle-active { background: #14b8a6; color: #fff; }
+    .form-tool-btn.format-toggle-active:hover { background: #0d9488; color: #fff; }
 
     /* Save confirmation toast */
     .save-toast {
@@ -2251,6 +2253,42 @@
         </div>
       </div>
       <div class="toolbar-flyout-group">
+        <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'textSizeFlyout')" title="Text Size">
+          <svg viewBox="0 0 24 24"><text x="1" y="11" font-size="9" font-weight="800" fill="currentColor" stroke="none">A</text><text x="11" y="20" font-size="15" font-weight="800" fill="currentColor" stroke="none">A</text></svg>
+        </button>
+        <div class="toolbar-flyout border-flyout-vertical" id="textSizeFlyout">
+          <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="applyTextSize('0.75rem'); closeAllToolbarFlyouts();">
+            <span style="width:18px; text-align:center; font-size:0.75rem; font-weight:800; flex-shrink:0;">A</span>
+            <span>Small</span>
+          </button>
+          <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="applyTextSize('0.95rem'); closeAllToolbarFlyouts();">
+            <span style="width:18px; text-align:center; font-size:0.95rem; font-weight:800; flex-shrink:0;">A</span>
+            <span>Normal</span>
+          </button>
+          <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="applyTextSize('1.15rem'); closeAllToolbarFlyouts();">
+            <span style="width:18px; text-align:center; font-size:1.15rem; font-weight:800; flex-shrink:0;">A</span>
+            <span>Medium</span>
+          </button>
+          <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="applyTextSize('1.4rem'); closeAllToolbarFlyouts();">
+            <span style="width:18px; text-align:center; font-size:1.4rem; font-weight:800; flex-shrink:0;">A</span>
+            <span>Large</span>
+          </button>
+          <button class="border-menu-item" onmousedown="event.preventDefault();" onclick="applyTextSize('1.8rem'); closeAllToolbarFlyouts();">
+            <span style="width:18px; text-align:center; font-size:1.8rem; font-weight:800; flex-shrink:0;">A</span>
+            <span>Extra Large</span>
+          </button>
+        </div>
+      </div>
+      <button class="form-tool-btn" id="boldToggleBtn" onmousedown="event.preventDefault();" onclick="applyBoldToggle()" title="Bold">
+        <svg viewBox="0 0 24 24"><text x="6" y="18" font-size="16" font-weight="900" fill="currentColor" stroke="none">B</text></svg>
+      </button>
+      <button class="form-tool-btn" id="italicToggleBtn" onmousedown="event.preventDefault();" onclick="applyItalicToggle()" title="Italic">
+        <svg viewBox="0 0 24 24"><text x="7" y="18" font-size="16" font-style="italic" font-weight="700" fill="currentColor" stroke="none">I</text></svg>
+      </button>
+      <button class="form-tool-btn" id="underlineToggleBtn" onmousedown="event.preventDefault();" onclick="applyUnderlineToggle()" title="Underline">
+        <svg viewBox="0 0 24 24"><text x="5" y="17" font-size="15" font-weight="700" text-decoration="underline" fill="currentColor" stroke="none">U</text></svg>
+      </button>
+      <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'borderFlyout')" title="Border">
           <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"></rect><line x1="12" y1="3" x2="12" y2="21" stroke-dasharray="2 2"></line><line x1="3" y1="12" x2="21" y2="12" stroke-dasharray="2 2"></line></svg>
         </button>
@@ -3956,6 +3994,75 @@
 
     function closeSubmitMockOverlay() {
       document.getElementById('submitMockOverlay').classList.remove('active');
+    }
+
+    // ---------- Text Size — applies to whichever text field was last focused, covering every
+    // text element in the form (question/heading text, options, button labels, table cells,
+    // text boxes) through one shared mechanism rather than tracking each object type. ----------
+
+    let lastFocusedTextElement = null;
+
+    document.addEventListener('focusin', function(e) {
+      if (e.target.matches('[contenteditable="true"], .person-heading-input')) {
+        lastFocusedTextElement = e.target;
+        updateTextFormatToggleStates();
+      }
+    });
+
+    function applyTextSize(size) {
+      if (!lastFocusedTextElement || !document.body.contains(lastFocusedTextElement)) return;
+      lastFocusedTextElement.style.fontSize = size;
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Bold/Italic/Underline — same shared mechanism as Text Size: apply to whichever text
+    // field was last focused, covering every text element in the form through one path. Toggle
+    // state is tracked off the element's own inline style (what was explicitly set before),
+    // not its computed weight, since several fields are semibold by default already.
+    function applyBoldToggle() {
+      if (!lastFocusedTextElement || !document.body.contains(lastFocusedTextElement)) return;
+      const el = lastFocusedTextElement;
+      const isBold = el.style.fontWeight === 'bold' || el.style.fontWeight === '700' || el.style.fontWeight === '800' || el.style.fontWeight === '900';
+      el.style.fontWeight = isBold ? 'normal' : 'bold';
+      updateTextFormatToggleStates();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function applyItalicToggle() {
+      if (!lastFocusedTextElement || !document.body.contains(lastFocusedTextElement)) return;
+      const el = lastFocusedTextElement;
+      el.style.fontStyle = (el.style.fontStyle === 'italic') ? 'normal' : 'italic';
+      updateTextFormatToggleStates();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    function applyUnderlineToggle() {
+      if (!lastFocusedTextElement || !document.body.contains(lastFocusedTextElement)) return;
+      const el = lastFocusedTextElement;
+      el.style.textDecoration = (el.style.textDecoration === 'underline') ? 'none' : 'underline';
+      updateTextFormatToggleStates();
+      hasUnsavedChanges = true;
+      pushHistorySnapshot();
+    }
+
+    // Keeps the B/I/U toolbar buttons showing whether the CURRENTLY focused text field already
+    // has that formatting, so they read as a state (like a real word processor) rather than
+    // just a one-shot action. Called on every focus change and after every toggle.
+    function updateTextFormatToggleStates() {
+      const el = lastFocusedTextElement;
+      const boldBtn = document.getElementById('boldToggleBtn');
+      const italicBtn = document.getElementById('italicToggleBtn');
+      const underlineBtn = document.getElementById('underlineToggleBtn');
+      const valid = el && document.body.contains(el);
+      const isBold = valid && (el.style.fontWeight === 'bold' || el.style.fontWeight === '700' || el.style.fontWeight === '800' || el.style.fontWeight === '900');
+      const isItalic = valid && el.style.fontStyle === 'italic';
+      const isUnderline = valid && el.style.textDecoration === 'underline';
+      if (boldBtn) boldBtn.classList.toggle('format-toggle-active', isBold);
+      if (italicBtn) italicBtn.classList.toggle('format-toggle-active', isItalic);
+      if (underlineBtn) underlineBtn.classList.toggle('format-toggle-active', isUnderline);
     }
 
     // <input> elements don't automatically reflect typed text back into the HTML value=""
