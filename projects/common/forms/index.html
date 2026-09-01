@@ -234,10 +234,10 @@
       flex-shrink: 0;
       background: var(--surface-color);
       border-left: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      align-content: flex-start;
+      display: grid;
+      grid-template-rows: repeat(11, auto);
+      grid-auto-flow: column;
+      justify-items: center;
       align-items: center;
       padding: 8px 6px;
       gap: 5px;
@@ -2177,7 +2177,6 @@
       <button class="form-tool-btn" id="formRedoBtn" onmousedown="event.preventDefault();" onclick="redoFormChange()" title="Redo">
         <svg viewBox="0 0 24 24"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 15-6.7L21 13"></path></svg>
       </button>
-      <div class="form-tool-divider"></div>
       <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="insertQuestionBlock()" title="Question &amp; Answer">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       </button>
@@ -2221,7 +2220,6 @@
           </button>
         </div>
       </div>
-      <div class="form-tool-divider"></div>
       <div class="toolbar-flyout-group">
         <button class="form-tool-btn" onmousedown="event.preventDefault();" onclick="toggleToolbarFlyout(event, 'alignFlyout')" title="Text Align">
           <svg viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"></line><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="14" x2="3" y2="14"></line><line x1="17" y1="18" x2="3" y2="18"></line></svg>
@@ -2684,7 +2682,7 @@
       });
       activePageEl = stack.querySelector('.a4-page');
       updateAllStripEmptyStates();
-      document.getElementById('formToolsRail').style.display = 'flex';
+      document.getElementById('formToolsRail').style.display = 'grid';
       document.getElementById('zoomControl').classList.add('active');
       resetZoom();
       resetHistoryWithCurrentState();
