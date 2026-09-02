@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diBadge | Sign In</title>
+
+  <style>
+    :root {
+      --jet-black: #0f0f0f;
+      --paper-white: #f8f9fa;
+      --slate-surface: #1e1e1e;
+      --accent-white: #ffffff;
+      --muted-gray: #8e8e93;
+      --cool-ash: #a1a1a6;
+      --soft-border: #2c2c2e;
+      --error-red: #ff3b30;
+      --accent-teal: #14b8a6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body {
+      background: var(--jet-black);
+      color: var(--accent-white);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-shell { width: 100%; max-width: 380px; }
+    .login-logo { text-align: center; margin-bottom: 28px; }
+    .login-logo h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.3px; }
+    .login-logo span { color: var(--accent-teal); }
+
+    .login-card {
+      background: var(--slate-surface);
+      border: 1px solid var(--soft-border);
+      border-radius: 14px;
+      padding: 28px 24px;
+    }
+    .login-mode-toggle {
+      display: flex;
+      background: var(--jet-black);
+      border: 1px solid var(--soft-border);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 22px;
+    }
+    .login-mode-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--cool-ash);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 9px 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .login-mode-btn.active { background: var(--accent-teal); color: #04211d; }
+
+    .login-field-label { display: block; font-size: 0.78rem; color: var(--cool-ash); font-weight: 600; margin: 14px 0 6px 0; }
+    .login-field-label:first-of-type { margin-top: 0; }
+    .login-input {
+      width: 100%;
+      padding: 11px 12px;
+      background: var(--jet-black);
+      border: 1px solid var(--soft-border);
+      color: var(--accent-white);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+    .login-input:focus { border-color: var(--accent-teal); }
+
+    .login-submit-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px 0;
+      background: var(--accent-teal);
+      color: #04211d;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .login-submit-btn:hover { background: #0d9488; }
+    .login-submit-btn:disabled { opacity: 0.6; cursor: default; }
+
+    .login-error {
+      display: none;
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: rgba(255,59,48,0.12);
+      border: 1px solid rgba(255,59,48,0.4);
+      color: #ff6b60;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    .login-error.active { display: block; }
+
+    .login-divider { display: flex; align-items: center; gap: 10px; margin: 22px 0 18px 0; color: var(--cool-ash); font-size: 0.75rem; }
+    .login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--soft-border); }
+
+    .qr-options-row { display: flex; gap: 10px; }
+    .qr-option-btn {
+      flex: 1;
+      background: var(--jet-black);
+      border: 1px solid var(--soft-border);
+      border-radius: 10px;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--accent-white);
+      opacity: 0.55;
+    }
+    .qr-option-btn svg { width: 26px; height: 26px; stroke: currentColor; stroke-width: 1.6; fill: none; }
+    .qr-option-btn .qr-option-label { font-size: 0.8rem; font-weight: 600; }
+    .qr-option-btn .qr-option-sub { font-size: 0.65rem; color: var(--cool-ash); text-align: center; }
+
+    .login-status { text-align: center; color: var(--cool-ash); font-size: 0.82rem; margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="login-shell">
+    <div class="login-logo">
+      <h1>di<span>Badge</span></h1>
+    </div>
+
+    <div class="login-card">
+      <div class="login-mode-toggle">
+        <button class="login-mode-btn active" id="modeSignIn" onclick="switchMode('signin')">Sign In</button>
+        <button class="login-mode-btn" id="modeSignUp" onclick="switchMode('signup')">Create Account</button>
+      </div>
+
+      <label class="login-field-label">Email</label>
+      <input type="email" class="login-input" id="emailInput" placeholder="you@example.com" autocomplete="email">
+
+      <label class="login-field-label">Password</label>
+      <input type="password" class="login-input" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
+
+      <button class="login-submit-btn" id="submitBtn" onclick="handleSubmit()">Sign In</button>
+
+      <div class="login-error" id="loginError"></div>
+      <div class="login-status" id="loginStatus"></div>
+
+      <div class="login-divider">or scan with the app</div>
+
+      <div class="qr-options-row">
+        <div class="qr-option-btn" title="Coming soon — personal QR login">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+          <span class="qr-option-label">Personal</span>
+          <span class="qr-option-sub">Coming soon</span>
+        </div>
+        <div class="qr-option-btn" title="Coming soon — organisation QR login">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+          <span class="qr-option-label">Organisation</span>
+          <span class="qr-option-sub">Coming soon</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    // Same Firebase project as the rest of diBadge (web, and eventually Android/iOS) —
+    // one shared backend, not a separate one for this page.
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentMode = 'signin';
+    window.switchMode = function(mode) {
+      currentMode = mode;
+      document.getElementById('modeSignIn').classList.toggle('active', mode === 'signin');
+      document.getElementById('modeSignUp').classList.toggle('active', mode === 'signup');
+      document.getElementById('submitBtn').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
+      document.getElementById('passwordInput').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
+      hideError();
+    };
+
+    function showError(message) {
+      const el = document.getElementById('loginError');
+      el.textContent = message;
+      el.classList.add('active');
+    }
+    function hideError() {
+      document.getElementById('loginError').classList.remove('active');
+    }
+    function setStatus(message) {
+      document.getElementById('loginStatus').textContent = message || '';
+    }
+
+    // Turns Firebase's error codes into plain, specific messages instead of a raw
+    // "Firebase: Error (auth/...)" string.
+    function friendlyAuthError(err) {
+      const code = err && err.code ? err.code : '';
+      if (code === 'auth/invalid-email') return 'That email address doesn\u2019t look valid.';
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') return 'No account matches that email and password.';
+      if (code === 'auth/wrong-password') return 'That password is incorrect.';
+      if (code === 'auth/email-already-in-use') return 'An account with this email already exists — try Sign In instead.';
+      if (code === 'auth/weak-password') return 'Password should be at least 6 characters.';
+      if (code === 'auth/too-many-requests') return 'Too many attempts — please wait a moment and try again.';
+      if (code === 'auth/network-request-failed') return 'Network error — check your connection and try again.';
+      return err && err.message ? err.message : 'Something went wrong. Please try again.';
+    }
+
+    window.handleSubmit = async function() {
+      hideError();
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      if (!email || !password) {
+        showError('Please enter both an email and a password.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      setStatus(currentMode === 'signin' ? 'Signing in…' : 'Creating your account…');
+
+      try {
+        if (currentMode === 'signin') {
+          await signInWithEmailAndPassword(auth, email, password);
+        } else {
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          // Seed a personal-account profile document for this new user — this is the
+          // record the organisation-linking step will later attach to, once that's built.
+          await setDoc(doc(db, 'users', cred.user.uid), {
+            email: email,
+            accountType: 'personal',
+            createdAt: serverTimestamp()
+          });
+        }
+        // onAuthStateChanged below handles the redirect once Firebase confirms the session.
+      } catch (err) {
+        submitBtn.disabled = false;
+        setStatus('');
+        showError(friendlyAuthError(err));
+      }
+    };
+
+    // If a session already exists (or just succeeded above), move on to the app itself
+    // rather than sitting on the login screen.
+    onAuthStateChanged(auth, function(user) {
+      if (user) {
+        setStatus('Signed in — redirecting…');
+        window.location.href = 'index.html';
+      }
+    });
+  </script>
+</body>
+</html>
