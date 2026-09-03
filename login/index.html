@@ -145,6 +145,18 @@
       <label class="login-field-label">Password</label>
       <input type="password" class="login-input" id="passwordInput" placeholder="••••••••" autocomplete="current-password">
 
+      <div id="accountTypeSection" style="display:none;">
+        <label class="login-field-label">Account Type</label>
+        <div class="login-mode-toggle" style="margin-bottom:0;">
+          <button type="button" class="login-mode-btn active" id="typePersonal" onclick="selectAccountType('personal')">Personal</button>
+          <button type="button" class="login-mode-btn" id="typeOrganisation" onclick="selectAccountType('organisation')">Organisation</button>
+        </div>
+        <div id="orgNameSection" style="display:none;">
+          <label class="login-field-label">Organisation Name</label>
+          <input type="text" class="login-input" id="orgNameInput" placeholder="e.g. Amber Holdings">
+        </div>
+      </div>
+
       <button class="login-submit-btn" id="submitBtn" onclick="handleSubmit()">Sign In</button>
 
       <div class="login-error" id="loginError"></div>
@@ -167,46 +179,30 @@
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
-
-    // Same Firebase project as the rest of diBadge (web, and eventually Android/iOS) —
-    // one shared backend, not a separate one for this page.
-    const firebaseConfig = {
-      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
-      authDomain: "dibadge-fabxdi.firebaseapp.com",
-      projectId: "dibadge-fabxdi",
-      storageBucket: "dibadge-fabxdi.firebasestorage.app",
-      messagingSenderId: "390433769514",
-      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
-      measurementId: "G-ZJVXLDZPRY"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
+  <!-- Plain script, not a module — runs immediately regardless of whether the Firebase
+       module below has finished loading, so the form's own UI (switching between Sign In/
+       Create Account, Personal/Organisation) always works instantly, even on a slow or
+       failed network, rather than silently doing nothing until Firebase resolves. -->
+  <script>
     let currentMode = 'signin';
-    window.switchMode = function(mode) {
+    let selectedAccountType = 'personal';
+
+    function switchMode(mode) {
       currentMode = mode;
       document.getElementById('modeSignIn').classList.toggle('active', mode === 'signin');
       document.getElementById('modeSignUp').classList.toggle('active', mode === 'signup');
       document.getElementById('submitBtn').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
       document.getElementById('passwordInput').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
+      document.getElementById('accountTypeSection').style.display = (mode === 'signup') ? 'block' : 'none';
       hideError();
-    };
+    }
+
+    function selectAccountType(type) {
+      selectedAccountType = type;
+      document.getElementById('typePersonal').classList.toggle('active', type === 'personal');
+      document.getElementById('typeOrganisation').classList.toggle('active', type === 'organisation');
+      document.getElementById('orgNameSection').style.display = (type === 'organisation') ? 'block' : 'none';
+    }
 
     function showError(message) {
       const el = document.getElementById('loginError');
@@ -231,8 +227,42 @@
       if (code === 'auth/weak-password') return 'Password should be at least 6 characters.';
       if (code === 'auth/too-many-requests') return 'Too many attempts — please wait a moment and try again.';
       if (code === 'auth/network-request-failed') return 'Network error — check your connection and try again.';
+      if (code === 'auth/configuration-not-found') return 'Email/Password sign-in isn\u2019t enabled yet for this Firebase project — turn it on in Firebase Console \u2192 Authentication \u2192 Sign-in method.';
       return err && err.message ? err.message : 'Something went wrong. Please try again.';
     }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      collection,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    // Same Firebase project as the rest of diBadge (web, and eventually Android/iOS) —
+    // one shared backend, not a separate one for this page.
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     window.handleSubmit = async function() {
       hideError();
@@ -241,6 +271,15 @@
       if (!email || !password) {
         showError('Please enter both an email and a password.');
         return;
+      }
+
+      let orgName = '';
+      if (currentMode === 'signup' && selectedAccountType === 'organisation') {
+        orgName = document.getElementById('orgNameInput').value.trim();
+        if (!orgName) {
+          showError('Please enter your organisation\u2019s name.');
+          return;
+        }
       }
 
       const submitBtn = document.getElementById('submitBtn');
@@ -252,13 +291,29 @@
           await signInWithEmailAndPassword(auth, email, password);
         } else {
           const cred = await createUserWithEmailAndPassword(auth, email, password);
-          // Seed a personal-account profile document for this new user — this is the
-          // record the organisation-linking step will later attach to, once that's built.
-          await setDoc(doc(db, 'users', cred.user.uid), {
-            email: email,
-            accountType: 'personal',
-            createdAt: serverTimestamp()
-          });
+          if (selectedAccountType === 'organisation') {
+            // This user becomes the creator/owner of a brand-new organisation — the same
+            // role that will later be able to link personal accounts in and set what each
+            // linked member is allowed to see.
+            const orgRef = doc(collection(db, 'organisations'));
+            await setDoc(orgRef, {
+              name: orgName,
+              creatorUid: cred.user.uid,
+              createdAt: serverTimestamp()
+            });
+            await setDoc(doc(db, 'users', cred.user.uid), {
+              email: email,
+              accountType: 'organisation_creator',
+              organisationId: orgRef.id,
+              createdAt: serverTimestamp()
+            });
+          } else {
+            await setDoc(doc(db, 'users', cred.user.uid), {
+              email: email,
+              accountType: 'personal',
+              createdAt: serverTimestamp()
+            });
+          }
         }
         // onAuthStateChanged below handles the redirect once Firebase confirms the session.
       } catch (err) {
