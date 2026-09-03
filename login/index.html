@@ -22,19 +22,28 @@
       background: var(--jet-black);
       color: var(--accent-white);
       min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 24px;
     }
 
-    /* Top bar: logo left, create-account link right */
+    /* Top bar: logo left, create-account link right — pinned to the viewport,
+       taken out of flow so it never affects the vertical centering below it */
     .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 920px;
-      margin: 0 auto 48px auto;
+      padding: 24px 32px;
+      z-index: 5;
     }
-    .top-bar h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; }
-    .top-bar h1 span { color: var(--accent-teal); }
+    .top-bar-logo { display: flex; align-items: center; gap: 8px; }
+    .top-bar-logo svg { width: 24px; height: 24px; }
+    .top-bar h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; color: var(--accent-white); }
     .create-org-link {
       background: transparent;
       border: 1px solid var(--soft-border);
@@ -201,12 +210,30 @@
     .switch-line { text-align: center; font-size: 0.82rem; color: var(--cool-ash); margin-top: 18px; }
     .switch-line a { color: var(--accent-teal); text-decoration: none; font-weight: 600; cursor: pointer; }
     .switch-line a:hover { text-decoration: underline; }
+
+    .privacy-footer {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+    }
+    .privacy-footer a {
+      font-size: 0.78rem;
+      color: var(--cool-ash);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .privacy-footer a:hover { color: var(--accent-white); text-decoration: underline; }
   </style>
 </head>
 <body>
 
   <div class="top-bar">
-    <h1>di<span>Badge</span></h1>
+    <div class="top-bar-logo">
+      <svg viewBox="0 0 24 24">
+        <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
+      </svg>
+      <h1>diBadge</h1>
+    </div>
     <button class="create-org-link" onclick="goTo('createOrg')">Create account</button>
   </div>
 
@@ -214,22 +241,19 @@
   <div class="stage active" id="stageLanding">
     <div class="landing-heading">
       <h2>Sign in to diBadge</h2>
-      <p>Choose how you'd like to continue.</p>
     </div>
     <div class="tile-row">
       <div class="landing-tile" onclick="goTo('personal')">
         <div class="landing-tile-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><line x1="14" y1="14" x2="14" y2="21"></line><line x1="21" y1="14" x2="21" y2="21"></line><line x1="17.5" y1="14" x2="17.5" y2="17.5"></line><line x1="14" y1="17.5" x2="21" y2="17.5"></line></svg>
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </div>
         <div class="landing-tile-title">Personal</div>
-        <div class="landing-tile-sub">Scan a QR code with the diBadge mobile app</div>
       </div>
       <div class="landing-tile" onclick="goTo('org')">
         <div class="landing-tile-icon">
           <svg viewBox="0 0 24 24"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 9h1"></path><path d="M14 9h1"></path><path d="M9 13h1"></path><path d="M14 13h1"></path><path d="M9 21v-4h6v4"></path></svg>
         </div>
         <div class="landing-tile-title">Organisation</div>
-        <div class="landing-tile-sub">Sign in with your work email and password</div>
       </div>
     </div>
   </div>
@@ -310,6 +334,10 @@
 
       <div class="switch-line">Already have an account? <a onclick="goTo('org')">Sign in</a></div>
     </div>
+  </div>
+
+  <div class="privacy-footer">
+    <a href="privacy.html">Privacy policy</a>
   </div>
 
   <!-- Plain script, not a module — runs immediately so stage-switching works instantly
