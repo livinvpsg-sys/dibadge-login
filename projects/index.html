@@ -45,6 +45,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
+    #authGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--jet-black); display: flex; justify-content: center; align-items: center; z-index: 1000; color: var(--accent-white); font-size: 0.9rem; }
+
     /* Header Line */
     .dashboard-header { background: var(--header-bg); color: var(--text-color); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; flex-shrink: 0; border-bottom: 1px solid var(--border-color); }
     .header-left { display: flex; align-items: center; gap: 12px; }
@@ -204,6 +206,10 @@
   </style>
 </head>
 <body onclick="hideContextMenus();">
+
+  <div id="authGate">Checking your session…</div>
+
+  <div id="appShell" style="display:none; flex-direction: column; height: 100%;">
 
   <!-- Header -->
   <header class="dashboard-header">
@@ -371,6 +377,39 @@
       </div>
     </aside>
   </div>
+
+  </div>
+
+  <!-- Auth check — must run before any page content or data is shown. Same Firebase project
+       as login.html and the rest of diBadge. If there's no signed-in session, this page (and
+       all the project data it renders) is skipped entirely and the visitor is sent to login. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, function(user) {
+      const gate = document.getElementById('authGate');
+      if (user) {
+        gate.style.display = 'none';
+        document.getElementById('appShell').style.display = 'flex';
+      } else {
+        window.location.href = '../login/';
+      }
+    });
+  </script>
 
  <script>
     let activeOpenedProject = null;
