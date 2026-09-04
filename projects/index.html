@@ -337,6 +337,19 @@
       </div>
     </div>
 
+    <!-- Project Members modal: add an already org-verified person into this project -->
+    <div class="modal-overlay" id="projectMembersModal">
+      <div class="modal-card" style="max-width: 420px;">
+        <button class="close-btn" onclick="closeProjectMembersModal()">&times;</button>
+        <h3>Add project member</h3>
+        <p style="color: var(--subtext-color); font-size: 0.82rem; margin-bottom: 6px;">Only people already verified by your organisation can be added this way.</p>
+        <div id="projectMembersList" style="max-height: 320px; overflow-y: auto;"></div>
+        <div class="modal-actions">
+          <button class="modal-btn btn-cancel" onclick="closeProjectMembersModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
     <main class="tiles-wrapper" id="mainGridWorkspace">
       <div id="projectDisplayContainer" style="width:100%;"></div>
     </main>
@@ -346,6 +359,7 @@
         <div class="project-meta-line1">
           <span id="metaClientName">Amber Holdings</span>
           <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
+          <button class="forms-add-btn" style="margin-left:auto;" onclick="openProjectMembersModal()">+ Add member</button>
         </div>
       </div>
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
@@ -386,6 +400,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc,
+      collectionGroup, query, where, getDocs, arrayUnion, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
@@ -399,15 +417,73 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    onAuthStateChanged(auth, function(user) {
+    // Exposed so the plain (non-module) script below — which holds all the existing UI
+    // logic — can read/write Firestore without this whole file becoming one giant module.
+    window.dbFns = { db, doc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, arrayUnion, serverTimestamp };
+
+    onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
-      if (user) {
-        gate.style.display = 'none';
-        document.getElementById('appShell').style.display = 'flex';
-      } else {
+      if (!user) {
         window.location.href = '../login/';
+        return;
       }
+
+      window.currentUid = user.uid;
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const userData = userSnap.exists() ? userSnap.data() : null;
+
+      if (userData && userData.accountType === 'organisation_creator') {
+        window.currentOrgId = userData.organisationId;
+      } else {
+        // Not the creator — check for delegated Projects-tile access as a verified member.
+        // Requires a Firestore index on the 'members' collection group for
+        // (uid, tileAccess.projects); the console will show a link to create it if missing.
+        try {
+          const q = query(
+            collectionGroup(db, 'members'),
+            where('uid', '==', user.uid),
+            where('tileAccess.projects', '==', true)
+          );
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            window.currentOrgId = snap.docs[0].ref.parent.parent.id;
+          }
+        } catch (err) {
+          // No access — currentOrgId stays unset, handled below.
+        }
+      }
+
+      // Resolve who counts as this org's "always has access" people — the true creator,
+      // plus any current Super Admins — so new projects can start with them included,
+      // alongside whoever actually creates the project (that project's admin).
+      if (window.currentOrgId) {
+        try {
+          const orgSnap = await getDoc(doc(db, 'organisations', window.currentOrgId));
+          window.currentOrgCreatorUid = orgSnap.exists() ? orgSnap.data().creatorUid : null;
+
+          const superAdminSnap = await getDocs(query(
+            collection(db, 'organisations', window.currentOrgId, 'members'),
+            where('isSuperAdmin', '==', true)
+          ));
+          window.currentOrgSuperAdminUids = superAdminSnap.docs.map(d => d.id);
+        } catch (err) {
+          window.currentOrgCreatorUid = null;
+          window.currentOrgSuperAdminUids = [];
+        }
+      }
+
+      gate.style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+
+      if (!window.currentOrgId) {
+        document.getElementById('projectDisplayContainer').innerHTML =
+          `<div style="color: var(--subtext-color); margin-top: 40px; text-align: center;">You don't have access to Projects.</div>`;
+        return;
+      }
+
+      if (typeof window.initProjectsApp === 'function') window.initProjectsApp();
     });
   </script>
 
@@ -459,20 +535,45 @@
       }
     }
 
-    const defaultProjects = [
-      { id: 'proj-1', client: 'Amber Holdings', projectNo: 'PRJ-2026-001', location: 'North Tower B', remarks: 'Site inspection & visual logs', year: '2026', children: getDefaultSubFolders() },
-      { id: 'proj-2', client: 'Alpha Corp', projectNo: 'PRJ-2026-002', location: 'Zone 4 Logistics', remarks: 'Routine safety audit', year: '2026', children: getDefaultSubFolders() }
-    ];
+    // In-memory cache of "my projects" (fetched from Firestore, filtered to this
+    // organisation), so the UI can filter/search synchronously without re-querying
+    // on every keystroke. Refreshed via loadProjects() after any write.
+    let myProjectsCache = [];
 
-    function getProjects() {
-      const stored = localStorage.getItem('dibadge_project_tiles');
-      if (!stored) return defaultProjects;
-      try { return JSON.parse(stored); } catch(e) { return defaultProjects; }
+    async function loadProjects() {
+      const { db, collection, query, where, getDocs } = window.dbFns;
+      const q = query(collection(db, 'projects'), where('members', 'array-contains', window.currentUid));
+      const snap = await getDocs(q);
+      myProjectsCache = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(p => p.organisationId === window.currentOrgId);
+      filterProjects();
     }
 
-    function saveProjects(array) {
-      localStorage.setItem('dibadge_project_tiles', JSON.stringify(array));
-      filterProjects();
+    function getProjects() {
+      return myProjectsCache;
+    }
+
+    async function createProject(newProjData) {
+      const { db, collection, addDoc, serverTimestamp } = window.dbFns;
+      // Initial members: whoever actually creates the project (its "project admin"),
+      // the organisation's true creator, and any current Super Admins — all three
+      // get access from the moment the project exists, per how this app is designed.
+      const initialMembers = Array.from(new Set([
+        window.currentUid,
+        window.currentOrgCreatorUid,
+        ...(window.currentOrgSuperAdminUids || [])
+      ].filter(Boolean)));
+
+      const docRef = await addDoc(collection(db, 'projects'), {
+        ...newProjData,
+        organisationId: window.currentOrgId,
+        creatorUid: window.currentUid, // this project's admin
+        members: initialMembers,
+        createdAt: serverTimestamp()
+      });
+      ensureProjectFormsSeeded(docRef.id);
+      await loadProjects();
     }
 
     // Passes project ID to chat folder
@@ -692,13 +793,11 @@
       jumpToBreadcrumbIndex(folderObjectStack.length - 1);
     }
 
-    function handleFabClick() {
+    async function handleFabClick() {
       if (activeViewMode === 'projects') {
         const client = prompt("Enter Client Name:");
         if (!client) return;
-        const projects = getProjects();
         const newProj = {
-          id: 'proj-' + Date.now(),
           client: client,
           projectNo: `PRJ-2026-${Math.floor(100 + Math.random() * 900)}`,
           location: 'Main Site',
@@ -706,9 +805,7 @@
           year: document.getElementById("yearPicker").value,
           children: getDefaultSubFolders()
         };
-        projects.push(newProj);
-        ensureProjectFormsSeeded(newProj.id);
-        saveProjects(projects);
+        await createProject(newProj);
       }
     }
 
@@ -716,23 +813,83 @@
     function confirmDeleteProjectAction() {}
     function closeCustomDeleteProjectModal() {}
 
-    // Automatically check URL parameters on load to open the specific project tile if passed
-    (function init() {
+    // ===================== Project members: add org-verified people to a project =====================
+    // Any current member of a project can add another person already verified by the
+    // organisation (organisations/{orgId}/members). Adding someone NOT yet verified is a
+    // separate join-request flow, not built here.
+
+    async function openProjectMembersModal() {
+      if (!activeOpenedProject) return;
+      const { db, collection, getDocs } = window.dbFns;
+      const modal = document.getElementById('projectMembersModal');
+      const listEl = document.getElementById('projectMembersList');
+      listEl.innerHTML = `<div style="color: var(--subtext-color); padding: 12px 0;">Loading…</div>`;
+      modal.style.display = 'flex';
+
+      try {
+        const orgMembersSnap = await getDocs(collection(db, 'organisations', window.currentOrgId, 'members'));
+        const currentMembers = new Set(activeOpenedProject.members || []);
+        const candidates = [];
+        orgMembersSnap.forEach(d => {
+          const m = d.data();
+          if (!currentMembers.has(m.uid)) candidates.push(m);
+        });
+
+        if (candidates.length === 0) {
+          listEl.innerHTML = `<div style="color: var(--subtext-color); padding: 12px 0;">Every verified member is already in this project.</div>`;
+          return;
+        }
+
+        listEl.innerHTML = '';
+        candidates.forEach(m => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:10px 4px; border-bottom:1px solid var(--border-color);';
+          row.innerHTML = `<span>${m.email}</span><button class="modal-btn btn-save" style="width:auto; padding:6px 14px;">Add</button>`;
+          row.querySelector('button').onclick = () => addProjectMember(m.uid);
+          listEl.appendChild(row);
+        });
+      } catch (err) {
+        listEl.innerHTML = `<div style="color: var(--subtext-color); padding: 12px 0;">Couldn't load organisation members.</div>`;
+      }
+    }
+
+    function closeProjectMembersModal() {
+      document.getElementById('projectMembersModal').style.display = 'none';
+    }
+
+    async function addProjectMember(uid) {
+      if (!activeOpenedProject) return;
+      const { db, doc, updateDoc, arrayUnion } = window.dbFns;
+      try {
+        await updateDoc(doc(db, 'projects', activeOpenedProject.id), {
+          members: arrayUnion(uid)
+        });
+        activeOpenedProject.members = [...(activeOpenedProject.members || []), uid];
+        openProjectMembersModal(); // refresh the candidate list in place
+      } catch (err) {
+        // Leave the modal as-is; the person can retry.
+      }
+    }
+
+    // Kicked off once by the auth module script, after currentUid/currentOrgId are known —
+    // replaces the old immediately-invoked init(), since project data now loads asynchronously.
+    window.initProjectsApp = async function() {
       const urlParams = new URLSearchParams(window.location.search);
       const projectId = urlParams.get('id');
+
+      await loadProjects();
+
       if (projectId) {
-        const projects = getProjects();
-        const matchedProj = projects.find(p => p.id === projectId);
+        const matchedProj = myProjectsCache.find(p => p.id === projectId);
         if (matchedProj) {
           openProjectFolder(matchedProj);
           return;
         }
       }
-      // Seed forms for every default project up front so Chat's Import modal always has data
-      // to read, even if that project's folder was never opened yet on this device.
-      getProjects().forEach(p => ensureProjectFormsSeeded(p.id));
-      filterProjects();
-    })();
+      // Seed forms for every project this user can see, up front, so Chat's Import modal
+      // always has data to read even if that project's folder was never opened on this device.
+      myProjectsCache.forEach(p => ensureProjectFormsSeeded(p.id));
+    };
   </script>
 </body>
 </html>
