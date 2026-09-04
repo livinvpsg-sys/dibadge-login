@@ -199,6 +199,7 @@
 
     let currentUid = null;
     let currentOrgId = null;
+    let isTrueCreator = false; // only the organisation's original creator — not a delegated admin — can appoint Super Admins
     let foundUser = null; // { uid, email, accountType } from the last search
 
     onAuthStateChanged(auth, async function(user) {
@@ -216,16 +217,35 @@
 
       if (userData && userData.accountType === 'organisation_creator') {
         currentOrgId = userData.organisationId;
+        isTrueCreator = true;
         renderCreatorView();
         loadMembers();
         return;
       }
 
-      // Not the creator — check whether this person is a verified member who's been
-      // granted access to the Members tile itself (an admin, delegated by the creator
-      // or another admin). Requires a Firestore index on the 'members' collection
-      // group for (uid, tileAccess.members) — Firestore will show a console link to
-      // create it the first time this query runs, if it isn't there yet.
+      // Not the creator — check Super Admin status first (creator-equivalent access,
+      // not gated by any individual tile toggle), then fall back to delegated
+      // Members-tile access. Both require a Firestore index on the 'members'
+      // collection group for the field being queried — Firestore will show a console
+      // link to create whichever index is missing the first time each query runs.
+      try {
+        const superAdminQuery = query(
+          collectionGroup(db, 'members'),
+          where('uid', '==', user.uid),
+          where('isSuperAdmin', '==', true)
+        );
+        const superAdminSnap = await getDocs(superAdminQuery);
+        if (!superAdminSnap.empty) {
+          currentOrgId = superAdminSnap.docs[0].ref.parent.parent.id;
+          isTrueCreator = false; // still can't appoint other Super Admins — creator-only, by design
+          renderCreatorView();
+          loadMembers();
+          return;
+        }
+      } catch (err) {
+        // Falls through to the delegated-admin check below.
+      }
+
       try {
         const adminQuery = query(
           collectionGroup(db, 'members'),
@@ -238,6 +258,7 @@
           // for now, use the first match.
           const memberDoc = adminSnap.docs[0];
           currentOrgId = memberDoc.ref.parent.parent.id;
+          isTrueCreator = false;
           renderCreatorView();
           loadMembers();
           return;
@@ -348,6 +369,7 @@
           addedByUid: currentUid,
           addedAt: serverTimestamp(),
           canAccessOrgAccount: canAccessOrg,
+          isSuperAdmin: false,
           tileAccess: { projects: false, hr: false, members: false }
         });
         document.getElementById('foundRow').classList.remove('active');
@@ -408,6 +430,26 @@
             <div class="tile-access-row" id="tileRow-${docSnap.id}" style="${canAccessOrg ? '' : 'display:none;'}"></div>
           `;
           row.querySelector('.remove-member-btn').onclick = () => removeMember(docSnap.id);
+
+          if (isTrueCreator) {
+            const isSuper = !!m.isSuperAdmin;
+            const superChip = document.createElement('label');
+            superChip.className = 'tile-toggle-chip' + (isSuper ? ' active' : '');
+            superChip.style.cssText = 'width:fit-content; border-color:' + (isSuper ? '#ffb300' : 'var(--border-color)') + '; color:' + (isSuper ? '#ffb300' : 'var(--subtext-color)') + ';';
+            superChip.innerHTML = `<input type="checkbox" ${isSuper ? 'checked' : ''}> Super Admin`;
+            superChip.querySelector('input').addEventListener('change', async (e) => {
+              const enabled = e.target.checked;
+              try {
+                await updateDoc(doc(db, 'organisations', currentOrgId, 'members', docSnap.id), {
+                  isSuperAdmin: enabled
+                });
+                loadMembers(); // full re-render — Super Admin status affects other chips' meaning too
+              } catch (err) {
+                e.target.checked = !enabled;
+              }
+            });
+            row.querySelector('.member-row-top').insertBefore(superChip, row.querySelector('.remove-member-btn'));
+          }
 
           const orgAccessCheckbox = row.querySelector('.tile-toggle-chip input');
           const tileRow = row.querySelector('.tile-access-row');
