@@ -24,6 +24,8 @@
       --paper-white: #f8f9fa;
     }
 
+    #authGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; display: flex; justify-content: center; align-items: center; z-index: 2000; color: #ffffff; font-size: 0.9rem; }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -2267,6 +2269,9 @@ html, body {
 </head>
 <body>
 
+  <div id="authGate">Checking your session…</div>
+  <div id="appShell" style="display:none; flex-direction: column; height: 100%;">
+
 <!-- Header -->
   <header class="dashboard-header">
     <div class="folder-header-nav" style="display: flex;">
@@ -2354,44 +2359,6 @@ html, body {
           </button>
           <div class="date-divider">
             <span class="date-badge">Today</span>
-          </div>
-
-          <div class="message-row incoming" data-id="seed_1">
-            <span class="sender-name">John</span>
-            <div class="msg-content-wrap incoming-wrap">
-              <div class="incoming-content-wrapper">
-                <div class="small-avatar">J</div>
-                <div class="msg-bubble incoming">
-                  <span class="message-text">Hi there!</span>
-                  <span class="msg-meta-row">04:13 pm</span>
-                </div>
-              </div>
-              <div class="msg-hover-actions" onclick="event.stopPropagation()">
-                <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_1')" title="React">
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-                </button>
-                <button class="msg-hover-btn" onclick="startReply('seed_1')" title="Reply">
-                  <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="message-row outgoing" data-id="seed_2">
-            <div class="msg-content-wrap outgoing-wrap">
-              <div class="msg-hover-actions" onclick="event.stopPropagation()">
-                <button class="msg-hover-btn" onclick="quickReactOpen(event, 'seed_2')" title="React">
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
-                </button>
-                <button class="msg-hover-btn" onclick="startReply('seed_2')" title="Reply">
-                  <svg viewBox="0 0 24 24"><path d="M9 17l-5-5 5-5"></path><path d="M4 12h11a5 5 0 0 1 5 5v1"></path></svg>
-                </button>
-              </div>
-              <div class="msg-bubble outgoing">
-                <span class="message-text">Hello! How can I help you?</span>
-                <span class="msg-meta-row">04:13 pm <span class="msg-ticks" id="ticks-seed_2"></span></span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -3620,6 +3587,9 @@ function renderPreviewTray() {
           if (thisMentionsGroups) crossPostToMentionedGroups(docMessageId, mentionedGroups);
           updateTicksUI(docMessageId);
           simulateDeliveryAndRead(docMessageId);
+          if (currentRoomId === 'project') {
+            persistDocumentMessage(docMessageId, file, isLast ? text : '', isFirst ? replyingToId : null, isLast ? mentionedGroups : []);
+          }
         });
 
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -3734,6 +3704,14 @@ function renderPreviewTray() {
       crossPostToMentionedGroups(messageId, mentionedGroups);
       updateTicksUI(messageId);
       simulateDeliveryAndRead(messageId);
+
+      if (currentRoomId === 'project') {
+        if (msgKind === 'media') {
+          persistMediaMessage(messageId, selectedStagedFiles.slice(), activeUploadType, text, replyingToId, mentionedGroups);
+        } else {
+          persistTextMessage(messageId, text, replyingToId, mentionedGroups);
+        }
+      }
       cancelReply();
 
       // Clear both the input and any staged files together.
@@ -3744,6 +3722,164 @@ function renderPreviewTray() {
       selectedStagedFiles.forEach(file => stagedFileUrlMap.delete(file));
       selectedStagedFiles = [];
       renderPreviewTray();
+    }
+
+    // ===================== Firestore persistence: text + files, main project room only =====================
+    // Reactions, replies, edits, deletes, and group comment threads are NOT persisted yet —
+    // they still work for the current session only, same as before. Only text and file/media
+    // messages in the main 'project' room are saved here, per the current build phase.
+
+    function chatMessagesCollection() {
+      const { db, collection } = window.chatFns;
+      return collection(db, 'projects', window.currentProjectId, 'rooms', 'project', 'messages');
+    }
+
+    async function persistTextMessage(messageId, text, replyTo, mentionedGroups) {
+      const { db, doc, addDoc, serverTimestamp } = window.chatFns;
+      try {
+        await addDoc(chatMessagesCollection(), {
+          clientId: messageId,
+          senderUid: window.currentUid,
+          kind: 'text',
+          text: text,
+          replyTo: replyTo || null,
+          mentionedGroups: mentionedGroups || [],
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        // The message still shows locally for this session — it just won't be there
+        // for others or on reload. No user-facing error surfaced yet in this phase.
+      }
+    }
+
+    async function uploadChatFile(file, messageId) {
+      const { storage, ref, uploadBytes, getDownloadURL } = window.chatFns;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `projects/${window.currentProjectId}/chat/project/${messageId}/${Date.now()}_${safeName}`;
+      const fileRef = ref(storage, path);
+      await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(fileRef);
+      return { url, name: file.name, storagePath: path };
+    }
+
+    async function persistDocumentMessage(messageId, file, text, replyTo, mentionedGroups) {
+      const { addDoc, serverTimestamp } = window.chatFns;
+      try {
+        const uploaded = await uploadChatFile(file, messageId);
+        await addDoc(chatMessagesCollection(), {
+          clientId: messageId,
+          senderUid: window.currentUid,
+          kind: 'document',
+          text: text || '',
+          fileName: uploaded.name,
+          url: uploaded.url,
+          storagePath: uploaded.storagePath,
+          replyTo: replyTo || null,
+          mentionedGroups: mentionedGroups || [],
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        // Stays visible locally for this session; not saved for others yet.
+      }
+    }
+
+    async function persistMediaMessage(messageId, files, mediaType, text, replyTo, mentionedGroups) {
+      const { addDoc, serverTimestamp } = window.chatFns;
+      try {
+        const uploadedItems = await Promise.all(files.map(f => uploadChatFile(f, messageId)));
+        await addDoc(chatMessagesCollection(), {
+          clientId: messageId,
+          senderUid: window.currentUid,
+          kind: 'media',
+          mediaType: mediaType,
+          mediaItems: uploadedItems.map(u => ({ url: u.url, name: u.name, storagePath: u.storagePath })),
+          text: text || '',
+          replyTo: replyTo || null,
+          mentionedGroups: mentionedGroups || [],
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        // Stays visible locally for this session; not saved for others yet.
+      }
+    }
+
+    // Loads full history once, then keeps listening for changes in real time — new
+    // messages from anyone (including this tab, echoed back) appear automatically.
+    // Called once auth + project-membership are both confirmed (see the module script
+    // at the bottom of this file).
+    window.initChatFirestore = function() {
+      const { query, orderBy, onSnapshot } = window.chatFns;
+      const chatContainer = document.getElementById('chatContainer');
+      let firstLoad = true;
+
+      onSnapshot(query(chatMessagesCollection(), orderBy('createdAt', 'asc')), (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type !== 'added') return; // edits/deletes to persisted messages: future phase
+          const data = change.doc.data();
+          const localId = data.clientId || change.doc.id;
+
+          // Already rendered locally when we sent it (optimistic UI) — don't duplicate.
+          if (getMessageRow(localId)) return;
+
+          const isOutgoing = data.senderUid === window.currentUid;
+          const timeString = data.createdAt ? formatFirestoreTimestamp(data.createdAt) : getTimeString();
+
+          let messageObj = {
+            id: localId,
+            isOutgoing,
+            kind: data.kind,
+            text: data.text || '',
+            time: timeString,
+            status: isOutgoing ? 'delivered' : null,
+            readAt: null,
+            edited: false,
+            editedAt: null,
+            deletedFor: 'none',
+            reaction: null,
+            replyTo: data.replyTo || null,
+            mentionedGroups: data.mentionedGroups || [],
+            comments: []
+          };
+
+          if (data.kind === 'document') {
+            messageObj.url = data.url;
+            messageObj.fileName = data.fileName;
+          }
+          if (data.kind === 'media' && Array.isArray(data.mediaItems)) {
+            const galleryId = registerGallery(data.mediaItems.map(item => ({
+              url: item.url, name: item.name, type: data.mediaType || 'Image'
+            })));
+            galleryMessageMap[galleryId] = localId;
+          }
+
+          registerMessage(messageObj);
+          const row = renderMessageToDOM(messageObj);
+          if (row) chatContainer.appendChild(row);
+        });
+
+        if (firstLoad) {
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          firstLoad = false;
+        } else {
+          // Only auto-scroll for new arrivals if already near the bottom, so reading
+          // older history isn't yanked away by a message arriving from someone else.
+          const distanceFromBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight;
+          if (distanceFromBottom < 200) chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+      });
+    };
+
+    function formatFirestoreTimestamp(ts) {
+      try {
+        const date = ts.toDate ? ts.toDate() : new Date(ts);
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'pm' : 'am';
+        hours = hours % 12 || 12;
+        return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
+      } catch (err) {
+        return getTimeString();
+      }
     }
 
   async function openReadViewer(url, fileName, fileType) {
@@ -3952,11 +4088,9 @@ function renderPreviewTray() {
       }, 700);
     }
 
-    // Register the two pre-existing seed messages already in the markup
-    (function initSeedMessages() {
-      registerMessage({ id: 'seed_1', isOutgoing: false, kind: 'text', text: 'Hi there!', time: '04:13 pm', status: null, readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null, mentionedGroups: [], comments: [] });
-      registerMessage({ id: 'seed_2', isOutgoing: true, kind: 'text', text: 'Hello! How can I help you?', time: '04:13 pm', status: 'delivered', readAt: null, edited: false, editedAt: null, deletedFor: 'none', reaction: null, replyTo: null, mentionedGroups: [], comments: [] });
-      updateTicksUI('seed_2');
+    // Real chat history now loads from Firestore (see window.initChatFirestore below,
+    // called once the auth/membership check passes) — no hardcoded seed messages.
+    (function initPanelState() {
       highlightActiveGroupInPanel();
       updateUnreadBadge();
     })();
@@ -5925,6 +6059,80 @@ function renderPreviewTray() {
       }
       closeImportFormModal();
     }
+  </script>
+
+  </div>
+
+  <!-- Auth check — same Firebase project as login.html and the rest of diBadge. If there's
+       no signed-in session, chat and all its data is skipped and the visitor is sent to login.
+       Also verifies the signed-in user is actually a member of THIS project — a valid
+       session alone isn't enough; without this check, anyone signed into diBadge could
+       open any project's chat just by guessing/typing its ?id= in the URL. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadBytes, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Exposed so the plain (non-module) script above — which holds all the existing chat
+    // UI logic — can read/write Firestore and Storage without becoming one giant module.
+    window.chatFns = { db, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
+
+    onAuthStateChanged(auth, async function(user) {
+      const gate = document.getElementById('authGate');
+      if (!user) {
+        window.location.href = '../../../login/';
+        return;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('id');
+      if (!projectId) {
+        window.location.href = '../../';
+        return;
+      }
+
+      let projectData = null;
+      try {
+        const projectSnap = await getDoc(doc(db, 'projects', projectId));
+        if (projectSnap.exists()) projectData = projectSnap.data();
+      } catch (err) {
+        // Treated as no access below.
+      }
+
+      const isMember = !!projectData && Array.isArray(projectData.members) && projectData.members.includes(user.uid);
+      if (!isMember) {
+        gate.textContent = "You don't have access to this project's chat.";
+        return;
+      }
+
+      window.currentUid = user.uid;
+      window.currentProjectId = projectId;
+
+      gate.style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+      if (typeof alignSearchPillToChat === 'function') alignSearchPillToChat();
+      if (typeof window.initChatFirestore === 'function') window.initChatFirestore();
+    });
   </script>
 </body>
 </html>
