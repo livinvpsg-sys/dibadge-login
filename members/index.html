@@ -143,6 +143,19 @@
 
     .empty-state { font-size: 0.85rem; color: var(--subtext-color); text-align: center; padding: 20px 0; }
     .inline-error { color: #ff6b60; font-size: 0.82rem; margin-top: 10px; }
+
+    .member-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .member-row-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .tile-access-row { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-color); }
+    .tile-toggle-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 20px;
+      border: 1px solid var(--border-color);
+      font-size: 0.78rem; cursor: pointer; user-select: none;
+      color: var(--subtext-color);
+    }
+    .tile-toggle-chip.active { border-color: var(--accent-teal); color: var(--accent-teal); }
+    .tile-toggle-chip input { display: none; }
   </style>
 </head>
 <body>
@@ -166,7 +179,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, setDoc, deleteDoc, collection,
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, collectionGroup,
       query, where, getDocs, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
@@ -201,19 +214,45 @@
       const userSnap = await getDoc(doc(db, 'users', user.uid));
       const userData = userSnap.exists() ? userSnap.data() : null;
 
-      if (!userData || userData.accountType !== 'organisation_creator') {
-        renderNotAllowed();
+      if (userData && userData.accountType === 'organisation_creator') {
+        currentOrgId = userData.organisationId;
+        renderCreatorView();
+        loadMembers();
         return;
       }
 
-      currentOrgId = userData.organisationId;
-      renderCreatorView();
-      loadMembers();
+      // Not the creator — check whether this person is a verified member who's been
+      // granted access to the Members tile itself (an admin, delegated by the creator
+      // or another admin). Requires a Firestore index on the 'members' collection
+      // group for (uid, tileAccess.members) — Firestore will show a console link to
+      // create it the first time this query runs, if it isn't there yet.
+      try {
+        const adminQuery = query(
+          collectionGroup(db, 'members'),
+          where('uid', '==', user.uid),
+          where('tileAccess.members', '==', true)
+        );
+        const adminSnap = await getDocs(adminQuery);
+        if (!adminSnap.empty) {
+          // A person could in principle be a Members-admin for more than one org —
+          // for now, use the first match.
+          const memberDoc = adminSnap.docs[0];
+          currentOrgId = memberDoc.ref.parent.parent.id;
+          renderCreatorView();
+          loadMembers();
+          return;
+        }
+      } catch (err) {
+        // Falls through to "not allowed" below — including the case where the
+        // required index doesn't exist yet.
+      }
+
+      renderNotAllowed();
     });
 
     function renderNotAllowed() {
       document.getElementById('pageBody').innerHTML = `
-        <div class="not-allowed">Only the organisation's creator account can manage members.</div>
+        <div class="not-allowed">You don't have access to manage members for an organisation.</div>
       `;
     }
 
@@ -234,6 +273,9 @@
             </div>
             <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Verify &amp; Add</button>
           </div>
+          <label class="tile-toggle-chip" id="orgAccessChip" style="margin-top:12px; width:fit-content;">
+            <input type="checkbox" id="orgAccessCheckbox"> Allow organisation account access
+          </label>
           <div class="inline-error" id="searchError" style="display:none;"></div>
         </div>
 
@@ -294,6 +336,7 @@
     window.handleVerify = async function() {
       if (!foundUser || !currentOrgId) return;
       const btn = document.getElementById('verifyBtn');
+      const canAccessOrg = document.getElementById('orgAccessCheckbox').checked;
       btn.disabled = true;
       btn.textContent = 'Adding…';
 
@@ -303,10 +346,13 @@
           email: foundUser.email,
           status: 'verified',
           addedByUid: currentUid,
-          addedAt: serverTimestamp()
+          addedAt: serverTimestamp(),
+          canAccessOrgAccount: canAccessOrg,
+          tileAccess: { projects: false, hr: false, members: false }
         });
         document.getElementById('foundRow').classList.remove('active');
         document.getElementById('searchEmailInput').value = '';
+        document.getElementById('orgAccessCheckbox').checked = false;
         loadMembers();
       } catch (err) {
         const errorEl = document.getElementById('searchError');
@@ -317,6 +363,15 @@
         btn.textContent = 'Verify & Add';
       }
     };
+
+    // Toggleable tiles a verified member could be granted access to, once they're
+    // allowed into the organisation account at all. 'members' grants this same
+    // page — verifying and managing others — not just the app's Members tile icon.
+    const TOGGLEABLE_TILES = [
+      { key: 'projects', label: 'Projects' },
+      { key: 'hr', label: 'HR' },
+      { key: 'members', label: 'Members (admin)' }
+    ];
 
     async function loadMembers() {
       const listEl = document.getElementById('membersList');
@@ -330,25 +385,75 @@
         listEl.innerHTML = '';
         snap.forEach(docSnap => {
           const m = docSnap.data();
+          const tileAccess = m.tileAccess || {};
+          const canAccessOrg = !!m.canAccessOrgAccount;
           const row = document.createElement('div');
           row.className = 'member-row';
           row.innerHTML = `
-            <div class="member-info">
-              <div class="member-avatar">${(m.email || '?').charAt(0).toUpperCase()}</div>
-              <div>
-                <div class="member-email">${m.email}</div>
-                <div class="member-status">Verified</div>
+            <div class="member-row-top">
+              <div class="member-info">
+                <div class="member-avatar">${(m.email || '?').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="member-email">${m.email}</div>
+                  <div class="member-status">Verified</div>
+                </div>
               </div>
+              <button class="remove-member-btn" title="Remove">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              </button>
             </div>
-            <button class="remove-member-btn" title="Remove">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-            </button>
+            <label class="tile-toggle-chip${canAccessOrg ? ' active' : ''}" style="width:fit-content;">
+              <input type="checkbox" ${canAccessOrg ? 'checked' : ''}> Organisation account access
+            </label>
+            <div class="tile-access-row" id="tileRow-${docSnap.id}" style="${canAccessOrg ? '' : 'display:none;'}"></div>
           `;
           row.querySelector('.remove-member-btn').onclick = () => removeMember(docSnap.id);
+
+          const orgAccessCheckbox = row.querySelector('.tile-toggle-chip input');
+          const tileRow = row.querySelector('.tile-access-row');
+          orgAccessCheckbox.addEventListener('change', async (e) => {
+            const enabled = e.target.checked;
+            tileRow.style.display = enabled ? '' : 'none';
+            e.target.closest('.tile-toggle-chip').classList.toggle('active', enabled);
+            try {
+              await updateDoc(doc(db, 'organisations', currentOrgId, 'members', docSnap.id), {
+                canAccessOrgAccount: enabled
+              });
+            } catch (err) {
+              e.target.checked = !enabled;
+              tileRow.style.display = !enabled ? '' : 'none';
+              e.target.closest('.tile-toggle-chip').classList.toggle('active', !enabled);
+            }
+          });
+
+          TOGGLEABLE_TILES.forEach(tile => {
+            const isOn = !!tileAccess[tile.key];
+            const chip = document.createElement('label');
+            chip.className = 'tile-toggle-chip' + (isOn ? ' active' : '');
+            chip.innerHTML = `<input type="checkbox" ${isOn ? 'checked' : ''}> ${tile.label}`;
+            chip.querySelector('input').addEventListener('change', (e) => {
+              toggleMemberTileAccess(docSnap.id, tile.key, e.target.checked, chip);
+            });
+            tileRow.appendChild(chip);
+          });
+
           listEl.appendChild(row);
         });
       } catch (err) {
         listEl.innerHTML = `<div class="empty-state">Couldn't load members.</div>`;
+      }
+    }
+
+    async function toggleMemberTileAccess(memberUid, tileKey, enabled, chipEl) {
+      chipEl.classList.toggle('active', enabled); // optimistic — flips back below on failure
+      try {
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', memberUid), {
+          [`tileAccess.${tileKey}`]: enabled
+        });
+      } catch (err) {
+        chipEl.classList.toggle('active', !enabled);
+        const checkbox = chipEl.querySelector('input');
+        if (checkbox) checkbox.checked = !enabled;
       }
     }
 
