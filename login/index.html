@@ -403,6 +403,14 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Guards against a real race: onAuthStateChanged fires the instant Firebase Auth
+    // confirms a new/existing session — which, for account CREATION, happens before the
+    // follow-up Firestore writes (organisation + user profile) have finished. Without this
+    // flag, the page would redirect to home/ immediately after createUserWithEmailAndPassword
+    // resolves, abandoning those writes mid-flight and leaving an Auth account with no
+    // Firestore data behind it. Sign-in has no such writes, so it's never affected.
+    let suppressAutoRedirect = false;
+
     window.handleOrgSignIn = async function() {
       const errEl = document.getElementById('orgSignInError');
       const statusEl = document.getElementById('orgSignInStatus');
@@ -453,6 +461,7 @@
 
       btn.disabled = true;
       statusEl.textContent = 'Creating your organisation…';
+      suppressAutoRedirect = true; // hold off onAuthStateChanged until the writes below finish
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         // This user becomes the creator/owner of a brand-new organisation — the same
@@ -470,8 +479,11 @@
           organisationId: orgRef.id,
           createdAt: serverTimestamp()
         });
-        // onAuthStateChanged below handles the redirect once Firebase confirms the session.
+        // Both writes are confirmed done — safe to move on now.
+        statusEl.textContent = 'Signed in — redirecting…';
+        window.location.href = '../home/';
       } catch (err) {
+        suppressAutoRedirect = false;
         btn.disabled = false;
         statusEl.textContent = '';
         errEl.textContent = friendlyAuthError(err);
@@ -479,12 +491,12 @@
       }
     };
 
-    // If a session already exists (or just succeeded above), move on to the app itself
-    // rather than sitting on the login screen.
+    // If a session already exists (or a sign-in just succeeded above), move on to the app
+    // itself rather than sitting on the login screen. Suppressed during account creation —
+    // see handleCreateOrg, which does its own redirect once its Firestore writes are done.
     onAuthStateChanged(auth, function(user) {
-      if (user) {
+      if (user && !suppressAutoRedirect) {
         document.getElementById('orgSignInStatus').textContent = 'Signed in — redirecting…';
-        document.getElementById('createOrgStatus').textContent = 'Signed in — redirecting…';
         window.location.href = '../home/';
       }
     });
