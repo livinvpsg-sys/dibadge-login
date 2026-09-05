@@ -13,6 +13,7 @@
   </script>
 
   <style>
+    #authGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f0f0f; display: flex; justify-content: center; align-items: center; z-index: 2000; color: #ffffff; font-size: 0.9rem; }
     :root {
       --jet-black: #0f0f0f;
       --paper-white: #f8f9fa;
@@ -1806,6 +1807,9 @@
 </head>
 <body>
 
+  <div id="authGate">Checking your session…</div>
+  <div id="appShell" style="display:none; flex-direction: column; height: 100%;">
+
   <header class="dashboard-header">
     <div style="display:flex; align-items:center; gap:12px;">
       <div class="default-header-title" id="libraryHeaderTitle">
@@ -2125,7 +2129,7 @@
       <div class="forms-grid" id="formsGrid"></div>
     </main>
 
-    <!-- Individual form (shown when a form is opened via ?name=) -->
+    <!-- Individual form (shown when a form is opened via ?id=) -->
     <main class="form-sheet-wrapper" id="formSheetWrapper" style="display:none;">
       <div class="a4-zoom-spacer" id="a4ZoomSpacer">
         <div class="a4-pages-stack" id="a4PagesStack">
@@ -2425,11 +2429,12 @@
 
   <div class="save-toast" id="saveToast">Saved</div>
 
+  </div>
+
   <script>
     // This page is the REAL destination for the "Project forms" nav icon — a standalone
     // library, not an in-page panel embedded in the Projects screen.
 
-    const FORMS_LIBRARY_KEY = 'dibadge_global_forms_library';
     let libraryViewMode = 'grid';
 
     // Declared early (before init() runs on page load) — showFormSheet() -> resetHistoryWithCurrentState()
@@ -2464,34 +2469,23 @@
       return activePageEl || document.getElementById('formSheet');
     }
 
-    function getDefaultForms() {
-      return [
-        'Tower B Foundation Log Sheet',
-        'Daily Site Inspection Form',
-        'Safety Compliance Checklist',
-        'Material Delivery Record',
-        'Concrete Pour Approval Form',
-        'Equipment Maintenance Log'
-      ];
+    // ===================== Firestore-backed forms library =====================
+    // The LIST of forms (name + id) lives in Firestore — small, safe there. The actual
+    // CONTENT of each form (which can include embedded base64 images and easily exceed
+    // Firestore's 1MB document limit) lives in Storage instead, as a plain HTML file.
+
+    let formsLibraryCache = []; // [{ id, name }]
+
+    function formsCollection() {
+      const { db, collection } = window.formsDbFns;
+      return collection(db, 'organisations', window.currentOrgId, 'forms');
     }
 
-    function getFormsLibrary() {
-      const stored = localStorage.getItem(FORMS_LIBRARY_KEY);
-      if (!stored) {
-        const defaults = getDefaultForms();
-        localStorage.setItem(FORMS_LIBRARY_KEY, JSON.stringify(defaults));
-        return defaults;
-      }
-      try {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : getDefaultForms();
-      } catch (e) {
-        return getDefaultForms();
-      }
-    }
-
-    function saveFormsLibrary(forms) {
-      localStorage.setItem(FORMS_LIBRARY_KEY, JSON.stringify(forms));
+    async function loadFormsLibrary() {
+      const { getDocs } = window.formsDbFns;
+      const snap = await getDocs(formsCollection());
+      formsLibraryCache = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      renderFormsLibrary();
     }
 
     function setLibraryViewMode(mode) {
@@ -2503,23 +2497,23 @@
 
     function renderFormsLibrary() {
       const grid = document.getElementById('formsGrid');
-      const query = document.getElementById('formSearchInput').value.toLowerCase().trim();
-      const forms = getFormsLibrary().filter(name => name.toLowerCase().includes(query));
+      const q = document.getElementById('formSearchInput').value.toLowerCase().trim();
+      const forms = formsLibraryCache.filter(f => f.name.toLowerCase().includes(q));
 
       if (libraryViewMode === 'list') {
         grid.className = 'forms-list-container';
-        grid.innerHTML = forms.map(name => `
-          <div class="form-row" title="${name}" onclick="openForm('${name.replace(/'/g, "\\'")}')">
+        grid.innerHTML = forms.map(f => `
+          <div class="form-row" title="${f.name}" onclick="openForm('${f.id}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-            <span class="form-row-name">${name}</span>
+            <span class="form-row-name">${f.name}</span>
           </div>
         `).join('');
       } else {
         grid.className = 'forms-grid';
-        grid.innerHTML = forms.map(name => `
-          <div class="form-card" title="${name}" onclick="openForm('${name.replace(/'/g, "\\'")}')">
+        grid.innerHTML = forms.map(f => `
+          <div class="form-card" title="${f.name}" onclick="openForm('${f.id}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-            <div class="form-card-name">${name}</div>
+            <div class="form-card-name">${f.name}</div>
           </div>
         `).join('');
       }
@@ -2533,19 +2527,21 @@
     function closeAddFormModal() {
       document.getElementById('addFormModal').classList.remove('active');
     }
-    function confirmAddForm() {
+    async function confirmAddForm() {
       const name = document.getElementById('newFormNameInput').value.trim();
       if (!name) return;
-      const forms = getFormsLibrary();
-      forms.push(name);
-      saveFormsLibrary(forms);
+      const { addDoc, serverTimestamp } = window.formsDbFns;
+      const docRef = await addDoc(formsCollection(), {
+        name: name,
+        createdByUid: window.currentUid,
+        createdAt: serverTimestamp()
+      });
+      formsLibraryCache.push({ id: docRef.id, name: name });
       closeAddFormModal();
-      openForm(name); // jump straight into the new form's work screen, ready to design
+      openForm(docRef.id); // jump straight into the new form's work screen, ready to design
     }
 
-    // ---- Opening / viewing a specific form ----
-
-    // ===================== Unsaved-changes tracking + persistence =====================
+    // ===================== Unsaved-changes tracking =====================
     // In-app navigation (breadcrumb, sidebar, back arrow) is fully under our control and gets
     // the custom confirmation styled like the chat's remove/delete popups. Actually closing or
     // refreshing the browser tab is NOT something a webpage can style — browsers only allow
@@ -2554,17 +2550,39 @@
 
     let hasUnsavedChanges = false;
     let currentFormName = null;
+    let currentFormId = null;
     let pendingNavUrl = null; // a real URL, or '__library__' for the in-page library view
-    const FORM_CONTENT_KEY_PREFIX = 'dibadge_form_content_';
 
-    function saveCurrentFormContent() {
-      if (!currentFormName) return;
-      const stack = document.getElementById('a4PagesStack');
-      localStorage.setItem(FORM_CONTENT_KEY_PREFIX + currentFormName, stack.innerHTML);
+    // ===================== Storage-backed form content =====================
+    // Each form's full page-stack HTML (which can include embedded base64 images) is saved
+    // as a plain HTML file in Firebase Storage — not Firestore, since a form with a few
+    // photos could easily exceed Firestore's 1MB per-document limit.
+
+    function formContentStorageRef() {
+      const { storage, ref } = window.formsDbFns;
+      return ref(storage, `organisations/${window.currentOrgId}/forms/${currentFormId}/content.html`);
     }
 
-    function loadFormContent(name) {
-      return localStorage.getItem(FORM_CONTENT_KEY_PREFIX + name);
+    async function saveCurrentFormContent() {
+      if (!currentFormId) return;
+      const { uploadString } = window.formsDbFns;
+      const stack = document.getElementById('a4PagesStack');
+      await uploadString(formContentStorageRef(), stack.innerHTML, 'raw', { contentType: 'text/html' });
+    }
+
+    async function loadFormContent(formId) {
+      const savedFormId = currentFormId;
+      currentFormId = formId; // formContentStorageRef() reads this
+      try {
+        const { getDownloadURL } = window.formsDbFns;
+        const url = await getDownloadURL(formContentStorageRef());
+        const res = await fetch(url);
+        return await res.text();
+      } catch (err) {
+        return null; // brand-new form with no saved content yet — not an error
+      } finally {
+        currentFormId = savedFormId;
+      }
     }
 
     // Every in-app link/button that leaves the current form routes through this first.
@@ -2587,8 +2605,8 @@
       proceedPendingNav();
     }
 
-    function saveAndLeave() {
-      saveCurrentFormContent();
+    async function saveAndLeave() {
+      await saveCurrentFormContent();
       hasUnsavedChanges = false;
       document.getElementById('unsavedChangesOverlay').classList.remove('active');
       proceedPendingNav();
@@ -2612,9 +2630,9 @@
       e.returnValue = '';
     });
 
-    function openForm(name) {
-      window.history.pushState({}, '', `?name=${encodeURIComponent(name)}`);
-      showFormSheet(name);
+    function openForm(id) {
+      window.history.pushState({}, '', `?id=${encodeURIComponent(id)}`);
+      showFormSheet(id);
     }
 
     function backToLibrary() {
@@ -2626,6 +2644,7 @@
     }
 
     function showLibrary() {
+      currentFormId = null;
       document.getElementById('formsLibraryWorkspace').style.display = 'block';
       document.getElementById('formSheetWrapper').style.display = 'none';
       document.getElementById('formToolsRail').style.display = 'none';
@@ -2637,7 +2656,10 @@
       renderFormsLibrary();
     }
 
-    function showFormSheet(name) {
+    async function showFormSheet(id) {
+      const entry = formsLibraryCache.find(f => f.id === id);
+      const name = entry ? entry.name : 'Form';
+
       document.getElementById('formsLibraryWorkspace').style.display = 'none';
       document.getElementById('formSheetWrapper').style.display = 'flex';
       document.getElementById('libraryHeaderTitle').style.display = 'none';
@@ -2654,10 +2676,11 @@
       // Blank A4 page, same idea as opening a new Word document — loads any previously saved
       // content for this form (potentially several pages), or starts with the single default
       // page already in the markup if there is none yet.
+      currentFormId = id;
       currentFormName = name;
       hasUnsavedChanges = false;
       const stack = document.getElementById('a4PagesStack');
-      const saved = loadFormContent(name);
+      const saved = await loadFormContent(id);
       if (saved) stack.innerHTML = saved;
       // Re-attach drag/resize behavior to every block across every page — innerHTML assignment
       // brings back the markup but not the JS listeners that were on it.
@@ -2690,20 +2713,22 @@
       reapplyEditDisabledForActiveTarget();
     }
 
-    (function init() {
+    // Kicked off once by the auth module script, after currentOrgId is known.
+    window.initFormsFirestore = async function() {
+      await loadFormsLibrary();
       const urlParams = new URLSearchParams(window.location.search);
-      const formName = urlParams.get('name');
-      if (formName) {
-        showFormSheet(formName);
+      const formId = urlParams.get('id');
+      if (formId) {
+        await showFormSheet(formId);
       } else {
         showLibrary();
       }
-    })();
+    };
 
     window.addEventListener('popstate', function() {
       const urlParams = new URLSearchParams(window.location.search);
-      const formName = urlParams.get('name');
-      if (formName) showFormSheet(formName);
+      const formId = urlParams.get('id');
+      if (formId) showFormSheet(formId);
       else showLibrary();
     });
 
@@ -2801,6 +2826,7 @@
       }
       updateUndoRedoButtons();
       reapplyEditDisabledForActiveTarget();
+      hasUnsavedChanges = true;
     }
 
     function clearAllEditDisabledOverlays() {
@@ -3061,7 +3087,6 @@
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
-
     // Question & Answer — inserted as a floating block (not flowing text), so it can be freely
     // moved and resized like a text box, independent of the surrounding document.
     let qaBlockCascadeOffset = 0;
@@ -3303,7 +3328,6 @@
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
-
     // ---------- Person/Username object: heading + one or more "slot" rows, each a design-time
     // placeholder for how a real person gets attached at fill-out time (type username/phone,
     // scan their QR, or pick from contacts) on the mobile app — this builder can't perform
@@ -3670,7 +3694,6 @@
       personPickerTargetSlot = null;
       personPickerTargetBlock = null;
     }
-
     // ---------- Date object: a heading, then one or more date entries styled like a button.
     // Each defaults to today and opens the native calendar picker on click. The "+" FAB adds
     // as many more date entries as needed — e.g. a permit issued across a week can just get
@@ -3793,9 +3816,6 @@
       });
     }
 
-    // Native date inputs have the exact same value-vs-attribute persistence gap as plain text
-    // inputs (see wireInputValueSync) — picking a date only updates the live .value property,
-    // never the value="" attribute that innerHTML-based saving actually captures.
     // Native date inputs have the exact same value-vs-attribute persistence gap as plain text
     // inputs (see wireInputValueSync) — picking a date only updates the live .value property,
     // never the value="" attribute that innerHTML-based saving actually captures. Also, any
@@ -3959,7 +3979,6 @@
       const count = container.querySelectorAll('.date-slot').length;
       container.classList.toggle('date-multi', count > 1);
     }
-
     // ---------- Submit Button: a single dedicated action button for submitting the form.
     // Clicking it (a plain click on the shape, not the move handle) triggers submission —
     // currently a mock, since there's no real backend yet to submit a completed form to. ----------
@@ -4283,7 +4302,6 @@
         document.addEventListener('pointerup', onUp);
       });
     }
-
     // Button — same floating-block idea as Question & Answer, one editable shape with its own
     // move handle and edge-only resize handles.
     // Which button block is currently selected for STYLING (Fill Color, Text Color, Border,
@@ -4535,7 +4553,6 @@
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
-
     // Table — opens a size prompt, then inserts a floating block with the same move/delete
     // pattern as Question & Answer and Button, plus hover-revealed add-row/add-column controls.
 
@@ -4792,7 +4809,6 @@
       hasUnsavedChanges = true;
       pushHistorySnapshot();
     }
-
     function wireTableBlockInteractions(block) {
       const page = block.closest('.a4-page, .a4-page-header-strip, .a4-page-footer-strip') || document.getElementById('formSheet');
       const moveHandle = block.querySelector('.table-move-handle');
@@ -5221,7 +5237,6 @@
         else row.insertBefore(td, row.cells[index]);
       });
     }
-
     // ---------- Image: floating block with full PowerPoint-style selection UI ----------
 
     let selectedImageBlock = null;
@@ -5460,7 +5475,6 @@
         document.addEventListener('pointerup', onUp);
       });
     }
-
     // ---------- Shapes: Line, Circle, Rectangle. Circle/Rectangle share the same
     // selection/move/8-handle-resize UI as Image (corners scale, edges resize one side);
     // Rectangle additionally gets a rotate handle like Text Box. Line only has 2 draggable
@@ -5815,7 +5829,6 @@
         });
       });
     }
-
     // ---------- Text Box: same selection/rotate/resize UI as Image, 2 icons (move/delete),
     // multi-line editable text; styling now applied via the shared toolbar (Fill Color, Text
     // Color, Border, Vertical Alignment) once selected, not its own popup. ----------
@@ -6320,12 +6333,11 @@
       saveToastTimer = setTimeout(function() { toast.classList.remove('active'); }, 1800);
     }
 
-    function handleSaveClick() {
-      saveCurrentFormContent();
+    async function handleSaveClick() {
+      await saveCurrentFormContent();
       hasUnsavedChanges = false;
       showSaveToast('Saved');
     }
-
     // ===================== Zoom =====================
     // Scales the page visually via CSS transform. The spacer around it is resized to match
     // the SCALED dimensions (transform doesn't affect layout size on its own), so the
@@ -6357,35 +6369,6 @@
       positionZoomControl();
     }
 
-    // Keeps the zoom control's RIGHT edge aligned with the page's own right border, rather
-    // than a fixed viewport offset — since the page's rendered position shifts with zoom
-    // level and window size. Vertical position stays fixed near the bottom of the screen.
-    // "Just outside the page, same line" — the zoom control sits to the right of the last
-    // page, vertically aligned with its bottom edge. The "add page" FAB sits right on that
-    // page's bottom-right corner. Both use the LAST page in the stack, since that's where a
-    // newly added page would appear.
-    // Both are real children of the last page-unit now (position:absolute relative to it via
-    // CSS), so they scroll and stay attached to the page naturally — no viewport math needed.
-    // This just re-parents them onto whichever page-unit is currently last, since that's where
-    // a newly added page should visually anchor them.
-    // Positions the zoom control relative to the LAST page-unit's own position within the
-    // scrollable wrapper (not the viewport) — computed once here rather than on every scroll
-    // event, since position:absolute children of a scrollable ancestor naturally move together
-    // with its scrolled content once placed in that coordinate space. It stays OUTSIDE the
-    // page-unit itself (not real page content) so it's never captured in save/undo snapshots,
-    // which serialize the page stack's markup.
-    // The zoom control is now pure CSS position:fixed (constant screen position) — kept as
-    // harmless no-ops since several call sites elsewhere still call these after page add/
-    // delete/zoom changes; removing every call individually isn't necessary or worth the risk.
-    // The zoom control's screen position stays constant regardless of scroll or page count
-    // (see the .zoom-control CSS), but it still needs to avoid the activity feed panel on the
-    // right — its dark background is nearly identical to the control's own, so anywhere under
-    // that panel it becomes almost invisible. This keeps it just left of that panel instead,
-    // recomputed only on resize (never on scroll/zoom/page-add, so it truly stays put).
-    // Computed only at initial load and on window resize — deliberately NOT recalculated when
-    // pages are added/deleted or the page is scrolled, so the screen position truly stays
-    // constant as the user asked, using the first page's edges as the reference (page width/
-    // position doesn't change with page count).
     function positionZoomControl() {
       const control = document.getElementById('zoomControl');
       const page = document.getElementById('formSheet');
@@ -6588,11 +6571,6 @@
       renderAllPageNumbers();
     }
 
-    // ---------- Page numbers: always on, chronological, same style/position/alignment
-    // everywhere — configured once via the popup, not per-page. ----------
-    // (pageNumberSettings is declared earlier in the file alongside the other pre-init state,
-    // for the TDZ reason explained up there.)
-
     function formatPageNumberText(n, total, style) {
       if (style === 'page') return 'Page ' + n;
       if (style === 'fraction') return n + ' / ' + total;
@@ -6612,15 +6590,10 @@
           numEl.classList.add('pgnum-' + pageNumberSettings.position, 'pgnum-' + pageNumberSettings.align,
             'pgnum-style-' + pageNumberSettings.style);
         }
-        // The settings icon only makes sense once, on whichever page is currently first —
-        // page numbers themselves apply everywhere regardless.
         if (btn) btn.style.display = (i === 0) ? 'flex' : 'none';
       });
     }
 
-    // Reconstructs pageNumberSettings from the DOM after a fresh load — the setting itself
-    // isn't saved separately, but its effect (classes on each .a4-page-number) is, since
-    // that's real markup captured in the page stack's own saved innerHTML.
     function reinitPageNumberSettingsFromDom() {
       const numEl = document.querySelector('.a4-page-number');
       if (!numEl) return;
@@ -6691,9 +6664,6 @@
       }
       renumberPages();
       wireAllPageUnits();
-      // Header/footer are meant to always be identical everywhere — if either is currently
-      // linked, this new page needs to start out already showing the same content (and the
-      // same manually-adjusted height), not blank and disconnected from the rest.
       ['header', 'footer'].forEach(function(kind) {
         if (!headerFooterLinked[kind]) return;
         const newStrip = unit.querySelector('.a4-page-' + kind + '-strip');
@@ -6703,7 +6673,7 @@
         newStrip.innerHTML = sourceStrip.innerHTML;
         if (sourceStrip.style.minHeight) newStrip.style.minHeight = sourceStrip.style.minHeight;
         rewireBlocksWithin(newStrip);
-        wireHfResizeHandle(newStrip, kind); // innerHTML replace above lost the handle's own listener
+        wireHfResizeHandle(newStrip, kind);
       });
       moveZoomAndFabToLastPage();
       activePageEl = unit.querySelector('.a4-page');
@@ -6733,7 +6703,7 @@
 
     let pendingDeletePageIdx = null;
     function promptDeletePage(idx) {
-      if (document.querySelectorAll('.a4-page-unit').length <= 1) return; // must keep at least one page
+      if (document.querySelectorAll('.a4-page-unit').length <= 1) return;
       pendingDeletePageIdx = idx;
       document.getElementById('deletePageOverlay').classList.add('active');
     }
@@ -6758,7 +6728,6 @@
     }
 
     // ---------- Page settings: color, page number, header/footer visibility, orientation ----------
-    // Every change here goes through the current-page-vs-all-pages choice.
 
     function getPageUnit(idx) {
       return document.getElementById(idx === 0 ? 'pageUnit-0' : 'pageUnit-' + idx);
@@ -6784,9 +6753,6 @@
         if (action.__isHfToggle) {
           const kind = action.__isHfToggle;
           headerFooterLinked[kind] = true;
-          // Unify content across every page right away, using whichever page triggered this
-          // as the source of truth, so "whatever's in it shows on every page" starts true
-          // immediately rather than only once someone next edits it.
           const sourceUnit = document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]') || allUnits[0];
           const sourceStrip = sourceUnit.querySelector('.a4-page-' + kind + '-strip');
           if (sourceStrip) syncLinkedStrip(kind, sourceStrip);
@@ -6795,10 +6761,6 @@
         action(document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]') || allUnits[0]);
         if (action.__isHfToggle) headerFooterLinked[action.__isHfToggle] = false;
       }
-      // If this action was toggling a header/footer ON, immediately make it the active edit
-      // target for the page that triggered it — otherwise the mutual-exclusion system would
-      // disable it right away (via pushHistorySnapshot below) before the user ever got a
-      // single click in, forcing an unnecessary extra double-click just to start using it.
       if (action.__isHfToggle) {
         const kind = action.__isHfToggle;
         const triggerUnit = document.querySelector('.a4-page-unit[data-page-index="' + (action.__scopeIdx || 0) + '"]');
@@ -6827,8 +6789,6 @@
       });
     }
 
-    // Called after every meaningful edit (see pushHistorySnapshot) — if the currently active
-    // target is a linked header/footer strip, propagate its latest content to the others.
     function syncLinkedStripIfNeeded() {
       if (!activePageEl) return;
       let kind = null;
@@ -6870,8 +6830,6 @@
     function togglePageStrip(idx, kind) {
       const anyActive = document.querySelector('.a4-page-' + kind + '-strip.active');
       if (!anyActive) {
-        // First time — just show it on every page immediately, no scope question. Header/
-        // footer are always identical across every page, no per-page choice to make.
         document.querySelectorAll('.a4-page-' + kind + '-strip').forEach(function(strip) {
           strip.classList.add('active');
         });
@@ -6882,7 +6840,6 @@
         hasUnsavedChanges = true;
         pushHistorySnapshot();
       } else {
-        // Already showing — ask whether to delete it (everywhere) or just go edit it.
         pendingHfDeleteKind = kind;
         document.getElementById('hfDeleteEditOverlay').classList.add('active');
       }
@@ -6947,6 +6904,92 @@
       pushHistorySnapshot();
       undoFormChange();
     }
+  </script>
+
+  <!-- Auth check — same Firebase project as the rest of diBadge. This page is org-wide (no
+       ?id= project scope), so access is granted to: the organisation's true creator, a Super
+       Admin, or a verified member with tileAccess.projects granted — same three-tier check
+       used on the Projects page itself, since Forms sits alongside it. -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, collection, addDoc, deleteDoc, collectionGroup,
+      query, where, getDocs, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadString, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Exposed so the plain (non-module) script above — which holds all the existing form-
+    // builder logic — can read/write Firestore and Storage without becoming one giant module.
+    window.formsDbFns = { db, doc, getDoc, collection, addDoc, deleteDoc, query, where, getDocs, serverTimestamp, storage, ref, uploadString, getDownloadURL, deleteObject };
+
+    onAuthStateChanged(auth, async function(user) {
+      const gate = document.getElementById('authGate');
+      if (!user) {
+        window.location.href = '../../../login/';
+        return;
+      }
+
+      window.currentUid = user.uid;
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const userData = userSnap.exists() ? userSnap.data() : null;
+
+      if (userData && userData.accountType === 'organisation_creator') {
+        window.currentOrgId = userData.organisationId;
+      } else {
+        try {
+          const superAdminQuery = query(
+            collectionGroup(db, 'members'),
+            where('uid', '==', user.uid),
+            where('isSuperAdmin', '==', true)
+          );
+          const superAdminSnap = await getDocs(superAdminQuery);
+          if (!superAdminSnap.empty) {
+            window.currentOrgId = superAdminSnap.docs[0].ref.parent.parent.id;
+          } else {
+            const projectsAdminQuery = query(
+              collectionGroup(db, 'members'),
+              where('uid', '==', user.uid),
+              where('tileAccess.projects', '==', true)
+            );
+            const projectsAdminSnap = await getDocs(projectsAdminQuery);
+            if (!projectsAdminSnap.empty) {
+              window.currentOrgId = projectsAdminSnap.docs[0].ref.parent.parent.id;
+            }
+          }
+        } catch (err) {
+          // No access — currentOrgId stays unset, handled below.
+        }
+      }
+
+      gate.style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+
+      if (!window.currentOrgId) {
+        document.getElementById('appShell').innerHTML =
+          `<div style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--subtext-color);">You don't have access to Project Forms.</div>`;
+        return;
+      }
+
+      if (typeof window.initFormsFirestore === 'function') window.initFormsFirestore();
+    });
   </script>
 </body>
 </html>
