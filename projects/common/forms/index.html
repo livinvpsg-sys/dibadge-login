@@ -1803,6 +1803,16 @@
     .close-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--subtext-color); }
 
     @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
+
+    /* Read-only viewer mode (opened from a project chat) — hides every editing surface and
+       blocks all interaction with the page's own content, so it renders as a genuine
+       non-editable view rather than a normal open-for-editing form. */
+    .view-mode .form-tools-rail,
+    .view-mode .a4-page-settings-bar,
+    .view-mode .fab-tab-btn { display: none !important; }
+    .view-mode .a4-page,
+    .view-mode .a4-page-header-strip,
+    .view-mode .a4-page-footer-strip { pointer-events: none; }
   </style>
 </head>
 <body>
@@ -2552,6 +2562,7 @@
     let currentFormName = null;
     let currentFormId = null;
     let pendingNavUrl = null; // a real URL, or '__library__' for the in-page library view
+    let isViewMode = false; // opened via ?mode=view (e.g. from a project chat) — read-only
 
     // ===================== Storage-backed form content =====================
     // Each form's full page-stack HTML (which can include embedded base64 images) is saved
@@ -2667,7 +2678,9 @@
       document.getElementById('formHeaderNav').style.display = 'flex';
       document.querySelector('.fab-tab-btn').style.display = 'none';
 
-      document.getElementById('breadcrumbBar').innerHTML = `
+      document.getElementById('breadcrumbBar').innerHTML = isViewMode
+        ? `<span class="breadcrumb-item active">${name}</span>`
+        : `
         <span class="breadcrumb-item" onclick="backToLibrary()">Project Forms</span>
         <span>&gt;</span>
         <span class="breadcrumb-item active">${name}</span>
@@ -2706,7 +2719,13 @@
       });
       activePageEl = stack.querySelector('.a4-page');
       updateAllStripEmptyStates();
-      document.getElementById('formToolsRail').style.display = 'grid';
+      if (isViewMode) {
+        document.body.classList.add('view-mode');
+        document.getElementById('formToolsRail').style.display = 'none';
+      } else {
+        document.body.classList.remove('view-mode');
+        document.getElementById('formToolsRail').style.display = 'grid';
+      }
       document.getElementById('zoomControl').classList.add('active');
       resetZoom();
       resetHistoryWithCurrentState();
@@ -2718,6 +2737,7 @@
       await loadFormsLibrary();
       const urlParams = new URLSearchParams(window.location.search);
       const formId = urlParams.get('id');
+      isViewMode = urlParams.get('mode') === 'view';
       if (formId) {
         await showFormSheet(formId);
       } else {
@@ -6909,7 +6929,10 @@
   <!-- Auth check — same Firebase project as the rest of diBadge. This page is org-wide (no
        ?id= project scope), so access is granted to: the organisation's true creator, a Super
        Admin, or a verified member with tileAccess.projects granted — same three-tier check
-       used on the Projects page itself, since Forms sits alongside it. -->
+       used on the Projects page itself, since Forms sits alongside it. When opened with
+       ?mode=view&projectId=... (from a project's chat), plain membership of THAT project is
+       also accepted — someone can view a form attached to a chat they're in even without
+       broader org-level Forms/Projects access. -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
@@ -6975,7 +6998,27 @@
             }
           }
         } catch (err) {
-          // No access — currentOrgId stays unset, handled below.
+          // Falls through to the project-membership check below.
+        }
+      }
+
+      // No org-level access found — if this is a read-only view opened from a specific
+      // project's chat, plain membership of that project is enough to view its attached form.
+      if (!window.currentOrgId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewProjectId = urlParams.get('projectId');
+        if (urlParams.get('mode') === 'view' && viewProjectId) {
+          try {
+            const projectSnap = await getDoc(doc(db, 'projects', viewProjectId));
+            if (projectSnap.exists()) {
+              const projectData = projectSnap.data();
+              if (Array.isArray(projectData.members) && projectData.members.includes(user.uid)) {
+                window.currentOrgId = projectData.organisationId;
+              }
+            }
+          } catch (err) {
+            // No access — currentOrgId stays unset, handled below.
+          }
         }
       }
 
