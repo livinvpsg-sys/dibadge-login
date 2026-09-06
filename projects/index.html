@@ -157,6 +157,18 @@
     .forms-list-container { display: flex; flex-direction: column; gap: 2px; }
 
     /* Standard Modals */
+    /* Rename/New popups — same rounded-card, underline-input style used in Chat's details panel */
+    .group-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .group-modal-overlay.active { display: flex; }
+    .group-modal-box { background: var(--surface-color); border-radius: 20px; padding: 28px 24px 20px 24px; width: 320px; max-width: 100%; }
+    .group-modal-title { font-size: 1.3rem; font-weight: 500; color: var(--text-color); margin-bottom: 22px; }
+    .group-modal-input { width: 100%; background: transparent; border: none; border-bottom: 1px solid var(--border-color); color: var(--text-color); font-size: 0.95rem; padding: 6px 2px 10px 2px; outline: none; margin-bottom: 20px; box-sizing: border-box; }
+    .group-modal-input::placeholder { color: var(--subtext-color); }
+    .group-modal-input:focus { border-bottom-color: var(--subtext-color); }
+    .group-modal-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+    .group-modal-cancel-btn { background: transparent; border: none; color: var(--text-color); font-size: 0.95rem; font-weight: 700; cursor: pointer; padding: 4px; }
+    .group-modal-ok-btn { background: var(--border-color); border: none; color: var(--text-color); font-size: 0.95rem; font-weight: 700; padding: 10px 26px; border-radius: 24px; cursor: pointer; }
+
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); border: 1px solid var(--border-color); }
     .modal-card h3 { text-align: center; margin-bottom: 16px; font-size: 1.1rem; }
@@ -337,6 +349,19 @@
       </div>
     </div>
 
+    <!-- New Folder modal — same rounded-card, underline-input styling as Chat's own
+         "Add Folder" popup in the details panel, opened via the FAB while inside a project -->
+    <div class="group-modal-overlay" id="newProjectFolderModal" onclick="closeNewProjectFolderModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">New Folder</div>
+        <input type="text" class="group-modal-input" id="newProjectFolderNameInput" placeholder="Name" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmNewProjectFolder();}">
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeNewProjectFolderModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmNewProjectFolder()">Save</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Project Members modal: add an already org-verified person into this project,
          or send a join request for someone who isn't verified yet -->
     <div class="modal-overlay" id="projectMembersModal">
@@ -370,8 +395,6 @@
         <div class="project-meta-line1">
           <span id="metaClientName">Amber Holdings</span>
           <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
-          <button class="forms-add-btn" style="margin-left:auto;" onclick="openAddFolderModalInProject()">+ Add Folder</button>
-          <button class="forms-add-btn" onclick="openProjectMembersModal()">+ Add member</button>
         </div>
       </div>
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
@@ -688,6 +711,11 @@
       folderObjectStack = [proj];
       activeViewMode = 'folder';
 
+      const nameEl = document.getElementById('metaClientName');
+      const noEl = document.getElementById('metaProjectNo');
+      if (nameEl) nameEl.textContent = proj.client;
+      if (noEl) noEl.textContent = proj.projectNo;
+
       ensureProjectFormsSeeded(proj.id);
 
       document.getElementById("mainNavGroup").style.display = "none";
@@ -781,7 +809,15 @@
         subGrid.appendChild(card);
       });
 
-      renderFolderFilesList(currentFolderNode);
+      // Files only make sense inside an actual folder — the project root itself just holds
+      // folder cards, never loose files.
+      const insideRealFolder = folderObjectStack.length > 1;
+      if (insideRealFolder) {
+        renderFolderFilesList(currentFolderNode);
+      } else {
+        const existingFilesSection = document.getElementById('folderFilesSection');
+        if (existingFilesSection) existingFilesSection.remove();
+      }
     }
 
     function escapeHtmlPlain(str) {
@@ -836,16 +872,28 @@
     let folderIdCounter = 0;
 
     function openAddFolderModalInProject() {
-      const name = prompt('Folder name:');
-      if (!name || !name.trim()) return;
+      document.getElementById('newProjectFolderNameInput').value = '';
+      document.getElementById('newProjectFolderModal').classList.add('active');
+      document.getElementById('newProjectFolderNameInput').focus();
+    }
+
+    function closeNewProjectFolderModal() {
+      document.getElementById('newProjectFolderModal').classList.remove('active');
+    }
+
+    function confirmNewProjectFolder() {
+      const input = document.getElementById('newProjectFolderNameInput');
+      const name = input.value.trim();
+      if (!name) return;
       const currentFolderNode = getCurrentWorkspaceFolder();
       if (!currentFolderNode.children) currentFolderNode.children = [];
       currentFolderNode.children.push({
         id: 'folder-' + Date.now() + '-' + (folderIdCounter++),
-        name: name.trim(),
+        name: name,
         children: [],
         files: []
       });
+      closeNewProjectFolderModal();
       renderFolderView();
       persistProjectFolders().catch(() => {});
     }
@@ -954,6 +1002,8 @@
           children: getDefaultSubFolders()
         };
         await createProject(newProj);
+      } else if (activeViewMode === 'folder') {
+        openAddFolderModalInProject();
       }
     }
 
