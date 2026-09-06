@@ -2509,12 +2509,7 @@ html, body {
           <span class="details-subsection-label">FORMS</span>
           <button class="details-panel-add-btn" onclick="openImportFormModal()">+ Add</button>
         </div>
-        <div id="formsListContainer">
-          <div class="details-item-row" oncontextmenu="openFormContextMenu(event)">
-            <svg class="details-item-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-            <span class="details-item-label">Tower B Foundation Log Sheet</span>
-          </div>
-        </div>
+        <div id="formsListContainer"></div>
       </div>
 
       <hr class="details-panel-divider">
@@ -5952,35 +5947,34 @@ function renderPreviewTray() {
     // Reads the REAL forms list from localStorage, shared with the project's main screen page
     // (same key pattern: dibadge_project_forms_<projectId>) — not a made-up placeholder list.
 
-    const PROJECT_FORMS_DEFAULT = [
-      'Tower B Foundation Log Sheet',
-      'Daily Site Inspection Form',
-      'Safety Compliance Checklist',
-      'Material Delivery Record'
-    ];
+    // Real Project Forms library — reads from Firestore (organisations/{orgId}/forms), the
+    // same collection the standalone Forms library page manages. Clicking an added form opens
+    // it in that page's read-only viewer mode, scoped to this project so a chat member without
+    // broader org tile access can still view forms attached here.
 
-    // Reads the REAL Project Forms library — the same standalone library page (forms/index.html)
-    // and its localStorage key that "Project forms" in the main sidebar opens. Not a per-project
-    // or made-up list — this is the actual shared source of truth.
-    function getProjectFormsLibrary() {
-      const stored = localStorage.getItem('dibadge_global_forms_library');
-      if (!stored) return PROJECT_FORMS_DEFAULT.slice();
+    let orgFormsLibraryCache = []; // [{ id, name }] — org's full forms library
+    let chatFormsAdded = []; // [{ id, name }] — forms added to THIS chat (session-only, like Groups/Folders)
+
+    async function loadOrgFormsLibrary() {
+      const { db, collection, getDocs } = window.chatFns;
       try {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : PROJECT_FORMS_DEFAULT.slice();
-      } catch (e) {
-        return PROJECT_FORMS_DEFAULT.slice();
+        const snap = await getDocs(collection(db, 'organisations', window.currentOrgId, 'forms'));
+        orgFormsLibraryCache = snap.docs.map(d => ({ id: d.id, name: d.data().name }));
+      } catch (err) {
+        orgFormsLibraryCache = [];
       }
     }
 
     let importFormViewMode = 'grid';
-    let importFormSelectedFiles = new Set(); // multi-select — several forms can be imported in one go
+    let importFormSelectedIds = new Set(); // multi-select — several forms can be imported in one go
 
-    function openImportFormModal() {
-      importFormSelectedFiles = new Set();
+    async function openImportFormModal() {
+      importFormSelectedIds = new Set();
       document.getElementById('importFormBreadcrumb').textContent = 'Project Forms';
       document.getElementById('importFormOverlay').classList.add('active');
       updateImportConfirmState();
+      document.getElementById('importFormBody').innerHTML = `<div class="import-file-empty">Loading…</div>`;
+      await loadOrgFormsLibrary();
       renderImportFormBody();
     }
 
@@ -5995,13 +5989,13 @@ function renderPreviewTray() {
       renderImportFormBody();
     }
 
-    function selectImportFile(fileName) {
+    function selectImportFile(formId) {
       // Toggling — clicking an already-selected form deselects it, same as the chat's own
       // multi-select-message pattern.
-      if (importFormSelectedFiles.has(fileName)) {
-        importFormSelectedFiles.delete(fileName);
+      if (importFormSelectedIds.has(formId)) {
+        importFormSelectedIds.delete(formId);
       } else {
-        importFormSelectedFiles.add(fileName);
+        importFormSelectedIds.add(formId);
       }
       updateImportConfirmState();
       renderImportFormBody();
@@ -6010,7 +6004,7 @@ function renderPreviewTray() {
     function updateImportConfirmState() {
       const btn = document.getElementById('importFormConfirmBtn');
       if (!btn) return;
-      const count = importFormSelectedFiles.size;
+      const count = importFormSelectedIds.size;
       btn.disabled = count === 0;
       btn.textContent = count > 0 ? `Add (${count})` : 'Add';
     }
@@ -6018,46 +6012,56 @@ function renderPreviewTray() {
     function renderImportFormBody() {
       const body = document.getElementById('importFormBody');
       if (!body) return;
-      const forms = getProjectFormsLibrary();
+      const alreadyAddedIds = new Set(chatFormsAdded.map(f => f.id));
+      const forms = orgFormsLibraryCache.filter(f => !alreadyAddedIds.has(f.id));
 
       if (forms.length === 0) {
-        body.innerHTML = `<div class="import-file-empty">No forms found in Project Forms yet.</div>`;
+        body.innerHTML = `<div class="import-file-empty">${orgFormsLibraryCache.length === 0 ? 'No forms found in Project Forms yet.' : 'Every form is already added to this chat.'}</div>`;
         return;
       }
 
       if (importFormViewMode === 'grid') {
-        body.innerHTML = `<div class="import-folder-grid">${forms.map(name => `
-          <div class="import-folder-card${importFormSelectedFiles.has(name) ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+        body.innerHTML = `<div class="import-folder-grid">${forms.map(f => `
+          <div class="import-folder-card${importFormSelectedIds.has(f.id) ? ' selected' : ''}" onclick="selectImportFile('${f.id}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-            <div class="import-folder-name">${escapeHtml(name)}</div>
+            <div class="import-folder-name">${escapeHtml(f.name)}</div>
           </div>
         `).join('')}</div>`;
       } else {
-        body.innerHTML = `<div class="import-file-list">${forms.map(name => `
-          <div class="import-file-row${importFormSelectedFiles.has(name) ? ' selected' : ''}" onclick="selectImportFile('${name.replace(/'/g, "\\'")}')">
+        body.innerHTML = `<div class="import-file-list">${forms.map(f => `
+          <div class="import-file-row${importFormSelectedIds.has(f.id) ? ' selected' : ''}" onclick="selectImportFile('${f.id}')">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-            <span class="import-file-name">${escapeHtml(name)}</span>
+            <span class="import-file-name">${escapeHtml(f.name)}</span>
           </div>
         `).join('')}</div>`;
       }
     }
 
     function confirmImportForm() {
-      if (importFormSelectedFiles.size === 0) return;
-      const container = document.getElementById('formsListContainer');
-      if (container) {
-        importFormSelectedFiles.forEach(formName => {
-          const row = document.createElement('div');
-          row.className = 'details-item-row';
-          row.setAttribute('oncontextmenu', 'openFormContextMenu(event)');
-          row.innerHTML = `
-            <svg class="details-item-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
-            <span class="details-item-label">${escapeHtml(formName)}</span>
-          `;
-          container.appendChild(row);
-        });
-      }
+      if (importFormSelectedIds.size === 0) return;
+      importFormSelectedIds.forEach(formId => {
+        const form = orgFormsLibraryCache.find(f => f.id === formId);
+        if (form) chatFormsAdded.push(form);
+      });
+      renderChatFormsList();
       closeImportFormModal();
+    }
+
+    function renderChatFormsList() {
+      const container = document.getElementById('formsListContainer');
+      if (!container) return;
+      container.innerHTML = chatFormsAdded.map(f => `
+        <div class="details-item-row" oncontextmenu="openFormContextMenu(event)" onclick="openChatFormViewer('${f.id}')">
+          <svg class="details-item-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+          <span class="details-item-label">${escapeHtml(f.name)}</span>
+        </div>
+      `).join('');
+    }
+
+    // Opens the form in its own screen, in read-only viewer mode — passing this project's id
+    // so someone who's a project member (but maybe not a broader org admin) can still view it.
+    function openChatFormViewer(formId) {
+      window.open(`../../common/forms/?id=${encodeURIComponent(formId)}&mode=view&projectId=${encodeURIComponent(window.currentProjectId)}`, '_blank');
     }
   </script>
 
@@ -6072,7 +6076,7 @@ function renderPreviewTray() {
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp
+      getFirestore, doc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
     import {
       getStorage, ref, uploadBytes, getDownloadURL
@@ -6095,7 +6099,7 @@ function renderPreviewTray() {
 
     // Exposed so the plain (non-module) script above — which holds all the existing chat
     // UI logic — can read/write Firestore and Storage without becoming one giant module.
-    window.chatFns = { db, doc, getDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
+    window.chatFns = { db, doc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
 
     onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
@@ -6127,6 +6131,7 @@ function renderPreviewTray() {
 
       window.currentUid = user.uid;
       window.currentProjectId = projectId;
+      window.currentOrgId = projectData.organisationId;
 
       gate.style.display = 'none';
       document.getElementById('appShell').style.display = 'flex';
