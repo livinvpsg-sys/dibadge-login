@@ -126,6 +126,9 @@
 
     .folder-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
     .folder-card:hover { transform: translateY(-3px); }
+    .folder-card.folder-card-dragover { border-color: #14b8a6; background: rgba(20,184,166,0.1); transform: translateY(-3px); }
+    .folder-files-dropzone { border: 2px dashed transparent; border-radius: 10px; transition: border-color 0.15s, background 0.15s; }
+    .folder-files-dropzone.dropzone-active { border-color: #14b8a6; background: rgba(20,184,166,0.06); }
     .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
@@ -793,6 +796,18 @@
       subGrid.innerHTML = "";
       const currentFolderNode = getCurrentWorkspaceFolder();
 
+      // Background drop target: dropping onto empty grid space (not directly on a folder
+      // card) adds files/folders at THIS level — the currently-open folder, or the project
+      // root. Card-level drops below stop propagation so this doesn't double-fire for those.
+      subGrid.classList.add('folder-files-dropzone');
+      subGrid.ondragover = (e) => { e.preventDefault(); subGrid.classList.add('dropzone-active'); };
+      subGrid.ondragleave = () => { subGrid.classList.remove('dropzone-active'); };
+      subGrid.ondrop = (e) => {
+        e.preventDefault();
+        subGrid.classList.remove('dropzone-active');
+        handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
+      };
+
       (currentFolderNode.children || []).forEach(folder => {
         const card = document.createElement("div");
         card.className = "folder-card";
@@ -805,6 +820,14 @@
         card.onclick = () => {
           folderObjectStack.push(folder);
           renderFolderView();
+        };
+        card.ondragover = (e) => { e.preventDefault(); e.stopPropagation(); card.classList.add('folder-card-dragover'); };
+        card.ondragleave = () => { card.classList.remove('folder-card-dragover'); };
+        card.ondrop = (e) => {
+          e.preventDefault();
+          e.stopPropagation(); // drop is scoped to THIS folder, not the whole grid behind it
+          card.classList.remove('folder-card-dragover');
+          handleDroppedItems(e.dataTransfer, folder);
         };
         subGrid.appendChild(card);
       });
@@ -827,23 +850,33 @@
     }
 
     // Files living directly in the currently-open folder — shown below its subfolder cards.
+    // No upload button anymore — files are added purely by dragging them onto this area
+    // (or onto the folder's own card before it's opened), Google Drive-style.
     function renderFolderFilesList(folderNode) {
       let filesSection = document.getElementById('folderFilesSection');
       if (!filesSection) {
         filesSection = document.createElement('div');
         filesSection.id = 'folderFilesSection';
+        filesSection.className = 'folder-files-dropzone';
         filesSection.style.marginTop = '24px';
+        filesSection.style.padding = '16px';
         document.getElementById('folderExplorerWorkspace').appendChild(filesSection);
+
+        filesSection.ondragover = (e) => { e.preventDefault(); filesSection.classList.add('dropzone-active'); };
+        filesSection.ondragleave = () => { filesSection.classList.remove('dropzone-active'); };
+        filesSection.ondrop = (e) => {
+          e.preventDefault();
+          filesSection.classList.remove('dropzone-active');
+          handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
+        };
       }
       const files = folderNode.files || [];
       filesSection.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="margin-bottom:12px;">
           <span style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px;">Files</span>
-          <button class="forms-add-btn" onclick="document.getElementById('folderFileUploadInput').click()">+ Add File</button>
-          <input type="file" id="folderFileUploadInput" multiple style="display:none;" onchange="handleFolderFileUpload(this)">
         </div>
         <div style="display:flex; flex-direction:column; gap:4px;">
-          ${files.length === 0 ? `<div style="color:var(--subtext-color); font-size:0.85rem;">No files yet.</div>` : files.map((f, idx) => `
+          ${files.length === 0 ? `<div style="color:var(--subtext-color); font-size:0.85rem;">Drag and drop files here to add them.</div>` : files.map((f, idx) => `
             <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:var(--surface-color); border:1px solid var(--border-color);">
               <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
               <a href="${f.url}" target="_blank" style="flex:1; color:var(--text-color); font-size:0.85rem; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(f.name)}</a>
@@ -854,6 +887,9 @@
           `).join('')}
         </div>
       `;
+      // innerHTML replace above wipes the dragover listeners bound to filesSection itself?
+      // No — those are bound to filesSection (the container), not its innerHTML content, so
+      // they survive. Re-wiring isn't needed here.
     }
 
     // ===================== Real folder/file persistence =====================
@@ -898,26 +934,88 @@
       persistProjectFolders().catch(() => {});
     }
 
-    async function handleFolderFileUpload(input) {
-      const files = Array.from(input.files || []);
-      if (files.length === 0) return;
-      const { storage, ref, uploadBytes, getDownloadURL } = window.dbFns;
-      const currentFolderNode = getCurrentWorkspaceFolder();
-      if (!currentFolderNode.files) currentFolderNode.files = [];
+    // ===================== Drag-and-drop upload: files AND whole OS folders =====================
+    // Uses the browser's file-system entry API (webkitGetAsEntry) rather than the plain
+    // dataTransfer.files list, since that flat list can't tell a dropped folder apart from a
+    // dropped file, or see what's inside it. A dropped folder becomes a REAL diBadge folder
+    // (same data shape as one made via "New Folder"), recursively, so nested OS folders
+    // become nested diBadge folders too — and since it's the exact same folder object shape,
+    // it renders with the exact same folder-card appearance, automatically.
 
-      for (const file of files) {
-        try {
-          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-          const storagePath = `projects/${activeOpenedProject.id}/folders/${currentFolderNode.id}/${Date.now()}_${safeName}`;
-          const fileRef = ref(storage, storagePath);
-          await uploadBytes(fileRef, file);
-          const url = await getDownloadURL(fileRef);
-          currentFolderNode.files.push({ name: file.name, url, storagePath });
-        } catch (err) {
-          // This one file failed to upload — continue with the rest rather than aborting the batch.
-        }
+    async function uploadSingleFileIntoFolderNode(folderNode, file) {
+      const { storage, ref, uploadBytes, getDownloadURL } = window.dbFns;
+      if (!folderNode.files) folderNode.files = [];
+      try {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const storagePath = `projects/${activeOpenedProject.id}/folders/${folderNode.id}/${Date.now()}_${safeName}`;
+        const fileRef = ref(storage, storagePath);
+        await uploadBytes(fileRef, file);
+        const url = await getDownloadURL(fileRef);
+        folderNode.files.push({ name: file.name, url, storagePath });
+      } catch (err) {
+        // This one file failed to upload — continue with the rest rather than aborting the batch.
       }
-      input.value = '';
+    }
+
+    function readDirectoryEntries(dirEntry) {
+      return new Promise((resolve) => {
+        const reader = dirEntry.createReader();
+        let all = [];
+        function readBatch() {
+          reader.readEntries((batch) => {
+            if (batch.length === 0) { resolve(all); return; }
+            all = all.concat(batch);
+            readBatch(); // the browser may not return everything in a single readEntries call
+          }, () => resolve(all));
+        }
+        readBatch();
+      });
+    }
+
+    function getFileFromEntry(fileEntry) {
+      return new Promise((resolve) => {
+        fileEntry.file(resolve, () => resolve(null));
+      });
+    }
+
+    async function processDroppedEntryIntoFolder(entry, targetFolderNode) {
+      if (entry.isDirectory) {
+        const newFolder = { id: 'folder-' + Date.now() + '-' + (folderIdCounter++), name: entry.name, children: [], files: [] };
+        if (!targetFolderNode.children) targetFolderNode.children = [];
+        targetFolderNode.children.push(newFolder);
+        const childEntries = await readDirectoryEntries(entry);
+        for (const child of childEntries) {
+          await processDroppedEntryIntoFolder(child, newFolder);
+        }
+      } else if (entry.isFile) {
+        const file = await getFileFromEntry(entry);
+        if (file) await uploadSingleFileIntoFolderNode(targetFolderNode, file);
+      }
+    }
+
+    // Entry point for every drop target below — handles a mix of loose files and whole
+    // folders in one drop, uploads/creates everything, then renders and persists once at
+    // the end (not per-file), since a big dropped folder tree could mean many individual
+    // uploads.
+    async function handleDroppedItems(dataTransfer, targetFolderNode) {
+      if (!targetFolderNode) return;
+      const items = dataTransfer.items;
+      const tasks = [];
+
+      if (items && items.length > 0 && items[0].webkitGetAsEntry) {
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].kind !== 'file') continue;
+          const entry = items[i].webkitGetAsEntry();
+          if (entry) tasks.push(processDroppedEntryIntoFolder(entry, targetFolderNode));
+        }
+      } else {
+        // Fallback for browsers without webkitGetAsEntry — loose files only, no folder support.
+        Array.from(dataTransfer.files || []).forEach(file => {
+          tasks.push(uploadSingleFileIntoFolderNode(targetFolderNode, file));
+        });
+      }
+
+      await Promise.all(tasks);
       renderFolderView();
       persistProjectFolders().catch(() => {});
     }
