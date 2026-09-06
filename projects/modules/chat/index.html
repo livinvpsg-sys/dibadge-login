@@ -3630,7 +3630,7 @@ function renderPreviewTray() {
             mentionedGroups: isLast ? mentionedGroups : [],
             comments: []
           });
-          if (thisMentionsGroups) crossPostToMentionedGroups(docMessageId, mentionedGroups);
+          if (thisMentionsGroups) crossPostToMentionedGroups(docMessageId, mentionedGroups, { documentFile: file });
           updateTicksUI(docMessageId);
           simulateDeliveryAndRead(docMessageId);
           if (currentRoomId === 'project') {
@@ -3747,7 +3747,11 @@ function renderPreviewTray() {
         mentionedGroups: mentionedGroups,
         comments: []
       });
-      crossPostToMentionedGroups(messageId, mentionedGroups);
+      crossPostToMentionedGroups(
+        messageId,
+        mentionedGroups,
+        msgKind === 'media' ? { mediaFiles: selectedStagedFiles.slice(), mediaType: activeUploadType } : null
+      );
       updateTicksUI(messageId);
       simulateDeliveryAndRead(messageId);
 
@@ -4221,10 +4225,12 @@ function renderPreviewTray() {
     // message thread (groupConnections/{connId}/messages), so the other organisation's
     // project sees it when THEY open their own chat — this project's own view of the
     // message (in its local room) is untouched, it just also gets cross-posted.
-    async function crossPostToMentionedGroups(messageId, mentionedGroups) {
+    // fileInfo is null for text, { documentFile } for a document, or
+    // { mediaFiles, mediaType } for an image/video/audio album.
+    async function crossPostToMentionedGroups(messageId, mentionedGroups, fileInfo) {
       if (!mentionedGroups || mentionedGroups.length === 0) return;
       const msg = messages[messageId];
-      if (!msg || msg.kind !== 'text') return; // media/document cross-posting: a later follow-up
+      if (!msg) return;
 
       const accepted = myGroupConnections.filter(c => c.status === 'accepted');
       let targets;
@@ -4239,19 +4245,54 @@ function renderPreviewTray() {
       }
       if (targets.length === 0) return;
 
+      await Promise.all(targets.map(c => crossPostOneMessage(c.id, messageId, msg, fileInfo)));
+    }
+
+    // Uploads to a connection-scoped Storage path — not either project's own chat folder —
+    // since both organisations' members need to read it, and a single project's own rule
+    // wouldn't let the other side in.
+    async function uploadCrossPostFile(file, connectionId, messageId) {
+      const { storage, ref, uploadBytes, getDownloadURL } = window.chatFns;
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `groupConnections/${connectionId}/messages/${messageId}/${Date.now()}_${safeName}`;
+      const fileRef = ref(storage, path);
+      await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(fileRef);
+      return { url, name: file.name };
+    }
+
+    async function crossPostOneMessage(connectionId, messageId, msg, fileInfo) {
       const { db, doc, setDoc, serverTimestamp } = window.chatFns;
-      await Promise.all(targets.map(c => {
-        return setDoc(doc(db, 'groupConnections', c.id, 'messages', messageId), {
+      try {
+        const base = {
           senderUid: window.currentUid,
           senderProjectId: window.currentProjectId,
           senderProjectName: window.currentProjectName,
-          text: msg.text,
+          text: msg.text || '',
           createdAt: serverTimestamp()
-        }).catch(() => {
-          // The message still shows locally for this project's own members — it just won't
-          // reach the other group. No user-facing error surfaced yet in this build phase.
-        });
-      }));
+        };
+
+        let payload;
+        if (fileInfo && fileInfo.documentFile) {
+          const uploaded = await uploadCrossPostFile(fileInfo.documentFile, connectionId, messageId);
+          payload = { ...base, kind: 'document', fileName: uploaded.name, url: uploaded.url };
+        } else if (fileInfo && fileInfo.mediaFiles && fileInfo.mediaFiles.length > 0) {
+          const uploadedItems = await Promise.all(fileInfo.mediaFiles.map(f => uploadCrossPostFile(f, connectionId, messageId)));
+          payload = {
+            ...base,
+            kind: 'media',
+            mediaType: fileInfo.mediaType,
+            mediaItems: uploadedItems.map(u => ({ url: u.url, name: u.name }))
+          };
+        } else {
+          payload = { ...base, kind: 'text' };
+        }
+
+        await setDoc(doc(db, 'groupConnections', connectionId, 'messages', messageId), payload);
+      } catch (err) {
+        // The message still shows locally for this project's own members — it just won't
+        // reach the other group. No user-facing error surfaced yet in this build phase.
+      }
     }
 
     // ---------- Right-click context menu ----------
@@ -6358,6 +6399,43 @@ function renderPreviewTray() {
       });
     }
 
+    // Builds the inner bubble content for a cross-posted message, based on its kind — text,
+    // a single document, or an image/video album — reusing the same media-grid/doc-tile
+    // markup patterns as locally-rendered messages, just without any hover react/reply icons.
+    function buildCrossPostBubbleContent(data, timeString, isOutgoing) {
+      if (data.kind === 'document') {
+        return `<div class="doc-list-container">
+            <a href="#" onclick="event.preventDefault(); openReadViewer('${data.url}', '${(data.fileName || '').replace(/'/g, "\\'")}', 'Document')" class="doc-tile-row" style="text-decoration:none;">
+              <div class="doc-icon-box" style="background:#607d8b;">${(data.fileName || '?').split('.').pop().slice(0,4).toUpperCase()}</div>
+              <div class="doc-info"><span class="doc-name">${escapeHtml(data.fileName || '')}</span></div>
+            </a>
+          </div>
+          ${data.text ? `<div class="media-caption">${escapeHtml(data.text)}</div>` : ''}
+          <div class="doc-time-row">${timeString}</div>`;
+      }
+      if (data.kind === 'media' && Array.isArray(data.mediaItems)) {
+        const galleryId = registerGallery(data.mediaItems.map(item => ({ url: item.url, name: item.name, type: data.mediaType || 'Image' })));
+        let itemsHtml = '';
+        data.mediaItems.forEach((item, idx) => {
+          if (data.mediaType === 'Video') {
+            itemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${galleryId}', ${idx})"><video src="${item.url}"></video></div>`;
+          } else if (data.mediaType === 'Audio') {
+            itemsHtml += `<div class="doc-tile-row" onclick="openMediaViewer('${galleryId}', ${idx})" style="cursor:pointer;"><div class="doc-icon-box" style="background:#ff9800;">🎵</div><div class="doc-info"><span class="doc-name">${escapeHtml(item.name || 'audio')}</span></div></div>`;
+          } else {
+            itemsHtml += `<div class="media-grid-item" onclick="openMediaViewer('${galleryId}', ${idx})"><img src="${item.url}" alt="attachment"></div>`;
+          }
+        });
+        let gridClass = 'media-grid-1';
+        if (data.mediaItems.length === 2) gridClass = 'media-grid-2';
+        else if (data.mediaItems.length >= 3) gridClass = 'media-grid-3';
+        return `<div class="media-grid ${gridClass}">${itemsHtml}</div>
+          ${data.text ? `<div class="media-caption">${escapeHtml(data.text)}</div>` : ''}
+          <div class="media-time-row">${timeString}</div>`;
+      }
+      return `<span class="message-text">${escapeHtml(data.text || '')}</span>
+        <span class="msg-meta-row">${timeString}</span>`;
+    }
+
     function renderCrossPostMessageToDOM(connectionId, messageId, data) {
       const isOutgoing = data.senderProjectId === window.currentProjectId;
       const row = document.createElement('div');
@@ -6365,10 +6443,10 @@ function renderPreviewTray() {
       row.id = 'xpost-row-' + messageId;
       const timeString = data.createdAt ? formatFirestoreTimestamp(data.createdAt) : getTimeString();
       const senderLabel = isOutgoing ? 'You' : escapeHtml(data.senderProjectName || 'Connected group');
+      const isMediaBubble = data.kind === 'document' || data.kind === 'media';
 
-      const bubbleHtml = `<div class="msg-bubble ${isOutgoing ? 'outgoing' : 'incoming'}">
-        <span class="message-text">${escapeHtml(data.text || '')}</span>
-        <span class="msg-meta-row">${timeString}</span>
+      const bubbleHtml = `<div class="msg-bubble ${isOutgoing ? 'outgoing' : 'incoming'}${isMediaBubble ? ' media-bubble' : ''}">
+        ${buildCrossPostBubbleContent(data, timeString, isOutgoing)}
       </div>`;
 
       const commentBarHtml = `
