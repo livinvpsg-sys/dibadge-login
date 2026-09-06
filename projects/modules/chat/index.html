@@ -2486,20 +2486,13 @@ html, body {
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">GROUPS</span>
-          <button class="details-panel-add-btn">+ Add</button>
+          <button class="details-panel-add-btn" onclick="openAddGroupModal()">+ Add</button>
         </div>
-        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
-          <div class="details-item-avatar" style="background:#a05a2c;">S</div>
-          <span class="details-item-label">Site Engineers</span>
+        <div style="font-size:0.7rem; color:var(--subtext-color); padding:2px 4px 4px 4px;">
+          Your group code: <span id="ownGroupCodeDisplay" style="color:#fff; font-weight:700; letter-spacing:0.5px; cursor:pointer;" onclick="copyOwnGroupCode()" title="Click to copy">…</span>
         </div>
-        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
-          <div class="details-item-avatar" style="background:#00acc1;">M</div>
-          <span class="details-item-label">Management Team</span>
-        </div>
-        <div class="details-item-row" oncontextmenu="openGroupContextMenu(event)">
-          <div class="details-item-avatar" style="background:#607d8b;">Q</div>
-          <span class="details-item-label">Quality Assurance</span>
-        </div>
+        <div id="incomingGroupRequestsContainer"></div>
+        <div id="connectedGroupsContainer"></div>
       </div>
 
       <hr class="details-panel-divider">
@@ -2718,6 +2711,20 @@ html, body {
 
   <!-- Import Form modal: pulls from the standalone Project Forms library (forms/index.html) —
        not this project's own folders, and not scoped to any single project. -->
+  <!-- Add Group modal: connect to another organisation's project chat by its shareable code -->
+  <div class="group-modal-overlay" id="addGroupOverlay" onclick="closeAddGroupModal()">
+    <div class="group-modal-box" onclick="event.stopPropagation()">
+      <div class="group-modal-title">Add Group</div>
+      <div class="group-modal-message">Enter the group code the other organisation shared with you. They'll need to accept before your groups can connect.</div>
+      <input type="text" class="group-modal-input" id="addGroupCodeInput" placeholder="e.g. 8F3K-9QRT" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddGroup();}">
+      <div id="addGroupStatus" style="font-size:0.82rem; color:var(--subtext-color); margin-bottom:14px;"></div>
+      <div class="group-modal-actions">
+        <button class="group-modal-cancel-btn" onclick="closeAddGroupModal()">Cancel</button>
+        <button class="group-modal-ok-btn" onclick="confirmAddGroup()">Send Request</button>
+      </div>
+    </div>
+  </div>
+
   <div class="group-modal-overlay" id="importFormOverlay" onclick="closeImportFormModal()">
     <div class="import-form-box" onclick="event.stopPropagation()">
       <div class="import-form-header">
@@ -6063,6 +6070,194 @@ function renderPreviewTray() {
     function openChatFormViewer(formId) {
       window.open(`../../common/forms/?id=${encodeURIComponent(formId)}&mode=view&projectId=${encodeURIComponent(window.currentProjectId)}`, '_blank');
     }
+
+    // ===================== Group connections (cross-organisation) =====================
+    // Replaces the old hardcoded Site Engineers / Management / Quality Assurance demo groups
+    // with real connections between two projects' chats — possibly in different
+    // organisations entirely. A connection must be explicitly requested and accepted before
+    // anything crosses between the two groups. Actually sending messages between connected
+    // groups (via "@ groupname") and granting them Forms/Folders access are separate,
+    // later steps — this wires up the connection itself: codes, requests, accept/decline,
+    // and a real Groups list.
+
+    let ownGroupCode = null;
+    let myGroupConnections = []; // every connection (any status) involving this project
+
+    // Generates a short, human-shareable code the first time this project needs one, and
+    // reuses it after that — stored on the project doc itself so it survives reloads.
+    async function ensureOwnGroupCode() {
+      const { db, doc, getDoc, setDoc } = window.chatFns;
+      const projectRef = doc(db, 'projects', window.currentProjectId);
+      const projectSnap = await getDoc(projectRef);
+      const existing = projectSnap.exists() ? projectSnap.data().groupCode : null;
+      if (existing) {
+        ownGroupCode = existing;
+      } else {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I — avoids look-alike mistakes
+        let code = '';
+        for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+        code = code.slice(0, 4) + '-' + code.slice(4);
+        try {
+          await setDoc(doc(db, 'groupCodes', code), {
+            projectId: window.currentProjectId,
+            orgId: window.currentOrgId,
+            name: window.currentProjectName,
+            createdAt: window.chatFns.serverTimestamp()
+          });
+          await setDoc(projectRef, { groupCode: code }, { merge: true });
+          ownGroupCode = code;
+        } catch (err) {
+          ownGroupCode = null; // shown as an error state below rather than a fake code
+        }
+      }
+      const el = document.getElementById('ownGroupCodeDisplay');
+      if (el) el.textContent = ownGroupCode || 'unavailable';
+    }
+
+    function copyOwnGroupCode() {
+      if (!ownGroupCode) return;
+      navigator.clipboard.writeText(ownGroupCode).catch(() => {});
+    }
+
+    function openAddGroupModal() {
+      document.getElementById('addGroupCodeInput').value = '';
+      document.getElementById('addGroupStatus').textContent = '';
+      document.getElementById('addGroupOverlay').classList.add('active');
+      document.getElementById('addGroupCodeInput').focus();
+    }
+    function closeAddGroupModal() {
+      document.getElementById('addGroupOverlay').classList.remove('active');
+    }
+
+    async function confirmAddGroup() {
+      const input = document.getElementById('addGroupCodeInput');
+      const statusEl = document.getElementById('addGroupStatus');
+      const code = input.value.trim().toUpperCase();
+      if (!code) { statusEl.textContent = 'Enter a group code.'; return; }
+
+      const { db, doc, getDoc, addDoc, collection, serverTimestamp } = window.chatFns;
+      statusEl.textContent = 'Looking up code…';
+      try {
+        const codeSnap = await getDoc(doc(db, 'groupCodes', code));
+        if (!codeSnap.exists()) {
+          statusEl.textContent = 'No group found with that code.';
+          return;
+        }
+        const target = codeSnap.data();
+        if (target.projectId === window.currentProjectId) {
+          statusEl.textContent = "That's your own group's code.";
+          return;
+        }
+        const alreadyConnected = myGroupConnections.some(c =>
+          (c.initiatorProjectId === target.projectId || c.targetProjectId === target.projectId) &&
+          c.status !== 'declined'
+        );
+        if (alreadyConnected) {
+          statusEl.textContent = 'A request with this group already exists.';
+          return;
+        }
+
+        await addDoc(collection(db, 'groupConnections'), {
+          initiatorProjectId: window.currentProjectId,
+          initiatorOrgId: window.currentOrgId,
+          initiatorName: window.currentProjectName,
+          targetProjectId: target.projectId,
+          targetOrgId: target.orgId,
+          targetName: target.name,
+          status: 'pending',
+          initiatedByUid: window.currentUid,
+          createdAt: serverTimestamp(),
+          formsAccess: [],
+          foldersAccess: []
+        });
+        statusEl.textContent = 'Request sent — waiting for them to accept.';
+        setTimeout(closeAddGroupModal, 900);
+      } catch (err) {
+        statusEl.textContent = 'Could not send the request — please try again.';
+      }
+    }
+
+    async function respondToGroupConnection(connectionId, accept) {
+      const { db, doc, updateDoc } = window.chatFns;
+      try {
+        await updateDoc(doc(db, 'groupConnections', connectionId), {
+          status: accept ? 'accepted' : 'declined'
+        });
+      } catch (err) {
+        // Leave it pending — visible to retry.
+      }
+    }
+
+    // Renders BOTH the incoming-pending-requests list and the accepted-groups list from the
+    // same live snapshot — filtering client-side by status and by which side of the
+    // connection this project is on.
+    function renderGroupConnections() {
+      const incomingEl = document.getElementById('incomingGroupRequestsContainer');
+      const connectedEl = document.getElementById('connectedGroupsContainer');
+      if (!incomingEl || !connectedEl) return;
+
+      const incoming = myGroupConnections.filter(c => c.status === 'pending' && c.targetProjectId === window.currentProjectId);
+      const accepted = myGroupConnections.filter(c => c.status === 'accepted');
+      const outgoingPending = myGroupConnections.filter(c => c.status === 'pending' && c.initiatorProjectId === window.currentProjectId);
+
+      incomingEl.innerHTML = incoming.map(c => `
+        <div class="details-item-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="details-item-avatar" style="background:#5c6bc0;">${(c.initiatorName || '?').charAt(0).toUpperCase()}</div>
+            <span class="details-item-label" style="flex:1;">${escapeHtml(c.initiatorName || 'Unknown group')} wants to join</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="modal-btn btn-save" style="padding:6px 0;" onclick="respondToGroupConnection('${c.id}', true)">Accept</button>
+            <button class="modal-btn btn-cancel" style="padding:6px 0;" onclick="respondToGroupConnection('${c.id}', false)">Decline</button>
+          </div>
+        </div>
+      `).join('') + outgoingPending.map(c => `
+        <div class="details-item-row" style="opacity:0.6;">
+          <div class="details-item-avatar" style="background:#607d8b;">${(c.targetName || '?').charAt(0).toUpperCase()}</div>
+          <span class="details-item-label">${escapeHtml(c.targetName || 'Unknown group')} — request sent</span>
+        </div>
+      `).join('');
+
+      connectedEl.innerHTML = accepted.length === 0 ? '' : accepted.map(c => {
+        const otherName = c.initiatorProjectId === window.currentProjectId ? c.targetName : c.initiatorName;
+        return `
+          <div class="details-item-row">
+            <div class="details-item-avatar" style="background:#14b8a6;">${(otherName || '?').charAt(0).toUpperCase()}</div>
+            <span class="details-item-label">${escapeHtml(otherName || 'Unknown group')}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Kicked off once by the auth module script, after currentProjectId is known. Listens
+    // live for connections on EITHER side (this project as initiator, or as target) — two
+    // separate queries merged into one local list, since Firestore can't OR across fields
+    // in a single query.
+    window.initGroupConnections = async function() {
+      await ensureOwnGroupCode();
+      const { db, collection, query, where, onSnapshot } = window.chatFns;
+      const asInitiator = {};
+      const asTarget = {};
+
+      function mergeAndRender() {
+        const merged = {};
+        Object.values(asInitiator).forEach(c => { merged[c.id] = c; });
+        Object.values(asTarget).forEach(c => { merged[c.id] = c; });
+        myGroupConnections = Object.values(merged);
+        renderGroupConnections();
+      }
+
+      onSnapshot(query(collection(db, 'groupConnections'), where('initiatorProjectId', '==', window.currentProjectId)), snap => {
+        Object.keys(asInitiator).forEach(k => delete asInitiator[k]);
+        snap.forEach(d => { asInitiator[d.id] = { id: d.id, ...d.data() }; });
+        mergeAndRender();
+      });
+      onSnapshot(query(collection(db, 'groupConnections'), where('targetProjectId', '==', window.currentProjectId)), snap => {
+        Object.keys(asTarget).forEach(k => delete asTarget[k]);
+        snap.forEach(d => { asTarget[d.id] = { id: d.id, ...d.data() }; });
+        mergeAndRender();
+      });
+    };
   </script>
 
   </div>
@@ -6076,7 +6271,7 @@ function renderPreviewTray() {
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp
+      getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
     import {
       getStorage, ref, uploadBytes, getDownloadURL
@@ -6099,7 +6294,7 @@ function renderPreviewTray() {
 
     // Exposed so the plain (non-module) script above — which holds all the existing chat
     // UI logic — can read/write Firestore and Storage without becoming one giant module.
-    window.chatFns = { db, doc, getDoc, collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
+    window.chatFns = { db, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
 
     onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
@@ -6132,11 +6327,13 @@ function renderPreviewTray() {
       window.currentUid = user.uid;
       window.currentProjectId = projectId;
       window.currentOrgId = projectData.organisationId;
+      window.currentProjectName = projectData.client || 'This Project';
 
       gate.style.display = 'none';
       document.getElementById('appShell').style.display = 'flex';
       if (typeof alignSearchPillToChat === 'function') alignSearchPillToChat();
       if (typeof window.initChatFirestore === 'function') window.initChatFirestore();
+      if (typeof window.initGroupConnections === 'function') window.initGroupConnections();
     });
   </script>
 </body>
