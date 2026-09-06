@@ -337,13 +337,24 @@
       </div>
     </div>
 
-    <!-- Project Members modal: add an already org-verified person into this project -->
+    <!-- Project Members modal: add an already org-verified person into this project,
+         or send a join request for someone who isn't verified yet -->
     <div class="modal-overlay" id="projectMembersModal">
       <div class="modal-card" style="max-width: 420px;">
         <button class="close-btn" onclick="closeProjectMembersModal()">&times;</button>
         <h3>Add project member</h3>
-        <p style="color: var(--subtext-color); font-size: 0.82rem; margin-bottom: 6px;">Only people already verified by your organisation can be added this way.</p>
-        <div id="projectMembersList" style="max-height: 320px; overflow-y: auto;"></div>
+        <p style="color: var(--subtext-color); font-size: 0.82rem; margin-bottom: 6px;">Add someone already verified by your organisation:</p>
+        <div id="projectMembersList" style="max-height: 220px; overflow-y: auto;"></div>
+
+        <div style="border-top: 1px solid var(--border-color); margin-top: 16px; padding-top: 14px;">
+          <p style="color: var(--subtext-color); font-size: 0.82rem; margin-bottom: 8px;">Or find someone by email — if they're not yet verified, you can send a join request:</p>
+          <div style="display: flex; gap: 8px;">
+            <input type="email" class="modal-input" id="joinRequestEmailInput" placeholder="person@example.com">
+            <button class="modal-btn btn-save" style="width:auto; padding:8px 16px;" onclick="handleJoinRequestSearch()">Find</button>
+          </div>
+          <div id="joinRequestStatus" style="font-size: 0.82rem; color: var(--subtext-color); margin-top: 8px;"></div>
+        </div>
+
         <div class="modal-actions">
           <button class="modal-btn btn-cancel" onclick="closeProjectMembersModal()">Close</button>
         </div>
@@ -359,7 +370,8 @@
         <div class="project-meta-line1">
           <span id="metaClientName">Amber Holdings</span>
           <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
-          <button class="forms-add-btn" style="margin-left:auto;" onclick="openProjectMembersModal()">+ Add member</button>
+          <button class="forms-add-btn" style="margin-left:auto;" onclick="openAddFolderModalInProject()">+ Add Folder</button>
+          <button class="forms-add-btn" onclick="openProjectMembersModal()">+ Add member</button>
         </div>
       </div>
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
@@ -404,6 +416,9 @@
       getFirestore, doc, getDoc, collection, addDoc, updateDoc, deleteDoc,
       collectionGroup, query, where, getDocs, arrayUnion, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
@@ -418,10 +433,12 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     // Exposed so the plain (non-module) script below — which holds all the existing UI
-    // logic — can read/write Firestore without this whole file becoming one giant module.
-    window.dbFns = { db, doc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, arrayUnion, serverTimestamp };
+    // logic — can read/write Firestore and Storage without this whole file becoming one
+    // giant module.
+    window.dbFns = { db, doc, getDoc, collection, addDoc, updateDoc, deleteDoc, query, where, getDocs, arrayUnion, serverTimestamp, storage, ref, uploadBytes, getDownloadURL, deleteObject };
 
     onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
@@ -494,12 +511,7 @@
     let currentProjectDisplayMode = 'grid';
 
     function getDefaultSubFolders() {
-      return [
-        { id: 'f-1', name: 'Site Photos & diCam', items: '1 Files', children: [], files: ['sample_site_record.jpg'] },
-        { id: 'f-2', name: 'Safety & Compliance Logs', items: '0 Files', children: [], files: [] },
-        { id: 'f-3', name: 'Reports & Worksheets', items: '0 Files', children: [], files: [] },
-        { id: 'f-4', name: 'Drawings & Blueprints', items: '0 Files', children: [], files: [] }
-      ];
+      return []; // real projects start empty — folders/files are created and uploaded for real now
     }
 
     // Demo form templates seeded for every project. Stored to localStorage per-project so the
@@ -758,15 +770,151 @@
         card.className = "folder-card";
         card.innerHTML = `
           <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-          <div class="folder-name">${folder.name}</div>
-          <div class="folder-items-count">${folder.files ? folder.files.length + ' Files' : '0 Files'}</div>
+          <div class="folder-name">${escapeHtmlPlain(folder.name)}</div>
+          <div class="folder-items-count">${(folder.files || []).length} Files</div>
         `;
+        card.oncontextmenu = (e) => { e.preventDefault(); openFolderDeleteConfirm(folder); };
         card.onclick = () => {
           folderObjectStack.push(folder);
           renderFolderView();
         };
         subGrid.appendChild(card);
       });
+
+      renderFolderFilesList(currentFolderNode);
+    }
+
+    function escapeHtmlPlain(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : str;
+      return div.innerHTML;
+    }
+
+    // Files living directly in the currently-open folder — shown below its subfolder cards.
+    function renderFolderFilesList(folderNode) {
+      let filesSection = document.getElementById('folderFilesSection');
+      if (!filesSection) {
+        filesSection = document.createElement('div');
+        filesSection.id = 'folderFilesSection';
+        filesSection.style.marginTop = '24px';
+        document.getElementById('folderExplorerWorkspace').appendChild(filesSection);
+      }
+      const files = folderNode.files || [];
+      filesSection.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <span style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px;">Files</span>
+          <button class="forms-add-btn" onclick="document.getElementById('folderFileUploadInput').click()">+ Add File</button>
+          <input type="file" id="folderFileUploadInput" multiple style="display:none;" onchange="handleFolderFileUpload(this)">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          ${files.length === 0 ? `<div style="color:var(--subtext-color); font-size:0.85rem;">No files yet.</div>` : files.map((f, idx) => `
+            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:var(--surface-color); border:1px solid var(--border-color);">
+              <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <a href="${f.url}" target="_blank" style="flex:1; color:var(--text-color); font-size:0.85rem; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(f.name)}</a>
+              <button onclick="deleteFolderFile(${idx})" title="Delete" style="background:transparent; border:none; color:var(--subtext-color); cursor:pointer; display:flex; padding:4px;">
+                <svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // ===================== Real folder/file persistence =====================
+    // Folders and files live as a nested tree embedded on the project document itself
+    // (project.children), mirroring the local folderObjectStack navigation already in use.
+    // Every add/delete writes the WHOLE tree back to Firestore, and files upload to/delete
+    // from Firebase Storage — nothing here is decorative demo data anymore.
+
+    async function persistProjectFolders() {
+      const { db, doc, updateDoc } = window.dbFns;
+      await updateDoc(doc(db, 'projects', activeOpenedProject.id), {
+        children: activeOpenedProject.children
+      });
+    }
+
+    let folderIdCounter = 0;
+
+    function openAddFolderModalInProject() {
+      const name = prompt('Folder name:');
+      if (!name || !name.trim()) return;
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      if (!currentFolderNode.children) currentFolderNode.children = [];
+      currentFolderNode.children.push({
+        id: 'folder-' + Date.now() + '-' + (folderIdCounter++),
+        name: name.trim(),
+        children: [],
+        files: []
+      });
+      renderFolderView();
+      persistProjectFolders().catch(() => {});
+    }
+
+    async function handleFolderFileUpload(input) {
+      const files = Array.from(input.files || []);
+      if (files.length === 0) return;
+      const { storage, ref, uploadBytes, getDownloadURL } = window.dbFns;
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      if (!currentFolderNode.files) currentFolderNode.files = [];
+
+      for (const file of files) {
+        try {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const storagePath = `projects/${activeOpenedProject.id}/folders/${currentFolderNode.id}/${Date.now()}_${safeName}`;
+          const fileRef = ref(storage, storagePath);
+          await uploadBytes(fileRef, file);
+          const url = await getDownloadURL(fileRef);
+          currentFolderNode.files.push({ name: file.name, url, storagePath });
+        } catch (err) {
+          // This one file failed to upload — continue with the rest rather than aborting the batch.
+        }
+      }
+      input.value = '';
+      renderFolderView();
+      persistProjectFolders().catch(() => {});
+    }
+
+    async function deleteFolderFile(index) {
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      const file = (currentFolderNode.files || [])[index];
+      if (!file) return;
+      if (file.storagePath) {
+        try {
+          const { storage, ref, deleteObject } = window.dbFns;
+          await deleteObject(ref(storage, file.storagePath));
+        } catch (err) {
+          // Continue removing it from the list even if the Storage delete failed (e.g. already gone).
+        }
+      }
+      currentFolderNode.files.splice(index, 1);
+      renderFolderView();
+      persistProjectFolders().catch(() => {});
+    }
+
+    function openFolderDeleteConfirm(folder) {
+      if (!confirm(`Delete "${folder.name}" and everything inside it? This can't be undone.`)) return;
+      deleteFolderRecursive(folder);
+    }
+
+    async function deleteFolderRecursive(folder) {
+      const { storage, ref, deleteObject } = window.dbFns;
+      // Delete every file in this folder and all its subfolders from Storage first.
+      async function collectAndDelete(node) {
+        for (const f of (node.files || [])) {
+          if (f.storagePath) {
+            try { await deleteObject(ref(storage, f.storagePath)); } catch (err) {}
+          }
+        }
+        for (const child of (node.children || [])) {
+          await collectAndDelete(child);
+        }
+      }
+      await collectAndDelete(folder);
+
+      const currentFolderNode = getCurrentWorkspaceFolder();
+      currentFolderNode.children = (currentFolderNode.children || []).filter(f => f.id !== folder.id);
+      renderFolderView();
+      persistProjectFolders().catch(() => {});
     }
 
     function jumpToBreadcrumbIndex(targetIndex) {
@@ -813,19 +961,25 @@
     function confirmDeleteProjectAction() {}
     function closeCustomDeleteProjectModal() {}
 
-    // ===================== Project members: add org-verified people to a project =====================
+    // ===================== Project members: add org-verified people, or request unverified ones ==========
     // Any current member of a project can add another person already verified by the
-    // organisation (organisations/{orgId}/members). Adding someone NOT yet verified is a
-    // separate join-request flow, not built here.
+    // organisation directly. Someone NOT yet verified can't be added directly — a join
+    // request is created instead, which an org admin (creator or Super Admin) must approve.
 
     async function openProjectMembersModal() {
       if (!activeOpenedProject) return;
-      const { db, collection, getDocs } = window.dbFns;
+      document.getElementById('joinRequestEmailInput').value = '';
+      document.getElementById('joinRequestStatus').textContent = '';
       const modal = document.getElementById('projectMembersModal');
       const listEl = document.getElementById('projectMembersList');
       listEl.innerHTML = `<div style="color: var(--subtext-color); padding: 12px 0;">Loading…</div>`;
       modal.style.display = 'flex';
+      renderProjectMemberCandidates();
+    }
 
+    async function renderProjectMemberCandidates() {
+      const { db, collection, getDocs } = window.dbFns;
+      const listEl = document.getElementById('projectMembersList');
       try {
         const orgMembersSnap = await getDocs(collection(db, 'organisations', window.currentOrgId, 'members'));
         const currentMembers = new Set(activeOpenedProject.members || []);
@@ -865,9 +1019,70 @@
           members: arrayUnion(uid)
         });
         activeOpenedProject.members = [...(activeOpenedProject.members || []), uid];
-        openProjectMembersModal(); // refresh the candidate list in place
+        renderProjectMemberCandidates(); // refresh the candidate list in place
       } catch (err) {
         // Leave the modal as-is; the person can retry.
+      }
+    }
+
+    // Searches for a diBadge account by email that ISN'T already org-verified, and offers
+    // to send a join request for it instead of adding it directly.
+    async function handleJoinRequestSearch() {
+      const { db, collection, doc, getDoc, getDocs, query, where } = window.dbFns;
+      const emailInput = document.getElementById('joinRequestEmailInput');
+      const statusEl = document.getElementById('joinRequestStatus');
+      const email = emailInput.value.trim().toLowerCase();
+      statusEl.textContent = '';
+      if (!email) { statusEl.textContent = 'Enter an email to search.'; return; }
+
+      statusEl.textContent = 'Searching…';
+      try {
+        const userQ = query(collection(db, 'users'), where('email', '==', email));
+        const userSnap = await getDocs(userQ);
+        if (userSnap.empty) {
+          statusEl.textContent = 'No diBadge account found with that email.';
+          return;
+        }
+        const foundDoc = userSnap.docs[0];
+        const foundUid = foundDoc.id;
+
+        // Already org-verified? Then this is just a normal add, not a join request.
+        const memberSnap = await getDoc(doc(db, 'organisations', window.currentOrgId, 'members', foundUid));
+        if (memberSnap.exists()) {
+          if ((activeOpenedProject.members || []).includes(foundUid)) {
+            statusEl.textContent = 'This person is already in the project.';
+          } else {
+            await addProjectMember(foundUid);
+            statusEl.textContent = 'Already verified — added directly.';
+            emailInput.value = '';
+          }
+          return;
+        }
+
+        statusEl.innerHTML = `Not yet verified by your organisation. <button class="modal-btn btn-save" id="sendJoinReqBtn" style="width:auto; padding:5px 12px; margin-left:6px;">Send join request</button>`;
+        document.getElementById('sendJoinReqBtn').onclick = () => sendJoinRequest(foundUid, foundDoc.data().email);
+      } catch (err) {
+        statusEl.textContent = 'Search failed — please try again.';
+      }
+    }
+
+    async function sendJoinRequest(targetUid, targetEmail) {
+      const { db, collection, addDoc, serverTimestamp } = window.dbFns;
+      const statusEl = document.getElementById('joinRequestStatus');
+      try {
+        await addDoc(collection(db, 'organisations', window.currentOrgId, 'joinRequests'), {
+          targetUid,
+          targetEmail,
+          requestedByUid: window.currentUid,
+          targetProjectId: activeOpenedProject.id,
+          targetProjectName: activeOpenedProject.client,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+        statusEl.textContent = 'Join request sent — an admin needs to approve it.';
+        document.getElementById('joinRequestEmailInput').value = '';
+      } catch (err) {
+        statusEl.textContent = 'Could not send the request — please try again.';
       }
     }
 
