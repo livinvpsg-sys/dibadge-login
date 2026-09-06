@@ -1915,6 +1915,50 @@ html, body {
     .msg-ticks.status-delivered svg { stroke: var(--subtext-color); }
     .msg-ticks.status-read svg { stroke: #25D366; }
 
+    /* ---------- Incoming cross-org connection message ---------- */
+    .xpost-sender-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #14b8a6;
+      margin-bottom: 3px;
+      margin-left: 40px;
+    }
+    .xpost-comment-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
+    }
+    .xpost-comment-icon-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 5px 8px;
+      border-radius: 8px;
+    }
+    .xpost-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .xpost-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .xpost-comment-thread-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+      background: var(--slate-surface, #1e1e1e);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      width: 280px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    }
+    .xpost-comment-thread-panel.active { display: flex; }
+
     /* ---------- Group-mentioned message: persistent React + Comment bar, LinkedIn-style ---------- */
     .group-comment-bar {
       display: flex;
@@ -4172,24 +4216,42 @@ function renderPreviewTray() {
       container.addEventListener('scroll', updateScrollToBottomVisibility);
     })();
 
-    // A message with no @group mention stays only in the room it was sent from. One with a
-    // mention shares the SAME message object into each target room's store (same id, same
-    // comments array) — so reacting or commenting from either room updates the one real thread.
-    function crossPostToMentionedGroups(messageId, mentionedGroups) {
+    // A message with no @group mention stays local — only this project's own members ever
+    // see it. One with a mention writes a REAL copy into that connected group's shared
+    // message thread (groupConnections/{connId}/messages), so the other organisation's
+    // project sees it when THEY open their own chat — this project's own view of the
+    // message (in its local room) is untouched, it just also gets cross-posted.
+    async function crossPostToMentionedGroups(messageId, mentionedGroups) {
       if (!mentionedGroups || mentionedGroups.length === 0) return;
       const msg = messages[messageId];
-      if (!msg) return;
-      let targetRoomIds;
+      if (!msg || msg.kind !== 'text') return; // media/document cross-posting: a later follow-up
+
+      const accepted = myGroupConnections.filter(c => c.status === 'accepted');
+      let targets;
       if (mentionedGroups.some(g => g.toLowerCase() === 'all')) {
-        targetRoomIds = ROOM_ORDER.filter(r => rooms[r].type === 'group');
+        targets = accepted;
       } else {
-        targetRoomIds = ROOM_ORDER.filter(r => rooms[r].type === 'group' &&
-          mentionedGroups.some(g => g.toLowerCase() === rooms[r].name.toLowerCase()));
+        targets = accepted.filter(c => {
+          const isInitiator = c.initiatorProjectId === window.currentProjectId;
+          const otherName = isInitiator ? c.targetName : c.initiatorName;
+          return mentionedGroups.some(g => g.toLowerCase() === (otherName || '').toLowerCase());
+        });
       }
-      targetRoomIds.forEach(roomId => {
-        if (roomId === currentRoomId) return; // already stored there
-        rooms[roomId].store[messageId] = msg;
-      });
+      if (targets.length === 0) return;
+
+      const { db, doc, setDoc, serverTimestamp } = window.chatFns;
+      await Promise.all(targets.map(c => {
+        return setDoc(doc(db, 'groupConnections', c.id, 'messages', messageId), {
+          senderUid: window.currentUid,
+          senderProjectId: window.currentProjectId,
+          senderProjectName: window.currentProjectName,
+          text: msg.text,
+          createdAt: serverTimestamp()
+        }).catch(() => {
+          // The message still shows locally for this project's own members — it just won't
+          // reach the other group. No user-facing error surfaced yet in this build phase.
+        });
+      }));
     }
 
     // ---------- Right-click context menu ----------
@@ -4946,12 +5008,20 @@ function renderPreviewTray() {
       { id: 'john', label: 'John (Admin)', insertText: 'John', color: '#8d6e63' },
       { id: 'mary', label: 'Mary (Member)', insertText: 'Mary', color: '#5c6bc0' }
     ];
-    const MENTION_GROUPS = [
-      { id: 'all-groups', label: 'All', insertText: 'All', color: '#607d8b' },
-      { id: 'site-engineers', label: 'Site Engineers', insertText: 'Site Engineers', color: '#a05a2c' },
-      { id: 'management-team', label: 'Management Team', insertText: 'Management Team', color: '#00acc1' },
-      { id: 'quality-assurance', label: 'Quality Assurance', insertText: 'Quality Assurance', color: '#607d8b' }
-    ];
+
+    // Real accepted connections — replaces the old hardcoded Site Engineers/Management/QA
+    // list. Recomputed live from myGroupConnections (kept current by the onSnapshot
+    // listeners in initGroupConnections), so a newly-accepted connection is mentionable
+    // immediately, no reload needed.
+    function getMentionableConnectedGroups() {
+      const accepted = myGroupConnections.filter(c => c.status === 'accepted');
+      const groups = accepted.map(c => {
+        const isInitiator = c.initiatorProjectId === window.currentProjectId;
+        const otherName = isInitiator ? c.targetName : c.initiatorName;
+        return { id: c.id, label: otherName, insertText: otherName, color: '#14b8a6' };
+      });
+      return [{ id: 'all-groups', label: 'All', insertText: 'All', color: '#607d8b' }, ...groups];
+    }
 
     let mentionMode = 'member'; // 'member' | 'group'
     let mentionDropdownOpen = false;
@@ -4962,17 +5032,18 @@ function renderPreviewTray() {
     let mentionHighlightIndex = 0;
 
     function getMentionSourceList(mode) {
-      return mode === 'group' ? MENTION_GROUPS : MENTION_MEMBERS;
+      return mode === 'group' ? getMentionableConnectedGroups() : MENTION_MEMBERS;
     }
 
     // Escapes plain text, then wraps any @mention occurrence (member or group name) in a dim
     // span. Used both for the composer (re-loading an edited message) and the sent bubble.
     function renderTextWithMentions(text) {
       const escaped = escapeHtml(text);
-      const allNames = [...MENTION_MEMBERS, ...MENTION_GROUPS]
+      const allNames = [...MENTION_MEMBERS, ...getMentionableConnectedGroups()]
         .map(m => m.insertText)
         .filter((v, i, arr) => arr.indexOf(v) === i) // de-dupe (both lists share "All")
-        .sort((a, b) => b.length - a.length); // longest first so "Site Engineers" wins over a partial match
+        .sort((a, b) => b.length - a.length); // longest first so a longer group name wins over a partial match
+      if (allNames.length === 0) return escaped;
       const escapedNames = allNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
       const re = new RegExp('@(' + escapedNames.join('|') + ')\\b', 'g');
       return escaped.replace(re, '<span class="mention-tag">@$1</span>');
@@ -6129,13 +6200,22 @@ function renderPreviewTray() {
       document.getElementById('addGroupOverlay').classList.remove('active');
     }
 
+    // Same formula the security rules use — a connection's document ID is always the two
+    // project ids, sorted and joined, never a random one. This is what lets a cross-post
+    // message's rules trust a connection's identity directly from its own path, and it also
+    // means two people racing to connect the same pair of projects land on the same doc
+    // instead of creating duplicates.
+    function computeConnectionId(projectIdA, projectIdB) {
+      return projectIdA < projectIdB ? `${projectIdA}__${projectIdB}` : `${projectIdB}__${projectIdA}`;
+    }
+
     async function confirmAddGroup() {
       const input = document.getElementById('addGroupCodeInput');
       const statusEl = document.getElementById('addGroupStatus');
       const code = input.value.trim().toUpperCase();
       if (!code) { statusEl.textContent = 'Enter a group code.'; return; }
 
-      const { db, doc, getDoc, addDoc, collection, serverTimestamp } = window.chatFns;
+      const { db, doc, getDoc, setDoc, collection, serverTimestamp } = window.chatFns;
       statusEl.textContent = 'Looking up code…';
       try {
         const codeSnap = await getDoc(doc(db, 'groupCodes', code));
@@ -6157,7 +6237,8 @@ function renderPreviewTray() {
           return;
         }
 
-        await addDoc(collection(db, 'groupConnections'), {
+        const connId = computeConnectionId(window.currentProjectId, target.projectId);
+        await setDoc(doc(db, 'groupConnections', connId), {
           initiatorProjectId: window.currentProjectId,
           initiatorOrgId: window.currentOrgId,
           initiatorName: window.currentProjectName,
@@ -6227,6 +6308,178 @@ function renderPreviewTray() {
           </div>
         `;
       }).join('');
+
+      syncCrossPostListeners(accepted);
+    }
+
+    // ===================== Incoming cross-posted messages =====================
+    // For every ACCEPTED connection, listens live to its shared messages subcollection and
+    // renders any new arrivals into the main chat feed — labeled with the sending group's
+    // name, and always showing a comment icon rather than the normal hover react/reply
+    // icons, matching how a cross-org message is meant to be discussed (via replies), not
+    // reacted to like a local message.
+
+    let crossPostUnsubscribers = {}; // connectionId -> unsubscribe function
+    let crossPostFirstLoadDone = {}; // connectionId -> bool, so old history doesn't reset scroll every time
+
+    function syncCrossPostListeners(acceptedConnections) {
+      const acceptedIds = new Set(acceptedConnections.map(c => c.id));
+
+      // Stop listening to connections that are no longer accepted (e.g. this session somehow
+      // saw one go from accepted back to another state — defensive, not expected in normal use).
+      Object.keys(crossPostUnsubscribers).forEach(connId => {
+        if (!acceptedIds.has(connId)) {
+          crossPostUnsubscribers[connId]();
+          delete crossPostUnsubscribers[connId];
+        }
+      });
+
+      acceptedConnections.forEach(c => {
+        if (crossPostUnsubscribers[c.id]) return; // already listening
+        const { db, collection, query, orderBy, onSnapshot } = window.chatFns;
+        const chatContainer = document.getElementById('chatContainer');
+        crossPostUnsubscribers[c.id] = onSnapshot(
+          query(collection(db, 'groupConnections', c.id, 'messages'), orderBy('createdAt', 'asc')),
+          snapshot => {
+            snapshot.docChanges().forEach(change => {
+              if (change.type !== 'added') return;
+              const data = change.doc.data();
+              const msgId = change.doc.id;
+              if (document.getElementById('xpost-row-' + msgId)) return; // already rendered
+              const row = renderCrossPostMessageToDOM(c.id, msgId, data);
+              if (row) chatContainer.appendChild(row);
+            });
+            if (!crossPostFirstLoadDone[c.id]) {
+              crossPostFirstLoadDone[c.id] = true;
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+          }
+        );
+      });
+    }
+
+    function renderCrossPostMessageToDOM(connectionId, messageId, data) {
+      const isOutgoing = data.senderProjectId === window.currentProjectId;
+      const row = document.createElement('div');
+      row.className = 'message-row ' + (isOutgoing ? 'outgoing' : 'incoming');
+      row.id = 'xpost-row-' + messageId;
+      const timeString = data.createdAt ? formatFirestoreTimestamp(data.createdAt) : getTimeString();
+      const senderLabel = isOutgoing ? 'You' : escapeHtml(data.senderProjectName || 'Connected group');
+
+      const bubbleHtml = `<div class="msg-bubble ${isOutgoing ? 'outgoing' : 'incoming'}">
+        <span class="message-text">${escapeHtml(data.text || '')}</span>
+        <span class="msg-meta-row">${timeString}</span>
+      </div>`;
+
+      const commentBarHtml = `
+        <div class="xpost-comment-bar">
+          <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${connectionId}', '${messageId}')">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span id="xpost-comment-count-${messageId}">Comment</span>
+          </button>
+        </div>
+        <div class="xpost-comment-thread-panel" id="xpost-comments-${messageId}" onclick="event.stopPropagation()"></div>
+      `;
+
+      if (isOutgoing) {
+        const conn = myGroupConnections.find(c => c.id === connectionId);
+        const otherName = conn ? (conn.initiatorProjectId === window.currentProjectId ? conn.targetName : conn.initiatorName) : 'connected group';
+        row.innerHTML = `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; margin-left:0;">To ${escapeHtml(otherName || 'connected group')}</div>
+          <div class="msg-content-wrap outgoing-wrap">${bubbleHtml}${commentBarHtml}</div>`;
+      } else {
+        row.innerHTML = `<span class="xpost-sender-label">${senderLabel}</span>
+          <div class="msg-content-wrap incoming-wrap">
+            <div class="incoming-content-wrapper">
+              <div class="small-avatar" style="background:#14b8a6;">${senderLabel.charAt(0).toUpperCase()}</div>
+              ${bubbleHtml}
+            </div>
+          </div>${commentBarHtml}`;
+      }
+      return row;
+    }
+
+    // ---------- Comment thread on a cross-posted message ----------
+    // Deliberately a separate, simpler implementation from the local in-memory comment
+    // system used for same-org @mentions — this one is fully Firestore-backed and live on
+    // both sides of the connection, since two different organisations need to see the same
+    // thread update in real time.
+
+    let openCrossPostPanelKey = null; // `${connectionId}::${messageId}` of the currently open thread
+    let crossPostCommentUnsub = null;
+
+    function toggleCrossPostComments(connectionId, messageId) {
+      const key = connectionId + '::' + messageId;
+      const panel = document.getElementById('xpost-comments-' + messageId);
+      if (!panel) return;
+
+      if (openCrossPostPanelKey === key) {
+        panel.classList.remove('active');
+        if (crossPostCommentUnsub) { crossPostCommentUnsub(); crossPostCommentUnsub = null; }
+        openCrossPostPanelKey = null;
+        return;
+      }
+      if (openCrossPostPanelKey) {
+        const prevMsgId = openCrossPostPanelKey.split('::')[1];
+        const prevPanel = document.getElementById('xpost-comments-' + prevMsgId);
+        if (prevPanel) prevPanel.classList.remove('active');
+        if (crossPostCommentUnsub) { crossPostCommentUnsub(); crossPostCommentUnsub = null; }
+      }
+
+      panel.classList.add('active');
+      openCrossPostPanelKey = key;
+
+      const { db, collection, query, orderBy, onSnapshot } = window.chatFns;
+      crossPostCommentUnsub = onSnapshot(
+        query(collection(db, 'groupConnections', connectionId, 'messages', messageId, 'comments'), orderBy('createdAt', 'asc')),
+        snapshot => {
+          const comments = snapshot.docs.map(d => d.data());
+          renderCrossPostCommentThread(connectionId, messageId, comments);
+          const countEl = document.getElementById('xpost-comment-count-' + messageId);
+          if (countEl) countEl.textContent = comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}` : 'Comment';
+        }
+      );
+    }
+
+    function renderCrossPostCommentThread(connectionId, messageId, comments) {
+      const panel = document.getElementById('xpost-comments-' + messageId);
+      if (!panel) return;
+      panel.innerHTML = `
+        <div class="comment-list">
+          ${comments.length ? comments.map(c => `
+            <div class="comment-item">
+              <div class="comment-header"><span class="comment-author">${escapeHtml(c.authorProjectName || 'Unknown')}</span></div>
+              <div class="comment-body">${escapeHtml(c.text)}<span class="comment-time">${c.time || ''}</span></div>
+            </div>
+          `).join('') : '<div class="comment-empty">No comments yet</div>'}
+        </div>
+        <div class="comment-input-row">
+          <input type="text" class="comment-input" id="xpost-comment-input-${messageId}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addCrossPostComment('${connectionId}', '${messageId}');}">
+          <button class="comment-send-btn" onclick="addCrossPostComment('${connectionId}', '${messageId}')" title="Send">
+            <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+          </button>
+        </div>
+      `;
+    }
+
+    async function addCrossPostComment(connectionId, messageId) {
+      const input = document.getElementById('xpost-comment-input-' + messageId);
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      const { db, collection, addDoc, serverTimestamp } = window.chatFns;
+      input.value = '';
+      try {
+        await addDoc(collection(db, 'groupConnections', connectionId, 'messages', messageId, 'comments'), {
+          authorUid: window.currentUid,
+          authorProjectId: window.currentProjectId,
+          authorProjectName: window.currentProjectName,
+          text: text,
+          time: getTimeString(),
+          createdAt: serverTimestamp()
+        });
+      } catch (err) {
+        // Leave the thread as-is; the person can retry.
+      }
     }
 
     // Kicked off once by the auth module script, after currentProjectId is known. Listens
