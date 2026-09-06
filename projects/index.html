@@ -171,6 +171,39 @@
     .group-modal-actions { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
     .group-modal-cancel-btn { background: transparent; border: none; color: var(--text-color); font-size: 0.95rem; font-weight: 700; cursor: pointer; padding: 4px; }
     .group-modal-ok-btn { background: var(--border-color); border: none; color: var(--text-color); font-size: 0.95rem; font-weight: 700; padding: 10px 26px; border-radius: 24px; cursor: pointer; }
+    .group-modal-ok-btn.danger { background: #ff3b30; color: #fff; }
+    .group-modal-message { font-size: 0.85rem; color: var(--subtext-color); margin-bottom: 22px; line-height: 1.4; }
+
+    /* Right-click context menu — Copy/Cut/Paste/Rename/Delete on a folder or file */
+    .fs-context-menu {
+      position: fixed;
+      display: none;
+      flex-direction: column;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 6px;
+      min-width: 170px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      z-index: 500;
+    }
+    .fs-context-menu.active { display: flex; }
+    .fs-context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      color: var(--text-color);
+      cursor: pointer;
+      user-select: none;
+    }
+    .fs-context-menu-item:hover { background: var(--border-color); }
+    .fs-context-menu-item.danger { color: #ff3b30; }
+    .fs-context-menu-item.disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+    .fs-context-menu-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+    .fs-context-menu-divider { height: 1px; background: var(--border-color); margin: 4px 2px; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 15, 15, 0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100; }
     .modal-card { background: var(--surface-color); padding: 28px; border-radius: 12px; text-align: left; max-width: 480px; width: 90%; position: relative; color: var(--text-color); border: 1px solid var(--border-color); }
@@ -326,14 +359,29 @@
       </button>
     </aside>
 
-    <!-- Modals -->
-    <div class="modal-overlay" id="customDeleteProjectModal">
-      <div class="modal-card" style="max-width: 360px; text-align: center;">
-        <h3 style="margin-bottom: 12px; font-size: 1.05rem;" id="customDeleteProjectTitle">Delete Project?</h3>
-        <p id="customDeleteProjectMessage" style="color: var(--subtext-color); font-size: 0.9rem; margin-bottom: 20px;"></p>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-          <button class="modal-btn btn-save" style="background: var(--error-red); color: white;" onclick="confirmDeleteProjectAction()">Delete</button>
-          <button class="modal-btn btn-cancel" onclick="closeCustomDeleteProjectModal()">Cancel</button>
+    <!-- Edit Project modal -->
+    <div class="group-modal-overlay" id="editProjectModal" onclick="closeEditProjectModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Edit Project</div>
+        <label style="display:block; font-size:0.72rem; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;">Client Name</label>
+        <input type="text" class="group-modal-input" id="editProjectClientInput" placeholder="Client name">
+        <label style="display:block; font-size:0.72rem; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px; margin-bottom:6px;">Project Number</label>
+        <input type="text" class="group-modal-input" id="editProjectNoInput" placeholder="Project number">
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeEditProjectModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmEditProject()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Project confirmation -->
+    <div class="group-modal-overlay" id="deleteProjectModal" onclick="closeDeleteProjectModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Delete Project</div>
+        <div class="group-modal-message" id="deleteProjectMessage"></div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeDeleteProjectModal()">Cancel</button>
+          <button class="group-modal-ok-btn danger" onclick="confirmDeleteProject()">Delete</button>
         </div>
       </div>
     </div>
@@ -361,6 +409,33 @@
         <div class="group-modal-actions">
           <button class="group-modal-cancel-btn" onclick="closeNewProjectFolderModal()">Cancel</button>
           <button class="group-modal-ok-btn" onclick="confirmNewProjectFolder()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right-click Copy/Cut/Paste/Rename/Delete menu, shared by folders and files -->
+    <div class="fs-context-menu" id="fsContextMenu" onclick="event.stopPropagation()"></div>
+
+    <!-- Rename modal — same styling as New Folder -->
+    <div class="group-modal-overlay" id="fsRenameModal" onclick="closeFsRenameModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Rename</div>
+        <input type="text" class="group-modal-input" id="fsRenameInput" placeholder="Name" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmFsRename();}">
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeFsRenameModal()">Cancel</button>
+          <button class="group-modal-ok-btn" onclick="confirmFsRename()">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete confirmation — same styling, danger-colored OK button -->
+    <div class="group-modal-overlay" id="fsDeleteModal" onclick="closeFsDeleteModal()">
+      <div class="group-modal-box" onclick="event.stopPropagation()">
+        <div class="group-modal-title">Delete</div>
+        <div class="group-modal-message" id="fsDeleteMessage"></div>
+        <div class="group-modal-actions">
+          <button class="group-modal-cancel-btn" onclick="closeFsDeleteModal()">Cancel</button>
+          <button class="group-modal-ok-btn danger" onclick="confirmFsDelete()">Delete</button>
         </div>
       </div>
     </div>
@@ -689,9 +764,109 @@
           <div class="tile-content-bottom"><div class="tile-client-name">${proj.client}</div><div class="tile-project-no">${proj.projectNo}</div></div>
         `;
         tile.onclick = () => openProjectFolder(proj);
+        tile.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openProjectTileContextMenu(e, proj); };
         grid.appendChild(tile);
       });
       displayContainer.appendChild(grid);
+    }
+
+    // ===================== Project tile: right-click Edit / Delete =====================
+
+    let projectContextTarget = null;
+
+    function openProjectTileContextMenu(event, proj) {
+      projectContextTarget = proj;
+      const menu = document.getElementById('fsContextMenu');
+      menu.innerHTML = `
+        <div class="fs-context-menu-item" onclick="openEditProjectModal()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</div>
+        <div class="fs-context-menu-item danger" onclick="openDeleteProjectModal()"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg> Delete</div>
+      `;
+      positionFsContextMenu(menu, event.clientX, event.clientY);
+    }
+
+    function openEditProjectModal() {
+      closeFsContextMenu();
+      if (!projectContextTarget) return;
+      document.getElementById('editProjectClientInput').value = projectContextTarget.client || '';
+      document.getElementById('editProjectNoInput').value = projectContextTarget.projectNo || '';
+      document.getElementById('editProjectModal').classList.add('active');
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById('editProjectModal').classList.remove('active');
+    }
+
+    async function confirmEditProject() {
+      if (!projectContextTarget) return;
+      const newClient = document.getElementById('editProjectClientInput').value.trim();
+      const newProjectNo = document.getElementById('editProjectNoInput').value.trim();
+      if (!newClient) return;
+
+      const { db, doc, updateDoc } = window.dbFns;
+      try {
+        await updateDoc(doc(db, 'projects', projectContextTarget.id), {
+          client: newClient,
+          projectNo: newProjectNo
+        });
+        projectContextTarget.client = newClient;
+        projectContextTarget.projectNo = newProjectNo;
+        // If this is the project currently open in the folder view, refresh its banner too.
+        if (activeOpenedProject && activeOpenedProject.id === projectContextTarget.id) {
+          activeOpenedProject.client = newClient;
+          activeOpenedProject.projectNo = newProjectNo;
+          const nameEl = document.getElementById('metaClientName');
+          const noEl = document.getElementById('metaProjectNo');
+          if (nameEl) nameEl.textContent = newClient;
+          if (noEl) noEl.textContent = newProjectNo;
+        }
+        closeEditProjectModal();
+        filterProjects();
+      } catch (err) {
+        // Leave the modal open so the person can retry.
+      }
+    }
+
+    function openDeleteProjectModal() {
+      closeFsContextMenu();
+      if (!projectContextTarget) return;
+      document.getElementById('deleteProjectMessage').textContent =
+        `Delete "${projectContextTarget.client}" and everything inside it — all its folders, files, and chat history? This can't be undone.`;
+      document.getElementById('deleteProjectModal').classList.add('active');
+    }
+
+    function closeDeleteProjectModal() {
+      document.getElementById('deleteProjectModal').classList.remove('active');
+    }
+
+    async function confirmDeleteProject() {
+      const proj = projectContextTarget;
+      closeDeleteProjectModal();
+      if (!proj) return;
+
+      const { db, doc, deleteDoc } = window.dbFns;
+      try {
+        // Deliberately scoped to ONLY this project's own data — its own folder tree in
+        // Storage, and its own Firestore document. This must never reach into another
+        // organisation's project, files, or chat history. In particular, any accepted
+        // groupConnections linking this project to another organisation's project are left
+        // untouched on purpose: that connection's messages/comments include contributions
+        // from the OTHER side, so auto-deleting it here would silently erase part of their
+        // conversation too. The other organisation's own data stays completely intact —
+        // they'd just see a connection pointing at a project that no longer exists on our end.
+        await deleteFolderStorageRecursive({ files: [], children: proj.children || [] });
+        await deleteDoc(doc(db, 'projects', proj.id));
+
+        myProjectsCache = myProjectsCache.filter(p => p.id !== proj.id);
+        if (activeOpenedProject && activeOpenedProject.id === proj.id) {
+          jumpToBreadcrumbIndex(0); // was open when deleted — bounce back to the project list
+        } else {
+          filterProjects();
+        }
+      } catch (err) {
+        // Deletion failed (e.g. not the project's creator, per the security rules) — the
+        // project stays in the list so the person can see it didn't go through.
+      }
+      projectContextTarget = null;
     }
 
     function switchMainViewTab(tabKey) {
@@ -816,7 +991,7 @@
           <div class="folder-name">${escapeHtmlPlain(folder.name)}</div>
           <div class="folder-items-count">${(folder.files || []).length} Files</div>
         `;
-        card.oncontextmenu = (e) => { e.preventDefault(); openFolderDeleteConfirm(folder); };
+        card.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
         card.onclick = () => {
           folderObjectStack.push(folder);
           renderFolderView();
@@ -869,27 +1044,33 @@
           filesSection.classList.remove('dropzone-active');
           handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
         };
+        filesSection.oncontextmenu = (e) => {
+          if (e.target !== filesSection) return; // let a file row's own handler take it instead
+          e.preventDefault();
+          openFsBackgroundContextMenu(e);
+        };
       }
       const files = folderNode.files || [];
-      filesSection.innerHTML = `
-        <div style="margin-bottom:12px;">
-          <span style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px;">Files</span>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:4px;">
-          ${files.length === 0 ? `<div style="color:var(--subtext-color); font-size:0.85rem;">Drag and drop files here to add them.</div>` : files.map((f, idx) => `
-            <div style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:var(--surface-color); border:1px solid var(--border-color);">
-              <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-              <a href="${f.url}" target="_blank" style="flex:1; color:var(--text-color); font-size:0.85rem; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(f.name)}</a>
-              <button onclick="deleteFolderFile(${idx})" title="Delete" style="background:transparent; border:none; color:var(--subtext-color); cursor:pointer; display:flex; padding:4px;">
-                <svg viewBox="0 0 24 24" style="width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-              </button>
-            </div>
-          `).join('')}
-        </div>
-      `;
-      // innerHTML replace above wipes the dragover listeners bound to filesSection itself?
-      // No — those are bound to filesSection (the container), not its innerHTML content, so
-      // they survive. Re-wiring isn't needed here.
+
+      filesSection.innerHTML = `<div style="margin-bottom:12px;"><span style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px;">Files</span></div>`;
+      const listEl = document.createElement('div');
+      listEl.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
+
+      if (files.length === 0) {
+        listEl.innerHTML = `<div style="color:var(--subtext-color); font-size:0.85rem;">Drag and drop files here to add them.</div>`;
+      } else {
+        files.forEach(f => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:var(--surface-color); border:1px solid var(--border-color);';
+          row.innerHTML = `
+            <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <a href="${f.url}" target="_blank" style="flex:1; color:var(--text-color); font-size:0.85rem; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(f.name)}</a>
+          `;
+          row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'file', f); };
+          listEl.appendChild(row);
+        });
+      }
+      filesSection.appendChild(listEl);
     }
 
     // ===================== Real folder/file persistence =====================
@@ -906,6 +1087,261 @@
     }
 
     let folderIdCounter = 0;
+
+    // ===================== Right-click Copy/Cut/Paste/Rename/Delete =====================
+    // Paste re-uploads a fresh, fully independent copy of every file involved — even for a
+    // same-project move — rather than reusing the original Storage object. This keeps every
+    // file's Storage path correctly scoped to whichever project it now belongs to (so
+    // Storage's per-project access rule always matches reality), and guarantees deleting one
+    // copy can never silently break another one still referencing the same blob.
+
+    let fsClipboard = null; // { mode: 'copy'|'cut', kind: 'file'|'folder', item: <deep snapshot>, sourceProjectId, sourceParentFolderId }
+    let fsContextTargetKind = null;
+    let fsContextTargetItem = null; // the LIVE object reference — safe for rename/delete; cloned separately for the clipboard
+
+    function openFsContextMenu(event, kind, item) {
+      fsContextTargetKind = kind;
+      fsContextTargetItem = item;
+      const menu = document.getElementById('fsContextMenu');
+      const pasteDisabled = !fsClipboard;
+      menu.innerHTML = `
+        <div class="fs-context-menu-item" onclick="fsCopyItem()"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</div>
+        <div class="fs-context-menu-item" onclick="fsCutItem()"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><line x1="20" y1="4" x2="8.12" y2="15.88"></line><line x1="14.47" y1="14.48" x2="20" y2="20"></line><line x1="8.12" y1="8.12" x2="12" y2="12"></line></svg> Cut</div>
+        <div class="fs-context-menu-item${pasteDisabled ? ' disabled' : ''}" onclick="${pasteDisabled ? '' : 'fsPasteItem()'}"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg> Paste</div>
+        <div class="fs-context-menu-divider"></div>
+        <div class="fs-context-menu-item" onclick="fsOpenRenameModal()"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Rename</div>
+        <div class="fs-context-menu-item danger" onclick="fsOpenDeleteModal()"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg> Delete</div>
+      `;
+      positionFsContextMenu(menu, event.clientX, event.clientY);
+    }
+
+    // Right-clicking empty background space (not a specific file/folder) offers just Paste.
+    function openFsBackgroundContextMenu(event) {
+      if (!fsClipboard) return;
+      const menu = document.getElementById('fsContextMenu');
+      menu.innerHTML = `<div class="fs-context-menu-item" onclick="fsPasteItem()"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1"></rect></svg> Paste</div>`;
+      positionFsContextMenu(menu, event.clientX, event.clientY);
+    }
+
+    function positionFsContextMenu(menu, x, y) {
+      menu.style.left = '-9999px';
+      menu.style.top = '-9999px';
+      menu.classList.add('active');
+      const rect = menu.getBoundingClientRect();
+      const left = Math.max(8, Math.min(x, window.innerWidth - rect.width - 8));
+      const top = Math.max(8, Math.min(y, window.innerHeight - rect.height - 8));
+      menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+    }
+
+    function closeFsContextMenu() {
+      document.getElementById('fsContextMenu').classList.remove('active');
+    }
+    window.addEventListener('click', (e) => {
+      const menu = document.getElementById('fsContextMenu');
+      if (menu.classList.contains('active') && !menu.contains(e.target)) closeFsContextMenu();
+    });
+
+    function fsCopyItem() {
+      closeFsContextMenu();
+      if (!fsContextTargetItem) return;
+      fsClipboard = {
+        mode: 'copy',
+        kind: fsContextTargetKind,
+        item: JSON.parse(JSON.stringify(fsContextTargetItem)),
+        sourceProjectId: activeOpenedProject.id
+      };
+    }
+
+    function fsCutItem() {
+      closeFsContextMenu();
+      if (!fsContextTargetItem) return;
+      const insideRealFolder = folderObjectStack.length > 1;
+      fsClipboard = {
+        mode: 'cut',
+        kind: fsContextTargetKind,
+        item: JSON.parse(JSON.stringify(fsContextTargetItem)),
+        sourceProjectId: activeOpenedProject.id,
+        sourceParentFolderId: insideRealFolder ? getCurrentWorkspaceFolder().id : null // null = project root
+      };
+    }
+
+    // Paste target is always "whichever project's folder view you currently have open" —
+    // this is what makes cross-project paste work: Cut in Project A, navigate to Project B
+    // (any project you're a member of), Paste there.
+    async function fsPasteItem() {
+      closeFsContextMenu();
+      if (!fsClipboard || !activeOpenedProject) return;
+      const clip = fsClipboard;
+      const destFolderNode = getCurrentWorkspaceFolder();
+
+      if (clip.kind === 'file') {
+        await pasteFileIntoFolder(clip.item, destFolderNode);
+      } else {
+        await pasteFolderIntoFolder(clip.item, destFolderNode);
+      }
+      renderFolderView();
+      await persistProjectFolders().catch(() => {});
+
+      if (clip.mode === 'cut') {
+        await removeOriginalAfterCut(clip);
+        fsClipboard = null; // a cut is consumed after one paste; a copy can be pasted repeatedly
+      }
+    }
+
+    async function pasteFileIntoFolder(fileSnapshot, destFolderNode) {
+      try {
+        const res = await fetch(fileSnapshot.url);
+        const blob = await res.blob();
+        const file = new File([blob], fileSnapshot.name, { type: blob.type || 'application/octet-stream' });
+        await uploadSingleFileIntoFolderNode(destFolderNode, file);
+      } catch (err) {
+        // This file failed to paste — continue; nothing else in the operation is aborted.
+      }
+    }
+
+    async function pasteFolderIntoFolder(folderSnapshot, destParentNode) {
+      const newFolder = { id: 'folder-' + Date.now() + '-' + (folderIdCounter++), name: folderSnapshot.name, children: [], files: [] };
+      if (!destParentNode.children) destParentNode.children = [];
+      destParentNode.children.push(newFolder);
+      for (const f of (folderSnapshot.files || [])) {
+        await pasteFileIntoFolder(f, newFolder);
+      }
+      for (const childFolder of (folderSnapshot.children || [])) {
+        await pasteFolderIntoFolder(childFolder, newFolder);
+      }
+    }
+
+    // Finds the container (an object with .children/.files arrays) for a given folder id
+    // within a tree — or the tree's own root wrapper if folderId is null.
+    function findFsContainerById(tree, folderId) {
+      if (folderId === null) return { children: tree, files: undefined };
+      function search(nodes) {
+        for (const node of nodes) {
+          if (node.id === folderId) return node;
+          if (node.children) {
+            const found = search(node.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+      return search(tree);
+    }
+
+    async function deleteFolderStorageRecursive(folder) {
+      const { storage, ref, deleteObject } = window.dbFns;
+      for (const f of (folder.files || [])) {
+        if (f.storagePath) {
+          try { await deleteObject(ref(storage, f.storagePath)); } catch (err) {}
+        }
+      }
+      for (const child of (folder.children || [])) {
+        await deleteFolderStorageRecursive(child);
+      }
+    }
+
+    // Removes the ORIGINAL item after a successful cut+paste — may belong to a completely
+    // different project than the one currently open, in which case it's fetched, mutated,
+    // and saved directly, without disturbing what's currently on screen.
+    async function removeOriginalAfterCut(clip) {
+      const { db, doc, getDoc, updateDoc } = window.dbFns;
+      const sameProject = clip.sourceProjectId === activeOpenedProject.id;
+      let sourceTree;
+
+      if (sameProject) {
+        sourceTree = activeOpenedProject.children || [];
+      } else {
+        try {
+          const snap = await getDoc(doc(db, 'projects', clip.sourceProjectId));
+          sourceTree = (snap.exists() && Array.isArray(snap.data().children)) ? snap.data().children : [];
+        } catch (err) {
+          return; // can't reach the source project — the pasted copy still exists either way
+        }
+      }
+
+      const parentContainer = findFsContainerById(sourceTree, clip.sourceParentFolderId);
+      if (!parentContainer) return;
+
+      if (clip.kind === 'folder') {
+        const idx = (parentContainer.children || []).findIndex(f => f.id === clip.item.id);
+        if (idx > -1) {
+          await deleteFolderStorageRecursive(parentContainer.children[idx]);
+          parentContainer.children.splice(idx, 1);
+        }
+      } else {
+        const idx = (parentContainer.files || []).findIndex(f => f.id === clip.item.id);
+        if (idx > -1) {
+          const f = parentContainer.files[idx];
+          if (f.storagePath) {
+            try { const { storage, ref, deleteObject } = window.dbFns; await deleteObject(ref(storage, f.storagePath)); } catch (err) {}
+          }
+          parentContainer.files.splice(idx, 1);
+        }
+      }
+
+      if (sameProject) {
+        renderFolderView();
+        await persistProjectFolders().catch(() => {});
+      } else {
+        await updateDoc(doc(db, 'projects', clip.sourceProjectId), { children: sourceTree }).catch(() => {});
+      }
+    }
+
+    // ---------- Rename ----------
+
+    function fsOpenRenameModal() {
+      closeFsContextMenu();
+      if (!fsContextTargetItem) return;
+      document.getElementById('fsRenameInput').value = fsContextTargetItem.name;
+      document.getElementById('fsRenameModal').classList.add('active');
+      document.getElementById('fsRenameInput').focus();
+    }
+    function closeFsRenameModal() {
+      document.getElementById('fsRenameModal').classList.remove('active');
+    }
+    function confirmFsRename() {
+      const newName = document.getElementById('fsRenameInput').value.trim();
+      if (newName && fsContextTargetItem) {
+        fsContextTargetItem.name = newName; // live reference — mutates the real tree directly
+        renderFolderView();
+        persistProjectFolders().catch(() => {});
+      }
+      closeFsRenameModal();
+    }
+
+    // ---------- Delete (covers both files and folders) ----------
+
+    function fsOpenDeleteModal() {
+      closeFsContextMenu();
+      if (!fsContextTargetItem) return;
+      document.getElementById('fsDeleteMessage').textContent =
+        `Delete "${fsContextTargetItem.name}"${fsContextTargetKind === 'folder' ? ' and everything inside it' : ''}? This can't be undone.`;
+      document.getElementById('fsDeleteModal').classList.add('active');
+    }
+    function closeFsDeleteModal() {
+      document.getElementById('fsDeleteModal').classList.remove('active');
+    }
+    async function confirmFsDelete() {
+      const kind = fsContextTargetKind;
+      const item = fsContextTargetItem;
+      closeFsDeleteModal();
+      if (!item) return;
+      const parentNode = getCurrentWorkspaceFolder();
+
+      if (kind === 'folder') {
+        await deleteFolderStorageRecursive(item);
+        parentNode.children = (parentNode.children || []).filter(f => f.id !== item.id);
+      } else {
+        if (item.storagePath) {
+          try { const { storage, ref, deleteObject } = window.dbFns; await deleteObject(ref(storage, item.storagePath)); } catch (err) {}
+        }
+        parentNode.files = (parentNode.files || []).filter(f => f.id !== item.id);
+      }
+      renderFolderView();
+      persistProjectFolders().catch(() => {});
+    }
+
 
     function openAddFolderModalInProject() {
       document.getElementById('newProjectFolderNameInput').value = '';
@@ -951,7 +1387,7 @@
         const fileRef = ref(storage, storagePath);
         await uploadBytes(fileRef, file);
         const url = await getDownloadURL(fileRef);
-        folderNode.files.push({ name: file.name, url, storagePath });
+        folderNode.files.push({ id: 'file-' + Date.now() + '-' + (folderIdCounter++), name: file.name, url, storagePath });
       } catch (err) {
         // This one file failed to upload — continue with the rest rather than aborting the batch.
       }
@@ -1020,49 +1456,6 @@
       persistProjectFolders().catch(() => {});
     }
 
-    async function deleteFolderFile(index) {
-      const currentFolderNode = getCurrentWorkspaceFolder();
-      const file = (currentFolderNode.files || [])[index];
-      if (!file) return;
-      if (file.storagePath) {
-        try {
-          const { storage, ref, deleteObject } = window.dbFns;
-          await deleteObject(ref(storage, file.storagePath));
-        } catch (err) {
-          // Continue removing it from the list even if the Storage delete failed (e.g. already gone).
-        }
-      }
-      currentFolderNode.files.splice(index, 1);
-      renderFolderView();
-      persistProjectFolders().catch(() => {});
-    }
-
-    function openFolderDeleteConfirm(folder) {
-      if (!confirm(`Delete "${folder.name}" and everything inside it? This can't be undone.`)) return;
-      deleteFolderRecursive(folder);
-    }
-
-    async function deleteFolderRecursive(folder) {
-      const { storage, ref, deleteObject } = window.dbFns;
-      // Delete every file in this folder and all its subfolders from Storage first.
-      async function collectAndDelete(node) {
-        for (const f of (node.files || [])) {
-          if (f.storagePath) {
-            try { await deleteObject(ref(storage, f.storagePath)); } catch (err) {}
-          }
-        }
-        for (const child of (node.children || [])) {
-          await collectAndDelete(child);
-        }
-      }
-      await collectAndDelete(folder);
-
-      const currentFolderNode = getCurrentWorkspaceFolder();
-      currentFolderNode.children = (currentFolderNode.children || []).filter(f => f.id !== folder.id);
-      renderFolderView();
-      persistProjectFolders().catch(() => {});
-    }
-
     function jumpToBreadcrumbIndex(targetIndex) {
       if (targetIndex === 0) {
         activeOpenedProject = null;
@@ -1105,9 +1498,7 @@
       }
     }
 
-    function hideContextMenus() {}
-    function confirmDeleteProjectAction() {}
-    function closeCustomDeleteProjectModal() {}
+    function hideContextMenus() { closeFsContextMenu(); }
 
     // ===================== Project members: add org-verified people, or request unverified ones ==========
     // Any current member of a project can add another person already verified by the
