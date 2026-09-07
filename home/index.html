@@ -116,7 +116,7 @@
     .tile { position: relative; width: 140px; height: 140px; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background-color: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); text-decoration: none; flex-shrink: 0; }
     .tile:hover { transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); border-color: var(--paper-white); }
     
-    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; color: var(--paper-white); }
+    .tile-icon-wrapper { width: 42px; height: 42px; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; color: var(--text-color); }
     .tile-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     .tile-title { font-size: 0.9rem; font-weight: 600; letter-spacing: 0.2px; word-break: break-word; }
 
@@ -125,15 +125,9 @@
     .tile:hover .tile-edit-btn { opacity: 1; }
     .tile-edit-btn:hover { background: rgba(0, 0, 0, 0.7); }
 
-    #settingsView { display: none; flex: 1; padding: 40px; background: var(--surface-color); overflow-y: auto; }
-    .settings-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; max-width: 500px; margin-top: 20px; }
-    .theme-selector-group { display: flex; gap: 16px; margin-top: 12px; }
-    .theme-option-btn { flex: 1; padding: 14px; border: 2px solid var(--border-color); background: var(--surface-color); color: var(--text-color); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-    .theme-option-btn.active { border-color: var(--paper-white); background: var(--border-color); color: var(--text-color); }
-
     .notifications-panel { width: 25%; min-width: 260px; max-width: 320px; background: var(--surface-color); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; height: 100%; box-shadow: -4px 0 10px -2px rgba(0, 0, 0, 0.03); flex-shrink: 0; }
     .notifications-header { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--surface-color); font-weight: 600; font-size: 0.95rem; }
-    .notifications-header svg { width: 18px; height: 18px; stroke: var(--paper-white); stroke-width: 2; fill: none; margin-right: 6px; }
+    .notifications-header svg { width: 18px; height: 18px; stroke: var(--text-color); stroke-width: 2; fill: none; margin-right: 6px; }
     .notifications-list { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .notification-item { padding: 12px; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); font-size: 0.85rem; }
     .notification-item .title { font-weight: 600; color: var(--text-color); margin-bottom: 4px; }
@@ -146,14 +140,14 @@
     .modal-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; font-size: 0.95rem; outline: none; }
     
     .icon-selector-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
-    .icon-preview-box { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--paper-white); }
+    .icon-preview-box { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: var(--text-color); }
     .icon-preview-box svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     .icon-picker-grid { display: none; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-color); max-height: 150px; overflow-y: auto; }
     .icon-option { width: 100%; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 6px; padding: 8px; }
     .icon-option svg { width: 22px; height: 22px; stroke: var(--subtext-color); stroke-width: 2; fill: none; }
     .icon-option.selected { background: var(--border-color); }
-    .icon-option.selected svg { stroke: var(--paper-white); }
+    .icon-option.selected svg { stroke: var(--text-color); }
 
     .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
     .modal-btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
@@ -197,7 +191,7 @@
             <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
         </button>
-        <button class="tab-btn" id="tabNavSettings" onclick="switchMainTab('settings')" title="Organization Settings">
+        <button class="tab-btn" id="tabNavSettings" onclick="window.location.href='settings/'" title="Settings">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </button>
         <button class="tab-btn fab-tab-btn" onclick="openCreateModal()" title="Create New Tile">
@@ -207,19 +201,6 @@
 
       <div class="tiles-wrapper" id="homeView">
         <div class="tiles-grid" id="tilesGrid"></div>
-      </div>
-
-      <div id="settingsView">
-        <h2>Organization Settings</h2>
-        <p style="color:var(--subtext-color); margin-top:4px;">Customize portal preferences and theme options.</p>
-
-        <div class="settings-card">
-          <h3 style="font-size:1rem; margin-bottom:6px;">Appearance Theme</h3>
-          <div class="theme-selector-group">
-            <button class="theme-option-btn" id="themeBtnDark" onclick="setAppTheme('dark')">Dark Theme</button>
-            <button class="theme-option-btn" id="themeBtnLight" onclick="setAppTheme('light')">Light Theme</button>
-          </div>
-        </div>
       </div>
 
       <aside class="notifications-panel">
@@ -331,18 +312,9 @@
       { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', isProtected: false }
     ];
 
-    function setAppTheme(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('dibadge_web_theme', theme);
-      const darkBtn = document.getElementById('themeBtnDark');
-      const lightBtn = document.getElementById('themeBtnLight');
-      if (darkBtn && lightBtn) {
-        if (theme === 'dark') { darkBtn.classList.add('active'); lightBtn.classList.remove('active'); }
-        else { lightBtn.classList.add('active'); darkBtn.classList.remove('active'); }
-      }
-    }
-
-    setAppTheme(localStorage.getItem('dibadge_web_theme') || 'dark');
+    // Theme is applied on load via the small IIFE at the top of this file, reading the
+    // same shared 'dibadge_web_theme' key — changing it now happens only on the Settings
+    // page (home/settings/), not here.
 
     function getStoredTiles() {
       const stored = localStorage.getItem('dibadge_custom_tiles');
@@ -387,18 +359,9 @@
     }
 
     function switchMainTab(tab) {
-      const homeView = document.getElementById("homeView");
-      const settingsView = document.getElementById("settingsView");
-      const btnHome = document.getElementById("tabNavHome");
-      const btnSettings = document.getElementById("tabNavSettings");
-
-      if (tab === 'home') {
-        homeView.style.display = "flex"; settingsView.style.display = "none";
-        btnHome.classList.add("active"); btnSettings.classList.remove("active");
-      } else {
-        homeView.style.display = "none"; settingsView.style.display = "block";
-        btnHome.classList.remove("active"); btnSettings.classList.add("active");
-      }
+      // Only 'home' is a real tab now — Settings navigates to its own page instead of
+      // switching a view here, so this just keeps the Home tab visually active.
+      document.getElementById("tabNavHome").classList.add("active");
     }
 
     function toggleIconPicker() {
