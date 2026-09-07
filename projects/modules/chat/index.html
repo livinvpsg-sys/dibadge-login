@@ -1,20 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>diBadge | Project Chat</title>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@15.1.0/dist/twemoji.min.js" crossorigin="anonymous"></script>
   <style>
-    /* Theme Variables */
+    /* Theme Variables — page-shell level only (background, header, sidebar, borders,
+       general text). The chat interior itself (message bubbles, toolbar, modals) still
+       uses fixed dark-mode colors set directly throughout this file's CSS, not these
+       variables — that's a separate, larger follow-up pass, not part of this one. */
     :root {
+      --slate-charcoal: #3a3a3c;
+      --cool-ash: #a1a1a6;
+      --accent-white: #ffffff;
+      --soft-border: #e5e5ea;
+
+      --bg-color: #e8e9ed;
+      --chat-incoming-bg: #1e1e1e;
+      --chat-incoming-text: #ffffff;
+      --chat-outgoing-bg: #ffffff;
+      --chat-outgoing-text: #000000;
+      --text-color: var(--slate-charcoal);
+      --subtext-color: var(--cool-ash);
+      --header-bg: var(--accent-white);
+      --input-bg: var(--accent-white);
+      --tabbar-bg: var(--accent-white);
+      --border-color: var(--soft-border);
+      --slate-surface: var(--accent-white);
+      --paper-white: #f8f9fa;
+    }
+    [data-theme="dark"] {
       --bg-color: #121212;
       --chat-incoming-bg: #1e1e1e;
       --chat-incoming-text: #ffffff;
       --chat-outgoing-bg: #ffffff;
       --chat-outgoing-text: #000000;
+      --text-color: #ffffff;
       --subtext-color: #aaaaaa;
       --header-bg: #1f1f1f;
       --input-bg: #2a2a2a;
@@ -31,7 +61,7 @@ html, body {
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background-color: var(--bg-color);
-  color: #ffffff;
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
   height: 100vh;                 /* fallback */
@@ -5616,11 +5646,11 @@ function renderPreviewTray() {
     // Only removes this form from THIS chat's Forms list in the details panel — it does not
     // touch the standalone Project Forms library that Import reads from.
 
-    let formContextTargetRow = null;
+    let formContextTargetId = null;
 
-    function openFormContextMenu(event) {
+    function openFormContextMenu(event, formId) {
       event.preventDefault();
-      formContextTargetRow = event.currentTarget;
+      formContextTargetId = formId;
       const menu = document.getElementById('formContextMenu');
       menu.innerHTML = `
         <div class="group-context-menu-item danger" onclick="openFormDeleteModal()">
@@ -5648,10 +5678,9 @@ function renderPreviewTray() {
 
     function openFormDeleteModal() {
       closeFormContextMenu();
-      if (!formContextTargetRow) return;
-      const label = formContextTargetRow.querySelector('.details-item-label');
-      const name = label ? label.textContent : 'this form';
-      document.getElementById('formDeleteMessage').textContent = `Remove "${name}" from your chat list?`;
+      if (!formContextTargetId) return;
+      const form = chatFormsAdded.find(f => f.id === formContextTargetId);
+      document.getElementById('formDeleteMessage').textContent = `Remove "${form ? form.name : 'this form'}" from your chat list?`;
       document.getElementById('formDeleteOverlay').classList.add('active');
     }
 
@@ -5660,9 +5689,13 @@ function renderPreviewTray() {
     }
 
     function confirmFormDelete() {
-      if (formContextTargetRow) formContextTargetRow.remove();
+      if (formContextTargetId) {
+        chatFormsAdded = chatFormsAdded.filter(f => f.id !== formContextTargetId);
+        renderChatFormsList();
+        persistAttachedForms().catch(() => {});
+      }
       closeFormDeleteModal();
-      formContextTargetRow = null;
+      formContextTargetId = null;
     }
 
     // ===================== Chat's Folders section — the REAL project folder tree =====================
@@ -5878,7 +5911,7 @@ function renderPreviewTray() {
     // broader org tile access can still view forms attached here.
 
     let orgFormsLibraryCache = []; // [{ id, name }] — org's full forms library
-    let chatFormsAdded = []; // [{ id, name }] — forms added to THIS chat (session-only, like Groups/Folders)
+    let chatFormsAdded = []; // [{ id, name }] — forms attached to this project's chat, persisted on the project doc
 
     async function loadOrgFormsLibrary() {
       const { db, collection, getDocs } = window.chatFns;
@@ -5888,6 +5921,22 @@ function renderPreviewTray() {
       } catch (err) {
         orgFormsLibraryCache = [];
       }
+    }
+
+    async function loadAttachedForms() {
+      const { db, doc, getDoc } = window.chatFns;
+      try {
+        const snap = await getDoc(doc(db, 'projects', window.currentProjectId));
+        chatFormsAdded = (snap.exists() && Array.isArray(snap.data().attachedForms)) ? snap.data().attachedForms : [];
+      } catch (err) {
+        chatFormsAdded = [];
+      }
+      renderChatFormsList();
+    }
+
+    async function persistAttachedForms() {
+      const { db, doc, updateDoc } = window.chatFns;
+      await updateDoc(doc(db, 'projects', window.currentProjectId), { attachedForms: chatFormsAdded });
     }
 
     let importFormViewMode = 'grid';
@@ -5970,13 +6019,14 @@ function renderPreviewTray() {
       });
       renderChatFormsList();
       closeImportFormModal();
+      persistAttachedForms().catch(() => {});
     }
 
     function renderChatFormsList() {
       const container = document.getElementById('formsListContainer');
       if (!container) return;
       container.innerHTML = chatFormsAdded.map(f => `
-        <div class="details-item-row" oncontextmenu="openFormContextMenu(event)" onclick="openChatFormViewer('${f.id}')">
+        <div class="details-item-row" oncontextmenu="openFormContextMenu(event, '${f.id}')" onclick="openChatFormViewer('${f.id}')">
           <svg class="details-item-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
           <span class="details-item-label">${escapeHtml(f.name)}</span>
         </div>
@@ -6095,8 +6145,10 @@ function renderPreviewTray() {
           status: 'pending',
           initiatedByUid: window.currentUid,
           createdAt: serverTimestamp(),
-          formsAccess: [],
-          foldersAccess: []
+          initiatorFormsAccess: [],
+          initiatorFoldersAccess: [],
+          targetFormsAccess: [],
+          targetFoldersAccess: []
         });
         statusEl.textContent = 'Request sent — waiting for them to accept.';
         setTimeout(closeAddGroupModal, 900);
@@ -6473,6 +6525,7 @@ function renderPreviewTray() {
       if (typeof window.initChatFirestore === 'function') window.initChatFirestore();
       if (typeof window.initGroupConnections === 'function') window.initGroupConnections();
       if (typeof loadProjectFolderTree === 'function') loadProjectFolderTree();
+      if (typeof loadAttachedForms === 'function') loadAttachedForms();
     });
   </script>
 </body>
