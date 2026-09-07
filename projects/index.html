@@ -975,6 +975,10 @@
       return folderObjectStack[folderObjectStack.length - 1];
     }
 
+    // Shared file icon (with two horizontal "text lines" so it reads clearly as a
+    // document rather than a blank page) — used everywhere a file is shown, grid or list.
+    const FILE_ICON_SVG_PATH = `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line>`;
+
     function renderFolderView() {
       const breadcrumbContainer = document.getElementById("breadcrumbBar");
       if (!breadcrumbContainer) return;
@@ -988,9 +992,8 @@
       });
 
       // Workspace-wide drop fallback: covers the WHOLE tab (padding, header row, anywhere
-      // that isn't precisely the grid or the files box below), so dropping anywhere in this
-      // tab works — not just on those two specific elements. Grid/card/files-box drops call
-      // stopPropagation() so this fallback only fires for drops that land elsewhere.
+      // that isn't precisely a folder/file item), so dropping anywhere in this tab works.
+      // Item-level drops call stopPropagation() so this fallback only fires elsewhere.
       const workspace = document.getElementById('folderExplorerWorkspace');
       workspace.ondragover = (e) => { e.preventDefault(); };
       workspace.ondrop = (e) => {
@@ -998,23 +1001,31 @@
         handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
       };
 
+      // The old separate "FILES" box is gone — folders and files now render together in one
+      // list, so there's nothing left to remove it, but clean up any stale leftover from
+      // before this rewrite just in case.
+      const staleFilesSection = document.getElementById('folderFilesSection');
+      if (staleFilesSection) staleFilesSection.remove();
+
       const searchInput = document.getElementById('folderSearchInput');
       const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
       const subGrid = document.getElementById("innerFolderGrid");
       subGrid.innerHTML = "";
       const currentFolderNode = getCurrentWorkspaceFolder();
-      const visibleFolders = (currentFolderNode.children || []).filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery));
 
-      // The grid only needs real height when it's actually showing folder cards — reserving
-      // 300px for an empty grid (e.g. a folder that holds only files, no subfolders) is what
-      // was pushing the Files section down into a big, awkward empty gap.
-      subGrid.style.minHeight = visibleFolders.length > 0 ? '300px' : '0';
+      // Folders first, then files — each group alphabetical, like a normal file explorer.
+      const visibleFolders = (currentFolderNode.children || [])
+        .filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const visibleFiles = (currentFolderNode.files || [])
+        .filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const totalCount = visibleFolders.length + visibleFiles.length;
+
+      subGrid.style.minHeight = totalCount > 0 ? '300px' : '0';
       subGrid.className = currentProjectDisplayMode === 'list' ? '' : 'folder-contents-grid';
 
-      // Background drop target: dropping onto empty grid space (not directly on a folder
-      // card) adds files/folders at THIS level — the currently-open folder, or the project
-      // root. Card-level drops below stop propagation so this doesn't double-fire for those.
       subGrid.classList.add('folder-files-dropzone');
       subGrid.ondragover = (e) => { e.preventDefault(); e.stopPropagation(); subGrid.classList.add('dropzone-active'); };
       subGrid.ondragleave = () => { subGrid.classList.remove('dropzone-active'); };
@@ -1024,6 +1035,11 @@
         subGrid.classList.remove('dropzone-active');
         handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
       };
+      subGrid.oncontextmenu = (e) => {
+        if (e.target !== subGrid) return; // let a folder/file item's own handler take it instead
+        e.preventDefault();
+        openFsBackgroundContextMenu(e);
+      };
 
       function itemCountFor(folder) {
         const count = (folder.children || []).length + (folder.files || []).length;
@@ -1031,18 +1047,39 @@
       }
 
       if (currentProjectDisplayMode === 'list') {
-        if (visibleFolders.length > 0) {
+        if (totalCount > 0) {
           const table = document.createElement('table');
           table.className = 'projects-list-table';
           table.innerHTML = `<thead><tr><th>Name</th><th>Items</th></tr></thead><tbody></tbody>`;
           const tbody = table.querySelector('tbody');
+
           visibleFolders.forEach(folder => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${escapeHtmlPlain(folder.name)}</td><td>${itemCountFor(folder)}</td>`;
+            row.innerHTML = `
+              <td style="display:flex; align-items:center; gap:10px;">
+                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                ${escapeHtmlPlain(folder.name)}
+              </td>
+              <td>${itemCountFor(folder)}</td>
+            `;
             row.onclick = () => { folderObjectStack.push(folder); renderFolderView(); };
             row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
             tbody.appendChild(row);
           });
+
+          visibleFiles.forEach(file => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td style="display:flex; align-items:center; gap:10px;">
+                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;">${FILE_ICON_SVG_PATH}</svg>
+                <a href="${file.url}" target="_blank" onclick="event.stopPropagation()" style="color:inherit; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(file.name)}</a>
+              </td>
+              <td></td>
+            `;
+            row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'file', file); };
+            tbody.appendChild(row);
+          });
+
           subGrid.appendChild(table);
         }
       } else {
@@ -1069,16 +1106,20 @@
           };
           subGrid.appendChild(card);
         });
-      }
 
-      // Files only make sense inside an actual folder — the project root itself just holds
-      // folder cards, never loose files.
-      const insideRealFolder = folderObjectStack.length > 1;
-      if (insideRealFolder) {
-        renderFolderFilesList(currentFolderNode, searchQuery);
-      } else {
-        const existingFilesSection = document.getElementById('folderFilesSection');
-        if (existingFilesSection) existingFilesSection.remove();
+        visibleFiles.forEach(file => {
+          const card = document.createElement("div");
+          card.className = "folder-card";
+          card.innerHTML = `
+            <svg viewBox="0 0 24 24">${FILE_ICON_SVG_PATH}</svg>
+            <div class="folder-name">${escapeHtmlPlain(file.name)}</div>
+          `;
+          // No count for files, and no drop target on the card itself — dropping onto a
+          // file falls through to the grid's own handler (uploads into the current folder).
+          card.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'file', file); };
+          card.onclick = () => window.open(file.url, '_blank');
+          subGrid.appendChild(card);
+        });
       }
     }
 
@@ -1086,54 +1127,6 @@
       const div = document.createElement('div');
       div.textContent = str == null ? '' : str;
       return div.innerHTML;
-    }
-
-    // Files living directly in the currently-open folder — shown below its subfolder cards.
-    // No upload button — files are added purely by dragging them onto this area (or onto
-    // the folder's own card before it's opened, or anywhere else in this tab), Drive-style.
-    function renderFolderFilesList(folderNode, searchQuery) {
-      let filesSection = document.getElementById('folderFilesSection');
-      if (!filesSection) {
-        filesSection = document.createElement('div');
-        filesSection.id = 'folderFilesSection';
-        filesSection.className = 'folder-files-dropzone';
-        filesSection.style.marginTop = '24px';
-        filesSection.style.padding = '16px';
-        document.getElementById('folderExplorerWorkspace').appendChild(filesSection);
-      }
-      filesSection.ondragover = (e) => { e.preventDefault(); e.stopPropagation(); filesSection.classList.add('dropzone-active'); };
-      filesSection.ondragleave = () => { filesSection.classList.remove('dropzone-active'); };
-      filesSection.ondrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        filesSection.classList.remove('dropzone-active');
-        handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
-      };
-      filesSection.oncontextmenu = (e) => {
-        if (e.target !== filesSection) return; // let a file row's own handler take it instead
-        e.preventDefault();
-        e.stopPropagation();
-        openFsBackgroundContextMenu(e);
-      };
-
-      const allFiles = folderNode.files || [];
-      const files = allFiles.filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery));
-
-      filesSection.innerHTML = `<div style="margin-bottom:12px;"><span style="font-size:0.82rem; font-weight:700; color:var(--subtext-color); text-transform:uppercase; letter-spacing:0.4px;">Files</span></div>`;
-      const listEl = document.createElement('div');
-      listEl.style.cssText = 'display:flex; flex-direction:column; gap:4px;';
-
-      files.forEach(f => {
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:var(--surface-color); border:1px solid var(--border-color);';
-        row.innerHTML = `
-          <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-          <a href="${f.url}" target="_blank" style="flex:1; color:var(--text-color); font-size:0.85rem; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(f.name)}</a>
-        `;
-        row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'file', f); };
-        listEl.appendChild(row);
-      });
-      filesSection.appendChild(listEl);
     }
 
     // ===================== Real folder/file persistence =====================
