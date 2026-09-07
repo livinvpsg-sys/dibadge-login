@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>diBadge | Sign In</title>
 
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
   <style>
     :root {
       --jet-black: #0f0f0f;
@@ -13,14 +20,27 @@
       --accent-white: #ffffff;
       --muted-gray: #8e8e93;
       --cool-ash: #a1a1a6;
-      --soft-border: #2c2c2e;
+      --soft-border: #e5e5ea;
       --error-red: #ff3b30;
       --accent-teal: #14b8a6;
+
+      --bg-color: var(--paper-white);
+      --text-color: var(--jet-black);
+      --surface-color: var(--accent-white);
+      --border-color: var(--soft-border);
+      --subtext-color: var(--cool-ash);
+    }
+    [data-theme="dark"] {
+      --bg-color: var(--jet-black);
+      --text-color: var(--accent-white);
+      --surface-color: var(--slate-surface);
+      --border-color: #2c2c2e;
+      --subtext-color: var(--muted-gray);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body {
-      background: var(--jet-black);
-      color: var(--accent-white);
+      background: var(--bg-color);
+      color: var(--text-color);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -43,11 +63,11 @@
     }
     .top-bar-logo { display: flex; align-items: center; gap: 8px; }
     .top-bar-logo svg { width: 24px; height: 24px; }
-    .top-bar h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; color: var(--accent-white); }
+    .top-bar h1 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.3px; color: var(--text-color); }
     .create-org-link {
       background: transparent;
-      border: 1px solid var(--soft-border);
-      color: var(--accent-white);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
       font-size: 0.82rem;
       font-weight: 600;
       padding: 9px 16px;
@@ -68,7 +88,7 @@
     #stageLanding.active { max-width: 640px; }
     .landing-heading { text-align: center; margin-bottom: 32px; }
     .landing-heading h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 6px; }
-    .landing-heading p { color: var(--cool-ash); font-size: 0.9rem; }
+    .landing-heading p { color: var(--subtext-color); font-size: 0.9rem; }
 
     .tile-row {
       display: flex;
@@ -80,8 +100,8 @@
       flex: 1;
       min-width: 220px;
       max-width: 260px;
-      background: var(--slate-surface);
-      border: 1px solid var(--soft-border);
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 32px 22px;
       text-align: center;
@@ -100,14 +120,14 @@
     }
     .landing-tile-icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.6; fill: none; }
     .landing-tile-title { font-size: 1.02rem; font-weight: 700; margin-bottom: 6px; }
-    .landing-tile-sub { font-size: 0.8rem; color: var(--cool-ash); line-height: 1.4; }
+    .landing-tile-sub { font-size: 0.8rem; color: var(--subtext-color); line-height: 1.4; }
 
     /* ---------- Shared card wrapper (QR / org sign-in / create org) ---------- */
     .back-row { margin-bottom: 18px; }
     .back-btn {
       background: transparent;
       border: none;
-      color: var(--cool-ash);
+      color: var(--subtext-color);
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
@@ -115,17 +135,17 @@
       align-items: center;
       gap: 6px;
     }
-    .back-btn:hover { color: var(--accent-white); }
+    .back-btn:hover { color: var(--text-color); }
     .back-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 
     .card {
-      background: var(--slate-surface);
-      border: 1px solid var(--soft-border);
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
       border-radius: 14px;
       padding: 28px 24px;
     }
     .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; text-align: center; }
-    .card-sub { font-size: 0.82rem; color: var(--cool-ash); text-align: center; margin-bottom: 22px; }
+    .card-sub { font-size: 0.82rem; color: var(--subtext-color); text-align: center; margin-bottom: 22px; }
 
     /* ---------- QR stage ---------- */
     .qr-frame {
@@ -140,7 +160,7 @@
     .qr-status {
       text-align: center;
       font-size: 0.8rem;
-      color: var(--cool-ash);
+      color: var(--subtext-color);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -157,20 +177,20 @@
     .qr-note {
       margin-top: 18px;
       font-size: 0.76rem;
-      color: var(--muted-gray);
+      color: var(--subtext-color);
       text-align: center;
       line-height: 1.5;
     }
 
     /* ---------- Form fields (org sign-in / create org) ---------- */
-    .field-label { display: block; font-size: 0.78rem; color: var(--cool-ash); font-weight: 600; margin: 14px 0 6px 0; }
+    .field-label { display: block; font-size: 0.78rem; color: var(--subtext-color); font-weight: 600; margin: 14px 0 6px 0; }
     .field-label:first-of-type { margin-top: 0; }
     .field-input {
       width: 100%;
       padding: 11px 12px;
-      background: var(--jet-black);
-      border: 1px solid var(--soft-border);
-      color: var(--accent-white);
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
       border-radius: 8px;
       font-size: 0.92rem;
       outline: none;
@@ -205,9 +225,9 @@
     }
     .form-error.active { display: block; }
 
-    .form-status { text-align: center; color: var(--cool-ash); font-size: 0.82rem; margin-top: 16px; }
+    .form-status { text-align: center; color: var(--subtext-color); font-size: 0.82rem; margin-top: 16px; }
 
-    .switch-line { text-align: center; font-size: 0.82rem; color: var(--cool-ash); margin-top: 18px; }
+    .switch-line { text-align: center; font-size: 0.82rem; color: var(--subtext-color); margin-top: 18px; }
     .switch-line a { color: var(--accent-teal); text-decoration: none; font-weight: 600; cursor: pointer; }
     .switch-line a:hover { text-decoration: underline; }
 
@@ -218,11 +238,11 @@
     }
     .privacy-footer a {
       font-size: 0.78rem;
-      color: var(--cool-ash);
+      color: var(--subtext-color);
       text-decoration: none;
       cursor: pointer;
     }
-    .privacy-footer a:hover { color: var(--accent-white); text-decoration: underline; }
+    .privacy-footer a:hover { color: var(--text-color); text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -232,16 +252,16 @@
        the login page from being casually stumbled into before launch, remembered per browser
        so it isn't re-entered every visit. -->
   <style>
-    #siteLockOverlay { position: fixed; inset: 0; background: var(--jet-black); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .site-lock-card { background: var(--slate-surface); border: 1px solid var(--soft-border); border-radius: 14px; padding: 32px 28px; width: 100%; max-width: 320px; text-align: center; }
-    .site-lock-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: var(--accent-white); }
-    .site-lock-sub { font-size: 0.82rem; color: var(--cool-ash); margin-bottom: 20px; }
+    #siteLockOverlay { position: fixed; inset: 0; background: var(--bg-color); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .site-lock-card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 32px 28px; width: 100%; max-width: 320px; text-align: center; }
+    .site-lock-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color); }
+    .site-lock-sub { font-size: 0.82rem; color: var(--subtext-color); margin-bottom: 20px; }
     .site-lock-input {
       width: 100%;
       padding: 12px;
-      background: var(--jet-black);
-      border: 1px solid var(--soft-border);
-      color: var(--accent-white);
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
       border-radius: 8px;
       font-size: 1.1rem;
       text-align: center;
