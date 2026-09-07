@@ -20,12 +20,13 @@
       --accent-white: #ffffff;
       --muted-gray: #8e8e93;
       --cool-ash: #a1a1a6;
+      --slate-charcoal: #3a3a3c;
       --soft-border: #e5e5ea;
       --error-red: #ff3b30;
       --accent-teal: #14b8a6;
 
-      --bg-color: var(--paper-white);
-      --text-color: var(--jet-black);
+      --bg-color: #e8e9ed;
+      --text-color: var(--slate-charcoal);
       --surface-color: var(--accent-white);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
@@ -180,7 +181,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
     import {
       getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, collectionGroup,
-      query, where, getDocs, serverTimestamp
+      query, where, getDocs, serverTimestamp, arrayUnion
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -200,6 +201,7 @@
     let currentUid = null;
     let currentOrgId = null;
     let isTrueCreator = false; // only the organisation's original creator — not a delegated admin — can appoint Super Admins
+    let canApproveJoinRequests = false; // true creator or Super Admin — not general Members-tile admins
     let foundUser = null; // { uid, email, accountType } from the last search
 
     onAuthStateChanged(auth, async function(user) {
@@ -218,8 +220,10 @@
       if (userData && userData.accountType === 'organisation_creator') {
         currentOrgId = userData.organisationId;
         isTrueCreator = true;
+        canApproveJoinRequests = true;
         renderCreatorView();
         loadMembers();
+        loadJoinRequests();
         return;
       }
 
@@ -238,8 +242,10 @@
         if (!superAdminSnap.empty) {
           currentOrgId = superAdminSnap.docs[0].ref.parent.parent.id;
           isTrueCreator = false; // still can't appoint other Super Admins — creator-only, by design
+          canApproveJoinRequests = true;
           renderCreatorView();
           loadMembers();
+          loadJoinRequests();
           return;
         }
       } catch (err) {
@@ -259,6 +265,7 @@
           const memberDoc = adminSnap.docs[0];
           currentOrgId = memberDoc.ref.parent.parent.id;
           isTrueCreator = false;
+          canApproveJoinRequests = false;
           renderCreatorView();
           loadMembers();
           return;
@@ -279,6 +286,14 @@
 
     function renderCreatorView() {
       document.getElementById('pageBody').innerHTML = `
+        ${canApproveJoinRequests ? `
+        <div class="card">
+          <div class="card-title">Join requests</div>
+          <div class="card-sub">People a project member wants to add who aren't org-verified yet.</div>
+          <div id="joinRequestsList"><div class="empty-state">Loading…</div></div>
+        </div>
+        ` : ''}
+
         <div class="card">
           <div class="card-title">Verify a member</div>
           <div class="card-sub">They must already have a diBadge personal account. Enter their email to find and verify it.</div>
@@ -506,6 +521,94 @@
         loadMembers();
       } catch (err) {
         // Silent — the list stays as-is and the person can retry.
+      }
+    }
+
+    // ===================== Join requests =====================
+    // Only shown to the true creator or a Super Admin — approving one both verifies the
+    // person in the organisation AND adds them to the specific project they were
+    // requested for, in one action.
+
+    async function loadJoinRequests() {
+      const listEl = document.getElementById('joinRequestsList');
+      if (!listEl || !currentOrgId) return;
+      try {
+        const q = query(
+          collection(db, 'organisations', currentOrgId, 'joinRequests'),
+          where('status', '==', 'pending')
+        );
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          listEl.innerHTML = `<div class="empty-state">No pending join requests.</div>`;
+          return;
+        }
+        listEl.innerHTML = '';
+        snap.forEach(docSnap => {
+          const r = docSnap.data();
+          const row = document.createElement('div');
+          row.className = 'member-row';
+          row.innerHTML = `
+            <div class="member-row-top">
+              <div class="member-info">
+                <div class="member-avatar">${(r.targetEmail || '?').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="member-email">${r.targetEmail}</div>
+                  <div class="member-status" style="color: var(--subtext-color);">Requested for project: ${r.targetProjectName || r.targetProjectId}</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button class="verify-btn">Approve</button>
+                <button class="remove-member-btn" title="Deny">
+                  <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+          `;
+          row.querySelector('.verify-btn').onclick = () => approveJoinRequest(docSnap.id, r);
+          row.querySelector('.remove-member-btn').onclick = () => denyJoinRequest(docSnap.id);
+          listEl.appendChild(row);
+        });
+      } catch (err) {
+        listEl.innerHTML = `<div class="empty-state">Couldn't load join requests.</div>`;
+      }
+    }
+
+    async function approveJoinRequest(requestId, request) {
+      try {
+        // 1. Verify them in the organisation (same defaults as a normal verify).
+        await setDoc(doc(db, 'organisations', currentOrgId, 'members', request.targetUid), {
+          uid: request.targetUid,
+          email: request.targetEmail,
+          status: 'verified',
+          addedByUid: currentUid,
+          addedAt: serverTimestamp(),
+          canAccessOrgAccount: false,
+          isSuperAdmin: false,
+          tileAccess: { projects: false, hr: false, members: false }
+        });
+        // 2. Add them to the specific project they were requested for.
+        await updateDoc(doc(db, 'projects', request.targetProjectId), {
+          members: arrayUnion(request.targetUid)
+        });
+        // 3. Mark the request resolved.
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
+          status: 'approved'
+        });
+        loadJoinRequests();
+        loadMembers();
+      } catch (err) {
+        // Leave the request pending — it can be retried.
+      }
+    }
+
+    async function denyJoinRequest(requestId) {
+      try {
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
+          status: 'denied'
+        });
+        loadJoinRequests();
+      } catch (err) {
+        // Leave it as-is; retry is available.
       }
     }
   </script>
