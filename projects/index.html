@@ -292,6 +292,7 @@
           <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
         </button>
       </div>
+      <input type="text" id="folderSearchInput" class="search-input" style="display:none; max-width:220px;" placeholder="search files & folders.." oninput="renderFolderView()" />
     </div>
 
     <div style="width: 120px;"></div>
@@ -473,17 +474,6 @@
         <div class="project-meta-line1">
           <span id="metaClientName">Amber Holdings</span>
           <span class="project-meta-badge" id="metaProjectNo">PRJ-2026-001</span>
-        </div>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-bottom:16px;">
-        <input type="text" id="folderSearchInput" class="search-input" style="max-width:220px;" placeholder="search files & folders.." oninput="renderFolderView()">
-        <div class="view-mode-toggle">
-          <button class="view-btn active" id="btnFolderViewTile" onclick="switchFolderDisplayMode('grid')" title="Tile Grid View">
-            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          </button>
-          <button class="view-btn" id="btnFolderViewList" onclick="switchFolderDisplayMode('list')" title="Detailed List View">
-            <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line></svg>
-          </button>
         </div>
       </div>
       <div class="folder-contents-grid" id="innerFolderGrid"></div>
@@ -930,6 +920,7 @@
       document.getElementById("defaultHeaderTitle").style.display = "none";
       document.getElementById("folderHeaderNav").style.display = "flex";
       document.getElementById("projectSearchInput").style.display = "none";
+      document.getElementById("folderSearchInput").style.display = "";
       document.getElementById("mainGridWorkspace").style.display = "none";
 
       switchProjectSubTab('folder');
@@ -984,15 +975,6 @@
       return folderObjectStack[folderObjectStack.length - 1];
     }
 
-    let folderDisplayMode = 'grid';
-
-    function switchFolderDisplayMode(mode) {
-      folderDisplayMode = mode;
-      document.getElementById('btnFolderViewTile').classList.toggle('active', mode === 'grid');
-      document.getElementById('btnFolderViewList').classList.toggle('active', mode === 'list');
-      renderFolderView();
-    }
-
     function renderFolderView() {
       const breadcrumbContainer = document.getElementById("breadcrumbBar");
       if (!breadcrumbContainer) return;
@@ -1021,8 +1003,14 @@
 
       const subGrid = document.getElementById("innerFolderGrid");
       subGrid.innerHTML = "";
-      subGrid.className = folderDisplayMode === 'list' ? '' : 'folder-contents-grid';
       const currentFolderNode = getCurrentWorkspaceFolder();
+      const visibleFolders = (currentFolderNode.children || []).filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery));
+
+      // The grid only needs real height when it's actually showing folder cards — reserving
+      // 300px for an empty grid (e.g. a folder that holds only files, no subfolders) is what
+      // was pushing the Files section down into a big, awkward empty gap.
+      subGrid.style.minHeight = visibleFolders.length > 0 ? '300px' : '0';
+      subGrid.className = currentProjectDisplayMode === 'list' ? '' : 'folder-contents-grid';
 
       // Background drop target: dropping onto empty grid space (not directly on a folder
       // card) adds files/folders at THIS level — the currently-open folder, or the project
@@ -1037,17 +1025,20 @@
         handleDroppedItems(e.dataTransfer, getCurrentWorkspaceFolder());
       };
 
-      const visibleFolders = (currentFolderNode.children || []).filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery));
+      function itemCountFor(folder) {
+        const count = (folder.children || []).length + (folder.files || []).length;
+        return `${count} item${count === 1 ? '' : 's'}`;
+      }
 
-      if (folderDisplayMode === 'list') {
+      if (currentProjectDisplayMode === 'list') {
         if (visibleFolders.length > 0) {
           const table = document.createElement('table');
           table.className = 'projects-list-table';
-          table.innerHTML = `<thead><tr><th>Name</th><th>Files</th></tr></thead><tbody></tbody>`;
+          table.innerHTML = `<thead><tr><th>Name</th><th>Items</th></tr></thead><tbody></tbody>`;
           const tbody = table.querySelector('tbody');
           visibleFolders.forEach(folder => {
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${escapeHtmlPlain(folder.name)}</td><td>${(folder.files || []).length}</td>`;
+            row.innerHTML = `<td>${escapeHtmlPlain(folder.name)}</td><td>${itemCountFor(folder)}</td>`;
             row.onclick = () => { folderObjectStack.push(folder); renderFolderView(); };
             row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
             tbody.appendChild(row);
@@ -1061,7 +1052,7 @@
           card.innerHTML = `
             <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             <div class="folder-name">${escapeHtmlPlain(folder.name)}</div>
-            <div class="folder-items-count">${(folder.files || []).length} Files</div>
+            <div class="folder-items-count">${itemCountFor(folder)}</div>
           `;
           card.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
           card.onclick = () => {
@@ -1537,6 +1528,7 @@
         document.getElementById("folderHeaderNav").style.display = "none";
         document.getElementById("defaultHeaderTitle").style.display = "flex";
         document.getElementById("projectSearchInput").style.display = "";
+        document.getElementById("folderSearchInput").style.display = "none";
         document.getElementById("folderExplorerWorkspace").style.display = "none";
         document.getElementById("formsSubPanel").classList.remove("active");
         // Clean URL parameter when going back to main list
