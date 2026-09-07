@@ -191,7 +191,7 @@ html, body {
       height: 100%;
       position: relative;
       overflow: hidden;
-      background: #0f0f0f;
+      background: var(--slate-surface);
     }
 
     .left-vertical-tabbar {
@@ -625,13 +625,13 @@ html, body {
     }
 
     .tab-btn:hover {
-      background: var(--slate-surface);
-      color: #ffffff;
+      background: var(--bg-color);
+      color: var(--text-color);
     }
 
     .tab-btn.active {
-      background: var(--slate-surface);
-      color: #ffffff;
+      background: var(--bg-color);
+      color: var(--text-color);
     }
 
     .tab-unread-badge {
@@ -877,7 +877,7 @@ html, body {
       margin: 8px 0;
     }
     .date-badge {
-      background-color: #2a2a2a;
+      background-color: var(--slate-surface);
       color: var(--subtext-color);
       font-size: 0.75rem;
       padding: 4px 12px;
@@ -1094,7 +1094,7 @@ html, body {
       flex: 1 1 auto;
       min-width: 0;
       width: 100%;
-      background-color: #000000;
+      background-color: var(--input-bg);
       border: 1px solid var(--border-color);
       border-radius: 28px;
       display: flex;
