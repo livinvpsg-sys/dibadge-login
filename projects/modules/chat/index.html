@@ -3758,6 +3758,26 @@ function renderPreviewTray() {
       return collection(db, 'projects', window.currentProjectId, 'rooms', 'project', 'messages');
     }
 
+    // Marks a message row as failed-to-save — small, honest, and visible, replacing the
+    // previous behavior of silently doing nothing. A message that only lives in this tab's
+    // memory (never reached Firestore) needs to say so, or it just vanishes without a trace
+    // the next time this page loads.
+    function markMessageSaveFailed(messageId) {
+      const row = getMessageRow ? getMessageRow(messageId) : document.getElementById('msg-' + messageId);
+      if (!row) return;
+      const metaRow = row.querySelector('.msg-meta-row, .media-time-row, .doc-time-row');
+      if (metaRow && !metaRow.querySelector('.save-failed-flag')) {
+        const flag = document.createElement('span');
+        flag.className = 'save-failed-flag';
+        flag.title = 'Not saved — this message only exists in your current session';
+        flag.textContent = ' ⚠ not saved';
+        flag.style.color = '#ff3b30';
+        flag.style.fontSize = '0.7rem';
+        flag.style.marginLeft = '6px';
+        metaRow.appendChild(flag);
+      }
+    }
+
     async function persistTextMessage(messageId, text, replyTo, mentionedGroups) {
       const { db, doc, addDoc, serverTimestamp } = window.chatFns;
       try {
@@ -3771,8 +3791,8 @@ function renderPreviewTray() {
           createdAt: serverTimestamp()
         });
       } catch (err) {
-        // The message still shows locally for this session — it just won't be there
-        // for others or on reload. No user-facing error surfaced yet in this phase.
+        console.error('Failed to save message to Firestore:', err);
+        markMessageSaveFailed(messageId);
       }
     }
 
@@ -3803,7 +3823,8 @@ function renderPreviewTray() {
           createdAt: serverTimestamp()
         });
       } catch (err) {
-        // Stays visible locally for this session; not saved for others yet.
+        console.error('Failed to save document message to Firestore:', err);
+        markMessageSaveFailed(messageId);
       }
     }
 
@@ -3823,7 +3844,8 @@ function renderPreviewTray() {
           createdAt: serverTimestamp()
         });
       } catch (err) {
-        // Stays visible locally for this session; not saved for others yet.
+        console.error('Failed to save media message to Firestore:', err);
+        markMessageSaveFailed(messageId);
       }
     }
 
@@ -3890,6 +3912,12 @@ function renderPreviewTray() {
           const distanceFromBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight;
           if (distanceFromBottom < 200) chatContainer.scrollTop = chatContainer.scrollHeight;
         }
+      }, (err) => {
+        // If this fires, chat history isn't loading at all — almost always a Firestore
+        // security-rules issue (denied read) or a stale/unpublished rules deployment,
+        // not a code bug here. Logged loudly rather than left silent, since a silently
+        // empty chat looks identical to "there's genuinely no history yet".
+        console.error('Chat message listener failed — history will not load:', err);
       });
     };
 
