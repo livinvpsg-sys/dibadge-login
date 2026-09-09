@@ -554,6 +554,14 @@
       const userSnap = await getDoc(doc(db, 'users', user.uid));
       const userData = userSnap.exists() ? userSnap.data() : null;
 
+      // The account's saved theme is the source of truth — resync it here in case this
+      // browser's localStorage doesn't match (cleared on restart, a different device).
+      const savedTheme = userData ? userData.themePreference : null;
+      if (savedTheme && savedTheme !== localStorage.getItem('dibadge_web_theme')) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        localStorage.setItem('dibadge_web_theme', savedTheme);
+      }
+
       if (userData && userData.accountType === 'organisation_creator') {
         window.currentOrgId = userData.organisationId;
       } else {
