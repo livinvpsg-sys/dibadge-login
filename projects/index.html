@@ -113,7 +113,7 @@
     .folder-explorer-view { display: none; flex: 1; flex-direction: column; align-items: stretch; justify-content: flex-start; height: 100%; padding: 24px; overflow-y: auto; background: var(--bg-color); position: relative; }
      
     .project-meta-banner { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px; position: relative; }
-    .project-meta-line1 { display: flex; align-items: center; gap: 10px; font-size: 0.98rem; font-weight: 700; color: var(--text-color); }
+    .project-meta-line1 { display: flex; align-items: center; gap: 10px; font-size: 0.98rem; font-weight: 400; color: var(--text-color); }
     .project-meta-badge { font-size: 0.72rem; font-weight: 600; background: var(--border-color); color: var(--text-color); padding: 2px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
     .edit-meta-btn { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 6px; transition: color 0.15s, background 0.15s; margin-left: 4px; }
@@ -125,12 +125,12 @@
 
     .folder-contents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; width: 100%; justify-items: start; justify-content: start; align-content: start; min-height: 300px; }
 
-    .folder-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: space-between; }
+    .folder-card { background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s, background 0.15s; user-select: none; width: 100%; max-width: 140px; aspect-ratio: 1 / 1; justify-content: center; gap: 6px; }
     .folder-card:hover { transform: translateY(-3px); }
     .folder-card.folder-card-dragover { border-color: #14b8a6; background: rgba(20,184,166,0.1); transform: translateY(-3px); }
     .folder-files-dropzone { border: 2px dashed transparent; border-radius: 10px; transition: border-color 0.15s, background 0.15s; }
     .folder-files-dropzone.dropzone-active { border-color: #14b8a6; background: rgba(20,184,166,0.06); }
-    .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
+    .folder-card svg { width: 46px; height: 46px; stroke: var(--text-color); fill: none; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; margin-top: 4px; }
     .folder-name { font-size: 0.8rem; font-weight: 600; color: var(--text-color); word-break: break-word; line-height: 1.2; }
     .folder-items-count { font-size: 0.68rem; color: var(--subtext-color); }
 
@@ -1015,14 +1015,48 @@
       subGrid.innerHTML = "";
       const currentFolderNode = getCurrentWorkspaceFolder();
 
+      // Recursively walks every nested subfolder from here down, collecting anything whose
+      // name matches — so searching while sitting at the project root also finds a file
+      // buried a few folders deep, not just items at the current level.
+      function collectSearchMatches(node, query) {
+        const folders = [];
+        const files = [];
+        function walk(current, pathStack) {
+          (current.children || []).forEach(sub => {
+            if (sub.name.toLowerCase().includes(query)) folders.push({ item: sub, pathStack: pathStack.slice() });
+            walk(sub, [...pathStack, sub]);
+          });
+          (current.files || []).forEach(f => {
+            if (f.name.toLowerCase().includes(query)) files.push({ item: f, pathStack: pathStack.slice() });
+          });
+        }
+        walk(node, []);
+        folders.sort((a, b) => a.item.name.localeCompare(b.item.name));
+        files.sort((a, b) => a.item.name.localeCompare(b.item.name));
+        return { folders, files };
+      }
+
       // Folders first, then files — each group alphabetical, like a normal file explorer.
-      const visibleFolders = (currentFolderNode.children || [])
-        .filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      const visibleFiles = (currentFolderNode.files || [])
-        .filter(f => !searchQuery || f.name.toLowerCase().includes(searchQuery))
-        .sort((a, b) => a.name.localeCompare(b.name));
+      // Every entry is wrapped as { item, pathStack } — pathStack is empty for a plain
+      // (non-search) listing, or the chain of ancestor folders when it's a recursive match.
+      let visibleFolders, visibleFiles;
+      if (searchQuery) {
+        const matches = collectSearchMatches(currentFolderNode, searchQuery);
+        visibleFolders = matches.folders;
+        visibleFiles = matches.files;
+      } else {
+        visibleFolders = (currentFolderNode.children || [])
+          .slice().sort((a, b) => a.name.localeCompare(b.name))
+          .map(item => ({ item, pathStack: [] }));
+        visibleFiles = (currentFolderNode.files || [])
+          .slice().sort((a, b) => a.name.localeCompare(b.name))
+          .map(item => ({ item, pathStack: [] }));
+      }
       const totalCount = visibleFolders.length + visibleFiles.length;
+
+      function pathHintFor(pathStack) {
+        return pathStack.length > 0 ? `in ${pathStack.map(p => p.name).join(' / ')}` : '';
+      }
 
       subGrid.style.minHeight = totalCount > 0 ? '300px' : '0';
       subGrid.className = currentProjectDisplayMode === 'list' ? '' : 'folder-contents-grid';
@@ -1047,6 +1081,15 @@
         return `${count} item${count === 1 ? '' : 's'}`;
       }
 
+      // Jumps straight to a recursively-matched folder's real location (which may be
+      // several levels below where the search was actually typed) and clears the search
+      // so the view makes sense once you land there.
+      function navigateToSearchResult(pathStack, folder) {
+        folderObjectStack = [...folderObjectStack, ...pathStack, folder];
+        if (searchInput) searchInput.value = '';
+        renderFolderView();
+      }
+
       if (currentProjectDisplayMode === 'list') {
         if (totalCount > 0) {
           const table = document.createElement('table');
@@ -1054,26 +1097,29 @@
           table.innerHTML = `<thead><tr><th>Name</th><th>Items</th></tr></thead><tbody></tbody>`;
           const tbody = table.querySelector('tbody');
 
-          visibleFolders.forEach(folder => {
+          visibleFolders.forEach(({ item: folder, pathStack }) => {
             const row = document.createElement('tr');
+            const hint = pathHintFor(pathStack);
             row.innerHTML = `
               <td style="display:flex; align-items:center; gap:10px;">
-                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                ${escapeHtmlPlain(folder.name)}
+                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.1; flex-shrink:0;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                <span>${escapeHtmlPlain(folder.name)}${hint ? ` <span style="color:var(--subtext-color); font-size:0.78rem;">${escapeHtmlPlain(hint)}</span>` : ''}</span>
               </td>
               <td>${itemCountFor(folder)}</td>
             `;
-            row.onclick = () => { folderObjectStack.push(folder); renderFolderView(); };
+            row.onclick = () => { navigateToSearchResult(pathStack, folder); };
             row.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
             tbody.appendChild(row);
           });
 
-          visibleFiles.forEach(file => {
+          visibleFiles.forEach(({ item: file, pathStack }) => {
             const row = document.createElement('tr');
+            const hint = pathHintFor(pathStack);
             row.innerHTML = `
               <td style="display:flex; align-items:center; gap:10px;">
-                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:1.7; flex-shrink:0;">${FILE_ICON_SVG_PATH}</svg>
+                <svg viewBox="0 0 24 24" style="width:18px; height:18px; stroke:var(--text-color); fill:none; stroke-width:0.85; flex-shrink:0;">${FILE_ICON_SVG_PATH}</svg>
                 <a href="${file.url}" target="_blank" onclick="event.stopPropagation()" style="color:inherit; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlPlain(file.name)}</a>
+                ${hint ? `<span style="color:var(--subtext-color); font-size:0.78rem;">${escapeHtmlPlain(hint)}</span>` : ''}
               </td>
               <td></td>
             `;
@@ -1084,18 +1130,18 @@
           subGrid.appendChild(table);
         }
       } else {
-        visibleFolders.forEach(folder => {
+        visibleFolders.forEach(({ item: folder, pathStack }) => {
           const card = document.createElement("div");
           card.className = "folder-card";
+          const hint = pathHintFor(pathStack);
           card.innerHTML = `
             <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
             <div class="folder-name">${escapeHtmlPlain(folder.name)}</div>
-            <div class="folder-items-count">${itemCountFor(folder)}</div>
+            <div class="folder-items-count">${hint || itemCountFor(folder)}</div>
           `;
           card.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); openFsContextMenu(e, 'folder', folder); };
           card.onclick = () => {
-            folderObjectStack.push(folder);
-            renderFolderView();
+            navigateToSearchResult(pathStack, folder);
           };
           card.ondragover = (e) => { e.preventDefault(); e.stopPropagation(); card.classList.add('folder-card-dragover'); };
           card.ondragleave = () => { card.classList.remove('folder-card-dragover'); };
@@ -1108,12 +1154,14 @@
           subGrid.appendChild(card);
         });
 
-        visibleFiles.forEach(file => {
+        visibleFiles.forEach(({ item: file, pathStack }) => {
           const card = document.createElement("div");
           card.className = "folder-card";
+          const hint = pathHintFor(pathStack);
           card.innerHTML = `
-            <svg viewBox="0 0 24 24">${FILE_ICON_SVG_PATH}</svg>
+            <svg viewBox="0 0 24 24" style="stroke-width:0.85;">${FILE_ICON_SVG_PATH}</svg>
             <div class="folder-name">${escapeHtmlPlain(file.name)}</div>
+            ${hint ? `<div class="folder-items-count">${escapeHtmlPlain(hint)}</div>` : ''}
           `;
           // No count for files, and no drop target on the card itself — dropping onto a
           // file falls through to the grid's own handler (uploads into the current folder).
