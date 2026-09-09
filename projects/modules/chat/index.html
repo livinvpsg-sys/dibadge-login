@@ -280,7 +280,42 @@ html, body {
       padding: 2px 6px;
       border-radius: 6px;
     }
-    .details-panel-add-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .details-panel-add-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-color); }
+    .details-panel-icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 6px;
+      flex-shrink: 0;
+    }
+    .details-panel-icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-color); }
+    .details-panel-icon-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .details-search-pill-wrap { margin-bottom: 10px; }
+    .details-search-input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      padding: 8px 12px;
+      border-radius: 18px;
+      font-size: 0.82rem;
+      outline: none;
+      box-sizing: border-box;
+      margin-bottom: 8px;
+    }
+    .details-checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 4px;
+    }
+    .details-checkbox-row input[type="checkbox"] { width: 16px; height: 16px; flex-shrink: 0; }
+    .details-checkbox-row label { font-size: 0.82rem; color: var(--text-color); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .activity-feed-card {
       background: transparent;
@@ -2547,16 +2582,16 @@ html, body {
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">GROUP MEMBERS</span>
-          <button class="details-panel-add-btn">+ Add</button>
+          <button class="details-panel-icon-btn" onclick="toggleMemberSearchPill()" title="Search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
         </div>
-        <div class="details-item-row">
-          <div class="details-item-avatar" style="background:#8d6e63;">J</div>
-          <span class="details-item-label">John (Admin)</span>
+        <div class="details-search-pill-wrap" id="memberSearchPillWrap" style="display:none;">
+          <input type="text" class="details-search-input" id="memberSearchInput" placeholder="Search email or phone.." oninput="handleMemberSearchInput()">
+          <div id="memberSearchResultBox"></div>
         </div>
-        <div class="details-item-row">
-          <div class="details-item-avatar" style="background:#5c6bc0;">M</div>
-          <span class="details-item-label">Mary (Member)</span>
-        </div>
+        <div id="verifiedMembersPickerBox"></div>
+        <div id="groupMembersListContainer"></div>
       </div>
 
       <hr class="details-panel-divider">
@@ -2564,10 +2599,16 @@ html, body {
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">GROUPS</span>
-          <button class="details-panel-add-btn" onclick="openAddGroupModal()">+ Add</button>
+          <button class="details-panel-icon-btn" onclick="toggleGroupSearchPill()" title="Search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </button>
         </div>
         <div style="font-size:0.7rem; color:var(--subtext-color); padding:2px 4px 4px 4px;">
           Your group code: <span id="ownGroupCodeDisplay" style="color:var(--text-color); font-weight:700; letter-spacing:0.5px; cursor:pointer;" onclick="copyOwnGroupCode()" title="Click to copy">…</span>
+        </div>
+        <div class="details-search-pill-wrap" id="groupSearchPillWrap" style="display:none;">
+          <input type="text" class="details-search-input" id="groupCodeSearchInput" style="text-transform:uppercase;" placeholder="Paste group code.." onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddGroup();}">
+          <div id="addGroupStatus" style="font-size:0.78rem; color:var(--subtext-color);"></div>
         </div>
         <div id="incomingGroupRequestsContainer"></div>
         <div id="connectedGroupsContainer"></div>
@@ -2747,19 +2788,6 @@ html, body {
 
   <!-- Import Form modal: pulls from the standalone Project Forms library (forms/index.html) —
        not this project's own folders, and not scoped to any single project. -->
-  <!-- Add Group modal: connect to another organisation's project chat by its shareable code -->
-  <div class="group-modal-overlay" id="addGroupOverlay" onclick="closeAddGroupModal()">
-    <div class="group-modal-box" onclick="event.stopPropagation()">
-      <div class="group-modal-title">Add Group</div>
-      <div class="group-modal-message">Enter the group code the other organisation shared with you. They'll need to accept before your groups can connect.</div>
-      <input type="text" class="group-modal-input" id="addGroupCodeInput" placeholder="e.g. 8F3K-9QRT" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddGroup();}">
-      <div id="addGroupStatus" style="font-size:0.82rem; color:var(--subtext-color); margin-bottom:14px;"></div>
-      <div class="group-modal-actions">
-        <button class="group-modal-cancel-btn" onclick="closeAddGroupModal()">Cancel</button>
-        <button class="group-modal-ok-btn" onclick="confirmAddGroup()">Send Request</button>
-      </div>
-    </div>
-  </div>
 
   <div class="group-modal-overlay" id="importFormOverlay" onclick="closeImportFormModal()">
     <div class="import-form-box" onclick="event.stopPropagation()">
@@ -6115,14 +6143,15 @@ function renderPreviewTray() {
       navigator.clipboard.writeText(ownGroupCode).catch(() => {});
     }
 
-    function openAddGroupModal() {
-      document.getElementById('addGroupCodeInput').value = '';
-      document.getElementById('addGroupStatus').textContent = '';
-      document.getElementById('addGroupOverlay').classList.add('active');
-      document.getElementById('addGroupCodeInput').focus();
-    }
-    function closeAddGroupModal() {
-      document.getElementById('addGroupOverlay').classList.remove('active');
+    function toggleGroupSearchPill() {
+      const wrap = document.getElementById('groupSearchPillWrap');
+      const isOpen = wrap.style.display !== 'none';
+      wrap.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        document.getElementById('groupCodeSearchInput').value = '';
+        document.getElementById('addGroupStatus').textContent = '';
+        document.getElementById('groupCodeSearchInput').focus();
+      }
     }
 
     // Same formula the security rules use — a connection's document ID is always the two
@@ -6135,7 +6164,7 @@ function renderPreviewTray() {
     }
 
     async function confirmAddGroup() {
-      const input = document.getElementById('addGroupCodeInput');
+      const input = document.getElementById('groupCodeSearchInput');
       const statusEl = document.getElementById('addGroupStatus');
       const code = input.value.trim().toUpperCase();
       if (!code) { statusEl.textContent = 'Enter a group code.'; return; }
@@ -6179,7 +6208,7 @@ function renderPreviewTray() {
           targetFoldersAccess: []
         });
         statusEl.textContent = 'Request sent — waiting for them to accept.';
-        setTimeout(closeAddGroupModal, 900);
+        setTimeout(toggleGroupSearchPill, 900);
       } catch (err) {
         statusEl.textContent = 'Could not send the request — please try again.';
       }
@@ -6193,6 +6222,208 @@ function renderPreviewTray() {
         });
       } catch (err) {
         // Leave it pending — visible to retry.
+      }
+    }
+
+    // ===================== Real Group Members: search, verified-list picker, and display =====================
+    // Replaces the old hardcoded "John (Admin) / Mary (Member)" list — this project's real
+    // members, resolved from Firestore, plus a way to add more: search by email/phone for
+    // anyone (org-verified or not), or pick from a checklist of already-verified people.
+
+    let cachedProjectMembers = []; // this project's members array, kept in sync locally after each add
+
+    async function loadAndRenderGroupMembers() {
+      const { db, doc, getDoc } = window.chatFns;
+      try {
+        const projectSnap = await getDoc(doc(db, 'projects', window.currentProjectId));
+        cachedProjectMembers = (projectSnap.exists() && Array.isArray(projectSnap.data().members)) ? projectSnap.data().members : [];
+      } catch (err) {
+        cachedProjectMembers = [];
+      }
+      await renderGroupMembersList();
+      renderVerifiedMembersPicker();
+    }
+
+    async function renderGroupMembersList() {
+      const container = document.getElementById('groupMembersListContainer');
+      if (!container) return;
+      const { db, doc, getDoc } = window.chatFns;
+      const rows = await Promise.all(cachedProjectMembers.map(async uid => {
+        try {
+          const snap = await getDoc(doc(db, 'users', uid));
+          const label = snap.exists() ? (snap.data().email || snap.data().phoneNumber || uid) : uid;
+          return label;
+        } catch (err) {
+          return uid;
+        }
+      }));
+      container.innerHTML = rows.map(label => `
+        <div class="details-item-row">
+          <div class="details-item-avatar" style="background:#5c6bc0;">${(label || '?').charAt(0).toUpperCase()}</div>
+          <span class="details-item-label">${escapeHtml(label)}</span>
+        </div>
+      `).join('');
+    }
+
+    function toggleMemberSearchPill() {
+      const wrap = document.getElementById('memberSearchPillWrap');
+      const isOpen = wrap.style.display !== 'none';
+      wrap.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        document.getElementById('memberSearchInput').value = '';
+        document.getElementById('memberSearchResultBox').innerHTML = '';
+        renderVerifiedMembersPicker();
+        document.getElementById('memberSearchInput').focus();
+      } else {
+        document.getElementById('verifiedMembersPickerBox').innerHTML = '';
+      }
+    }
+
+    let memberSearchDebounce = null;
+    function handleMemberSearchInput() {
+      const input = document.getElementById('memberSearchInput');
+      const q = input.value.trim();
+      clearTimeout(memberSearchDebounce);
+      if (!q) {
+        document.getElementById('memberSearchResultBox').innerHTML = '';
+        renderVerifiedMembersPicker(); // nothing typed — show the verified checklist again
+        return;
+      }
+      document.getElementById('verifiedMembersPickerBox').innerHTML = ''; // typing — hide it
+      memberSearchDebounce = setTimeout(() => searchMemberByEmailOrPhone(q), 350);
+    }
+
+    // Detects email vs phone by format (an "@" means email, otherwise it's searched as a
+    // phone number) — matches how a person would naturally type either into one box.
+    async function searchMemberByEmailOrPhone(rawQuery) {
+      const resultBox = document.getElementById('memberSearchResultBox');
+      resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">Searching…</div>`;
+      const { db, collection, doc, getDoc, getDocs, query, where } = window.chatFns;
+      const isEmail = rawQuery.includes('@');
+      const field = isEmail ? 'email' : 'phoneNumber';
+      const value = isEmail ? rawQuery.toLowerCase() : rawQuery;
+
+      try {
+        const snap = await getDocs(query(collection(db, 'users'), where(field, '==', value)));
+        if (snap.empty) {
+          resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">No account found.</div>`;
+          return;
+        }
+        const foundDoc = snap.docs[0];
+        const foundUid = foundDoc.id;
+        const label = foundDoc.data().email || foundDoc.data().phoneNumber || foundUid;
+
+        if (cachedProjectMembers.includes(foundUid)) {
+          resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">${escapeHtml(label)} is already in this group.</div>`;
+          return;
+        }
+
+        // Already org-verified? Add directly — no join request needed.
+        const memberSnap = await getDoc(doc(db, 'organisations', window.currentOrgId, 'members', foundUid));
+        if (memberSnap.exists()) {
+          resultBox.innerHTML = `
+            <div class="details-checkbox-row" style="justify-content:space-between;">
+              <label style="flex:1;">${escapeHtml(label)}</label>
+              <button class="modal-btn btn-save" style="width:auto; padding:5px 12px;" onclick="addVerifiedMemberDirect('${foundUid}')">Add</button>
+            </div>
+          `;
+          return;
+        }
+
+        resultBox.innerHTML = `
+          <div class="details-checkbox-row" style="justify-content:space-between;">
+            <label style="flex:1;">${escapeHtml(label)}</label>
+            <button class="modal-btn btn-save" style="width:auto; padding:5px 12px;" onclick="sendChatJoinRequest('${foundUid}')">Send request</button>
+          </div>
+        `;
+      } catch (err) {
+        resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">Search failed — please try again.</div>`;
+      }
+    }
+
+    async function addVerifiedMemberDirect(uid) {
+      const { db, doc, updateDoc, arrayUnion } = window.chatFns;
+      try {
+        await updateDoc(doc(db, 'projects', window.currentProjectId), { members: arrayUnion(uid) });
+        cachedProjectMembers.push(uid);
+        document.getElementById('memberSearchInput').value = '';
+        document.getElementById('memberSearchResultBox').innerHTML = '';
+        renderGroupMembersList();
+        renderVerifiedMembersPicker();
+      } catch (err) {
+        // Leave the result box as-is so the person can retry.
+      }
+    }
+
+    async function sendChatJoinRequest(targetUid) {
+      const { db, collection, addDoc, getDoc, doc, serverTimestamp } = window.chatFns;
+      const resultBox = document.getElementById('memberSearchResultBox');
+      try {
+        const targetSnap = await getDoc(doc(db, 'users', targetUid));
+        const targetEmail = targetSnap.exists() ? (targetSnap.data().email || '') : '';
+        await addDoc(collection(db, 'organisations', window.currentOrgId, 'joinRequests'), {
+          targetUid,
+          targetEmail,
+          requestedByUid: window.currentUid,
+          targetProjectId: window.currentProjectId,
+          targetProjectName: window.currentProjectName,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+        resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">Request sent — an admin needs to approve it.</div>`;
+      } catch (err) {
+        resultBox.innerHTML = `<div style="font-size:0.78rem; color:var(--subtext-color); padding:4px;">Could not send the request.</div>`;
+      }
+    }
+
+    // Verified members not yet in this project — a multi-select checklist, shown only while
+    // the search box above is empty (a real search replaces this instead, per how it's meant
+    // to behave: browse when there's nothing typed, search once you start typing).
+    async function renderVerifiedMembersPicker() {
+      const box = document.getElementById('verifiedMembersPickerBox');
+      if (!box) return;
+      const searchInput = document.getElementById('memberSearchInput');
+      if (searchInput && searchInput.value.trim()) return; // active search in progress — don't overwrite it
+
+      const { db, collection, getDocs } = window.chatFns;
+      try {
+        const snap = await getDocs(collection(db, 'organisations', window.currentOrgId, 'members'));
+        const candidates = [];
+        snap.forEach(d => {
+          const m = d.data();
+          if (!cachedProjectMembers.includes(m.uid)) candidates.push(m);
+        });
+        if (candidates.length === 0) {
+          box.innerHTML = '';
+          return;
+        }
+        box.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:2px; margin-bottom:6px;">
+            ${candidates.map(m => `
+              <div class="details-checkbox-row">
+                <input type="checkbox" class="verified-member-checkbox" value="${m.uid}">
+                <label>${escapeHtml(m.email || m.uid)}</label>
+              </div>
+            `).join('')}
+          </div>
+          <button class="modal-btn btn-save" style="width:100%;" onclick="addCheckedVerifiedMembers()">Add Selected</button>
+        `;
+      } catch (err) {
+        box.innerHTML = '';
+      }
+    }
+
+    async function addCheckedVerifiedMembers() {
+      const checked = Array.from(document.querySelectorAll('.verified-member-checkbox:checked')).map(cb => cb.value);
+      if (checked.length === 0) return;
+      const { db, doc, updateDoc, arrayUnion } = window.chatFns;
+      try {
+        await updateDoc(doc(db, 'projects', window.currentProjectId), { members: arrayUnion(...checked) });
+        cachedProjectMembers.push(...checked);
+        renderGroupMembersList();
+        renderVerifiedMembersPicker();
+      } catch (err) {
+        // Leave the checklist as-is so the person can retry.
       }
     }
 
@@ -6567,6 +6798,7 @@ function renderPreviewTray() {
       if (typeof window.initGroupConnections === 'function') window.initGroupConnections();
       if (typeof loadProjectFolderTree === 'function') loadProjectFolderTree();
       if (typeof loadAttachedForms === 'function') loadAttachedForms();
+      if (typeof loadAndRenderGroupMembers === 'function') loadAndRenderGroupMembers();
     });
   </script>
 </body>
