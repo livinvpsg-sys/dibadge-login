@@ -265,6 +265,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
     // Same Firebase project as login.html and the rest of diBadge — one shared backend.
     const firebaseConfig = {
@@ -279,14 +280,29 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
     // Replaces the old hardcoded-passcode gate: no real session, no real login, means
     // nobody actually leaves — anyone who knew "177994" was in, indistinguishable from
     // anyone else. This checks for an actual authenticated Firebase session instead, and
     // sends anyone without one to the real login page rather than a text box.
-    onAuthStateChanged(auth, function(user) {
+    onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
       if (user) {
+        // The account's saved theme is the source of truth — resync it here in case this
+        // browser's localStorage doesn't match (cleared on restart, a different device,
+        // signing in fresh somewhere new). Keeps every page from silently reverting to dark.
+        try {
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          const savedTheme = snap.exists() ? snap.data().themePreference : null;
+          if (savedTheme && savedTheme !== localStorage.getItem('dibadge_web_theme')) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            localStorage.setItem('dibadge_web_theme', savedTheme);
+          }
+        } catch (err) {
+          // Falls back to whatever's already applied from localStorage — not fatal.
+        }
+
         gate.style.display = 'none';
         document.getElementById('dashboardLayout').style.display = 'flex';
         document.getElementById('headerUserEmail').textContent = user.email || '';
