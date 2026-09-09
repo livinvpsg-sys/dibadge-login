@@ -6520,6 +6520,19 @@ function renderPreviewTray() {
         return;
       }
 
+      // The account's saved theme is the source of truth — resync it here in case this
+      // browser's localStorage doesn't match (cleared on restart, a different device).
+      try {
+        const themeSnap = await getDoc(doc(db, 'users', user.uid));
+        const savedTheme = themeSnap.exists() ? themeSnap.data().themePreference : null;
+        if (savedTheme && savedTheme !== localStorage.getItem('dibadge_web_theme')) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+          localStorage.setItem('dibadge_web_theme', savedTheme);
+        }
+      } catch (err) {
+        // Falls back to whatever's already applied from localStorage — not fatal.
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const projectId = urlParams.get('id');
       if (!projectId) {
