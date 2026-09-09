@@ -113,6 +113,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
@@ -126,23 +127,56 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    onAuthStateChanged(auth, function(user) {
+    // Exposed so the plain script below can save the choice against the signed-in
+    // user's own account, not just this browser's localStorage — that's what makes the
+    // preference follow you across a PC restart, a cleared browser, or a different device.
+    window.themeDbFns = { db, doc, getDoc, setDoc };
+
+    onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
       if (!user) {
         window.location.href = '../../login/';
         return;
       }
+      window.currentUid = user.uid;
       gate.style.display = 'none';
       document.getElementById('appShell').style.display = 'block';
+
+      // The account's saved preference is the source of truth — resync it here in case
+      // this browser's localStorage doesn't match (e.g. it was cleared since last time).
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const savedTheme = snap.exists() ? snap.data().themePreference : null;
+        if (savedTheme && savedTheme !== localStorage.getItem('dibadge_web_theme')) {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+          localStorage.setItem('dibadge_web_theme', savedTheme);
+          syncThemeButtons(savedTheme);
+        }
+      } catch (err) {
+        // Falls back to whatever's already applied from localStorage — not fatal.
+      }
     });
   </script>
 
   <script>
-    function setAppTheme(theme) {
+    async function setAppTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('dibadge_web_theme', theme);
       syncThemeButtons(theme);
+
+      // Saved against the account itself, not just this browser — so it survives a PC
+      // restart, a cleared browser, or logging in from a different device.
+      if (window.currentUid) {
+        try {
+          const { db, doc, setDoc } = window.themeDbFns;
+          await setDoc(doc(db, 'users', window.currentUid), { themePreference: theme }, { merge: true });
+        } catch (err) {
+          // The local choice still applies on this browser even if the account-level
+          // save failed — not fatal, just won't follow the person elsewhere yet.
+        }
+      }
     }
     function syncThemeButtons(theme) {
       document.getElementById('themeBtnDark').classList.toggle('active', theme === 'dark');
