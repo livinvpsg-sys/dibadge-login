@@ -479,7 +479,7 @@ html, body {
     #importFormBreadcrumb { font-size: 0.95rem; font-weight: 600; color: var(--text-color); }
     .import-form-view-toggle {
       display: flex;
-      background: #000000;
+      background: var(--bg-color);
       border: 1px solid var(--border-color);
       border-radius: 8px;
       padding: 2px;
@@ -547,16 +547,16 @@ html, body {
     .import-form-cancel-btn {
       background: transparent;
       border: none;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
       padding: 4px;
     }
     .import-form-import-btn {
-      background: rgba(255,255,255,0.18);
+      background: var(--bg-color);
       border: none;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.95rem;
       font-weight: 700;
       padding: 10px 26px;
@@ -564,7 +564,7 @@ html, body {
       cursor: pointer;
     }
     .import-form-import-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .import-form-import-btn:not(:disabled):hover { background: rgba(255,255,255,0.3); }
+    .import-form-import-btn:not(:disabled):hover { background: var(--border-color); }
     .details-item-avatar {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
