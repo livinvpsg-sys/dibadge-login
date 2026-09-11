@@ -2576,6 +2576,18 @@ html, body {
     <!-- Chat Details panel: Group Members / Groups / Forms / Folders -->
     <aside class="chat-details-panel" id="chatDetailsPanel">
 
+      <div class="details-subsection" style="padding-bottom:2px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem; color:var(--subtext-color);">
+          <span>Your group code:</span>
+          <span id="ownGroupCodeDisplay" style="color:var(--text-color); font-weight:700; letter-spacing:0.5px;">…</span>
+          <button class="details-panel-icon-btn" onclick="copyOwnGroupCode()" title="Copy code">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <hr class="details-panel-divider">
+
       <div class="details-subsection">
         <div class="details-panel-section-header">
           <span class="details-subsection-label">GROUP MEMBERS</span>
@@ -2599,9 +2611,6 @@ html, body {
           <button class="details-panel-icon-btn" onclick="toggleGroupSearchPill()" title="Search">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </button>
-        </div>
-        <div style="font-size:0.7rem; color:var(--subtext-color); padding:2px 4px 4px 4px;">
-          Your group code: <span id="ownGroupCodeDisplay" style="color:var(--text-color); font-weight:700; letter-spacing:0.5px; cursor:pointer;" onclick="copyOwnGroupCode()" title="Click to copy">…</span>
         </div>
         <div class="details-search-pill-wrap" id="groupSearchPillWrap" style="display:none;">
           <input type="text" class="details-search-input" id="groupCodeSearchInput" style="text-transform:uppercase;" placeholder="Paste group code.." onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddGroup();}">
@@ -6221,7 +6230,7 @@ function renderPreviewTray() {
       if (existing) {
         ownGroupCode = existing;
       } else {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no 0/O/1/I — avoids look-alike mistakes
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789!@$%*'; // no 0/O/1/I — avoids look-alike mistakes; a few safe special characters mixed in for extra complexity
         let code = '';
         for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
         code = code.slice(0, 4) + '-' + code.slice(4);
