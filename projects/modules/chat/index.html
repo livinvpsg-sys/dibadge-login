@@ -2613,7 +2613,7 @@ html, body {
           </button>
         </div>
         <div class="details-search-pill-wrap" id="groupSearchPillWrap" style="display:none;">
-          <input type="text" class="details-search-input" id="groupCodeSearchInput" style="text-transform:uppercase;" placeholder="Paste group code.." onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddGroup();}">
+          <input type="text" class="details-search-input" id="groupCodeSearchInput" style="text-transform:uppercase;" placeholder="Paste group code.." oninput="handleGroupCodeInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();}">
           <div id="addGroupStatus" style="font-size:0.78rem; color:var(--subtext-color);"></div>
         </div>
         <div id="incomingGroupRequestsContainer"></div>
@@ -6260,6 +6260,7 @@ function renderPreviewTray() {
       const wrap = document.getElementById('groupSearchPillWrap');
       const isOpen = wrap.style.display !== 'none';
       wrap.style.display = isOpen ? 'none' : 'block';
+      groupCodeLookupResult = null;
       if (!isOpen) {
         document.getElementById('groupCodeSearchInput').value = '';
         document.getElementById('addGroupStatus').textContent = '';
@@ -6276,13 +6277,22 @@ function renderPreviewTray() {
       return projectIdA < projectIdB ? `${projectIdA}__${projectIdB}` : `${projectIdB}__${projectIdA}`;
     }
 
-    async function confirmAddGroup() {
-      const input = document.getElementById('groupCodeSearchInput');
-      const statusEl = document.getElementById('addGroupStatus');
-      const code = input.value.trim().toUpperCase();
-      if (!code) { statusEl.textContent = 'Enter a group code.'; return; }
+    let groupCodeLookupDebounce = null;
+    let groupCodeLookupResult = null; // the found target's data, held until "Connect" is clicked
 
-      const { db, doc, getDoc, setDoc, collection, serverTimestamp } = window.chatFns;
+    function handleGroupCodeInput() {
+      clearTimeout(groupCodeLookupDebounce);
+      const statusEl = document.getElementById('addGroupStatus');
+      const raw = document.getElementById('groupCodeSearchInput').value.trim();
+      groupCodeLookupResult = null;
+      if (!raw) { statusEl.innerHTML = ''; return; }
+      groupCodeLookupDebounce = setTimeout(() => lookupGroupCode(raw), 350);
+    }
+
+    async function lookupGroupCode(rawCode) {
+      const statusEl = document.getElementById('addGroupStatus');
+      const code = rawCode.toUpperCase();
+      const { db, doc, getDoc } = window.chatFns;
       statusEl.textContent = 'Looking up code…';
       try {
         const codeSnap = await getDoc(doc(db, 'groupCodes', code));
@@ -6304,6 +6314,26 @@ function renderPreviewTray() {
           return;
         }
 
+        groupCodeLookupResult = target;
+        statusEl.innerHTML = `
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+            <span>${escapeHtml(target.name || 'Found group')}</span>
+            <button class="modal-btn btn-save" style="width:auto; padding:5px 14px;" onclick="sendGroupConnectRequest()">Connect</button>
+          </div>
+        `;
+      } catch (err) {
+        statusEl.textContent = 'Search failed — please try again.';
+      }
+    }
+
+    async function sendGroupConnectRequest() {
+      const target = groupCodeLookupResult;
+      const statusEl = document.getElementById('addGroupStatus');
+      if (!target) return;
+
+      const { db, doc, setDoc, serverTimestamp } = window.chatFns;
+      statusEl.textContent = 'Sending request…';
+      try {
         const connId = computeConnectionId(window.currentProjectId, target.projectId);
         await setDoc(doc(db, 'groupConnections', connId), {
           initiatorProjectId: window.currentProjectId,
@@ -6321,6 +6351,7 @@ function renderPreviewTray() {
           targetFoldersAccess: []
         });
         statusEl.textContent = 'Request sent — waiting for them to accept.';
+        groupCodeLookupResult = null;
         setTimeout(toggleGroupSearchPill, 900);
       } catch (err) {
         statusEl.textContent = 'Could not send the request — please try again.';
