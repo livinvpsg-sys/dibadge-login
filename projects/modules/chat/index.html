@@ -610,13 +610,13 @@ html, body {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.08);
+      background: var(--bg-color);
       border: none;
-      color: #fff;
+      color: var(--text-color);
       cursor: pointer;
       flex-shrink: 0;
     }
-    .folder-add-file-btn:hover { background: #14b8a6; }
+    .folder-add-file-btn:hover { background: #14b8a6; color: #fff; }
     .folder-add-file-btn svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2.4; fill: none; }
     .folder-file-row {
       display: flex;
@@ -2727,7 +2727,24 @@ html, body {
   </div>
 
   <!-- Hidden input used by the Folders section's real file upload -->
-  <input type="file" id="folderFileUploadInputChat" multiple style="display:none;" onchange="handleChatFolderFileUpload(this)">
+  <!-- Add File picker: browse this project's REAL folder tree and pick an existing file to
+       reference into the target folder — or upload a brand new one from the same screen. -->
+  <div class="group-modal-overlay" id="pickProjectFileOverlay" onclick="closePickProjectFileModal()">
+    <div class="import-form-box" onclick="event.stopPropagation()">
+      <div class="import-form-header">
+        <div class="import-form-title-group">
+          <svg class="import-form-avatar" viewBox="0 0 24 24" fill="none" stroke="var(--text-color)" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          <span id="pickFileBreadcrumb">Project</span>
+        </div>
+        <button class="import-form-import-btn" style="padding:6px 16px;" onclick="document.getElementById('pickFileUploadInput').click()">Upload New</button>
+      </div>
+      <div class="import-form-body" id="pickFileBody"></div>
+      <div class="import-form-actions">
+        <button class="import-form-cancel-btn" onclick="closePickProjectFileModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="pickFileUploadInput" multiple style="display:none;" onchange="handlePickFileUploadNew(this)">
 
   <!-- Add Folder modal -->
   <div class="group-modal-overlay" id="addFolderOverlay" onclick="closeAddFolderModal()">
@@ -2790,7 +2807,7 @@ html, body {
     <div class="import-form-box" onclick="event.stopPropagation()">
       <div class="import-form-header">
         <div class="import-form-title-group">
-          <svg class="import-form-avatar" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
+          <svg class="import-form-avatar" viewBox="0 0 24 24" fill="none" stroke="var(--text-color)" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
           <span id="importFormBreadcrumb">Project Forms</span>
         </div>
         <div class="import-form-view-toggle">
@@ -5888,37 +5905,127 @@ function renderPreviewTray() {
       persistCurrentProjectFolders().catch(() => {});
     }
 
-    // ---------- "+ Add" a file: upload a NEW file straight into a real project folder ----------
+    // ---------- "+ Add" a file: browse this project's real folders and pick an existing
+    // file, or upload a brand new one — both from the same picker screen. ----------
 
-    let addFileTargetFolderId = null;
+    let pickFileTargetFolderId = null; // the folder that was actually clicked — where the file ends up
+    let pickFileBrowseStack = [];      // navigation state WITHIN the picker (can go deeper than the target)
 
-    function openAddFileModal(folderId) {
-      addFileTargetFolderId = folderId;
-      document.getElementById('folderFileUploadInputChat').click();
+    function findFolderByIdInTree(tree, id) {
+      for (const node of tree) {
+        if (node.id === id) return node;
+        if (node.children) {
+          const found = findFolderByIdInTree(node.children, id);
+          if (found) return found;
+        }
+      }
+      return null;
     }
 
-    async function handleChatFolderFileUpload(input) {
+    function openAddFileModal(folderId) {
+      pickFileTargetFolderId = folderId;
+      pickFileBrowseStack = [{ name: window.currentProjectName || 'Project', children: currentProjectFolderTree, files: [] }];
+      document.getElementById('pickProjectFileOverlay').classList.add('active');
+      renderPickFileBrowser();
+    }
+
+    function closePickProjectFileModal() {
+      document.getElementById('pickProjectFileOverlay').classList.remove('active');
+      pickFileTargetFolderId = null;
+    }
+
+    function pickFileCurrentNode() {
+      return pickFileBrowseStack[pickFileBrowseStack.length - 1];
+    }
+
+    function renderPickFileBrowser() {
+      document.getElementById('pickFileBreadcrumb').innerHTML = pickFileBrowseStack.map((node, idx) => {
+        const isLast = idx === pickFileBrowseStack.length - 1;
+        return isLast
+          ? `<span>${escapeHtml(node.name)}</span>`
+          : `<span style="cursor:pointer; text-decoration:underline;" onclick="jumpPickFileBreadcrumb(${idx})">${escapeHtml(node.name)}</span> &gt; `;
+      }).join('');
+
+      const node = pickFileCurrentNode();
+      const body = document.getElementById('pickFileBody');
+      const folders = node.children || [];
+      const files = node.files || [];
+
+      if (folders.length === 0 && files.length === 0) {
+        body.innerHTML = `<div class="import-file-empty">This folder is empty.</div>`;
+        return;
+      }
+
+      body.innerHTML = `
+        ${folders.length > 0 ? `<div class="import-folder-grid">
+          ${folders.map((f, i) => `
+            <div class="import-folder-card" onclick="navigatePickFileInto(${i})">
+              <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+              <div class="import-folder-name">${escapeHtml(f.name)}</div>
+            </div>
+          `).join('')}
+        </div>` : ''}
+        ${files.length > 0 ? `<div class="import-file-list" style="margin-top:12px;">
+          ${files.map((file, i) => `
+            <div class="import-file-row" onclick="selectPickFile(${i})">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span class="import-file-name">${escapeHtml(file.name)}</span>
+            </div>
+          `).join('')}
+        </div>` : ''}
+      `;
+    }
+
+    function navigatePickFileInto(idx) {
+      const node = pickFileCurrentNode();
+      pickFileBrowseStack.push(node.children[idx]);
+      renderPickFileBrowser();
+    }
+
+    function jumpPickFileBreadcrumb(idx) {
+      pickFileBrowseStack = pickFileBrowseStack.slice(0, idx + 1);
+      renderPickFileBrowser();
+    }
+
+    // Picking an existing file always adds it into the folder that was originally clicked
+    // to open this picker — browsing deeper here is only for FINDING the file, not for
+    // choosing a different destination.
+    function selectPickFile(idx) {
+      const node = pickFileCurrentNode();
+      const file = node.files[idx];
+      const targetFolder = findFolderByIdInTree(currentProjectFolderTree, pickFileTargetFolderId);
+      if (!targetFolder || !file) { closePickProjectFileModal(); return; }
+      if (!targetFolder.files) targetFolder.files = [];
+      targetFolder.files.push({ id: 'file-' + Date.now() + '-' + Math.random().toString(36).slice(2), name: file.name, url: file.url, storagePath: file.storagePath });
+      closePickProjectFileModal();
+      expandedChatFolderId = targetFolder.id;
+      renderChatFolders();
+      persistCurrentProjectFolders().catch(() => {});
+    }
+
+    async function handlePickFileUploadNew(input) {
       const files = Array.from(input.files || []);
       input.value = '';
-      if (files.length === 0 || !addFileTargetFolderId) return;
-      const folder = currentProjectFolderTree.find(f => f.id === addFileTargetFolderId);
-      if (!folder) return;
-      if (!folder.files) folder.files = [];
+      if (files.length === 0 || !pickFileTargetFolderId) return;
+      const targetFolder = findFolderByIdInTree(currentProjectFolderTree, pickFileTargetFolderId);
+      if (!targetFolder) return;
+      if (!targetFolder.files) targetFolder.files = [];
 
       const { storage, ref, uploadBytes, getDownloadURL } = window.chatFns;
       for (const file of files) {
         try {
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-          const storagePath = `projects/${window.currentProjectId}/folders/${folder.id}/${Date.now()}_${safeName}`;
+          const storagePath = `projects/${window.currentProjectId}/folders/${targetFolder.id}/${Date.now()}_${safeName}`;
           const fileRef = ref(storage, storagePath);
           await uploadBytes(fileRef, file);
           const url = await getDownloadURL(fileRef);
-          folder.files.push({ name: file.name, url, storagePath });
+          targetFolder.files.push({ id: 'file-' + Date.now() + '-' + Math.random().toString(36).slice(2), name: file.name, url, storagePath });
         } catch (err) {
           // This one file failed to upload — continue with the rest rather than aborting the batch.
         }
       }
-      expandedChatFolderId = folder.id; // keep it open so the newly added file is visible
+      closePickProjectFileModal();
+      expandedChatFolderId = targetFolder.id;
       renderChatFolders();
       persistCurrentProjectFolders().catch(() => {});
     }
