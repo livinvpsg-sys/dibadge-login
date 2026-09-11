@@ -2413,7 +2413,6 @@ html, body {
 
 <script>
   function goToProjectFolder() {
-    if (typeof teardownAllChatListeners === 'function') teardownAllChatListeners();
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get('id') || 'proj-1';
     window.location.href = `../../?id=${projectId}`;
@@ -2427,27 +2426,27 @@ html, body {
         </button>
 
         <!-- 3. Forms -->
-        <button class="tab-btn" onclick="if(typeof teardownAllChatListeners==='function')teardownAllChatListeners(); location.href='forms.html'" title="Forms">
+        <button class="tab-btn" onclick="location.href='forms.html'" title="Forms">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="16" y2="16"></line></svg>
         </button>
 
         <!-- 4. BOQ: Redirects to the separate BOQ file/workspace -->
-        <button class="tab-btn" onclick="if(typeof teardownAllChatListeners==='function')teardownAllChatListeners(); location.href='boq.html'" title="Bill of Quantity (BOQ)">
+        <button class="tab-btn" onclick="location.href='boq.html'" title="Bill of Quantity (BOQ)">
           <svg viewBox="0 0 24 24"><text x="12" y="16" font-size="11" font-weight="900" text-anchor="middle" fill="currentColor" stroke="none" letter-spacing="0.5px">BOQ</text></svg>
         </button>
 
         <!-- 5. Compare -->
-        <button class="tab-btn" onclick="if(typeof teardownAllChatListeners==='function')teardownAllChatListeners(); location.href='compare.html'" title="Expense vs BOQ Comparison">
+        <button class="tab-btn" onclick="location.href='compare.html'" title="Expense vs BOQ Comparison">
           <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </button>
 
         <!-- 6. Claims -->
-        <button class="tab-btn" onclick="if(typeof teardownAllChatListeners==='function')teardownAllChatListeners(); location.href='claims.html'" title="Claims">
+        <button class="tab-btn" onclick="location.href='claims.html'" title="Claims">
           <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path></svg>
         </button>
 
         <!-- 7. Schedule -->
-        <button class="tab-btn" onclick="if(typeof teardownAllChatListeners==='function')teardownAllChatListeners(); location.href='schedule.html'" title="Schedule">
+        <button class="tab-btn" onclick="location.href='schedule.html'" title="Schedule">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         </button>
       </div>
@@ -3347,15 +3346,11 @@ html, body {
       }
       const backBtn = document.getElementById("backBtn");
       if (backBtn) {
-        backBtn.onclick = () => {
-          if (typeof teardownAllChatListeners === 'function') teardownAllChatListeners();
-          window.location.href = `../../?id=${window.currentProjectId}`;
-        };
+        backBtn.onclick = () => { window.location.href = `../../?id=${window.currentProjectId}`; };
       }
       const projectsCrumb = document.getElementById("projectsCrumb");
       if (projectsCrumb) {
         projectsCrumb.onclick = () => {
-          if (typeof teardownAllChatListeners === 'function') teardownAllChatListeners();
           window.location.href = `../../?id=${window.currentProjectId}`;
         };
       }
@@ -3818,16 +3813,15 @@ function renderPreviewTray() {
     // previous behavior of silently doing nothing. A message that only lives in this tab's
     // memory (never reached Firestore) needs to say so, or it just vanishes without a trace
     // the next time this page loads.
-    function markMessageSaveFailed(messageId, customText, customTitle) {
+    function markMessageSaveFailed(messageId) {
       const row = getMessageRow ? getMessageRow(messageId) : document.getElementById('msg-' + messageId);
       if (!row) return;
       const metaRow = row.querySelector('.msg-meta-row, .media-time-row, .doc-time-row');
-      const flagClass = customText ? 'crosspost-failed-flag' : 'save-failed-flag';
-      if (metaRow && !metaRow.querySelector('.' + flagClass)) {
+      if (metaRow && !metaRow.querySelector('.save-failed-flag')) {
         const flag = document.createElement('span');
-        flag.className = flagClass;
-        flag.title = customTitle || 'Not saved — this message only exists in your current session';
-        flag.textContent = customText || ' ⚠ not saved';
+        flag.className = 'save-failed-flag';
+        flag.title = 'Not saved — this message only exists in your current session';
+        flag.textContent = ' ⚠ not saved';
         flag.style.color = '#ff3b30';
         flag.style.fontSize = '0.7rem';
         flag.style.marginLeft = '6px';
@@ -3910,13 +3904,12 @@ function renderPreviewTray() {
     // messages from anyone (including this tab, echoed back) appear automatically.
     // Called once auth + project-membership are both confirmed (see the module script
     // at the bottom of this file).
-    let unsubscribeMainChatListener = null;
     window.initChatFirestore = function() {
       const { query, orderBy, onSnapshot } = window.chatFns;
       const chatContainer = document.getElementById('chatContainer');
       let firstLoad = true;
 
-      unsubscribeMainChatListener = onSnapshot(query(chatMessagesCollection(), orderBy('createdAt', 'asc')), (snapshot) => {
+      onSnapshot(query(chatMessagesCollection(), orderBy('createdAt', 'asc')), (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type !== 'added') return; // edits/deletes to persisted messages: future phase
           const data = change.doc.data();
@@ -4350,11 +4343,8 @@ function renderPreviewTray() {
 
         await setDoc(doc(db, 'groupConnections', connectionId, 'messages', messageId), payload);
       } catch (err) {
-        // Same failure class as a normal message not saving — surfaced loudly instead of
-        // silently, since the local copy looking identical to a delivered one is exactly
-        // how "the other group never got it" goes unnoticed until someone checks.
-        console.error('Failed to cross-post message to connected group:', connectionId, err);
-        markMessageSaveFailed(messageId, ' ⚠ not delivered to connected group', 'This message did not reach the connected group — check your connection and try again');
+        // The message still shows locally for this project's own members — it just won't
+        // reach the other group. No user-facing error surfaced yet in this build phase.
       }
     }
 
@@ -6665,12 +6655,6 @@ function renderPreviewTray() {
               crossPostFirstLoadDone[c.id] = true;
               chatContainer.scrollTop = chatContainer.scrollHeight;
             }
-          },
-          err => {
-            // If this fires, this connection's cross-posted messages aren't loading at all —
-            // almost always a security-rules issue (e.g. the connection's status somehow
-            // isn't 'accepted' from this side's read of it) rather than a code bug here.
-            console.error('Cross-post listener failed for connection', c.id, err);
           }
         );
       });
@@ -6841,7 +6825,6 @@ function renderPreviewTray() {
     // live for connections on EITHER side (this project as initiator, or as target) — two
     // separate queries merged into one local list, since Firestore can't OR across fields
     // in a single query.
-    let unsubscribeGroupConnListeners = [];
     window.initGroupConnections = async function() {
       await ensureOwnGroupCode();
       const { db, collection, query, where, onSnapshot } = window.chatFns;
@@ -6856,32 +6839,17 @@ function renderPreviewTray() {
         renderGroupConnections();
       }
 
-      unsubscribeGroupConnListeners.push(onSnapshot(query(collection(db, 'groupConnections'), where('initiatorProjectId', '==', window.currentProjectId)), snap => {
+      onSnapshot(query(collection(db, 'groupConnections'), where('initiatorProjectId', '==', window.currentProjectId)), snap => {
         Object.keys(asInitiator).forEach(k => delete asInitiator[k]);
         snap.forEach(d => { asInitiator[d.id] = { id: d.id, ...d.data() }; });
         mergeAndRender();
-      }));
-      unsubscribeGroupConnListeners.push(onSnapshot(query(collection(db, 'groupConnections'), where('targetProjectId', '==', window.currentProjectId)), snap => {
+      });
+      onSnapshot(query(collection(db, 'groupConnections'), where('targetProjectId', '==', window.currentProjectId)), snap => {
         Object.keys(asTarget).forEach(k => delete asTarget[k]);
         snap.forEach(d => { asTarget[d.id] = { id: d.id, ...d.data() }; });
         mergeAndRender();
-      }));
+      });
     };
-
-    // Closes every active Firestore real-time listener this page has open — the main chat
-    // feed, every connected group's cross-post feed, any open comment thread, and the two
-    // group-connection queries. Without this, navigating away left several long-polling
-    // connections to tear down on their own mid-transition, which is what was actually
-    // causing the "back" button to feel slow right after cross-posting — that action is
-    // exactly when the most listeners tend to be freshly active at once.
-    function teardownAllChatListeners() {
-      if (unsubscribeMainChatListener) { unsubscribeMainChatListener(); unsubscribeMainChatListener = null; }
-      unsubscribeGroupConnListeners.forEach(fn => fn());
-      unsubscribeGroupConnListeners = [];
-      Object.values(crossPostUnsubscribers).forEach(fn => fn());
-      crossPostUnsubscribers = {};
-      if (crossPostCommentUnsub) { crossPostCommentUnsub(); crossPostCommentUnsub = null; }
-    }
   </script>
 
   </div>
