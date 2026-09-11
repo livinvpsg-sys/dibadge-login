@@ -3818,15 +3818,16 @@ function renderPreviewTray() {
     // previous behavior of silently doing nothing. A message that only lives in this tab's
     // memory (never reached Firestore) needs to say so, or it just vanishes without a trace
     // the next time this page loads.
-    function markMessageSaveFailed(messageId) {
+    function markMessageSaveFailed(messageId, customText, customTitle) {
       const row = getMessageRow ? getMessageRow(messageId) : document.getElementById('msg-' + messageId);
       if (!row) return;
       const metaRow = row.querySelector('.msg-meta-row, .media-time-row, .doc-time-row');
-      if (metaRow && !metaRow.querySelector('.save-failed-flag')) {
+      const flagClass = customText ? 'crosspost-failed-flag' : 'save-failed-flag';
+      if (metaRow && !metaRow.querySelector('.' + flagClass)) {
         const flag = document.createElement('span');
-        flag.className = 'save-failed-flag';
-        flag.title = 'Not saved — this message only exists in your current session';
-        flag.textContent = ' ⚠ not saved';
+        flag.className = flagClass;
+        flag.title = customTitle || 'Not saved — this message only exists in your current session';
+        flag.textContent = customText || ' ⚠ not saved';
         flag.style.color = '#ff3b30';
         flag.style.fontSize = '0.7rem';
         flag.style.marginLeft = '6px';
@@ -4349,8 +4350,11 @@ function renderPreviewTray() {
 
         await setDoc(doc(db, 'groupConnections', connectionId, 'messages', messageId), payload);
       } catch (err) {
-        // The message still shows locally for this project's own members — it just won't
-        // reach the other group. No user-facing error surfaced yet in this build phase.
+        // Same failure class as a normal message not saving — surfaced loudly instead of
+        // silently, since the local copy looking identical to a delivered one is exactly
+        // how "the other group never got it" goes unnoticed until someone checks.
+        console.error('Failed to cross-post message to connected group:', connectionId, err);
+        markMessageSaveFailed(messageId, ' ⚠ not delivered to connected group', 'This message did not reach the connected group — check your connection and try again');
       }
     }
 
@@ -6661,6 +6665,12 @@ function renderPreviewTray() {
               crossPostFirstLoadDone[c.id] = true;
               chatContainer.scrollTop = chatContainer.scrollHeight;
             }
+          },
+          err => {
+            // If this fires, this connection's cross-posted messages aren't loading at all —
+            // almost always a security-rules issue (e.g. the connection's status somehow
+            // isn't 'accepted' from this side's read of it) rather than a code bug here.
+            console.error('Cross-post listener failed for connection', c.id, err);
           }
         );
       });
