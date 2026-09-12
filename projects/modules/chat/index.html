@@ -2598,6 +2598,7 @@ html, body {
             <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </button>
         </div>
+        <div id="groupCodeCopyToast" style="display:none; font-size:0.72rem; color:#14b8a6; padding:2px 4px 0 4px;">Code copied</div>
       </div>
 
       <hr class="details-panel-divider">
@@ -2919,6 +2920,12 @@ html, body {
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    // escapeHtml is safe for TEXT content but not for placing inside a quoted HTML attribute
+    // (it doesn't escape the quote character itself) — this covers that case specifically.
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/"/g, '&quot;');
     }
 
     let mediaGalleries = {};
@@ -3648,7 +3655,7 @@ function renderPreviewTray() {
             </div>
           </div>`;
 
-          chatContainer.appendChild(docRow);
+          insertMessageRowChronologically(docRow, Date.now());
           registerMessage({
             id: docMessageId,
             isOutgoing: true,
@@ -3760,11 +3767,13 @@ function renderPreviewTray() {
             </div>
           </div>
         `;
-        messageRow.querySelector(".message-text").innerHTML = renderTextWithMentions(text);
+        const textSpan = messageRow.querySelector(".message-text");
+        textSpan.innerHTML = renderTextWithMentions(text);
+        textSpan.setAttribute('data-raw-text', text);
         if (window.twemoji) twemoji.parse(messageRow.querySelector(".message-text"));
       }
 
-      chatContainer.appendChild(messageRow);
+      insertMessageRowChronologically(messageRow, Date.now());
       chatContainer.scrollTop = chatContainer.scrollHeight;
 
       registerMessage({
@@ -3964,7 +3973,7 @@ function renderPreviewTray() {
 
           registerMessage(messageObj);
           const row = renderMessageToDOM(messageObj);
-          if (row) chatContainer.appendChild(row);
+          if (row) insertMessageRowChronologically(row, timestampToMillis(data.createdAt));
           // Reconnects this reloaded message to its shared cross-post comment thread, same as
           // the send-time path does — otherwise the Comment link would only ever appear for
           // messages sent during the current session, not ones loaded fresh from Firestore.
@@ -4151,6 +4160,35 @@ function renderPreviewTray() {
 
     function getMessageRow(id) {
       return document.querySelector(`.message-row[data-id="${id}"]`);
+    }
+
+    // This project's own messages and any connected group's cross-posted messages live in
+    // two entirely separate Firestore collections, each with its own independent listener.
+    // On a fresh page load, both listeners deliver their full history at nearly the same
+    // moment but not in lockstep — appending each batch as it arrives (as both listeners used
+    // to do) produces "all of one collection's messages, then all of the other's" instead of
+    // one real chronological feed. This inserts by actual timestamp instead of always
+    // appending to the end, so reload order matches send order regardless of which listener's
+    // data happens to arrive first.
+    function insertMessageRowChronologically(row, timestampMs) {
+      const chatContainer = document.getElementById('chatContainer');
+      row.dataset.ts = String(timestampMs);
+      const existing = chatContainer.querySelectorAll('.message-row[data-ts]');
+      for (const other of existing) {
+        if (Number(other.dataset.ts) > timestampMs) {
+          chatContainer.insertBefore(row, other);
+          return;
+        }
+      }
+      chatContainer.appendChild(row); // newest so far — belongs at the end
+    }
+
+    // Firestore Timestamp -> milliseconds, with a "just sent, not yet server-acknowledged"
+    // fallback so an optimistic local render still sorts as the newest message until the
+    // real server timestamp comes back and (if needed) corrects its position.
+    function timestampToMillis(ts) {
+      if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+      return Date.now();
     }
 
     function truncateSnippet(text, max) {
@@ -5667,7 +5705,7 @@ function renderPreviewTray() {
         const isEmojiOnly = isEmojiOnlyText(msg.text);
         const wrapClass = msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap';
         const bubbleHtml = `<div class="msg-bubble ${msg.isOutgoing ? 'outgoing' : 'incoming'}${isEmojiOnly ? ' emoji-only' : ''}">
-          <span class="message-text">${renderTextWithMentions(msg.text)}</span>
+          <span class="message-text" data-raw-text="${escapeAttr(msg.text)}">${renderTextWithMentions(msg.text)}</span>
           <span class="msg-meta-row">${editedHtml}${msg.time} ${ticksHtml}</span>
         </div>`;
         if (msg.isOutgoing) {
@@ -6353,9 +6391,16 @@ function renderPreviewTray() {
       if (el) el.textContent = ownGroupCode || 'unavailable';
     }
 
+    let groupCodeToastTimeout = null;
     function copyOwnGroupCode() {
       if (!ownGroupCode) return;
-      navigator.clipboard.writeText(ownGroupCode).catch(() => {});
+      navigator.clipboard.writeText(ownGroupCode).then(() => {
+        const toast = document.getElementById('groupCodeCopyToast');
+        if (!toast) return;
+        toast.style.display = 'block';
+        clearTimeout(groupCodeToastTimeout);
+        groupCodeToastTimeout = setTimeout(() => { toast.style.display = 'none'; }, 1800);
+      }).catch(() => {});
     }
 
     function toggleGroupSearchPill() {
@@ -6715,6 +6760,20 @@ function renderPreviewTray() {
 
       syncCrossPostListeners(accepted);
       reattachPendingCommentLinks();
+      refreshMentionHighlighting();
+    }
+
+    // Re-applies @mention dimming to every currently-rendered message — needed because
+    // renderTextWithMentions can only dim a name it recognizes as a real connected group,
+    // and on a fresh page load the message history usually renders before myGroupConnections
+    // has its first real data (same root cause as the Comment-link race above). Running this
+    // again whenever the connections list updates catches anything that rendered too early,
+    // on both the sending and receiving side.
+    function refreshMentionHighlighting() {
+      document.querySelectorAll('[data-raw-text]').forEach(el => {
+        el.innerHTML = renderTextWithMentions(el.getAttribute('data-raw-text'));
+        if (window.twemoji) twemoji.parse(el);
+      });
     }
 
     // Retries attaching Comment links for any outgoing mentioned message that doesn't have
@@ -6772,7 +6831,7 @@ function renderPreviewTray() {
               // This cross-post row only earns its place on the RECEIVING side.
               if (data.senderProjectId === window.currentProjectId) return;
               const row = renderCrossPostMessageToDOM(c.id, msgId, data);
-              if (row) chatContainer.appendChild(row);
+              if (row) insertMessageRowChronologically(row, timestampToMillis(data.createdAt));
             });
             if (!crossPostFirstLoadDone[c.id]) {
               crossPostFirstLoadDone[c.id] = true;
@@ -6819,10 +6878,10 @@ function renderPreviewTray() {
         if (data.mediaItems.length === 2) gridClass = 'media-grid-2';
         else if (data.mediaItems.length >= 3) gridClass = 'media-grid-3';
         return `<div class="media-grid ${gridClass}">${itemsHtml}</div>
-          ${data.text ? `<div class="media-caption">${escapeHtml(data.text)}</div>` : ''}
+          ${data.text ? `<div class="media-caption" data-raw-text="${escapeAttr(data.text)}">${renderTextWithMentions(data.text)}</div>` : ''}
           <div class="media-time-row">${timeString}</div>`;
       }
-      return `<span class="message-text">${escapeHtml(data.text || '')}</span>
+      return `<span class="message-text" data-raw-text="${escapeAttr(data.text || '')}">${renderTextWithMentions(data.text || '')}</span>
         <span class="msg-meta-row">${timeString}</span>`;
     }
 
