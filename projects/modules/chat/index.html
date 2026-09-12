@@ -6674,6 +6674,23 @@ function renderPreviewTray() {
       }).join('');
 
       syncCrossPostListeners(accepted);
+      reattachPendingCommentLinks();
+    }
+
+    // Retries attaching Comment links for any outgoing mentioned message that doesn't have
+    // one yet — this is what actually makes it reliable, since on a fresh page load the
+    // message history usually finishes loading (and tries to attach these links) BEFORE
+    // myGroupConnections has its first real data, causing that first attempt to find nothing.
+    // Running this again every time the connections list updates catches it once the data
+    // is actually there, rather than depending on load order working out by luck.
+    function reattachPendingCommentLinks() {
+      Object.values(messages).forEach(msg => {
+        if (!msg.isOutgoing || !msg.mentionedGroups || msg.mentionedGroups.length === 0) return;
+        const row = document.querySelector(`.message-row[data-id="${msg.id}"]`);
+        if (!row) return;
+        if (row.querySelector('.group-comment-bar')) return; // already attached
+        attachCommentLinkForMentionedMessage(msg.id, msg.mentionedGroups);
+      });
     }
 
     // ===================== Incoming cross-posted messages =====================
