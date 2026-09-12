@@ -6655,6 +6655,10 @@ function renderPreviewTray() {
               const data = change.doc.data();
               const msgId = change.doc.id;
               if (document.getElementById('xpost-row-' + msgId)) return; // already rendered
+              // The sender already sees this message in their own normal chat feed — mirroring
+              // it back to them here as a second "To [group]" bubble was the actual duplicate.
+              // This cross-post row only earns its place on the RECEIVING side.
+              if (data.senderProjectId === window.currentProjectId) return;
               const row = renderCrossPostMessageToDOM(c.id, msgId, data);
               if (row) chatContainer.appendChild(row);
             });
