@@ -3952,6 +3952,12 @@ function renderPreviewTray() {
           registerMessage(messageObj);
           const row = renderMessageToDOM(messageObj);
           if (row) chatContainer.appendChild(row);
+          // Reconnects this reloaded message to its shared cross-post comment thread, same as
+          // the send-time path does — otherwise the Comment link would only ever appear for
+          // messages sent during the current session, not ones loaded fresh from Firestore.
+          if (messageObj.isOutgoing && messageObj.mentionedGroups && messageObj.mentionedGroups.length > 0) {
+            attachCommentLinkForMentionedMessage(localId, messageObj.mentionedGroups);
+          }
         });
 
         if (firstLoad) {
@@ -4299,6 +4305,55 @@ function renderPreviewTray() {
       if (targets.length === 0) return;
 
       await Promise.all(targets.map(c => crossPostOneMessage(c.id, messageId, msg, fileInfo)));
+      // The mirrored bubble no longer renders on the sender's own screen (that was the actual
+      // duplicate) — but the shared comment thread it started still exists and is worth being
+      // able to reach from here, so a Comment link gets attached to this project's own bubble
+      // once the cross-post write has actually landed.
+      attachCommentLinkForMentionedMessage(messageId, mentionedGroups);
+    }
+
+    // Finds the real cross-post document a locally-sent message produced (matched via the
+    // clientId field every cross-post write already carries) and attaches a Comment link to
+    // this project's own bubble pointing at that SAME shared thread — no second bubble, just
+    // a way back into the conversation the mention actually started.
+    async function attachCommentLinkForMentionedMessage(localMessageId, mentionedGroupsList) {
+      if (!mentionedGroupsList || mentionedGroupsList.length === 0) return;
+      const accepted = myGroupConnections.filter(c => c.status === 'accepted');
+      let targets;
+      if (mentionedGroupsList.some(g => g.toLowerCase() === 'all')) {
+        targets = accepted;
+      } else {
+        targets = accepted.filter(c => {
+          const isInitiator = c.initiatorProjectId === window.currentProjectId;
+          const otherName = isInitiator ? c.targetName : c.initiatorName;
+          return mentionedGroupsList.some(g => g.toLowerCase() === (otherName || '').toLowerCase());
+        });
+      }
+      if (targets.length === 0) return;
+
+      const row = document.querySelector(`.message-row[data-id="${localMessageId}"]`);
+      if (!row) return;
+      const wrap = row.querySelector('.msg-content-wrap');
+      if (!wrap || wrap.querySelector('.group-comment-bar')) return;
+
+      const { db, collection, query, where, getDocs } = window.chatFns;
+      for (const c of targets) {
+        try {
+          const q = query(collection(db, 'groupConnections', c.id, 'messages'), where('clientId', '==', localMessageId));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            const xpostId = snap.docs[0].id;
+            const bar = document.createElement('div');
+            bar.className = 'group-comment-bar';
+            bar.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comment</span>`;
+            bar.onclick = () => toggleCrossPostComments(c.id, xpostId);
+            wrap.appendChild(bar);
+            return; // one shared thread is enough for the common case of one mentioned group
+          }
+        } catch (err) {
+          // Leave no comment link rather than a broken one — the message itself is unaffected.
+        }
+      }
     }
 
     // Uploads to a connection-scoped Storage path — not either project's own chat folder —
