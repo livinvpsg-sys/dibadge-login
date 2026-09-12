@@ -3615,12 +3615,7 @@ function renderPreviewTray() {
           const thisQuoted = isFirst ? buildQuotedHtml(replyingToId) : '';
           const thisCaption = (isLast && text) ? `<div class="media-caption">${renderTextWithMentions(text)}</div>` : '';
           const ticksSpan = `<span class="msg-ticks" id="ticks-${docMessageId}"></span>`;
-          // The @mention lives in the shared caption, so only the last bubble in a multi-file
-          // batch is the one actually tagged to the group(s) — and it skips the hover
-          // React/Reply icons since it already gets the persistent comment bar instead.
-          const thisMentionsGroups = isLast && mentionedGroups.length > 0;
-          const thisHoverHtml = thisMentionsGroups ? '' : buildHoverActionsHtml(docMessageId);
-          const thisCommentBarHtml = thisMentionsGroups ? buildGroupCommentBarHtml(docMessageId) : '';
+          const thisHoverHtml = buildHoverActionsHtml(docMessageId);
 
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
@@ -3638,7 +3633,6 @@ function renderPreviewTray() {
               ${thisCaption}
               <div class="doc-time-row">${timeString} ${ticksSpan}</div>
             </div>
-            ${thisCommentBarHtml}
           </div>`;
 
           chatContainer.appendChild(docRow);
@@ -3739,19 +3733,18 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div>${mentionedGroups.length > 0 ? buildGroupCommentBarHtml(messageId) : ''}</div>`;
+        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
           <div class="msg-content-wrap outgoing-wrap">
-            ${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}
+            ${buildHoverActionsHtml(messageId)}
             <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
               ${quotedHtml}
               <span class="message-text"></span>
               <span class="msg-meta-row">${timeString} <span class="msg-ticks" id="ticks-${messageId}"></span></span>
             </div>
-            ${mentionedGroups.length > 0 ? buildGroupCommentBarHtml(messageId) : ''}
           </div>
         `;
         messageRow.querySelector(".message-text").innerHTML = renderTextWithMentions(text);
@@ -5574,7 +5567,6 @@ function renderPreviewTray() {
       const hoverHtml = buildHoverActionsHtml(msg.id);
       const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${msg.id}"></span>` : '';
       const editedHtml = msg.edited ? `<span class="edited-label">Edited</span>` : '';
-      const commentBarHtml = (msg.mentionedGroups && msg.mentionedGroups.length > 0) ? buildGroupCommentBarHtml(msg.id) : '';
 
       if (msg.kind === 'text') {
         const isEmojiOnly = isEmojiOnlyText(msg.text);
@@ -5585,13 +5577,13 @@ function renderPreviewTray() {
         </div>`;
         if (msg.isOutgoing) {
           row.innerHTML = `<span class="sender-name" style="display:none;"></span>
-            <div class="msg-content-wrap ${wrapClass}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+            <div class="msg-content-wrap ${wrapClass}">${hoverHtml}${bubbleHtml}</div>`;
         } else {
           row.innerHTML = `<span class="sender-name">John</span>
             <div class="msg-content-wrap ${wrapClass}">
               <div class="incoming-content-wrapper"><div class="small-avatar">J</div>${bubbleHtml}</div>
               ${hoverHtml}
-            </div>${commentBarHtml}`;
+            </div>`;
         }
       } else if (msg.kind === 'media') {
         const galleryId = Object.keys(galleryMessageMap).find(gId => galleryMessageMap[gId] === msg.id);
@@ -5615,7 +5607,7 @@ function renderPreviewTray() {
           ${captionHtml}
           <div class="media-time-row">${msg.time} ${ticksHtml}</div>
         </div>`;
-        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
       } else if (msg.kind === 'document') {
         const ext = (msg.fileName || '').split('.').pop().toLowerCase();
         let badgeColor = '#607d8b', label = ext ? ext.toUpperCase() : 'FILE';
@@ -5632,7 +5624,7 @@ function renderPreviewTray() {
           </div>
           <div class="doc-time-row">${msg.time} ${ticksHtml}</div>
         </div>`;
-        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}${commentBarHtml}</div>`;
+        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
       }
 
       if (msg.isOutgoing) updateTicksUI(msg.id);
@@ -5648,7 +5640,6 @@ function renderPreviewTray() {
         }
         row.classList.add('has-reaction');
       }
-      if (commentBarHtml) updateCommentCount(msg.id); // reflect any existing comment history correctly
       if (window.twemoji) twemoji.parse(row);
       return row;
     }
