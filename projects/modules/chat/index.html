@@ -1051,6 +1051,7 @@ html, body {
       background: var(--chat-incoming-bg);
       color: var(--chat-incoming-text); 
       border-radius: 14px 14px 14px 4px; 
+      font-weight: 500;
     }
     
     .msg-bubble.outgoing { 
@@ -4373,8 +4374,14 @@ function renderPreviewTray() {
     // clientId field every cross-post write already carries) and attaches a Comment link to
     // this project's own bubble pointing at that SAME shared thread — no second bubble, just
     // a way back into the conversation the mention actually started.
+    let commentLinkAttachInFlight = new Set(); // localMessageId currently being processed — closes
+    // the race where two near-simultaneous calls (e.g. the two group-connection listeners both
+    // firing on load) both pass the "does it have one yet?" check before either has actually
+    // appended it, producing two Comment bars on the same message.
+
     async function attachCommentLinkForMentionedMessage(localMessageId, mentionedGroupsList) {
       if (!mentionedGroupsList || mentionedGroupsList.length === 0) return;
+      if (commentLinkAttachInFlight.has(localMessageId)) return;
       const accepted = myGroupConnections.filter(c => c.status === 'accepted');
       let targets;
       if (mentionedGroupsList.some(g => g.toLowerCase() === 'all')) {
@@ -4393,33 +4400,39 @@ function renderPreviewTray() {
       const wrap = row.querySelector('.msg-content-wrap');
       if (!wrap || wrap.querySelector('.xpost-comment-bar')) return;
 
-      const { db, collection, query, where, getDocs } = window.chatFns;
-      for (const c of targets) {
-        try {
-          const q = query(collection(db, 'groupConnections', c.id, 'messages'), where('clientId', '==', localMessageId));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            const xpostId = snap.docs[0].id;
-            // Exactly the same markup the incoming side already uses (.xpost-comment-bar +
-            // its required .xpost-comment-thread-panel sibling) — a hand-rolled version here
-            // earlier was missing that panel entirely, which is why clicking did nothing:
-            // toggleCrossPostComments looks up the panel by id and just returns if it's absent.
-            const holder = document.createElement('div');
-            holder.innerHTML = `
-              <div class="xpost-comment-bar">
-                <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${c.id}', '${xpostId}')">
-                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                  <span id="xpost-comment-count-${xpostId}">Comment</span>
-                </button>
-              </div>
-              <div class="xpost-comment-thread-panel" id="xpost-comments-${xpostId}" onclick="event.stopPropagation()"></div>
-            `;
-            while (holder.firstChild) wrap.appendChild(holder.firstChild);
-            return; // one shared thread is enough for the common case of one mentioned group
+      commentLinkAttachInFlight.add(localMessageId);
+      try {
+        const { db, collection, query, where, getDocs } = window.chatFns;
+        for (const c of targets) {
+          try {
+            const q = query(collection(db, 'groupConnections', c.id, 'messages'), where('clientId', '==', localMessageId));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              if (wrap.querySelector('.xpost-comment-bar')) return; // appended while this await was in flight
+              const xpostId = snap.docs[0].id;
+              // Exactly the same markup the incoming side already uses (.xpost-comment-bar +
+              // its required .xpost-comment-thread-panel sibling) — a hand-rolled version here
+              // earlier was missing that panel entirely, which is why clicking did nothing:
+              // toggleCrossPostComments looks up the panel by id and just returns if it's absent.
+              const holder = document.createElement('div');
+              holder.innerHTML = `
+                <div class="xpost-comment-bar">
+                  <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${c.id}', '${xpostId}')">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span id="xpost-comment-count-${xpostId}">Comment</span>
+                  </button>
+                </div>
+                <div class="xpost-comment-thread-panel" id="xpost-comments-${xpostId}" onclick="event.stopPropagation()"></div>
+              `;
+              while (holder.firstChild) wrap.appendChild(holder.firstChild);
+              return; // one shared thread is enough for the common case of one mentioned group
+            }
+          } catch (err) {
+            // Leave no comment link rather than a broken one — the message itself is unaffected.
           }
-        } catch (err) {
-          // Leave no comment link rather than a broken one — the message itself is unaffected.
         }
+      } finally {
+        commentLinkAttachInFlight.delete(localMessageId);
       }
     }
 
@@ -5289,6 +5302,29 @@ function renderPreviewTray() {
       const escapedNames = allNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
       const re = new RegExp('@(' + escapedNames.join('|') + ')\\b', 'g');
       return escaped.replace(re, '<span class="mention-tag">@$1</span>');
+    }
+
+    // Cross-posted messages only ever render on the RECEIVING side now (the sender's own copy
+    // no longer mirrors back to them) — so the leading "@mention" is purely routing information
+    // the receiver doesn't need to see; they're already in the right conversation. Stripped
+    // entirely rather than just dimmed.
+    function stripLeadingMentionForIncoming(text) {
+      const allNames = [...MENTION_MEMBERS, ...getMentionableConnectedGroups()]
+        .map(m => m.insertText)
+        .filter((v, i, arr) => arr.indexOf(v) === i)
+        .sort((a, b) => b.length - a.length);
+      let stripped = text;
+      if (allNames.length > 0) {
+        const escapedNames = allNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        const re = new RegExp('^@(' + escapedNames.join('|') + ')\\b\\s*');
+        if (re.test(stripped)) stripped = stripped.replace(re, '');
+      }
+      if (stripped === text) {
+        // Not a recognized name — a person on the sender's own team, which this project has
+        // no record of. Still strip a generic leading "@word " rather than leave it showing.
+        stripped = stripped.replace(/^@\S+\s*/, '');
+      }
+      return escapeHtml(stripped);
     }
 
     // Sets the composer's content from a plain-text string (used when loading a message into
@@ -6777,7 +6813,10 @@ function renderPreviewTray() {
     // on both the sending and receiving side.
     function refreshMentionHighlighting() {
       document.querySelectorAll('[data-raw-text]').forEach(el => {
-        el.innerHTML = renderTextWithMentions(el.getAttribute('data-raw-text'));
+        const row = el.closest('.message-row');
+        const isCrossPost = row && row.id && row.id.startsWith('xpost-row-');
+        const raw = el.getAttribute('data-raw-text');
+        el.innerHTML = isCrossPost ? stripLeadingMentionForIncoming(raw) : renderTextWithMentions(raw);
         if (window.twemoji) twemoji.parse(el);
       });
     }
@@ -6884,10 +6923,10 @@ function renderPreviewTray() {
         if (data.mediaItems.length === 2) gridClass = 'media-grid-2';
         else if (data.mediaItems.length >= 3) gridClass = 'media-grid-3';
         return `<div class="media-grid ${gridClass}">${itemsHtml}</div>
-          ${data.text ? `<div class="media-caption" data-raw-text="${escapeAttr(data.text)}">${renderTextWithMentions(data.text)}</div>` : ''}
+          ${data.text ? `<div class="media-caption" data-raw-text="${escapeAttr(data.text)}">${stripLeadingMentionForIncoming(data.text)}</div>` : ''}
           <div class="media-time-row">${timeString}</div>`;
       }
-      return `<span class="message-text" data-raw-text="${escapeAttr(data.text || '')}">${renderTextWithMentions(data.text || '')}</span>
+      return `<span class="message-text" data-raw-text="${escapeAttr(data.text || '')}">${stripLeadingMentionForIncoming(data.text || '')}</span>
         <span class="msg-meta-row">${timeString}</span>`;
     }
 
@@ -6920,10 +6959,9 @@ function renderPreviewTray() {
         row.innerHTML = `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; margin-left:0;">To ${escapeHtml(otherName || 'connected group')}</div>
           <div class="msg-content-wrap outgoing-wrap">${bubbleHtml}${commentBarHtml}</div>`;
       } else {
-        row.innerHTML = `<span class="xpost-sender-label">${senderLabel}</span>
-          <div class="msg-content-wrap incoming-wrap">
+        row.innerHTML = `<div class="msg-content-wrap incoming-wrap">
             <div class="incoming-content-wrapper">
-              <div class="small-avatar" style="background:#14b8a6;">${senderLabel.charAt(0).toUpperCase()}</div>
+              <div class="small-avatar" style="background:#14b8a6;" title="${escapeHtml(senderLabel)}">${senderLabel.charAt(0).toUpperCase()}</div>
               ${bubbleHtml}
             </div>
           </div>${commentBarHtml}`;
