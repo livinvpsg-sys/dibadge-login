@@ -25,8 +25,8 @@
       --soft-border: #e5e5ea;
 
       --bg-color: #e8e9ed;
-      --chat-incoming-bg: #1e1e1e;
-      --chat-incoming-text: #ffffff;
+      --chat-incoming-bg: #e4e6eb;
+      --chat-incoming-text: var(--slate-charcoal);
       --chat-outgoing-bg: #ffffff;
       --chat-outgoing-text: #000000;
       --text-color: var(--slate-charcoal);
@@ -1048,8 +1048,8 @@ html, body {
     }
     
  .msg-bubble.incoming { 
-      background: #000000;
-      color: #ffffff; 
+      background: var(--chat-incoming-bg);
+      color: var(--chat-incoming-text); 
       border-radius: 14px 14px 14px 4px; 
     }
     
@@ -1212,12 +1212,12 @@ html, body {
       border-radius: 8px;
       cursor: pointer;
       font-size: 0.85rem;
-      color: #fff;
+      color: var(--text-color);
       font-weight: 600;
     }
     .mention-dropdown-item:hover,
     .mention-dropdown-item.highlighted {
-      background: rgba(255,255,255,0.08);
+      background: var(--bg-color);
     }
     .mention-dropdown-avatar {
       width: 26px;
@@ -2009,7 +2009,7 @@ html, body {
       padding: 5px 8px;
       border-radius: 8px;
     }
-    .xpost-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .xpost-comment-icon-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .xpost-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
     .xpost-comment-thread-panel {
       display: none;
@@ -2091,11 +2091,11 @@ html, body {
     }
     .comment-thread-panel.active { display: flex; }
     .comment-list { display: flex; flex-direction: column; gap: 6px; }
-    .comment-item { color: #fff; line-height: 1.4; flex: 1; min-width: 0; }
+    .comment-item { color: var(--text-color); line-height: 1.4; flex: 1; min-width: 0; }
     .comment-header { display: flex; align-items: baseline; gap: 6px; }
     .comment-author-group { color: var(--subtext-color); font-size: 0.68rem; font-weight: 400; }
     .comment-body { margin-top: 2px; font-size: 0.9rem; }
-    .comment-author { font-weight: 700; color: #fff; font-size: 0.68rem; }
+    .comment-author { font-weight: 700; color: var(--text-color); font-size: 0.68rem; }
     .comment-time { font-size: 0.65rem; color: var(--subtext-color); margin-left: 6px; }
     .comment-edited-label { font-size: 0.65rem; color: var(--subtext-color); font-style: italic; }
     .comment-empty { font-size: 0.78rem; color: var(--subtext-color); font-style: italic; }
@@ -2156,7 +2156,7 @@ html, body {
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 6px 12px;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.78rem;
       outline: none;
     }
@@ -2164,7 +2164,7 @@ html, body {
     .comment-send-btn {
       background: transparent;
       border: none;
-      color: #ffffff;
+      color: var(--text-color);
       cursor: pointer;
       padding: 6px;
       flex-shrink: 0;
@@ -2174,6 +2174,19 @@ html, body {
     }
     .comment-send-btn svg { width: 18px; height: 18px; }
     .comment-send-btn:hover { opacity: 0.8; }
+    .comment-emoji-btn {
+      background: transparent;
+      border: none;
+      color: var(--subtext-color);
+      cursor: pointer;
+      padding: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .comment-emoji-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+    .comment-emoji-btn:hover { color: var(--text-color); }
     .comment-react-btn {
       background: transparent;
       border: none;
@@ -3615,7 +3628,7 @@ function renderPreviewTray() {
           const thisQuoted = isFirst ? buildQuotedHtml(replyingToId) : '';
           const thisCaption = (isLast && text) ? `<div class="media-caption">${renderTextWithMentions(text)}</div>` : '';
           const ticksSpan = `<span class="msg-ticks" id="ticks-${docMessageId}"></span>`;
-          const thisHoverHtml = buildHoverActionsHtml(docMessageId);
+          const thisHoverHtml = (isLast && mentionedGroups.length > 0) ? '' : buildHoverActionsHtml(docMessageId);
 
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
@@ -3733,13 +3746,13 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
+        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
           <div class="msg-content-wrap outgoing-wrap">
-            ${buildHoverActionsHtml(messageId)}
+            ${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}
             <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
               ${quotedHtml}
               <span class="message-text"></span>
@@ -4334,7 +4347,7 @@ function renderPreviewTray() {
       const row = document.querySelector(`.message-row[data-id="${localMessageId}"]`);
       if (!row) return;
       const wrap = row.querySelector('.msg-content-wrap');
-      if (!wrap || wrap.querySelector('.group-comment-bar')) return;
+      if (!wrap || wrap.querySelector('.xpost-comment-bar')) return;
 
       const { db, collection, query, where, getDocs } = window.chatFns;
       for (const c of targets) {
@@ -4343,11 +4356,21 @@ function renderPreviewTray() {
           const snap = await getDocs(q);
           if (!snap.empty) {
             const xpostId = snap.docs[0].id;
-            const bar = document.createElement('div');
-            bar.className = 'group-comment-bar';
-            bar.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comment</span>`;
-            bar.onclick = () => toggleCrossPostComments(c.id, xpostId);
-            wrap.appendChild(bar);
+            // Exactly the same markup the incoming side already uses (.xpost-comment-bar +
+            // its required .xpost-comment-thread-panel sibling) — a hand-rolled version here
+            // earlier was missing that panel entirely, which is why clicking did nothing:
+            // toggleCrossPostComments looks up the panel by id and just returns if it's absent.
+            const holder = document.createElement('div');
+            holder.innerHTML = `
+              <div class="xpost-comment-bar">
+                <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${c.id}', '${xpostId}')">
+                  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  <span id="xpost-comment-count-${xpostId}">Comment</span>
+                </button>
+              </div>
+              <div class="xpost-comment-thread-panel" id="xpost-comments-${xpostId}" onclick="event.stopPropagation()"></div>
+            `;
+            while (holder.firstChild) wrap.appendChild(holder.firstChild);
             return; // one shared thread is enough for the common case of one mentioned group
           }
         } catch (err) {
@@ -4906,7 +4929,8 @@ function renderPreviewTray() {
       ]}
     ];
 
-    let emojiPickerMode = 'insert'; // 'insert' -> types into the composer | 'react' -> reacts to reactTargetId
+    let emojiPickerMode = 'insert'; // 'insert' -> composer | 'insert-plain' -> a plain <input> | 'react' -> reacts to reactTargetId
+    let emojiInsertTargetId = 'msgInput'; // which element 'insert'/'insert-plain' actually types into
     let emojiPickerActiveCategory = 0;
 
     function getEmojiPickerCategories() {
@@ -4916,8 +4940,9 @@ function renderPreviewTray() {
     // anchorBottomY: the Y coordinate the panel's BOTTOM edge should sit at (e.g. just above
     // the button that opened it) — top is computed from the panel's actual measured height,
     // so it can never overlap whatever's below it regardless of the panel's real size.
-    function openEmojiPickerPanel(x, anchorBottomY, mode) {
+    function openEmojiPickerPanel(x, anchorBottomY, mode, targetId) {
       emojiPickerMode = mode;
+      emojiInsertTargetId = targetId || 'msgInput';
       emojiPickerActiveCategory = emojiRecents.length > 0 ? 0 : 1;
       renderEmojiPickerTabs();
       renderEmojiPickerGrid();
@@ -4977,13 +5002,28 @@ function renderPreviewTray() {
       recordEmojiUsage(emoji);
       if (emojiPickerMode === 'insert') {
         insertEmojiIntoInput(emoji);
+      } else if (emojiPickerMode === 'insert-plain') {
+        insertEmojiIntoPlainInput(emoji);
       } else if (emojiPickerMode === 'react' && reactTargetId) {
         applyReaction(reactTargetId, emoji);
       }
     }
 
+    // For plain <input> elements (like the comment box) — the contenteditable Range/Selection
+    // approach insertEmojiIntoInput uses below doesn't apply to a plain input at all.
+    function insertEmojiIntoPlainInput(emoji) {
+      const input = document.getElementById(emojiInsertTargetId);
+      if (!input) return;
+      input.focus();
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? input.value.length;
+      input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+      const newPos = start + emoji.length;
+      input.setSelectionRange(newPos, newPos);
+    }
+
     function insertEmojiIntoInput(emoji) {
-      const input = document.getElementById('msgInput');
+      const input = document.getElementById(emojiInsertTargetId);
       input.focus();
       const sel = window.getSelection();
       let range;
@@ -5466,7 +5506,7 @@ function renderPreviewTray() {
           </button>
           <input type="text" class="comment-input" id="comment-input-${id}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addComment('${id}');}">
           <button class="comment-send-btn" onclick="addComment('${id}')" title="Send">
-            <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
           </button>
         </div>
       `;
@@ -5619,7 +5659,7 @@ function renderPreviewTray() {
         return row;
       }
 
-      const hoverHtml = buildHoverActionsHtml(msg.id);
+      const hoverHtml = (msg.mentionedGroups && msg.mentionedGroups.length > 0) ? '' : buildHoverActionsHtml(msg.id);
       const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${msg.id}"></span>` : '';
       const editedHtml = msg.edited ? `<span class="edited-label">Edited</span>` : '';
 
@@ -6688,7 +6728,7 @@ function renderPreviewTray() {
         if (!msg.isOutgoing || !msg.mentionedGroups || msg.mentionedGroups.length === 0) return;
         const row = document.querySelector(`.message-row[data-id="${msg.id}"]`);
         if (!row) return;
-        if (row.querySelector('.group-comment-bar')) return; // already attached
+        if (row.querySelector('.xpost-comment-bar')) return; // already attached
         attachCommentLinkForMentionedMessage(msg.id, msg.mentionedGroups);
       });
     }
@@ -6881,9 +6921,12 @@ function renderPreviewTray() {
           `).join('') : '<div class="comment-empty">No comments yet</div>'}
         </div>
         <div class="comment-input-row">
+          <button class="comment-emoji-btn" onclick="openEmojiPickerPanel(event.clientX, event.clientY, 'insert-plain', 'xpost-comment-input-${messageId}')" title="Emoji">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+          </button>
           <input type="text" class="comment-input" id="xpost-comment-input-${messageId}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addCrossPostComment('${connectionId}', '${messageId}');}">
           <button class="comment-send-btn" onclick="addCrossPostComment('${connectionId}', '${messageId}')" title="Send">
-            <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
           </button>
         </div>
       `;
