@@ -129,7 +129,7 @@ html, body {
       background: transparent;
       border: none;
       outline: none;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.85rem;
     }
     .header-search-pill input::placeholder { color: var(--subtext-color); }
@@ -416,7 +416,7 @@ html, body {
     .group-modal-title {
       font-size: 1.3rem;
       font-weight: 500;
-      color: #fff;
+      color: var(--text-color);
       margin-bottom: 22px;
     }
     .group-modal-input {
@@ -424,7 +424,7 @@ html, body {
       background: transparent;
       border: none;
       border-bottom: 1px solid var(--border-color);
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.95rem;
       padding: 6px 2px 10px 2px;
       outline: none;
@@ -448,22 +448,23 @@ html, body {
     .group-modal-cancel-btn {
       background: transparent;
       border: none;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.95rem;
       font-weight: 700;
       cursor: pointer;
       padding: 4px;
     }
     .group-modal-ok-btn {
-      background: rgba(255,255,255,0.18);
+      background: var(--bg-color);
       border: none;
-      color: #fff;
+      color: var(--text-color);
       font-size: 0.95rem;
       font-weight: 700;
       padding: 10px 26px;
       border-radius: 24px;
       cursor: pointer;
     }
+    .group-modal-ok-btn:hover { background: var(--border-color); }
     .group-modal-ok-btn.danger { color: #ff5252; }
 
     /* ---------- Import Form modal: mini folder browser ---------- */
@@ -883,7 +884,7 @@ html, body {
       border-radius: 50%;
       background: var(--input-bg, #2a2a2a);
       border: 1px solid var(--border-color);
-      color: #fff;
+      color: var(--text-color);
       align-items: center;
       justify-content: center;
       cursor: pointer;
@@ -891,7 +892,7 @@ html, body {
       z-index: 20;
     }
     .scroll-to-bottom-btn.active { display: flex; }
-    .scroll-to-bottom-btn:hover { background: #333; }
+    .scroll-to-bottom-btn:hover { background: var(--border-color); }
     .scroll-to-bottom-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
     .scroll-to-bottom-unread {
       position: absolute;
@@ -1947,11 +1948,11 @@ html, body {
     }
     .selection-top-bar.active { display: flex; }
     .selection-top-bar-close {
-      background: transparent; border: none; color: #fff; cursor: pointer;
+      background: transparent; border: none; color: var(--text-color); cursor: pointer;
       display: flex; padding: 4px; flex-shrink: 0;
     }
     .selection-top-bar-close svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .selection-top-bar-count { font-size: 0.95rem; font-weight: 600; color: #fff; }
+    .selection-top-bar-count { font-size: 0.95rem; font-weight: 600; color: var(--text-color); }
 
     .message-row.selected .msg-bubble {
       outline: 2px solid #14b8a6;
@@ -2085,7 +2086,7 @@ html, body {
       border-radius: 8px;
       box-shadow: none !important;
     }
-    .group-comment-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .group-comment-icon-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .group-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
     .group-comment-icon-btn .comment-count-label { font-size: 0.75rem; }
     .comment-unread-badge {
@@ -2156,7 +2157,7 @@ html, body {
       justify-content: center;
       border-radius: 6px;
     }
-    .comment-item-action-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .comment-item-action-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .comment-item-action-btn.danger:hover { color: #ff5252; }
     .comment-item-action-btn svg { width: 13px; height: 13px; stroke: currentColor; stroke-width: 2; fill: none; }
 
@@ -2230,7 +2231,7 @@ html, body {
       border-radius: 50%;
     }
     .comment-react-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2; fill: none; }
-    .comment-react-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .comment-react-btn:hover { background: var(--bg-color); color: var(--text-color); }
 
     /* Reaction badge on a bubble's corner */
     .msg-reaction-badge {
@@ -2386,12 +2387,12 @@ html, body {
       background: var(--slate-surface); border: 1px solid var(--border-color);
       border-radius: 14px; padding: 18px; width: 300px; max-width: 90vw;
     }
-    .confirm-modal-title { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 14px; }
+    .confirm-modal-title { font-size: 0.95rem; font-weight: 600; color: var(--text-color); margin-bottom: 14px; }
     .confirm-modal-btn {
-      width: 100%; background: transparent; border: none; color: #fff; text-align: left;
+      width: 100%; background: transparent; border: none; color: var(--text-color); text-align: left;
       padding: 12px 6px; font-size: 0.9rem; cursor: pointer; border-radius: 8px;
     }
-    .confirm-modal-btn:hover { background: rgba(255,255,255,0.06); }
+    .confirm-modal-btn:hover { background: var(--bg-color); }
     .confirm-modal-btn.danger { color: #ff5252; }
     .confirm-modal-btn.cancel {
       color: var(--subtext-color); margin-top: 4px; border-top: 1px solid var(--border-color);
@@ -2408,14 +2409,14 @@ html, body {
       background: var(--slate-surface); border: 1px solid var(--border-color);
       border-radius: 14px; padding: 20px; width: 320px; max-width: 100%;
     }
-    .msg-info-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
-    .msg-info-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 0.85rem; color: #fff; }
+    .msg-info-title { font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 12px; }
+    .msg-info-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 0.85rem; color: var(--text-color); }
     .msg-info-row svg { width: 18px; height: 18px; flex-shrink: 0; }
     .msg-info-row-label { flex: 1; }
     .msg-info-row-time { color: var(--subtext-color); font-size: 0.78rem; }
     .msg-info-close-btn {
-      margin-top: 10px; width: 100%; background: rgba(255,255,255,0.08); border: none;
-      color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
+      margin-top: 10px; width: 100%; background: var(--bg-color); border: none;
+      color: var(--text-color); padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
     }
     
   </style>
@@ -5366,11 +5367,17 @@ function renderPreviewTray() {
     // "@" alone -> Group Members list. "@" + space -> Groups list. Both reuse the same
     // people/groups shown in the "Chat Details" panel, with "All" pinned first either way.
 
-    const MENTION_MEMBERS = [
-      { id: 'all', label: 'All', insertText: 'All', color: '#607d8b' },
-      { id: 'john', label: 'John (Admin)', insertText: 'John', color: '#8d6e63' },
-      { id: 'mary', label: 'Mary (Member)', insertText: 'Mary', color: '#5c6bc0' }
-    ];
+    // Real project members — replaces the old hardcoded "John (Admin)" / "Mary (Member)"
+    // mock list. Reuses the same resolved {uid, label} data the Group Members panel already
+    // fetches (email or local nickname, whichever applies) rather than re-fetching it here,
+    // so renaming someone there is immediately reflected in the mention picker too.
+    let cachedResolvedMembers = [];
+    function getMentionableProjectMembers() {
+      const members = cachedResolvedMembers.map(r => ({
+        id: r.uid, label: r.label, insertText: r.label, color: '#5c6bc0'
+      }));
+      return [{ id: 'all-members', label: 'All', insertText: 'All', color: '#607d8b' }, ...members];
+    }
 
     // Real accepted connections — replaces the old hardcoded Site Engineers/Management/QA
     // list. Recomputed live from myGroupConnections (kept current by the onSnapshot
@@ -5397,14 +5404,14 @@ function renderPreviewTray() {
     let mentionHighlightIndex = 0;
 
     function getMentionSourceList(mode) {
-      return mode === 'group' ? getMentionableConnectedGroups() : MENTION_MEMBERS;
+      return mode === 'group' ? getMentionableConnectedGroups() : getMentionableProjectMembers();
     }
 
     // Escapes plain text, then wraps any @mention occurrence (member or group name) in a dim
     // span. Used both for the composer (re-loading an edited message) and the sent bubble.
     function renderTextWithMentions(text) {
       const escaped = escapeHtml(text);
-      const allNames = [...MENTION_MEMBERS, ...getMentionableConnectedGroups()]
+      const allNames = [...getMentionableProjectMembers(), ...getMentionableConnectedGroups()]
         .map(m => m.insertText)
         .filter((v, i, arr) => arr.indexOf(v) === i) // de-dupe (both lists share "All")
         .sort((a, b) => b.length - a.length); // longest first so a longer group name wins over a partial match
@@ -5419,7 +5426,7 @@ function renderPreviewTray() {
     // the receiver doesn't need to see; they're already in the right conversation. Stripped
     // entirely rather than just dimmed.
     function stripLeadingMentionForIncoming(text) {
-      const allNames = [...MENTION_MEMBERS, ...getMentionableConnectedGroups()]
+      const allNames = [...getMentionableProjectMembers(), ...getMentionableConnectedGroups()]
         .map(m => m.insertText)
         .filter((v, i, arr) => arr.indexOf(v) === i)
         .sort((a, b) => b.length - a.length);
@@ -6844,10 +6851,11 @@ function renderPreviewTray() {
           return { uid, label: (window.currentProjectMemberNicknames || {})[uid] || uid, isSuperAdmin: false, isCreator: false, isRestricted: false };
         }
       }));
+      cachedResolvedMembers = rows;
       container.innerHTML = rows.map(r => `
         <div class="details-item-row" oncontextmenu="openMemberContextMenu(event, '${r.uid}', ${r.isSuperAdmin}, ${r.isCreator}, '${escapeHtml(r.label).replace(/'/g, "\\'")}')">
           <div class="details-item-avatar" style="background:#5c6bc0;">${(r.label || '?').charAt(0).toUpperCase()}</div>
-          <span class="details-item-label">${escapeHtml(r.label)}${r.isRestricted ? ' <span style="font-size:0.68rem; color:var(--subtext-color); font-weight:400;">(restricted)</span>' : ''}</span>
+          <span class="details-item-label">${escapeHtml(r.label)}${r.isCreator ? ' <span style="font-size:0.68rem; color:var(--subtext-color); font-weight:400;">(admin)</span>' : ''}${r.isRestricted ? ' <span style="font-size:0.68rem; color:var(--subtext-color); font-weight:400;">(restricted)</span>' : ''}</span>
         </div>
       `).join('');
     }
@@ -7038,8 +7046,8 @@ function renderPreviewTray() {
             <span class="details-item-label" style="flex:1;">${escapeHtml(c.initiatorName || 'Unknown group')} wants to join</span>
           </div>
           <div style="display:flex; gap:8px;">
-            <button class="modal-btn btn-save" style="padding:6px 0;" onclick="respondToGroupConnection('${c.id}', true)">Accept</button>
-            <button class="modal-btn btn-cancel" style="padding:6px 0;" onclick="respondToGroupConnection('${c.id}', false)">Decline</button>
+            <button class="modal-btn btn-save" style="padding:8px 18px;" onclick="respondToGroupConnection('${c.id}', true)">Accept</button>
+            <button class="modal-btn btn-cancel" style="padding:8px 18px;" onclick="respondToGroupConnection('${c.id}', false)">Decline</button>
           </div>
         </div>
       `).join('') + outgoingPending.map(c => `
