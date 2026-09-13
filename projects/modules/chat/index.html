@@ -2001,7 +2001,6 @@ html, body {
     .xpost-sender-label {
       font-size: 0.72rem;
       font-weight: 700;
-      color: #14b8a6;
       margin-bottom: 3px;
       margin-left: 40px;
     }
@@ -2972,6 +2971,21 @@ html, body {
       return escapeHtml(str).replace(/"/g, '&quot;');
     }
 
+    // A stable, distinct color per person/group id — the same id always gets the same
+    // color (so "You"'s avatar in the members list matches "You"'s name-label color above
+    // your own bubbles, and a connected group's avatar matches its name-label color too),
+    // while different ids spread across a varied palette instead of everyone defaulting to
+    // the same one or two colors.
+    const AVATAR_COLOR_PALETTE = ['#5c6bc0', '#14b8a6', '#ec407a', '#8d6e63', '#7e57c2', '#00897b', '#ef6c00', '#5e35b1', '#26a69a', '#d81b60'];
+    function colorForId(id) {
+      const str = String(id || '');
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+      }
+      return AVATAR_COLOR_PALETTE[hash % AVATAR_COLOR_PALETTE.length];
+    }
+
     let mediaGalleries = {};
     let galleryCounter = 0;
     let currentGalleryId = null;
@@ -3684,7 +3698,7 @@ function renderPreviewTray() {
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
           docRow.setAttribute('data-id', docMessageId);
-          docRow.innerHTML = `${(isLast && mentionedGroups.length > 0) ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}<div class="msg-content-wrap outgoing-wrap">
+          docRow.innerHTML = `${(isLast && mentionedGroups.length > 0) ? `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; color:${colorForId(window.currentUid)};">You</div>` : ''}<div class="msg-content-wrap outgoing-wrap">
             ${thisHoverHtml}
             <div class="msg-bubble outgoing media-bubble">
               ${thisQuoted}
@@ -3797,12 +3811,12 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `${mentionedGroups.length > 0 ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
+        messageRow.innerHTML = `${mentionedGroups.length > 0 ? `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; color:${colorForId(window.currentUid)};">You</div>` : ''}<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
-          ${mentionedGroups.length > 0 ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}
+          ${mentionedGroups.length > 0 ? `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; color:${colorForId(window.currentUid)};">You</div>` : ''}
           <div class="msg-content-wrap outgoing-wrap">
             ${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}
             <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
@@ -5886,7 +5900,7 @@ function renderPreviewTray() {
       const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${msg.id}"></span>` : '';
       const editedHtml = msg.edited ? `<span class="edited-label">Edited</span>` : '';
       const youLabelHtml = (msg.isOutgoing && msg.mentionedGroups && msg.mentionedGroups.length > 0)
-        ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : '';
+        ? `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; color:${colorForId(window.currentUid)};">You</div>` : '';
 
       if (msg.kind === 'text') {
         const isEmojiOnly = isEmojiOnlyText(msg.text);
@@ -6897,7 +6911,7 @@ function renderPreviewTray() {
       cachedResolvedMembers = rows;
       container.innerHTML = rows.map(r => `
         <div class="details-item-row" oncontextmenu="openMemberContextMenu(event, '${r.uid}', ${r.isSuperAdmin}, ${r.isCreator}, '${escapeHtml(r.label).replace(/'/g, "\\'")}')">
-          <div class="details-item-avatar" style="background:#5c6bc0;">${(r.label || '?').charAt(0).toUpperCase()}</div>
+          <div class="details-item-avatar" style="background:${colorForId(r.uid)};">${(r.label || '?').charAt(0).toUpperCase()}</div>
           <span class="details-item-label">${escapeHtml(r.label)}${r.isCreator ? ' <span style="font-size:0.68rem; color:var(--subtext-color); font-weight:400;">(admin)</span>' : ''}${r.isRestricted ? ' <span style="font-size:0.68rem; color:var(--subtext-color); font-weight:400;">(restricted)</span>' : ''}</span>
         </div>
       `).join('');
@@ -7085,7 +7099,7 @@ function renderPreviewTray() {
       incomingEl.innerHTML = incoming.map(c => `
         <div class="details-item-row" style="flex-direction:column; align-items:stretch; gap:6px;">
           <div style="display:flex; align-items:center; gap:10px;">
-            <div class="details-item-avatar" style="background:#5c6bc0;">${(c.initiatorName || '?').charAt(0).toUpperCase()}</div>
+            <div class="details-item-avatar" style="background:${colorForId(c.id)};">${(c.initiatorName || '?').charAt(0).toUpperCase()}</div>
             <span class="details-item-label" style="flex:1;">${escapeHtml(c.initiatorName || 'Unknown group')} wants to join</span>
           </div>
           <div style="display:flex; gap:8px;">
@@ -7105,7 +7119,7 @@ function renderPreviewTray() {
         const displayName = (window.currentProjectConnectionNicknames || {})[c.id] || otherName || 'Unknown group';
         return `
           <div class="details-item-row" oncontextmenu="openGroupConnectionContextMenu(event, '${c.id}', '${escapeHtml(displayName).replace(/'/g, "\\'")}')">
-            <div class="details-item-avatar" style="background:#14b8a6;">${(displayName || '?').charAt(0).toUpperCase()}</div>
+            <div class="details-item-avatar" style="background:${colorForId(c.id)};">${(displayName || '?').charAt(0).toUpperCase()}</div>
             <span class="details-item-label">${escapeHtml(displayName)}</span>
           </div>
         `;
@@ -7269,13 +7283,13 @@ function renderPreviewTray() {
       if (isOutgoing) {
         const conn = myGroupConnections.find(c => c.id === connectionId);
         const otherName = conn ? (conn.initiatorProjectId === window.currentProjectId ? conn.targetName : conn.initiatorName) : 'connected group';
-        row.innerHTML = `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; margin-left:0;">To ${escapeHtml(otherName || 'connected group')}</div>
+        row.innerHTML = `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; margin-left:0; color:${colorForId(connectionId)};">To ${escapeHtml(otherName || 'connected group')}</div>
           <div class="msg-content-wrap outgoing-wrap">${bubbleHtml}${commentBarHtml}</div>`;
       } else {
-        row.innerHTML = `<div class="xpost-sender-label" style="margin-left:40px;">${escapeHtml(senderLabel)}</div>
+        row.innerHTML = `<div class="xpost-sender-label" style="margin-left:40px; color:${colorForId(connectionId)};">${escapeHtml(senderLabel)}</div>
           <div class="msg-content-wrap incoming-wrap">
             <div class="incoming-content-wrapper">
-              <div class="small-avatar" style="background:#14b8a6;" title="${escapeHtml(senderLabel)}">${senderLabel.charAt(0).toUpperCase()}</div>
+              <div class="small-avatar" style="background:${colorForId(connectionId)};" title="${escapeHtml(senderLabel)}">${senderLabel.charAt(0).toUpperCase()}</div>
               ${bubbleHtml}
             </div>
           </div>${commentBarHtml}`;
