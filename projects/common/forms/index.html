@@ -7376,7 +7376,8 @@
             const projectSnap = await getDoc(doc(db, 'projects', viewProjectId));
             if (projectSnap.exists()) {
               const projectData = projectSnap.data();
-              if (Array.isArray(projectData.members) && projectData.members.includes(user.uid)) {
+              const isRestricted = Array.isArray(projectData.restrictedMembers) && projectData.restrictedMembers.includes(user.uid);
+              if (Array.isArray(projectData.members) && projectData.members.includes(user.uid) && !isRestricted) {
                 window.currentOrgId = projectData.organisationId;
               }
             }
