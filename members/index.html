@@ -232,6 +232,7 @@
         renderCreatorView();
         loadMembers();
         loadJoinRequests();
+        loadPendingInvites();
         return;
       }
 
@@ -254,6 +255,7 @@
           renderCreatorView();
           loadMembers();
           loadJoinRequests();
+          loadPendingInvites();
           return;
         }
       } catch (err) {
@@ -300,11 +302,17 @@
           <div class="card-sub">People a project member wants to add who aren't org-verified yet.</div>
           <div id="joinRequestsList"><div class="empty-state">Loading…</div></div>
         </div>
+
+        <div class="card">
+          <div class="card-title">Pending invitations</div>
+          <div class="card-sub">People you've invited who haven't responded yet — they need to accept from their own diBadge app before they're actually verified.</div>
+          <div id="pendingInvitesList"><div class="empty-state">Loading…</div></div>
+        </div>
         ` : ''}
 
         <div class="card">
-          <div class="card-title">Verify a member</div>
-          <div class="card-sub">They must already have a diBadge personal account. Enter their email to find and verify it.</div>
+          <div class="card-title">Invite a member</div>
+          <div class="card-sub">They must already have a diBadge personal account. Enter their email to find them and send an invitation — they decide whether to accept it from their own app.</div>
           <div class="search-row">
             <input type="email" class="search-input" id="searchEmailInput" placeholder="person@example.com">
             <button class="search-btn" id="searchBtn" onclick="window.handleSearch()">Find</button>
@@ -315,11 +323,8 @@
               <span class="found-email" id="foundEmail"></span>
               <span class="found-type" id="foundType"></span>
             </div>
-            <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Verify &amp; Add</button>
+            <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Send Invite</button>
           </div>
-          <label class="tile-toggle-chip" id="orgAccessChip" style="margin-top:12px; width:fit-content;">
-            <input type="checkbox" id="orgAccessCheckbox"> Allow organisation account access
-          </label>
           <div class="inline-error" id="searchError" style="display:none;"></div>
         </div>
 
@@ -380,32 +385,36 @@
     window.handleVerify = async function() {
       if (!foundUser || !currentOrgId) return;
       const btn = document.getElementById('verifyBtn');
-      const canAccessOrg = document.getElementById('orgAccessCheckbox').checked;
       btn.disabled = true;
-      btn.textContent = 'Adding…';
+      btn.textContent = 'Sending…';
 
       try {
-        await setDoc(doc(db, 'organisations', currentOrgId, 'members', foundUser.uid), {
-          uid: foundUser.uid,
-          email: foundUser.email,
-          status: 'verified',
-          addedByUid: currentUid,
-          addedAt: serverTimestamp(),
-          canAccessOrgAccount: canAccessOrg,
-          isSuperAdmin: false,
-          tileAccess: { projects: false, hr: false, members: false }
+        // Deterministic doc id (the target's own uid) — one active invitation per person
+        // per organisation. Creating this does NOT verify them; they need to accept it
+        // themselves, from their own app, before they're actually a member of anything.
+        const reqRef = doc(db, 'organisations', currentOrgId, 'verificationRequests', foundUser.uid);
+        const existing = await getDoc(reqRef);
+        if (existing.exists() && existing.data().status === 'pending') {
+          const errorEl = document.getElementById('searchError');
+          errorEl.textContent = 'An invitation to this person is already pending.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        await setDoc(reqRef, {
+          initiatedByUid: currentUid,
+          status: 'pending',
+          createdAt: serverTimestamp()
         });
         document.getElementById('foundRow').classList.remove('active');
         document.getElementById('searchEmailInput').value = '';
-        document.getElementById('orgAccessCheckbox').checked = false;
-        loadMembers();
+        loadPendingInvites();
       } catch (err) {
         const errorEl = document.getElementById('searchError');
-        errorEl.textContent = 'Could not add this member — please try again.';
+        errorEl.textContent = 'Could not send the invitation — please try again.';
         errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Verify & Add';
+        btn.textContent = 'Send Invite';
       }
     };
 
@@ -602,6 +611,10 @@
         await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
           status: 'approved'
         });
+        // 4. Denormalized reverse-lookup field, so anything (like the mobile app's own
+        // Members screen) that needs to answer "which org is this uid verified under"
+        // can do it with a single read instead of scanning every organisation's members.
+        await setDoc(doc(db, 'users', request.targetUid), { organisationId: currentOrgId }, { merge: true });
         loadJoinRequests();
         loadMembers();
       } catch (err) {
@@ -615,6 +628,72 @@
           status: 'denied'
         });
         loadJoinRequests();
+      } catch (err) {
+        // Leave it as-is; retry is available.
+      }
+    }
+
+    // ===================== Pending invitations (organisation → specific person) =====================
+    // The organisation invites a specific person to become a verified member — but the
+    // organisation does NOT decide the outcome. Only the invited person can accept or
+    // decline, from their own diBadge app. This card is purely for the org to see who
+    // they've already invited and whether it's still awaiting a response; there's no
+    // approve/decline action here on the web side, since that choice was deliberately
+    // moved to belong to the person being invited, not the org sending the invitation.
+
+    async function loadPendingInvites() {
+      const listEl = document.getElementById('pendingInvitesList');
+      if (!listEl || !currentOrgId) return;
+      try {
+        const q = query(
+          collection(db, 'organisations', currentOrgId, 'verificationRequests'),
+          where('status', '==', 'pending')
+        );
+        const snap = await getDocs(q);
+        if (snap.empty) {
+          listEl.innerHTML = `<div class="empty-state">No pending invitations.</div>`;
+          return;
+        }
+        listEl.innerHTML = '';
+        for (const docSnap of snap.docs) {
+          const targetUid = docSnap.id;
+          let label = targetUid;
+          try {
+            const userSnap = await getDoc(doc(db, 'users', targetUid));
+            if (userSnap.exists()) label = userSnap.data().email || userSnap.data().phoneNumber || label;
+          } catch (err) {
+            // Falls back to showing the raw uid — not fatal.
+          }
+          const row = document.createElement('div');
+          row.className = 'member-row';
+          row.innerHTML = `
+            <div class="member-row-top">
+              <div class="member-info">
+                <div class="member-avatar">${(label || '?').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div class="member-email">${label}</div>
+                  <div class="member-status" style="color: var(--subtext-color);">Awaiting their response</div>
+                </div>
+              </div>
+              <button class="remove-member-btn" title="Cancel invitation">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          `;
+          row.querySelector('.remove-member-btn').onclick = () => cancelPendingInvite(targetUid);
+          listEl.appendChild(row);
+        }
+      } catch (err) {
+        listEl.innerHTML = `<div class="empty-state">Couldn't load invitations.</div>`;
+      }
+    }
+
+    async function cancelPendingInvite(targetUid) {
+      // Withdrawing an invitation the org sent is still the org's own call to make — this
+      // just removes the pending request, it doesn't touch anyone's actual membership.
+      try {
+        await deleteDoc(doc(db, 'organisations', currentOrgId, 'verificationRequests', targetUid));
+        loadPendingInvites();
       } catch (err) {
         // Leave it as-is; retry is available.
       }
