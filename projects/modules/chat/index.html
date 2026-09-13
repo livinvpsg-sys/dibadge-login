@@ -2012,16 +2012,31 @@ html, body {
     }
     .xpost-comment-icon-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .xpost-comment-icon-btn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .xpost-comment-unread-badge {
+      display: none;
+      background: #ff3b30;
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      padding: 0 4px;
+      align-items: center;
+      justify-content: center;
+      margin-left: 2px;
+    }
+    .xpost-comment-unread-badge.active { display: inline-flex; }
     .xpost-comment-thread-panel {
       display: none;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       margin-top: 6px;
       background: var(--slate-surface, #1e1e1e);
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      padding: 10px;
-      width: 280px;
+      padding: 12px;
+      width: 320px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
     }
     .xpost-comment-thread-panel.active { display: flex; }
@@ -2095,9 +2110,9 @@ html, body {
     .comment-item { color: var(--text-color); line-height: 1.4; flex: 1; min-width: 0; }
     .comment-header { display: flex; align-items: baseline; gap: 6px; }
     .comment-author-group { color: var(--subtext-color); font-size: 0.68rem; font-weight: 400; }
-    .comment-body { margin-top: 2px; font-size: 0.9rem; }
+    .comment-body { margin-top: 2px; font-size: 1rem; }
     .comment-author { font-weight: 700; color: var(--text-color); font-size: 0.68rem; }
-    .comment-time { font-size: 0.65rem; color: var(--subtext-color); margin-left: 6px; }
+    .comment-time { font-size: 0.72rem; color: var(--subtext-color); margin-left: 6px; }
     .comment-edited-label { font-size: 0.65rem; color: var(--subtext-color); font-style: italic; }
     .comment-empty { font-size: 0.78rem; color: var(--subtext-color); font-style: italic; }
 
@@ -2155,10 +2170,10 @@ html, body {
       min-width: 0;
       background: var(--input-bg, #2a2a2a);
       border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 6px 12px;
+      border-radius: 18px;
+      padding: 8px 14px;
       color: var(--text-color);
-      font-size: 0.78rem;
+      font-size: 0.92rem;
       outline: none;
     }
     .comment-input::placeholder { color: var(--subtext-color); }
@@ -2173,7 +2188,7 @@ html, body {
       align-items: center;
       justify-content: center;
     }
-    .comment-send-btn svg { width: 18px; height: 18px; }
+    .comment-send-btn svg { width: 21px; height: 21px; }
     .comment-send-btn:hover { opacity: 0.8; }
     .comment-emoji-btn {
       background: transparent;
@@ -2186,7 +2201,7 @@ html, body {
       align-items: center;
       justify-content: center;
     }
-    .comment-emoji-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+    .comment-emoji-btn svg { width: 21px; height: 21px; stroke: currentColor; stroke-width: 1.8; fill: none; }
     .comment-emoji-btn:hover { color: var(--text-color); }
     .comment-react-btn {
       background: transparent;
@@ -4417,14 +4432,16 @@ function renderPreviewTray() {
               const holder = document.createElement('div');
               holder.innerHTML = `
                 <div class="xpost-comment-bar">
-                  <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${c.id}', '${xpostId}')">
+                  <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${c.id}', '${xpostId}', event)">
                     <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     <span id="xpost-comment-count-${xpostId}">Comment</span>
+                    <span class="xpost-comment-unread-badge" id="xpost-comment-badge-${xpostId}"></span>
                   </button>
                 </div>
                 <div class="xpost-comment-thread-panel" id="xpost-comments-${xpostId}" onclick="event.stopPropagation()"></div>
               `;
               while (holder.firstChild) wrap.appendChild(holder.firstChild);
+              setupCrossPostCommentBadge(c.id, xpostId);
               return; // one shared thread is enough for the common case of one mentioned group
             }
           } catch (err) {
@@ -5020,6 +5037,29 @@ function renderPreviewTray() {
       commitEmojiRecents(); // flush this session's picks to storage, same as the Kotlin commitRecents()
     }
 
+    // Positions the emoji picker beside the message bubble a comment belongs to, rather than
+    // at the click point — which was landing on top of the comment input, hiding exactly what
+    // you're trying to pick. Right of the bubble for an incoming message, left for outgoing —
+    // whichever side keeps it clear of the comment box that sits directly below the bubble.
+    function openCommentEmojiPicker(event, messageId, inputId) {
+      if (event) event.stopPropagation();
+      const panel = document.getElementById('xpost-comments-' + messageId);
+      const row = panel ? panel.closest('.message-row') : null;
+      const EMOJI_PICKER_WIDTH = 460;
+      let x, y;
+      if (row) {
+        const bubble = row.querySelector('.msg-bubble') || row;
+        const rect = bubble.getBoundingClientRect();
+        const isOutgoing = row.classList.contains('outgoing');
+        x = isOutgoing ? (rect.left - EMOJI_PICKER_WIDTH - 10) : (rect.right + 10);
+        y = rect.bottom;
+      } else {
+        x = event ? event.clientX : 100;
+        y = event ? event.clientY : 100;
+      }
+      openEmojiPickerPanel(x, y, 'insert-plain', inputId);
+    }
+
     window.addEventListener('click', function(e) {
       const panel = document.getElementById('emojiPickerPanel');
       if (panel.classList.contains('active') && !panel.contains(e.target)) {
@@ -5528,6 +5568,19 @@ function renderPreviewTray() {
       panel.classList.remove('active');
       markCommentsRead(openCommentPanelId);
       openCommentPanelId = null;
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!openCrossPostPanelKey) return;
+      const messageId = openCrossPostPanelKey.split('::')[1];
+      const panel = document.getElementById('xpost-comments-' + messageId);
+      if (!panel) return;
+      if (panel.contains(e.target)) return; // clicks inside the panel itself (typing, sending) don't close it
+      const wrap = panel.closest('.msg-content-wrap');
+      if (wrap && wrap.contains(e.target)) return; // the toggle button that opened it also shouldn't close it via bubbling
+      panel.classList.remove('active');
+      if (crossPostCommentUnsub) { crossPostCommentUnsub(); crossPostCommentUnsub = null; }
+      openCrossPostPanelKey = null;
     });
 
     let editingCommentKey = null; // "<messageId>::<index>" of the comment currently being edited inline
@@ -6945,9 +6998,10 @@ function renderPreviewTray() {
 
       const commentBarHtml = `
         <div class="xpost-comment-bar">
-          <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${connectionId}', '${messageId}')">
+          <button class="xpost-comment-icon-btn" onclick="toggleCrossPostComments('${connectionId}', '${messageId}', event)">
             <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             <span id="xpost-comment-count-${messageId}">Comment</span>
+            <span class="xpost-comment-unread-badge" id="xpost-comment-badge-${messageId}"></span>
           </button>
         </div>
         <div class="xpost-comment-thread-panel" id="xpost-comments-${messageId}" onclick="event.stopPropagation()"></div>
@@ -6966,6 +7020,7 @@ function renderPreviewTray() {
             </div>
           </div>${commentBarHtml}`;
       }
+      setupCrossPostCommentBadge(connectionId, messageId);
       return row;
     }
 
@@ -6978,7 +7033,45 @@ function renderPreviewTray() {
     let openCrossPostPanelKey = null; // `${connectionId}::${messageId}` of the currently open thread
     let crossPostCommentUnsub = null;
 
-    function toggleCrossPostComments(connectionId, messageId) {
+    function xpostSeenKey(messageId) { return 'dibadge_xpost_seen_' + messageId; }
+
+    // Lightweight, persistent from the moment a comment bar is created (not just while its
+    // panel happens to be open) — this is what makes the count/unread-badge always visible
+    // rather than only appearing after someone has clicked in at least once.
+    function setupCrossPostCommentBadge(connectionId, messageId) {
+      const { db, collection, onSnapshot } = window.chatFns;
+      onSnapshot(collection(db, 'groupConnections', connectionId, 'messages', messageId, 'comments'), snapshot => {
+        const total = snapshot.size;
+        const countEl = document.getElementById('xpost-comment-count-' + messageId);
+        const badgeEl = document.getElementById('xpost-comment-badge-' + messageId);
+        if (!countEl) return; // row no longer on screen
+
+        const key = connectionId + '::' + messageId;
+        const isOpen = openCrossPostPanelKey === key;
+        const seen = parseInt(localStorage.getItem(xpostSeenKey(messageId)) || '0', 10);
+
+        if (isOpen) {
+          // Actively viewing it right now — always counts as read, including anything that
+          // just arrived while the panel is open.
+          localStorage.setItem(xpostSeenKey(messageId), String(total));
+          countEl.textContent = total > 0 ? `${total} ${total === 1 ? 'comment' : 'comments'}` : 'Comment';
+          if (badgeEl) badgeEl.classList.remove('active');
+          return;
+        }
+
+        const unread = Math.max(0, total - seen);
+        if (unread > 0) {
+          countEl.textContent = 'Comment';
+          if (badgeEl) { badgeEl.textContent = unread > 9 ? '9+' : String(unread); badgeEl.classList.add('active'); }
+        } else {
+          countEl.textContent = total > 0 ? `${total} ${total === 1 ? 'comment' : 'comments'}` : 'Comment';
+          if (badgeEl) badgeEl.classList.remove('active');
+        }
+      });
+    }
+
+    function toggleCrossPostComments(connectionId, messageId, event) {
+      if (event) event.stopPropagation();
       const key = connectionId + '::' + messageId;
       const panel = document.getElementById('xpost-comments-' + messageId);
       if (!panel) return;
@@ -6998,6 +7091,9 @@ function renderPreviewTray() {
 
       panel.classList.add('active');
       openCrossPostPanelKey = key;
+      // Opening counts as reading everything currently there — the persistent badge listener
+      // above will pick this up on its very next snapshot and clear the unread state.
+      localStorage.setItem(xpostSeenKey(messageId), '999999');
 
       const { db, collection, query, orderBy, onSnapshot } = window.chatFns;
       crossPostCommentUnsub = onSnapshot(
@@ -7005,6 +7101,7 @@ function renderPreviewTray() {
         snapshot => {
           const comments = snapshot.docs.map(d => d.data());
           renderCrossPostCommentThread(connectionId, messageId, comments);
+          localStorage.setItem(xpostSeenKey(messageId), String(comments.length));
           const countEl = document.getElementById('xpost-comment-count-' + messageId);
           if (countEl) countEl.textContent = comments.length > 0 ? `${comments.length} ${comments.length === 1 ? 'comment' : 'comments'}` : 'Comment';
         }
@@ -7024,7 +7121,7 @@ function renderPreviewTray() {
           `).join('') : '<div class="comment-empty">No comments yet</div>'}
         </div>
         <div class="comment-input-row">
-          <button class="comment-emoji-btn" onclick="openEmojiPickerPanel(event.clientX, event.clientY, 'insert-plain', 'xpost-comment-input-${messageId}')" title="Emoji">
+          <button class="comment-emoji-btn" onclick="openCommentEmojiPicker(event, '${messageId}', 'xpost-comment-input-${messageId}')" title="Emoji">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
           </button>
           <input type="text" class="comment-input" id="xpost-comment-input-${messageId}" placeholder="Write a comment..." onkeydown="if(event.key==='Enter'){event.preventDefault(); addCrossPostComment('${connectionId}', '${messageId}');}">
