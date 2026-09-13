@@ -2840,6 +2840,19 @@ html, body {
     </div>
   </div>
 
+  <!-- Remove member/group confirmation modal — same visual style as the other confirm
+       modals in this file, replacing the native browser confirm() dialog. -->
+  <div class="group-modal-overlay" id="removeTargetOverlay" onclick="closeRemoveTargetModal()">
+    <div class="group-modal-box" onclick="event.stopPropagation()">
+      <div class="group-modal-title" id="removeTargetTitle">Remove</div>
+      <div class="group-modal-message" id="removeTargetMessage"></div>
+      <div class="group-modal-actions">
+        <button class="group-modal-cancel-btn" onclick="closeRemoveTargetModal()">Cancel</button>
+        <button class="group-modal-ok-btn danger" onclick="executeRemoveTarget()">Remove</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Form right-click menu (Remove) -->
   <div class="group-context-menu" id="formContextMenu"></div>
 
@@ -5373,9 +5386,9 @@ function renderPreviewTray() {
     // so renaming someone there is immediately reflected in the mention picker too.
     let cachedResolvedMembers = [];
     function getMentionableProjectMembers() {
-      const members = cachedResolvedMembers.map(r => ({
-        id: r.uid, label: r.label, insertText: r.label, color: '#5c6bc0'
-      }));
+      const members = cachedResolvedMembers
+        .filter(r => r.uid !== window.currentUid) // mentioning yourself doesn't make sense
+        .map(r => ({ id: r.uid, label: r.label, insertText: r.label, color: '#5c6bc0' }));
       return [{ id: 'all-members', label: 'All', insertText: 'All', color: '#607d8b' }, ...members];
     }
 
@@ -6085,14 +6098,22 @@ function renderPreviewTray() {
       if (!contextMenuTarget) return;
       const isMember = contextMenuTarget.type === 'member';
       const label = contextMenuTarget.label || (isMember ? 'this member' : 'this group');
-      const ok = window.confirm(
-        isMember
-          ? `Remove ${label}? They'll keep seeing this chat as it was up to now, but won't be able to open Forms or Folders anymore.`
-          : `Remove the connection to ${label}? Existing messages stay visible to both sides, but no new messages can be sent between the groups.`
-      );
-      if (!ok) return;
+      document.getElementById('removeTargetTitle').textContent = isMember ? 'Remove Member' : 'Remove Group';
+      document.getElementById('removeTargetMessage').textContent = isMember
+        ? `Remove ${label}? They'll keep seeing this chat as it was up to now, but won't be able to open Forms or Folders anymore.`
+        : `Remove the connection to ${label}? Existing messages stay visible to both sides, but no new messages can be sent between the groups.`;
+      document.getElementById('removeTargetOverlay').classList.add('active');
+    }
 
-      const { db, doc, updateDoc, arrayUnion } = window.chatFns;
+    function closeRemoveTargetModal() {
+      document.getElementById('removeTargetOverlay').classList.remove('active');
+    }
+
+    function executeRemoveTarget() {
+      if (!contextMenuTarget) return;
+      closeRemoveTargetModal();
+      const isMember = contextMenuTarget.type === 'member';
+      const { db, doc, updateDoc, arrayUnion, deleteField } = window.chatFns;
       if (isMember) {
         updateDoc(doc(db, 'projects', window.currentProjectId), { restrictedMembers: arrayUnion(contextMenuTarget.id) })
           .then(() => {
@@ -6102,7 +6123,15 @@ function renderPreviewTray() {
           })
           .catch(() => { alert('Could not remove — please try again.'); });
       } else {
+        // Clears any local nickname along with the removal — reconnecting to this same group
+        // later should show its real name again, not whatever it was last renamed to here.
         updateDoc(doc(db, 'groupConnections', contextMenuTarget.id), { status: 'removed' })
+          .then(() => updateDoc(doc(db, 'projects', window.currentProjectId), {
+            [`connectionNicknames.${contextMenuTarget.id}`]: deleteField()
+          }))
+          .then(() => {
+            if (window.currentProjectConnectionNicknames) delete window.currentProjectConnectionNicknames[contextMenuTarget.id];
+          })
           .catch(() => { alert('Could not remove — please try again.'); });
       }
     }
@@ -6753,6 +6782,19 @@ function renderPreviewTray() {
           return;
         }
 
+        // The groupCodes document only ever stores a snapshot of the project's name from
+        // whenever the code was first generated — if the project's real name has changed
+        // since, that snapshot goes stale. Fetching the live project name here instead means
+        // a search always shows (and connects using) whatever the name actually is right now.
+        try {
+          const liveProjectSnap = await getDoc(doc(db, 'projects', target.projectId));
+          if (liveProjectSnap.exists() && liveProjectSnap.data().client) {
+            target.name = liveProjectSnap.data().client;
+          }
+        } catch (err) {
+          // Falls back to the snapshot name in groupCodes — not fatal.
+        }
+
         groupCodeLookupResult = target;
         statusEl.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -6846,9 +6888,10 @@ function renderPreviewTray() {
           const email = userSnap.exists() ? (userSnap.data().email || userSnap.data().phoneNumber || uid) : uid;
           const isSuperAdmin = memberSnap.exists() && memberSnap.data().isSuperAdmin === true;
           const isCreator = uid === orgCreatorUid;
-          return { uid, label: (window.currentProjectMemberNicknames || {})[uid] || email, isSuperAdmin, isCreator, isRestricted: (window.currentProjectRestrictedMembers || []).includes(uid) };
+          const label = uid === window.currentUid ? 'You' : ((window.currentProjectMemberNicknames || {})[uid] || email);
+          return { uid, label, isSuperAdmin, isCreator, isRestricted: (window.currentProjectRestrictedMembers || []).includes(uid) };
         } catch (err) {
-          return { uid, label: (window.currentProjectMemberNicknames || {})[uid] || uid, isSuperAdmin: false, isCreator: false, isRestricted: false };
+          return { uid, label: uid === window.currentUid ? 'You' : ((window.currentProjectMemberNicknames || {})[uid] || uid), isSuperAdmin: false, isCreator: false, isRestricted: false };
         }
       }));
       cachedResolvedMembers = rows;
@@ -7428,7 +7471,7 @@ function renderPreviewTray() {
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
     import {
-      getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp
+      getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp, deleteField
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
     import {
       getStorage, ref, uploadBytes, getDownloadURL
@@ -7451,7 +7494,7 @@ function renderPreviewTray() {
 
     // Exposed so the plain (non-module) script above — which holds all the existing chat
     // UI logic — can read/write Firestore and Storage without becoming one giant module.
-    window.chatFns = { db, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL };
+    window.chatFns = { db, doc, getDoc, setDoc, updateDoc, collection, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp, storage, ref, uploadBytes, getDownloadURL, deleteField };
 
     onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
