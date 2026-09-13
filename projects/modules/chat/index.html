@@ -267,6 +267,20 @@ html, body {
       flex-shrink: 0;
     }
     @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    /* Connect / Accept / Decline etc. — these had no styling at all before, rendering as
+       plain default browser buttons (square corners, system outline). */
+    .modal-btn {
+      border: none;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .modal-btn.btn-save { background: #14b8a6; color: #fff; }
+    .modal-btn.btn-save:hover { background: #0d9488; }
+    .modal-btn.btn-cancel { background: var(--bg-color); color: var(--text-color); }
+    .modal-btn.btn-cancel:hover { background: var(--border-color); }
+
     .details-panel-add-btn {
       background: transparent;
       border: none;
@@ -3656,7 +3670,7 @@ function renderPreviewTray() {
           const docRow = document.createElement('div');
           docRow.className = 'message-row outgoing';
           docRow.setAttribute('data-id', docMessageId);
-          docRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">
+          docRow.innerHTML = `${(isLast && mentionedGroups.length > 0) ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}<div class="msg-content-wrap outgoing-wrap">
             ${thisHoverHtml}
             <div class="msg-bubble outgoing media-bubble">
               ${thisQuoted}
@@ -3769,11 +3783,12 @@ function renderPreviewTray() {
           `;
         }
 
-        messageRow.innerHTML = `<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
+        messageRow.innerHTML = `${mentionedGroups.length > 0 ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}<div class="msg-content-wrap outgoing-wrap">${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}<div class="msg-bubble outgoing media-bubble">${contentLayout}</div></div>`;
       } else {
         // Text-only message — renders bubble-less if it's just emoji (1-12), WhatsApp-style
         const isEmojiOnly = isEmojiOnlyText(text);
         messageRow.innerHTML = `
+          ${mentionedGroups.length > 0 ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : ''}
           <div class="msg-content-wrap outgoing-wrap">
             ${mentionedGroups.length > 0 ? '' : buildHoverActionsHtml(messageId)}
             <div class="msg-bubble outgoing${isEmojiOnly ? ' emoji-only' : ''}">
@@ -5092,13 +5107,20 @@ function renderPreviewTray() {
       const panel = document.getElementById('xpost-comments-' + messageId);
       const row = panel ? panel.closest('.message-row') : null;
       const EMOJI_PICKER_WIDTH = 460;
+      const EMOJI_PICKER_HEIGHT = 380;
       let x, y;
       if (row) {
         const bubble = row.querySelector('.msg-bubble') || row;
         const rect = bubble.getBoundingClientRect();
         const isOutgoing = row.classList.contains('outgoing');
         x = isOutgoing ? (rect.left - EMOJI_PICKER_WIDTH - 10) : (rect.right + 10);
-        y = rect.bottom;
+        // Anchoring the picker's bottom to the bubble's bottom (opening upward) only works if
+        // there's actually room above it — for a message near the top of the chat feed (like
+        // the very first message, or right after scrolling up), that clamps the picker up
+        // against the header instead of sitting beside the bubble. Opens downward from the
+        // bubble's top instead whenever there isn't enough room above.
+        const hasRoomAbove = rect.bottom >= EMOJI_PICKER_HEIGHT + 16;
+        y = hasRoomAbove ? rect.bottom : (rect.top + EMOJI_PICKER_HEIGHT);
       } else {
         x = event ? event.clientX : 100;
         y = event ? event.clientY : 100;
@@ -5843,6 +5865,8 @@ function renderPreviewTray() {
       const hoverHtml = (msg.mentionedGroups && msg.mentionedGroups.length > 0) ? '' : buildHoverActionsHtml(msg.id);
       const ticksHtml = msg.isOutgoing ? `<span class="msg-ticks" id="ticks-${msg.id}"></span>` : '';
       const editedHtml = msg.edited ? `<span class="edited-label">Edited</span>` : '';
+      const youLabelHtml = (msg.isOutgoing && msg.mentionedGroups && msg.mentionedGroups.length > 0)
+        ? '<div class="xpost-sender-label" style="text-align:right; margin-right:40px;">You</div>' : '';
 
       if (msg.kind === 'text') {
         const isEmojiOnly = isEmojiOnlyText(msg.text);
@@ -5852,7 +5876,7 @@ function renderPreviewTray() {
           <span class="msg-meta-row">${editedHtml}${msg.time} ${ticksHtml}</span>
         </div>`;
         if (msg.isOutgoing) {
-          row.innerHTML = `<span class="sender-name" style="display:none;"></span>
+          row.innerHTML = `${youLabelHtml}<span class="sender-name" style="display:none;"></span>
             <div class="msg-content-wrap ${wrapClass}">${hoverHtml}${bubbleHtml}</div>`;
         } else {
           row.innerHTML = `<span class="sender-name">John</span>
@@ -5883,7 +5907,7 @@ function renderPreviewTray() {
           ${captionHtml}
           <div class="media-time-row">${msg.time} ${ticksHtml}</div>
         </div>`;
-        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
+        row.innerHTML = `${youLabelHtml}<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
       } else if (msg.kind === 'document') {
         const ext = (msg.fileName || '').split('.').pop().toLowerCase();
         let badgeColor = '#607d8b', label = ext ? ext.toUpperCase() : 'FILE';
@@ -5900,7 +5924,7 @@ function renderPreviewTray() {
           </div>
           <div class="doc-time-row">${msg.time} ${ticksHtml}</div>
         </div>`;
-        row.innerHTML = `<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
+        row.innerHTML = `${youLabelHtml}<div class="msg-content-wrap ${msg.isOutgoing ? 'outgoing-wrap' : 'incoming-wrap'}">${hoverHtml}${bubbleHtml}</div>`;
       }
 
       if (msg.isOutgoing) updateTicksUI(msg.id);
@@ -7197,7 +7221,8 @@ function renderPreviewTray() {
         row.innerHTML = `<div class="xpost-sender-label" style="text-align:right; margin-right:40px; margin-left:0;">To ${escapeHtml(otherName || 'connected group')}</div>
           <div class="msg-content-wrap outgoing-wrap">${bubbleHtml}${commentBarHtml}</div>`;
       } else {
-        row.innerHTML = `<div class="msg-content-wrap incoming-wrap">
+        row.innerHTML = `<div class="xpost-sender-label" style="margin-left:40px;">${escapeHtml(senderLabel)}</div>
+          <div class="msg-content-wrap incoming-wrap">
             <div class="incoming-content-wrapper">
               <div class="small-avatar" style="background:#14b8a6;" title="${escapeHtml(senderLabel)}">${senderLabel.charAt(0).toUpperCase()}</div>
               ${bubbleHtml}
