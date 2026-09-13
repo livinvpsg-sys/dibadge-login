@@ -6739,7 +6739,7 @@ function renderPreviewTray() {
         }
         const alreadyConnected = myGroupConnections.some(c =>
           (c.initiatorProjectId === target.projectId || c.targetProjectId === target.projectId) &&
-          c.status !== 'declined'
+          c.status !== 'declined' && c.status !== 'removed'
         );
         if (alreadyConnected) {
           statusEl.textContent = 'A request with this group already exists.';
