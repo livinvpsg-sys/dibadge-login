@@ -60,28 +60,25 @@
     .tab-btn:hover { background: var(--bg-color); color: var(--text-color); }
     .tab-btn.active { background: var(--bg-color); color: var(--text-color); }
 
-    .page-body-scroll { flex: 1; overflow-y: auto; }
-
-    /* Custom scrollbar, themed to match — the default browser scrollbar was staying a fixed
-       dark color regardless of theme. */
-    .page-body-scroll::-webkit-scrollbar, .activity-feed-panel::-webkit-scrollbar, .wa-list::-webkit-scrollbar { width: 10px; }
-    .page-body-scroll::-webkit-scrollbar-track, .activity-feed-panel::-webkit-scrollbar-track, .wa-list::-webkit-scrollbar-track { background: transparent; }
-    .page-body-scroll::-webkit-scrollbar-thumb, .activity-feed-panel::-webkit-scrollbar-thumb, .wa-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
-    .page-body-scroll::-webkit-scrollbar-thumb:hover, .activity-feed-panel::-webkit-scrollbar-thumb:hover, .wa-list::-webkit-scrollbar-thumb:hover { background: var(--subtext-color); }
+    .member-detail-panel::-webkit-scrollbar, .activity-feed-panel::-webkit-scrollbar, .wa-list::-webkit-scrollbar { width: 10px; }
+    .member-detail-panel::-webkit-scrollbar-track, .activity-feed-panel::-webkit-scrollbar-track, .wa-list::-webkit-scrollbar-track { background: transparent; }
+    .member-detail-panel::-webkit-scrollbar-thumb, .activity-feed-panel::-webkit-scrollbar-thumb, .wa-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+    .member-detail-panel::-webkit-scrollbar-thumb:hover, .activity-feed-panel::-webkit-scrollbar-thumb:hover, .wa-list::-webkit-scrollbar-thumb:hover { background: var(--subtext-color); }
     * { scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
 
     .sidebar-fab {
       margin-top: auto;
       width: 44px; height: 44px;
-      border-radius: 50%;
-      background: var(--accent-teal);
-      color: #04211d;
+      border-radius: 10px;
+      background: var(--paper-white, #f8f9fa);
+      color: var(--jet-black, #0f0f0f);
       border: none;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: all 0.2s;
     }
-    .sidebar-fab:hover { background: #0d9488; }
+    .sidebar-fab:hover { opacity: 0.9; transform: scale(1.05); }
     .sidebar-fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
 
     @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
@@ -107,9 +104,33 @@
     .activity-feed-desc { font-size: 0.78rem; color: var(--subtext-color); line-height: 1.4; }
     .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
 
-    .page-body { max-width: 640px; margin: 0 auto; padding: 0; }
+    /* Master-detail layout, matching chat's own panel widths exactly: the member list is
+       sized like chat's own details panel (330px), and the detail pane takes the remaining
+       space the same way chat's main message area does. */
+    .member-list-panel {
+      width: 330px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+    .member-detail-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+    .member-detail-empty {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--subtext-color);
+      font-size: 0.9rem;
+      text-align: center;
+    }
 
-    .wa-search-bar-wrap { position: sticky; top: 0; background: var(--bg-color); padding: 16px 20px 10px 20px; z-index: 5; }
+    .wa-search-bar-wrap { padding: 16px 16px 10px 16px; flex-shrink: 0; }
     .wa-search-input {
       width: 100%;
       padding: 10px 14px;
@@ -122,37 +143,42 @@
     }
     .wa-search-input:focus { border-color: var(--accent-teal); }
 
-    .wa-filter-pills { display: flex; gap: 8px; padding: 10px 20px 4px 20px; }
+    .wa-filter-pills { display: flex; gap: 8px; padding: 10px 16px 4px 16px; flex-shrink: 0; }
     .wa-pill {
       padding: 6px 14px;
       border-radius: 16px;
-      background: var(--surface-color);
+      background: transparent;
       border: 1px solid var(--border-color);
       color: var(--subtext-color);
+      opacity: 0.55;
       font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
+      transition: all 0.15s;
     }
-    .wa-pill.active { background: var(--accent-teal); border-color: var(--accent-teal); color: #04211d; }
+    .wa-pill:hover { opacity: 0.8; }
+    .wa-pill.active { background: var(--accent-teal); border-color: var(--accent-teal); color: #04211d; opacity: 1; }
 
-    .wa-list { padding: 8px 0 24px 0; }
+    .wa-list { flex: 1; overflow-y: auto; padding: 8px 0 24px 0; }
     .wa-row {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 12px 20px;
+      gap: 12px;
+      padding: 10px 16px;
       cursor: pointer;
     }
     .wa-row:hover { background: var(--surface-color); }
+    .wa-row.selected { background: var(--surface-color); }
     .wa-avatar {
-      width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
       background: var(--accent-teal); color: #04211d;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 1.05rem;
+      font-weight: 700; font-size: 1rem;
     }
+    .wa-avatar.large { width: 64px; height: 64px; font-size: 1.4rem; }
     .wa-row-info { flex: 1; min-width: 0; }
-    .wa-row-name { font-size: 0.94rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wa-row-name { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .wa-badge {
       display: inline-block;
       margin-top: 3px;
@@ -167,13 +193,9 @@
     .wa-badge.pending { background: rgba(255,179,0,0.15); color: #ffb300; }
     .wa-badge.unverified { background: var(--bg-color); color: var(--subtext-color); }
 
-    .wa-row-expand {
-      padding: 4px 20px 16px 80px;
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .wa-row-expand.active { display: flex; }
+    .member-detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .member-detail-name { font-size: 1.2rem; font-weight: 700; }
+    .member-detail-actions { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
 
     .wa-empty { text-align: center; padding: 40px 20px; color: var(--subtext-color); font-size: 0.85rem; }
 
@@ -322,10 +344,12 @@
         </button>
       </aside>
 
-      <div class="page-body-scroll">
-        <div class="page-body" id="pageBody">
-          <!-- Filled in once we know the signed-in user's role -->
-        </div>
+      <div class="member-list-panel" id="pageBody">
+        <!-- Filled in once we know the signed-in user's role -->
+      </div>
+
+      <div class="member-detail-panel" id="memberDetailPanel">
+        <div class="member-detail-empty">Select a member to view details.</div>
       </div>
 
       <aside class="activity-feed-panel">
@@ -605,7 +629,7 @@
 
     let allMemberRows = []; // [{ uid, email, status, pendingType?, requestId?, sortTime, data }]
     let currentFilter = 'all';
-    let expandedRowUid = null;
+    let selectedMemberUid = null;
 
     function escapeHtmlLocal(str) {
       const div = document.createElement('div');
@@ -723,40 +747,41 @@
         const badgeLabel = r.uid === orgCreatorUid ? 'Founder'
           : r.status === 'pending' ? 'Pending'
           : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
-        const rowWrap = document.createElement('div');
-        rowWrap.innerHTML = `
-          <div class="wa-row" data-uid="${r.uid}">
-            <div class="wa-avatar">${(r.email || '?').charAt(0).toUpperCase()}</div>
-            <div class="wa-row-info">
-              <div class="wa-row-name">${escapeHtmlLocal(r.email || r.uid)}</div>
-              <span class="wa-badge ${r.status}">${badgeLabel}</span>
-            </div>
+        const row = document.createElement('div');
+        row.className = 'wa-row' + (selectedMemberUid === r.uid ? ' selected' : '');
+        row.dataset.uid = r.uid;
+        row.innerHTML = `
+          <div class="wa-avatar">${(r.email || '?').charAt(0).toUpperCase()}</div>
+          <div class="wa-row-info">
+            <div class="wa-row-name">${escapeHtmlLocal(r.email || r.uid)}</div>
+            <span class="wa-badge ${r.status}">${badgeLabel}</span>
           </div>
-          <div class="wa-row-expand" id="expand-${r.uid}"></div>
         `;
-        rowWrap.querySelector('.wa-row').onclick = () => toggleMemberRowExpand(r);
-        listEl.appendChild(rowWrap);
+        row.onclick = () => selectMember(r);
+        listEl.appendChild(row);
       });
 
-      if (expandedRowUid) {
-        const match = rows.find(r => r.uid === expandedRowUid);
-        if (match) renderExpandedRowContent(match);
-        else expandedRowUid = null;
+      // Keep the detail pane in sync with the list — if the selected member fell out of
+      // the current filter/search, or their data changed, refresh or clear accordingly.
+      if (selectedMemberUid) {
+        const match = allMemberRows.find(r => r.uid === selectedMemberUid);
+        if (match) renderMemberDetailPane(match);
+        else clearMemberSelection();
       }
     }
 
-    function toggleMemberRowExpand(r) {
-      const expandEl = document.getElementById('expand-' + r.uid);
-      if (!expandEl) return;
-      if (expandedRowUid === r.uid) {
-        expandEl.classList.remove('active');
-        expandEl.innerHTML = '';
-        expandedRowUid = null;
-        return;
-      }
-      document.querySelectorAll('.wa-row-expand.active').forEach(el => { el.classList.remove('active'); el.innerHTML = ''; });
-      expandedRowUid = r.uid;
-      renderExpandedRowContent(r);
+    function selectMember(r) {
+      selectedMemberUid = r.uid;
+      document.querySelectorAll('.wa-row').forEach(el => {
+        el.classList.toggle('selected', el.dataset.uid === r.uid);
+      });
+      renderMemberDetailPane(r);
+    }
+
+    function clearMemberSelection() {
+      selectedMemberUid = null;
+      document.getElementById('memberDetailPanel').innerHTML =
+        '<div class="member-detail-empty">Select a member to view details.</div>';
     }
 
     // Founder — unrestricted over everyone. Super Admin — can manage anyone except the
@@ -771,23 +796,41 @@
       return !r.data.isSuperAdmin;
     }
 
-    function renderExpandedRowContent(r) {
-      const expandEl = document.getElementById('expand-' + r.uid);
-      if (!expandEl) return;
-      expandEl.classList.add('active');
+    function renderMemberDetailPane(r) {
+      const panel = document.getElementById('memberDetailPanel');
+      if (!panel) return;
+
+      const badgeLabel = r.uid === orgCreatorUid ? 'Founder'
+        : r.status === 'pending' ? 'Pending'
+        : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
+
+      const headerHtml = `
+        <div class="member-detail-header">
+          <div class="wa-avatar large">${(r.email || '?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="member-detail-name">${escapeHtmlLocal(r.email || r.uid)}</div>
+            <span class="wa-badge ${r.status}">${badgeLabel}</span>
+          </div>
+        </div>
+      `;
 
       if (r.uid === orgCreatorUid) {
-        expandEl.innerHTML = `<div style="font-size:0.82rem; color:var(--subtext-color);">The founder — always verified, and not manageable from this screen by anyone, including themselves.</div>`;
+        panel.innerHTML = headerHtml + `
+          <div class="member-detail-actions">
+            <div style="font-size:0.85rem; color:var(--subtext-color);">The founder — always verified, and not manageable from this screen by anyone, including themselves.</div>
+          </div>
+        `;
         return;
       }
 
       const canManage = canManageMember(r);
+      let bodyHtml = '';
 
       if (r.status === 'verified') {
         const tileAccess = r.data.tileAccess || {};
         const canAccessOrg = !!r.data.canAccessOrgAccount;
         const isSuper = !!r.data.isSuperAdmin;
-        expandEl.innerHTML = `
+        bodyHtml = `
           <label class="tile-toggle-chip${canAccessOrg ? ' active' : ''}" style="width:fit-content;">
             <input type="checkbox" ${canAccessOrg ? 'checked' : ''} ${canManage ? '' : 'disabled'}> Organisation account access
           </label>
@@ -797,12 +840,39 @@
           </label>` : ''}
           <div class="tile-access-row" id="tileRow-${r.uid}" style="border-top:none; padding-top:0;"></div>
           ${canManage ? `
-          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:6px 12px; gap:6px; display:flex; align-items:center;" title="Remove">
+          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; gap:6px; display:flex; align-items:center;" title="Remove">
             <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
             Remove
-          </button>` : `<div style="font-size:0.78rem; color:var(--subtext-color);">${isSuper ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`}
+          </button>` : `<div style="font-size:0.82rem; color:var(--subtext-color);">${isSuper ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`}
         `;
-        const chips = expandEl.querySelectorAll('.tile-toggle-chip');
+      } else if (r.status === 'pending' && r.pendingType === 'invite') {
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Awaiting their response from the diBadge app.</div>
+          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Cancel invitation</button>
+        `;
+      } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Requested for project: ${escapeHtmlLocal(r.data.targetProjectName || r.data.targetProjectId || '')}</div>
+          <div style="display:flex; gap:8px;">
+            <button class="verify-btn">Approve</button>
+            <button class="remove-member-btn" style="border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Deny</button>
+          </div>
+        `;
+      } else {
+        // unverified
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Verification was removed — they no longer count as a verified member anywhere in the app.</div>
+          ${canManage
+            ? '<button class="verify-btn" style="align-self:flex-start;">Re-verify</button>'
+            : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A former Super Admin can only be re-verified by the founder or another Super Admin.' : ''}</div>`}
+        `;
+      }
+
+      panel.innerHTML = headerHtml + `<div class="member-detail-actions">${bodyHtml}</div>`;
+
+      // Wire up whichever controls actually got rendered above.
+      if (r.status === 'verified') {
+        const chips = panel.querySelectorAll('.tile-toggle-chip');
         const orgChip = chips[0];
         const superChip = isTrueCreator ? chips[1] : null;
         if (canManage) {
@@ -821,7 +891,8 @@
             }
           });
         }
-        const tileRow = expandEl.querySelector('.tile-access-row');
+        const tileRow = panel.querySelector('.tile-access-row');
+        const tileAccess = r.data.tileAccess || {};
         TOGGLEABLE_TILES.forEach(tile => {
           const isOn = !!tileAccess[tile.key];
           const chip = document.createElement('label');
@@ -834,31 +905,16 @@
           }
           tileRow.appendChild(chip);
         });
-        expandEl.querySelector('.remove-member-btn').onclick = () => removeMember(r.uid);
+        if (canManage) {
+          panel.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
+        }
       } else if (r.status === 'pending' && r.pendingType === 'invite') {
-        expandEl.innerHTML = `
-          <div style="font-size:0.82rem; color:var(--subtext-color);">Awaiting their response from the diBadge app.</div>
-          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:6px 12px;">Cancel invitation</button>
-        `;
-        expandEl.querySelector('.remove-member-btn').onclick = () => cancelPendingInvite(r.uid);
+        panel.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
       } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
-        expandEl.innerHTML = `
-          <div style="font-size:0.82rem; color:var(--subtext-color);">Requested for project: ${escapeHtmlLocal(r.data.targetProjectName || r.data.targetProjectId || '')}</div>
-          <div style="display:flex; gap:8px;">
-            <button class="verify-btn">Approve</button>
-            <button class="remove-member-btn" style="border:1px solid var(--border-color); border-radius:8px; padding:6px 12px;">Deny</button>
-          </div>
-        `;
-        expandEl.querySelector('.verify-btn').onclick = () => approveJoinRequest(r.requestId, r.data);
-        expandEl.querySelector('.remove-member-btn').onclick = () => denyJoinRequest(r.requestId);
-      } else {
-        expandEl.innerHTML = `
-          <div style="font-size:0.82rem; color:var(--subtext-color);">Verification was removed — they no longer count as a verified member anywhere in the app.</div>
-          ${canManage
-            ? '<button class="verify-btn" style="align-self:flex-start;">Re-verify</button>'
-            : `<div style="font-size:0.78rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A former Super Admin can only be re-verified by the founder or another Super Admin.' : ''}</div>`}
-        `;
-        if (canManage) expandEl.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
+        panel.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
+        panel.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
+      } else if (canManage) {
+        panel.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
       }
     }
 
