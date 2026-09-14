@@ -30,6 +30,7 @@
       --surface-color: var(--accent-white);
       --border-color: var(--soft-border);
       --subtext-color: var(--cool-ash);
+      --tabbar-bg: var(--accent-white);
     }
     [data-theme="dark"] {
       --bg-color: var(--jet-black);
@@ -37,6 +38,7 @@
       --surface-color: var(--slate-surface);
       --border-color: #2c2c2e;
       --subtext-color: var(--muted-gray);
+      --tabbar-bg: #050505;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -54,11 +56,11 @@
        right Activity Feed — so this page matches the rest of the app instead of standing
        alone as a plain centered form. */
     .dashboard-body-split { display: flex; height: calc(100vh - 65px); overflow: hidden; }
-    .left-vertical-tabbar { width: 64px; flex-shrink: 0; background: var(--tabbar-bg, var(--surface-color)); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
+    .left-vertical-tabbar { width: 64px; flex-shrink: 0; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .tab-btn:hover { background: var(--bg-color); color: var(--text-color); }
-    .tab-btn.active { background: var(--bg-color); color: var(--text-color); }
+    .tab-btn:hover { color: var(--text-color); }
+    .tab-btn.active { color: var(--text-color); }
 
     .member-detail-panel::-webkit-scrollbar, .activity-feed-panel::-webkit-scrollbar, .wa-list::-webkit-scrollbar { width: 10px; }
     .member-detail-panel::-webkit-scrollbar-track, .activity-feed-panel::-webkit-scrollbar-track, .wa-list::-webkit-scrollbar-track { background: transparent; }
@@ -158,7 +160,7 @@
       transition: all 0.15s;
     }
     .wa-pill:hover { opacity: 0.8; }
-    .wa-pill.active { background: var(--accent-teal); border-color: var(--accent-teal); color: #04211d; opacity: 1; }
+    .wa-pill.active { background: transparent; border-color: var(--text-color); color: var(--text-color); opacity: 1; }
 
     .wa-list { flex: 1; overflow-y: auto; padding: 8px 0 24px 0; }
     .wa-row {
@@ -337,9 +339,9 @@
           </svg>
         </a>
         <button class="tab-btn active" title="Members">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
         </button>
-        <button class="sidebar-fab" title="Invite a member" onclick="openInviteModal()">
+        <button class="sidebar-fab" title="Connect a member" onclick="openInviteModal()">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       </aside>
@@ -369,13 +371,13 @@
     </div>
   </div>
 
-  <!-- Invite a member — opened from the sidebar FAB, replacing the old inline card -->
+  <!-- Send a connection request — opened from the sidebar FAB, replacing the old inline card -->
   <div class="invite-modal-overlay" id="inviteModalOverlay" onclick="closeInviteModal(event)">
     <div class="invite-modal-box" onclick="event.stopPropagation()">
-      <div class="card-title">Invite a member</div>
-      <div class="card-sub">They must already have a diBadge personal account. Enter their email to find them and send an invitation — they decide whether to accept it from their own app.</div>
+      <div class="card-title">Connect a member</div>
+      <div class="card-sub">They must already have a diBadge personal account. Enter their email, phone number, or user ID to find them and send a connection request — they decide whether to accept it from their own app.</div>
       <div class="search-row">
-        <input type="email" class="search-input" id="searchEmailInput" placeholder="person@example.com">
+        <input type="text" class="search-input" id="searchEmailInput" placeholder="Email, phone number, or user ID">
         <button class="search-btn" id="searchBtn" onclick="window.handleSearch()">Find</button>
       </div>
       <div class="search-status" id="searchStatus"></div>
@@ -384,7 +386,7 @@
           <span class="found-email" id="foundEmail"></span>
           <span class="found-type" id="foundType"></span>
         </div>
-        <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Send Invite</button>
+        <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Connect</button>
       </div>
       <div class="inline-error" id="searchError" style="display:none;"></div>
     </div>
@@ -534,35 +536,48 @@
       const statusEl = document.getElementById('searchStatus');
       const errorEl = document.getElementById('searchError');
       const foundRow = document.getElementById('foundRow');
-      const email = input.value.trim().toLowerCase();
+      const raw = input.value.trim();
 
       foundRow.classList.remove('active');
       errorEl.style.display = 'none';
       foundUser = null;
 
-      if (!email) {
-        statusEl.textContent = 'Enter an email to search.';
+      if (!raw) {
+        statusEl.textContent = 'Enter an email, phone number, or user ID to search.';
         return;
       }
 
       statusEl.textContent = 'Searching…';
       try {
-        const q = query(collection(db, 'users'), where('email', '==', email));
-        const snap = await getDocs(q);
+        let docSnap = null;
 
-        if (snap.empty) {
+        // Try as a direct user ID first — cheapest possible lookup, no query needed.
+        const directSnap = await getDoc(doc(db, 'users', raw));
+        if (directSnap.exists()) {
+          docSnap = directSnap;
+        } else {
+          // Not a user ID — try email, then phone number.
+          const emailSnap = await getDocs(query(collection(db, 'users'), where('email', '==', raw.toLowerCase())));
+          if (!emailSnap.empty) {
+            docSnap = emailSnap.docs[0];
+          } else {
+            const phoneSnap = await getDocs(query(collection(db, 'users'), where('phoneNumber', '==', raw)));
+            if (!phoneSnap.empty) docSnap = phoneSnap.docs[0];
+          }
+        }
+
+        if (!docSnap) {
           statusEl.textContent = '';
-          errorEl.textContent = 'No diBadge account found with that email.';
+          errorEl.textContent = 'No diBadge account found matching that.';
           errorEl.style.display = 'block';
           return;
         }
 
-        const docSnap = snap.docs[0];
         const data = docSnap.data();
-        foundUser = { uid: docSnap.id, email: data.email, accountType: data.accountType };
+        foundUser = { uid: docSnap.id, email: data.email, phoneNumber: data.phoneNumber, accountType: data.accountType };
 
         statusEl.textContent = '';
-        document.getElementById('foundEmail').textContent = foundUser.email;
+        document.getElementById('foundEmail').textContent = foundUser.email || foundUser.phoneNumber || foundUser.uid;
         document.getElementById('foundType').textContent =
           foundUser.accountType === 'personal' ? 'Personal account' : 'Organisation account';
         foundRow.classList.add('active');
@@ -577,7 +592,7 @@
       if (!foundUser || !currentOrgId) return;
       const btn = document.getElementById('verifyBtn');
       btn.disabled = true;
-      btn.textContent = 'Sending…';
+      btn.textContent = 'Connecting…';
 
       try {
         // Deterministic doc id (the target's own uid) — one active invitation per person
@@ -606,7 +621,7 @@
         errorEl.style.display = 'block';
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Send Invite';
+        btn.textContent = 'Connect';
       }
     };
 
