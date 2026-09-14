@@ -954,6 +954,14 @@
       if (event && event.target !== event.currentTarget) return;
       document.getElementById('inviteModalOverlay').classList.remove('active');
     }
+    // Inline onclick="" attributes in the static HTML run in the global scope, but plain
+    // function declarations inside a <script type="module"> are scoped to the module, not
+    // attached to window — so these three (referenced directly from HTML, unlike the ones
+    // wired up programmatically elsewhere via .onclick = ...) need to be exposed explicitly,
+    // the same way handleSearch/handleVerify already are below.
+    window.openInviteModal = openInviteModal;
+    window.closeInviteModal = closeInviteModal;
+    window.setMemberFilter = setMemberFilter;
 
     async function toggleMemberTileAccess(memberUid, tileKey, enabled, chipEl) {
       chipEl.classList.toggle('active', enabled); // optimistic — flips back below on failure
