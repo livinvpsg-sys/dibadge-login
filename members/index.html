@@ -244,6 +244,22 @@
     .search-btn:hover { background: #0d9488; }
     .search-btn:disabled { opacity: 0.6; cursor: default; }
 
+    .search-icon-btn {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--accent-teal);
+      color: #04211d;
+      border: none;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .search-icon-btn:hover { background: #0d9488; }
+    .search-icon-btn svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
     .search-status { margin-top: 12px; font-size: 0.85rem; color: var(--subtext-color); }
 
     .found-row {
@@ -375,10 +391,11 @@
   <div class="invite-modal-overlay" id="inviteModalOverlay" onclick="closeInviteModal(event)">
     <div class="invite-modal-box" onclick="event.stopPropagation()">
       <div class="card-title">Connect a member</div>
-      <div class="card-sub">They must already have a diBadge personal account. Enter their email, phone number, or user ID to find them and send a connection request — they decide whether to accept it from their own app.</div>
       <div class="search-row">
-        <input type="text" class="search-input" id="searchEmailInput" placeholder="Email, phone number, or user ID">
-        <button class="search-btn" id="searchBtn" onclick="window.handleSearch()">Find</button>
+        <input type="text" class="search-input" id="searchEmailInput" placeholder="Email, phone number, or user ID" onkeydown="if(event.key==='Enter') window.handleSearch();">
+        <button class="search-icon-btn" id="searchBtn" onclick="window.handleSearch()" title="Search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
       </div>
       <div class="search-status" id="searchStatus"></div>
       <div class="found-row" id="foundRow">
