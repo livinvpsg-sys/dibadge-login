@@ -577,6 +577,19 @@
           organisationId: orgRef.id,
           createdAt: serverTimestamp()
         });
+        // The founder is automatically a verified member of their own organisation from
+        // the start — shown in the Members list with a "Founder" badge, not something they
+        // need to separately verify themselves into.
+        await setDoc(doc(db, 'organisations', orgRef.id, 'members', cred.user.uid), {
+          uid: cred.user.uid,
+          email: email,
+          status: 'verified',
+          addedByUid: cred.user.uid,
+          addedAt: serverTimestamp(),
+          canAccessOrgAccount: true,
+          isSuperAdmin: false, // meaningless for the founder — the founder is already above Super Admin
+          tileAccess: { projects: true, hr: true, members: true }
+        });
         // Both writes are confirmed done — safe to move on now.
         statusEl.textContent = 'Signed in — redirecting…';
         window.location.href = '../home/';
