@@ -296,7 +296,10 @@
       color: var(--subtext-color); font-size: 0.95rem; font-family: inherit;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .doc-date-display svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; }
+    .doc-date-display svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; transition: opacity 0.15s; }
+    .doc-date-display svg.dimmed { opacity: 0.3; }
+    .doc-na-chip { transition: opacity 0.15s; }
+    .doc-na-chip.dimmed { opacity: 0.4; }
     .doc-date-display.has-value { color: var(--text-color); }
     .doc-date-wrapper:focus-within .doc-date-display { border-bottom-color: var(--text-color); }
     /* The native date input sits invisibly on top so its picker popup and keyboard entry
@@ -1350,16 +1353,25 @@
       const input = document.getElementById('docExpiryInput');
       const display = document.getElementById('docExpiryDisplay');
       const textEl = document.getElementById('docExpiryDisplayText');
-      const naActive = document.getElementById('docNaChip').classList.contains('active');
+      const icon = display.querySelector('svg');
+      const naChip = document.getElementById('docNaChip');
+      const naActive = naChip.classList.contains('active');
+
       if (naActive) {
         textEl.textContent = 'No expiry';
         display.classList.add('has-value');
+        icon.classList.add('dimmed');
+        naChip.classList.remove('dimmed');
       } else if (input.value) {
         textEl.textContent = formatExpiryDateDisplay(input.value);
         display.classList.add('has-value');
+        icon.classList.remove('dimmed');
+        naChip.classList.add('dimmed');
       } else {
         textEl.textContent = 'Expiry date';
         display.classList.remove('has-value');
+        icon.classList.remove('dimmed');
+        naChip.classList.remove('dimmed');
       }
     }
     window.updateDocExpiryDisplay = updateDocExpiryDisplay;
