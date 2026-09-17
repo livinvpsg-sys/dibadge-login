@@ -294,7 +294,9 @@
     .doc-date-display {
       padding: 8px 0; border-bottom: 1px solid var(--border-color);
       color: var(--subtext-color); font-size: 0.95rem; font-family: inherit;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
+    .doc-date-display svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; }
     .doc-date-display.has-value { color: var(--text-color); }
     .doc-date-wrapper:focus-within .doc-date-display { border-bottom-color: var(--text-color); }
     /* The native date input sits invisibly on top so its picker popup and keyboard entry
@@ -567,7 +569,10 @@
       <div>
         <div class="doc-modal-date-row">
           <div class="doc-date-wrapper">
-            <div class="doc-date-display" id="docExpiryDisplay">Expiry date</div>
+            <div class="doc-date-display" id="docExpiryDisplay">
+              <span id="docExpiryDisplayText">Expiry date</span>
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
             <input type="date" class="doc-date-native-input" id="docExpiryInput" onchange="updateDocExpiryDisplay()">
           </div>
           <button type="button" class="doc-na-chip" id="docNaChip" onclick="toggleDocNA()">NA</button>
@@ -1344,15 +1349,16 @@
     function updateDocExpiryDisplay() {
       const input = document.getElementById('docExpiryInput');
       const display = document.getElementById('docExpiryDisplay');
+      const textEl = document.getElementById('docExpiryDisplayText');
       const naActive = document.getElementById('docNaChip').classList.contains('active');
       if (naActive) {
-        display.textContent = 'No expiry';
+        textEl.textContent = 'No expiry';
         display.classList.add('has-value');
       } else if (input.value) {
-        display.textContent = formatExpiryDateDisplay(input.value);
+        textEl.textContent = formatExpiryDateDisplay(input.value);
         display.classList.add('has-value');
       } else {
-        display.textContent = 'Expiry date';
+        textEl.textContent = 'Expiry date';
         display.classList.remove('has-value');
       }
     }
