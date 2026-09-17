@@ -204,6 +204,98 @@
     .member-detail-name { font-size: 1.2rem; font-weight: 700; }
     .member-detail-actions { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
 
+    .detail-tab-switcher { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+    .detail-tab-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 4px; margin-right: 20px;
+      background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: var(--subtext-color); font-size: 0.88rem; font-weight: 600;
+      cursor: pointer;
+    }
+    .detail-tab-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .detail-tab-btn.active { color: var(--text-color); border-bottom-color: var(--text-color); }
+    .detail-tab-btn:hover { color: var(--text-color); }
+
+    .doc-tab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .doc-add-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 18px;
+      background: transparent; border: 1px solid var(--border-color); color: var(--text-color);
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .doc-add-pill:hover { border-color: var(--text-color); }
+    .doc-add-pill svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    .doc-card {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 12px;
+      max-width: 520px;
+    }
+    .doc-card-heading { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .doc-card-expiry { font-size: 0.78rem; color: var(--subtext-color); }
+    .doc-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .doc-preview-thumb {
+      width: 56px; height: 56px; border-radius: 8px; object-fit: cover;
+      border: 1px solid var(--border-color); flex-shrink: 0;
+    }
+    .doc-preview-pdf {
+      width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+      background: var(--bg-color); border: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--subtext-color);
+    }
+    .doc-icon-btn {
+      background: transparent; border: none; color: var(--subtext-color); cursor: pointer;
+      display: flex; padding: 4px;
+    }
+    .doc-icon-btn:hover { color: var(--text-color); }
+    .doc-icon-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .doc-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 600; align-items: center; justify-content: center;
+    }
+    .doc-modal-overlay.active { display: flex; }
+    .doc-modal-box {
+      background: var(--surface-color); border: 1px solid var(--border-color);
+      border-radius: 14px; padding: 24px; width: 92%; max-width: 440px;
+      display: flex; flex-direction: column; gap: 16px; max-height: 90vh; overflow-y: auto;
+    }
+    .doc-modal-label { font-size: 0.8rem; font-weight: 600; color: var(--subtext-color); margin-bottom: 6px; display: block; }
+    .doc-attach-row {
+      display: flex; gap: 10px;
+    }
+    .doc-attach-btn {
+      flex: 1; padding: 12px; border-radius: 8px; border: 1px dashed var(--border-color);
+      background: transparent; color: var(--text-color); font-size: 0.85rem; font-weight: 600;
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .doc-attach-btn:hover { border-color: var(--accent-teal); }
+    .doc-attach-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; }
+    .doc-attach-btn.has-file { border-style: solid; border-color: var(--accent-teal); }
+    .doc-modal-textarea {
+      width: 100%; padding: 10px 12px; background: var(--bg-color); border: 1px solid var(--border-color);
+      color: var(--text-color); border-radius: 8px; font-size: 0.88rem; resize: vertical; min-height: 60px;
+      font-family: inherit;
+    }
+    .doc-modal-date-row { display: flex; align-items: center; gap: 10px; }
+    .doc-modal-date-input {
+      flex: 1; padding: 10px 12px; background: var(--bg-color); border: 1px solid var(--border-color);
+      color: var(--text-color); border-radius: 8px; font-size: 0.88rem; font-family: inherit;
+    }
+    .doc-na-chip {
+      display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 8px;
+      border: 1px solid var(--border-color); font-size: 0.82rem; font-weight: 600; color: var(--subtext-color);
+      cursor: pointer; white-space: nowrap;
+    }
+    .doc-na-chip.active { border-color: var(--text-color); color: var(--text-color); }
+    .doc-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+    .doc-cancel-btn {
+      background: transparent; border: none; color: var(--subtext-color);
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 6px;
+    }
+    .doc-cancel-btn:hover { color: var(--text-color); }
+
     .wa-empty { text-align: center; padding: 40px 20px; color: var(--subtext-color); font-size: 0.85rem; }
 
     /* Invite-a-member modal, opened from the sidebar FAB */
@@ -414,6 +506,47 @@
     </div>
   </div>
 
+  <!-- Add / Edit a member document (certification, license, ID, etc.) -->
+  <div class="doc-modal-overlay" id="docModalOverlay" onclick="closeDocModal(event)">
+    <div class="doc-modal-box" onclick="event.stopPropagation()">
+      <div class="card-title" id="docModalTitle">Add Document</div>
+
+      <div>
+        <span class="doc-modal-label">Attachment</span>
+        <div class="doc-attach-row">
+          <button type="button" class="doc-attach-btn" id="docAttachPhotoBtn" onclick="document.getElementById('docFileInputPhoto').click()">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
+            <span id="docAttachPhotoLabel">Photo</span>
+          </button>
+          <button type="button" class="doc-attach-btn" id="docAttachPdfBtn" onclick="document.getElementById('docFileInputPdf').click()">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span id="docAttachPdfLabel">PDF</span>
+          </button>
+        </div>
+        <input type="file" id="docFileInputPhoto" accept="image/*" style="display:none;" onchange="handleDocFileSelected(event, 'image')">
+        <input type="file" id="docFileInputPdf" accept="application/pdf" style="display:none;" onchange="handleDocFileSelected(event, 'pdf')">
+      </div>
+
+      <div>
+        <span class="doc-modal-label">Description</span>
+        <textarea class="doc-modal-textarea" id="docDescriptionInput" placeholder="e.g. Working at Heights certificate"></textarea>
+      </div>
+
+      <div>
+        <span class="doc-modal-label">Expiry date</span>
+        <div class="doc-modal-date-row">
+          <input type="date" class="doc-modal-date-input" id="docExpiryInput">
+          <button type="button" class="doc-na-chip" id="docNaChip" onclick="toggleDocNA()">NA</button>
+        </div>
+      </div>
+
+      <div class="doc-modal-actions">
+        <button class="doc-cancel-btn" onclick="closeDocModal()">Cancel</button>
+        <button class="verify-btn" id="docSaveBtn" onclick="saveDocument()">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
@@ -421,6 +554,7 @@
       getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, collectionGroup,
       query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove
     } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
@@ -435,6 +569,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     let currentUid = null;
     let currentOrgId = null;
@@ -667,6 +802,9 @@
     let allMemberRows = []; // [{ uid, email, status, pendingType?, requestId?, sortTime, data }]
     let currentFilter = 'all';
     let selectedMemberUid = null;
+    let currentDetailTab = 'details'; // 'details' | 'documents' — resets to 'details' whenever a new member is selected
+    let currentDocuments = []; // cached documents for whichever member's Documents tab is currently open
+    let editingDocId = null; // set when the Add-document modal is actually editing an existing one
 
     function escapeHtmlLocal(str) {
       const div = document.createElement('div');
@@ -809,6 +947,7 @@
 
     function selectMember(r) {
       selectedMemberUid = r.uid;
+      currentDetailTab = 'details';
       document.querySelectorAll('.wa-row').forEach(el => {
         el.classList.toggle('selected', el.dataset.uid === r.uid);
       });
@@ -841,7 +980,7 @@
         : r.status === 'pending' ? 'Pending'
         : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
 
-      const headerHtml = `
+      panel.innerHTML = `
         <div class="member-detail-header">
           <div class="wa-avatar large">${(r.email || '?').charAt(0).toUpperCase()}</div>
           <div>
@@ -849,10 +988,47 @@
             <span class="wa-badge ${r.status}">${badgeLabel}</span>
           </div>
         </div>
+        <div class="detail-tab-switcher">
+          <button class="detail-tab-btn${currentDetailTab === 'details' ? ' active' : ''}" data-tab="details">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Details
+          </button>
+          <button class="detail-tab-btn${currentDetailTab === 'documents' ? ' active' : ''}" data-tab="documents">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Documents
+          </button>
+        </div>
+        <div id="memberDetailTabContent"></div>
       `;
+      panel.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.onclick = () => switchDetailTab(btn.dataset.tab, r);
+      });
+
+      renderMemberDetailTabContent(r);
+    }
+
+    function switchDetailTab(tab, r) {
+      currentDetailTab = tab;
+      document.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      renderMemberDetailTabContent(r);
+    }
+
+    function renderMemberDetailTabContent(r) {
+      if (currentDetailTab === 'documents') {
+        renderMemberDocumentsTabContent(r);
+      } else {
+        renderMemberDetailsTabContent(r);
+      }
+    }
+
+    function renderMemberDetailsTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
 
       if (r.uid === orgCreatorUid) {
-        panel.innerHTML = headerHtml + `
+        content.innerHTML = `
           <div class="member-detail-actions">
             <div style="font-size:0.85rem; color:var(--subtext-color);">The founder — always verified, and not manageable from this screen by anyone, including themselves.</div>
           </div>
@@ -905,11 +1081,11 @@
         `;
       }
 
-      panel.innerHTML = headerHtml + `<div class="member-detail-actions">${bodyHtml}</div>`;
+      content.innerHTML = `<div class="member-detail-actions">${bodyHtml}</div>`;
 
       // Wire up whichever controls actually got rendered above.
       if (r.status === 'verified') {
-        const chips = panel.querySelectorAll('.tile-toggle-chip');
+        const chips = content.querySelectorAll('.tile-toggle-chip');
         const orgChip = chips[0];
         const superChip = isTrueCreator ? chips[1] : null;
         if (canManage) {
@@ -928,7 +1104,7 @@
             }
           });
         }
-        const tileRow = panel.querySelector('.tile-access-row');
+        const tileRow = content.querySelector('.tile-access-row');
         const tileAccess = r.data.tileAccess || {};
         TOGGLEABLE_TILES.forEach(tile => {
           const isOn = !!tileAccess[tile.key];
@@ -943,15 +1119,217 @@
           tileRow.appendChild(chip);
         });
         if (canManage) {
-          panel.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
+          content.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
         }
       } else if (r.status === 'pending' && r.pendingType === 'invite') {
-        panel.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
+        content.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
       } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
-        panel.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
-        panel.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
+        content.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
+        content.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
       } else if (canManage) {
-        panel.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
+        content.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
+      }
+    }
+
+    // ===================== Member documents (certifications, licenses, IDs, etc.) =====================
+
+    let pendingDocFile = null; // { file, kind: 'image'|'pdf' } — staged until Save is pressed
+    let docModalMemberUid = null; // which member's Documents tab the open modal is adding/editing for
+
+    async function renderMemberDocumentsTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+      const canManage = r.uid === orgCreatorUid ? false : canManageMember(r);
+
+      content.innerHTML = `
+        <div class="doc-tab-header">
+          <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">DOCUMENTS</span>
+          ${canManage ? `
+          <button class="doc-add-pill" onclick="openDocModal('${r.uid}')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Add
+          </button>` : ''}
+        </div>
+        <div id="docListArea"><div class="wa-empty">Loading…</div></div>
+      `;
+
+      const listArea = document.getElementById('docListArea');
+      try {
+        const snap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'documents'));
+        if (snap.empty) {
+          listArea.innerHTML = '<div class="wa-empty">No documents yet.</div>';
+          currentDocuments = [];
+          return;
+        }
+        currentDocuments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Most-recently-added first.
+        currentDocuments.sort((a, b) => (b.uploadedAt?.toMillis?.() || 0) - (a.uploadedAt?.toMillis?.() || 0));
+
+        listArea.innerHTML = '';
+        currentDocuments.forEach(docData => {
+          const expiryLabel = docData.isNA ? 'No expiry' : (docData.expiryDate ? `Expires ${docData.expiryDate}` : '');
+          const previewHtml = docData.fileType === 'image'
+            ? `<img class="doc-preview-thumb" src="${docData.fileUrl}" alt="attachment">`
+            : `<div class="doc-preview-pdf">PDF</div>`;
+          const card = document.createElement('div');
+          card.className = 'doc-card';
+          card.innerHTML = `
+            <div>
+              <div class="doc-card-heading">${escapeHtmlLocal(docData.description || 'Untitled')}</div>
+              <div class="doc-card-expiry">${expiryLabel}</div>
+            </div>
+            <div class="doc-card-right">
+              <a href="${docData.fileUrl}" target="_blank" rel="noopener">${previewHtml}</a>
+              ${canManage ? `
+              <button class="doc-icon-btn" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              </button>
+              <button class="doc-icon-btn" title="Delete">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              </button>` : ''}
+            </div>
+          `;
+          if (canManage) {
+            const [editBtn, deleteBtn] = card.querySelectorAll('.doc-icon-btn');
+            editBtn.onclick = () => openDocModal(r.uid, docData);
+            deleteBtn.onclick = () => deleteDocument(r.uid, docData);
+          }
+          listArea.appendChild(card);
+        });
+      } catch (err) {
+        listArea.innerHTML = '<div class="wa-empty">Couldn\'t load documents.</div>';
+      }
+    }
+
+    function openDocModal(memberUid, existingDoc) {
+      docModalMemberUid = memberUid;
+      editingDocId = existingDoc ? existingDoc.id : null;
+      pendingDocFile = null;
+
+      document.getElementById('docModalTitle').textContent = existingDoc ? 'Edit Document' : 'Add Document';
+      document.getElementById('docDescriptionInput').value = existingDoc ? (existingDoc.description || '') : '';
+      document.getElementById('docExpiryInput').value = existingDoc && !existingDoc.isNA ? (existingDoc.expiryDate || '') : '';
+      document.getElementById('docExpiryInput').disabled = !!(existingDoc && existingDoc.isNA);
+      document.getElementById('docNaChip').classList.toggle('active', !!(existingDoc && existingDoc.isNA));
+      document.getElementById('docAttachPhotoLabel').textContent = 'Photo';
+      document.getElementById('docAttachPdfLabel').textContent = 'PDF';
+      document.getElementById('docAttachPhotoBtn').classList.remove('has-file');
+      document.getElementById('docAttachPdfBtn').classList.remove('has-file');
+      document.getElementById('docFileInputPhoto').value = '';
+      document.getElementById('docFileInputPdf').value = '';
+
+      if (existingDoc) {
+        const label = existingDoc.fileType === 'image' ? document.getElementById('docAttachPhotoLabel') : document.getElementById('docAttachPdfLabel');
+        const btn = existingDoc.fileType === 'image' ? document.getElementById('docAttachPhotoBtn') : document.getElementById('docAttachPdfBtn');
+        label.textContent = existingDoc.fileName || 'Current file';
+        btn.classList.add('has-file');
+      }
+
+      document.getElementById('docModalOverlay').classList.add('active');
+    }
+
+    function closeDocModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('docModalOverlay').classList.remove('active');
+      pendingDocFile = null;
+      editingDocId = null;
+    }
+    window.openDocModal = openDocModal;
+    window.closeDocModal = closeDocModal;
+
+    function handleDocFileSelected(event, kind) {
+      const file = event.target.files[0];
+      if (!file) return;
+      pendingDocFile = { file, kind };
+      const label = kind === 'image' ? document.getElementById('docAttachPhotoLabel') : document.getElementById('docAttachPdfLabel');
+      const btn = kind === 'image' ? document.getElementById('docAttachPhotoBtn') : document.getElementById('docAttachPdfBtn');
+      const otherBtn = kind === 'image' ? document.getElementById('docAttachPdfBtn') : document.getElementById('docAttachPhotoBtn');
+      const otherLabel = kind === 'image' ? document.getElementById('docAttachPdfLabel') : document.getElementById('docAttachPhotoLabel');
+      label.textContent = file.name;
+      btn.classList.add('has-file');
+      otherBtn.classList.remove('has-file');
+      otherLabel.textContent = kind === 'image' ? 'PDF' : 'Photo'; // only one attachment per document — picking one clears the other
+    }
+    window.handleDocFileSelected = handleDocFileSelected;
+
+    function toggleDocNA() {
+      const chip = document.getElementById('docNaChip');
+      const input = document.getElementById('docExpiryInput');
+      const nowActive = !chip.classList.contains('active');
+      chip.classList.toggle('active', nowActive);
+      input.disabled = nowActive;
+      if (nowActive) input.value = '';
+    }
+    window.toggleDocNA = toggleDocNA;
+
+    async function saveDocument() {
+      const description = document.getElementById('docDescriptionInput').value.trim();
+      const isNA = document.getElementById('docNaChip').classList.contains('active');
+      const expiryDate = isNA ? null : (document.getElementById('docExpiryInput').value || null);
+      const memberUid = docModalMemberUid;
+
+      if (!description) {
+        alert('Please add a description.');
+        return;
+      }
+      if (!pendingDocFile && !editingDocId) {
+        alert('Please attach a photo or PDF.');
+        return;
+      }
+
+      const btn = document.getElementById('docSaveBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const docId = editingDocId || doc(collection(db, 'organisations', currentOrgId, 'members', memberUid, 'documents')).id;
+        const docRef = doc(db, 'organisations', currentOrgId, 'members', memberUid, 'documents', docId);
+
+        let fileUrl, fileName, fileType;
+        if (pendingDocFile) {
+          const storageRef = ref(storage, `organisations/${currentOrgId}/members/${memberUid}/documents/${docId}/${pendingDocFile.file.name}`);
+          await uploadBytes(storageRef, pendingDocFile.file);
+          fileUrl = await getDownloadURL(storageRef);
+          fileName = pendingDocFile.file.name;
+          fileType = pendingDocFile.kind;
+        }
+
+        const payload = {
+          description,
+          isNA,
+          expiryDate,
+          uploadedByUid: currentUid,
+          uploadedAt: serverTimestamp()
+        };
+        if (fileUrl) { payload.fileUrl = fileUrl; payload.fileName = fileName; payload.fileType = fileType; }
+
+        await setDoc(docRef, payload, { merge: true });
+        closeDocModal();
+        const r = allMemberRows.find(row => row.uid === memberUid);
+        if (r) renderMemberDocumentsTabContent(r);
+      } catch (err) {
+        alert('Could not save the document — please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+    }
+    window.saveDocument = saveDocument;
+
+    async function deleteDocument(memberUid, docData) {
+      try {
+        await deleteDoc(doc(db, 'organisations', currentOrgId, 'members', memberUid, 'documents', docData.id));
+        if (docData.fileName) {
+          try {
+            await deleteObject(ref(storage, `organisations/${currentOrgId}/members/${memberUid}/documents/${docData.id}/${docData.fileName}`));
+          } catch (err) {
+            // The Firestore record is already gone — a leftover Storage file isn't a blocking failure.
+          }
+        }
+        const r = allMemberRows.find(row => row.uid === memberUid);
+        if (r) renderMemberDocumentsTabContent(r);
+      } catch (err) {
+        alert('Could not delete the document — please try again.');
       }
     }
 
