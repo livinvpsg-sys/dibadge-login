@@ -266,13 +266,13 @@
       display: flex; gap: 10px;
     }
     .doc-attach-btn {
-      flex: 1; padding: 12px; border-radius: 8px; border: 1px dashed var(--border-color);
-      background: transparent; color: var(--text-color); font-size: 0.85rem; font-weight: 600;
-      cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 6px 0; border: none;
+      background: transparent; color: var(--subtext-color); font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
     }
-    .doc-attach-btn:hover { border-color: var(--accent-teal); }
-    .doc-attach-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; }
-    .doc-attach-btn.has-file { border-style: solid; border-color: var(--accent-teal); }
+    .doc-attach-btn:hover { color: var(--text-color); }
+    .doc-attach-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; }
+    .doc-attach-btn.has-file { color: var(--text-color); }
     .doc-file-chip {
       display: flex; align-items: center; gap: 6px;
       padding: 5px 10px; border-radius: 14px; background: var(--bg-color);
@@ -296,9 +296,8 @@
       color: var(--subtext-color); font-size: 0.95rem; font-family: inherit;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .doc-date-display svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; transition: opacity 0.15s; opacity: 0.55; }
-    .doc-date-display.has-value svg { opacity: 1; }
-    .doc-date-display svg.dimmed { opacity: 0.25 !important; }
+    .doc-date-display svg { width: 17px; height: 17px; stroke: var(--text-color); stroke-width: 2; fill: none; flex-shrink: 0; transition: opacity 0.15s; opacity: 1; }
+    .doc-date-display svg.dimmed { opacity: 0.3 !important; }
     .doc-na-chip { transition: opacity 0.15s; }
     .doc-na-chip.dimmed { opacity: 0.4; }
     .doc-date-display.has-value { color: var(--text-color); }
@@ -558,9 +557,9 @@
 
       <div>
         <span class="doc-modal-label">Attachments</span>
-        <button type="button" class="doc-attach-btn" id="docAttachBtn" style="width:100%;" onclick="document.getElementById('docFileInput').click()">
+        <button type="button" class="doc-attach-btn" id="docAttachBtn" onclick="document.getElementById('docFileInput').click()">
           <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-          <span id="docAttachLabel">Attach photos or PDFs</span>
+          <span id="docAttachLabel">Attachment</span>
         </button>
         <input type="file" id="docFileInput" accept="image/*,application/pdf" multiple style="display:none;" onchange="handleDocFileSelected(event)">
         <div id="docFileChipsRow" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
@@ -1295,7 +1294,7 @@
       attachBtn.classList.toggle('has-file', total > 0);
       document.getElementById('docAttachLabel').textContent = total > 0
         ? `${total} file${total > 1 ? 's' : ''} attached — add more`
-        : 'Attach photos or PDFs';
+        : 'Attachment';
 
       existingAttachments.forEach((att, idx) => {
         const chip = document.createElement('div');
