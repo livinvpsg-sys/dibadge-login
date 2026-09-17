@@ -556,7 +556,7 @@
       <div class="card-title" id="docModalTitle">Add Document</div>
 
       <div>
-                <button type="button" class="doc-attach-btn" id="docAttachBtn" onclick="document.getElementById('docFileInput').click()">
+        <button type="button" class="doc-attach-btn" id="docAttachBtn" onclick="document.getElementById('docFileInput').click()">
           <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
           <span id="docAttachLabel">Attachment</span>
         </button>
@@ -846,6 +846,7 @@
     let currentDetailTab = 'details'; // 'details' | 'documents' — resets to 'details' whenever a new member is selected
     let currentDocuments = []; // cached documents for whichever member's Documents tab is currently open
     let editingDocId = null; // set when the Add-document modal is actually editing an existing one
+    let memberDocSearchIndex = {}; // uid -> lowercase text blob of all their document descriptions, for search
 
     function escapeHtmlLocal(str) {
       const div = document.createElement('div');
@@ -932,6 +933,30 @@
       }
 
       allMemberRows = rows;
+
+      // Build a search index of every member's document descriptions, so searching "abcd"
+      // can match a member because of a document titled "abcd" even though their own email
+      // doesn't contain it. Pending rows have no documents subcollection yet, so this only
+      // needs to run for verified/unverified members. Done once here (not on every
+      // keystroke) and cached in memberDocSearchIndex for renderMemberListUI to use.
+      memberDocSearchIndex = {};
+      const docFetches = rows
+        .filter(r => r.status === 'verified' || r.status === 'unverified')
+        .map(async r => {
+          try {
+            const docsSnap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'documents'));
+            const descriptions = [];
+            docsSnap.forEach(d => {
+              const desc = d.data().description;
+              if (desc) descriptions.push(desc.toLowerCase());
+            });
+            memberDocSearchIndex[r.uid] = descriptions.join(' ');
+          } catch (err) {
+            // Leave this member's index empty on failure — their own fields still match normally.
+          }
+        });
+      await Promise.all(docFetches);
+
       renderMemberListUI();
     }
 
@@ -949,7 +974,12 @@
 
       let rows = allMemberRows.slice();
       if (currentFilter !== 'all') rows = rows.filter(r => r.status === currentFilter);
-      if (q) rows = rows.filter(r => (r.email || '').toLowerCase().includes(q));
+      if (q) {
+        rows = rows.filter(r =>
+          (r.email || '').toLowerCase().includes(q) ||
+          (memberDocSearchIndex[r.uid] || '').includes(q)
+        );
+      }
 
       rows.sort((a, b) => b.sortTime - a.sortTime); // whoever was acted on most recently first — no status grouping
 
@@ -1419,6 +1449,10 @@
         closeDocModal();
         const r = allMemberRows.find(row => row.uid === memberUid);
         if (r) renderMemberDocumentsTabContent(r);
+        // A description just changed, which the search index above is keyed on — refresh
+        // that index in the background so the member list's search stays accurate without
+        // making the person wait on it before the modal closes.
+        loadUnifiedMemberList();
       } catch (err) {
         alert('Could not save the document — please try again.');
       } finally {
@@ -1459,6 +1493,7 @@
         }
         const r = allMemberRows.find(row => row.uid === memberUid);
         if (r) renderMemberDocumentsTabContent(r);
+        loadUnifiedMemberList(); // refresh the document search index too
       } catch (err) {
         alert('Could not delete the document — please try again.');
       }
