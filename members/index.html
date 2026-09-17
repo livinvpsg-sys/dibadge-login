@@ -44,9 +44,11 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg-color); color: var(--text-color); min-height: 100vh; }
+    body { background: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; }
 
     #authGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--jet-black); display: flex; justify-content: center; align-items: center; z-index: 1000; color: var(--accent-white); font-size: 0.9rem; }
+
+    #appShell { display: flex; flex-direction: column; height: 100vh; }
 
     .page-header { background: var(--header-bg); display: flex; align-items: center; gap: 14px; padding: 20px 28px; border-bottom: 1px solid var(--border-color); }
     .back-btn { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; }
@@ -57,7 +59,7 @@
     /* Same three-column shell used on Projects/Chat/Forms — left icon rail, main content,
        right Activity Feed — so this page matches the rest of the app instead of standing
        alone as a plain centered form. */
-    .dashboard-body-split { display: flex; height: calc(100vh - 65px); overflow: hidden; }
+    .dashboard-body-split { display: flex; flex: 1; min-height: 0; overflow: hidden; }
     .left-vertical-tabbar { width: 64px; flex-shrink: 0; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
     .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
     .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -449,7 +451,7 @@
         return;
       }
       gate.style.display = 'none';
-      document.getElementById('appShell').style.display = 'block';
+      document.getElementById('appShell').style.display = 'flex';
       currentUid = user.uid;
 
       const userSnap = await getDoc(doc(db, 'users', user.uid));
