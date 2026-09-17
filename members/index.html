@@ -396,6 +396,8 @@
       flex-shrink: 0;
     }
     .verify-btn:hover { background: #0d9488; }
+    .verify-btn.danger { background: #ff5252; }
+    .verify-btn.danger:hover { background: #e04848; }
     .verify-btn:disabled { opacity: 0.6; cursor: default; }
 
     .members-list { display: flex; flex-direction: column; gap: 10px; }
@@ -517,6 +519,18 @@
   </div>
 
   <!-- Add / Edit a member document (certification, license, ID, etc.) -->
+  <!-- Delete document confirmation -->
+  <div class="doc-modal-overlay" id="deleteDocConfirmOverlay" onclick="closeDeleteDocConfirm(event)">
+    <div class="doc-modal-box" onclick="event.stopPropagation()" style="max-width:360px;">
+      <div class="card-title">Delete document?</div>
+      <div class="card-sub" id="deleteDocConfirmMessage" style="margin-bottom:0;"></div>
+      <div class="doc-modal-actions">
+        <button class="doc-cancel-btn" onclick="closeDeleteDocConfirm()">Cancel</button>
+        <button class="verify-btn danger" onclick="confirmDeleteDocument()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <div class="doc-modal-overlay" id="docModalOverlay" onclick="closeDocModal(event)">
     <div class="doc-modal-box" onclick="event.stopPropagation()">
       <div class="card-title" id="docModalTitle">Add Document</div>
@@ -1353,7 +1367,26 @@
     }
     window.saveDocument = saveDocument;
 
-    async function deleteDocument(memberUid, docData) {
+    let pendingDeleteDoc = null; // { memberUid, docData } — staged while the confirm popup is open
+
+    function deleteDocument(memberUid, docData) {
+      pendingDeleteDoc = { memberUid, docData };
+      document.getElementById('deleteDocConfirmMessage').textContent =
+        `"${docData.description || 'This document'}" and its attachment${(docData.attachments || []).length > 1 ? 's' : ''} will be permanently removed.`;
+      document.getElementById('deleteDocConfirmOverlay').classList.add('active');
+    }
+
+    function closeDeleteDocConfirm(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('deleteDocConfirmOverlay').classList.remove('active');
+      pendingDeleteDoc = null;
+    }
+    window.closeDeleteDocConfirm = closeDeleteDocConfirm;
+
+    async function confirmDeleteDocument() {
+      if (!pendingDeleteDoc) return;
+      const { memberUid, docData } = pendingDeleteDoc;
+      closeDeleteDocConfirm();
       try {
         await deleteDoc(doc(db, 'organisations', currentOrgId, 'members', memberUid, 'documents', docData.id));
         for (const att of (docData.attachments || [])) {
@@ -1369,6 +1402,7 @@
         alert('Could not delete the document — please try again.');
       }
     }
+    window.confirmDeleteDocument = confirmDeleteDocument;
 
     async function toggleOrgAccountAccess(uid, enabled, chipEl) {
       chipEl.classList.toggle('active', enabled);
