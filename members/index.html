@@ -296,8 +296,9 @@
       color: var(--subtext-color); font-size: 0.95rem; font-family: inherit;
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .doc-date-display svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; transition: opacity 0.15s; }
-    .doc-date-display svg.dimmed { opacity: 0.3; }
+    .doc-date-display svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; flex-shrink: 0; transition: opacity 0.15s; opacity: 0.55; }
+    .doc-date-display.has-value svg { opacity: 1; }
+    .doc-date-display svg.dimmed { opacity: 0.25 !important; }
     .doc-na-chip { transition: opacity 0.15s; }
     .doc-na-chip.dimmed { opacity: 0.4; }
     .doc-date-display.has-value { color: var(--text-color); }
