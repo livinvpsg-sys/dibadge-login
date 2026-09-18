@@ -228,19 +228,49 @@
 
     /* Calendar tab — fills the whole detail pane */
     .cal-wrap { display: flex; flex-direction: column; height: 100%; }
-    .cal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
-    .cal-month { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
-    .cal-year { font-size: 1.5rem; font-weight: 700; color: var(--subtext-color); line-height: 1.2; }
-    .cal-nav { display: flex; gap: 18px; }
-    .cal-nav-btn { background: transparent; border: none; color: var(--text-color); cursor: pointer; padding: 4px; display: flex; }
-    .cal-nav-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.4; fill: none; }
-    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 10px; }
-    .cal-weekday { text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--subtext-color); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; flex: 1; gap: 4px; }
-    .cal-day { display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: var(--text-color); }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; position: relative; }
+    .cal-picker-trigger {
+      background: transparent; border: none; cursor: pointer; padding: 2px 4px;
+      display: flex; align-items: center; gap: 6px; font-family: inherit;
+    }
+    .cal-month { font-size: 1.4rem; font-weight: 700; color: var(--text-color); }
+    .cal-year { font-size: 1.4rem; font-weight: 700; color: var(--text-color); }
+    .cal-picker-trigger svg { width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2.2; fill: none; }
+    .cal-picker-dropdown {
+      display: none; position: absolute; top: 100%; margin-top: 6px; z-index: 10;
+      background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25); padding: 6px; max-height: 220px; overflow-y: auto;
+      grid-template-columns: repeat(3, 1fr); gap: 4px; width: 220px;
+    }
+    .cal-picker-dropdown.active { display: grid; }
+    .cal-picker-dropdown.months-picker { left: 0; }
+    .cal-picker-dropdown.years-picker { right: 0; }
+    .cal-picker-option {
+      padding: 8px; text-align: center; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+      color: var(--text-color); background: transparent; border: none; font-family: inherit;
+    }
+    .cal-picker-option:hover { background: var(--bg-color); }
+    .cal-picker-option.current { background: var(--text-color); color: var(--surface-color); font-weight: 700; }
+
+    .cal-body { display: flex; align-items: stretch; gap: 8px; flex: 1; min-height: 0; }
+    .cal-nav-btn {
+      background: var(--surface-color); border: 1px solid var(--border-color); color: var(--text-color);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      width: 36px; border-radius: 8px; flex-shrink: 0;
+    }
+    .cal-nav-btn:hover { background: var(--bg-color); }
+    .cal-nav-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+    .cal-grid-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
+    .cal-weekday { text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--subtext-color); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; flex: 1; gap: 6px; }
+    .cal-day { display: flex; align-items: center; justify-content: center; }
     .cal-day.empty { visibility: hidden; }
-    .cal-day.today .cal-day-num { background: var(--text-color); color: var(--surface-color); border-radius: 8px; }
-    .cal-day-num { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .cal-day-num {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;
+    }
+    .cal-day.today .cal-day-num { background: var(--text-color); color: var(--surface-color); border-color: var(--text-color); }
 
     /* Mail tab */
     .mail-card {
@@ -501,9 +531,6 @@
           <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
             <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
-        </a>
-        <a href="../members/" class="tab-btn" title="Members">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
         </a>
         <button class="tab-btn active" title="HR">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
@@ -1124,13 +1151,14 @@
       renderCalendarGrid();
     }
 
+    const CAL_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
     function renderCalendarGrid() {
       const content = document.getElementById('memberDetailTabContent');
       if (!content) return;
 
       const year = calendarViewDate.getFullYear();
       const month = calendarViewDate.getMonth();
-      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       const weekdayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
       const firstDayOfMonth = new Date(year, month, 1).getDay();
@@ -1148,27 +1176,72 @@
         daysHtml += `<div class="cal-day${isToday ? ' today' : ''}"><div class="cal-day-num">${d}</div></div>`;
       }
 
+      // Years picker shows a range around whatever year is currently selected, not a fixed
+      // window, so scrolling far in either direction still lets you keep picking sensibly.
+      const yearRangeStart = year - 6;
+      const yearsHtml = Array.from({ length: 12 }, (_, i) => yearRangeStart + i)
+        .map(y => `<button class="cal-picker-option${y === year ? ' current' : ''}" onclick="selectCalendarYear(${y})">${y}</button>`)
+        .join('');
+      const monthsHtml = CAL_MONTH_NAMES
+        .map((name, idx) => `<button class="cal-picker-option${idx === month ? ' current' : ''}" onclick="selectCalendarMonth(${idx})">${name.slice(0, 3)}</button>`)
+        .join('');
+
       content.innerHTML = `
         <div class="cal-wrap">
           <div class="cal-header">
-            <div>
-              <div class="cal-month">${monthNames[month]}</div>
-              <div class="cal-year">${year}</div>
+            <div style="position:relative;">
+              <button class="cal-picker-trigger" onclick="toggleCalPicker('month')">
+                <span class="cal-month">${CAL_MONTH_NAMES[month]}</span>
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </button>
+              <div class="cal-picker-dropdown months-picker" id="calMonthPicker">${monthsHtml}</div>
             </div>
-            <div class="cal-nav">
-              <button class="cal-nav-btn" onclick="navigateCalendar(-1)" title="Previous month">
-                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            <div style="position:relative;">
+              <button class="cal-picker-trigger" onclick="toggleCalPicker('year')">
+                <span class="cal-year">${year}</span>
+                <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </button>
-              <button class="cal-nav-btn" onclick="navigateCalendar(1)" title="Next month">
-                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
+              <div class="cal-picker-dropdown years-picker" id="calYearPicker">${yearsHtml}</div>
             </div>
           </div>
-          <div class="cal-weekdays">${weekdayNames.map(w => `<div class="cal-weekday">${w}</div>`).join('')}</div>
-          <div class="cal-grid">${daysHtml}</div>
+          <div class="cal-body">
+            <button class="cal-nav-btn" onclick="navigateCalendar(-1)" title="Previous month">
+              <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="cal-grid-col">
+              <div class="cal-weekdays">${weekdayNames.map(w => `<div class="cal-weekday">${w}</div>`).join('')}</div>
+              <div class="cal-grid">${daysHtml}</div>
+            </div>
+            <button class="cal-nav-btn" onclick="navigateCalendar(1)" title="Next month">
+              <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
         </div>
       `;
     }
+
+    function toggleCalPicker(which) {
+      const monthPicker = document.getElementById('calMonthPicker');
+      const yearPicker = document.getElementById('calYearPicker');
+      const target = which === 'month' ? monthPicker : yearPicker;
+      const other = which === 'month' ? yearPicker : monthPicker;
+      const willOpen = !target.classList.contains('active');
+      other.classList.remove('active');
+      target.classList.toggle('active', willOpen);
+    }
+    window.toggleCalPicker = toggleCalPicker;
+
+    function selectCalendarMonth(monthIdx) {
+      calendarViewDate = new Date(calendarViewDate.getFullYear(), monthIdx, 1);
+      renderCalendarGrid();
+    }
+    window.selectCalendarMonth = selectCalendarMonth;
+
+    function selectCalendarYear(year) {
+      calendarViewDate = new Date(year, calendarViewDate.getMonth(), 1);
+      renderCalendarGrid();
+    }
+    window.selectCalendarYear = selectCalendarYear;
 
     function navigateCalendar(delta) {
       calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + delta, 1);
