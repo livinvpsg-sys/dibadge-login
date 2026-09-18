@@ -1064,6 +1064,10 @@
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             Details
           </button>
+          <button class="detail-tab-btn${currentDetailTab === 'permission' ? ' active' : ''}" data-tab="permission">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Permission
+          </button>
           <button class="detail-tab-btn${currentDetailTab === 'documents' ? ' active' : ''}" data-tab="documents">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
             Documents
@@ -1089,6 +1093,8 @@
     function renderMemberDetailTabContent(r) {
       if (currentDetailTab === 'documents') {
         renderMemberDocumentsTabContent(r);
+      } else if (currentDetailTab === 'permission') {
+        renderMemberPermissionTabContent(r);
       } else {
         renderMemberDetailsTabContent(r);
       }
@@ -1111,24 +1117,12 @@
       let bodyHtml = '';
 
       if (r.status === 'verified') {
-        const tileAccess = r.data.tileAccess || {};
-        const canAccessOrg = !!r.data.canAccessOrgAccount;
-        const isSuper = !!r.data.isSuperAdmin;
-        bodyHtml = `
-          <label class="tile-toggle-chip${canAccessOrg ? ' active' : ''}" style="width:fit-content;">
-            <input type="checkbox" ${canAccessOrg ? 'checked' : ''} ${canManage ? '' : 'disabled'}> Organisation account access
-          </label>
-          ${isTrueCreator ? `
-          <label class="tile-toggle-chip${isSuper ? ' active' : ''}" style="width:fit-content; ${isSuper ? 'border-color:#ffb300; color:#ffb300;' : ''}">
-            <input type="checkbox" ${isSuper ? 'checked' : ''}> Super Admin
-          </label>` : ''}
-          <div class="tile-access-row" id="tileRow-${r.uid}" style="border-top:none; padding-top:0;"></div>
-          ${canManage ? `
-          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; gap:6px; display:flex; align-items:center;" title="Remove">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-            Remove
-          </button>` : `<div style="font-size:0.82rem; color:var(--subtext-color);">${isSuper ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`}
-        `;
+        bodyHtml = canManage
+          ? `<button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; gap:6px; display:flex; align-items:center;" title="Remove">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              Remove
+            </button>`
+          : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`;
       } else if (r.status === 'pending' && r.pendingType === 'invite') {
         bodyHtml = `
           <div style="font-size:0.85rem; color:var(--subtext-color);">Awaiting their response from the diBadge app.</div>
@@ -1155,51 +1149,94 @@
       content.innerHTML = `<div class="member-detail-actions">${bodyHtml}</div>`;
 
       // Wire up whichever controls actually got rendered above.
-      if (r.status === 'verified') {
-        const chips = content.querySelectorAll('.tile-toggle-chip');
-        const orgChip = chips[0];
-        const superChip = isTrueCreator ? chips[1] : null;
-        if (canManage) {
-          orgChip.querySelector('input').addEventListener('change', (e) => {
-            toggleOrgAccountAccess(r.uid, e.target.checked, orgChip);
-          });
-        }
-        if (superChip) {
-          superChip.querySelector('input').addEventListener('change', async (e) => {
-            const enabled = e.target.checked;
-            try {
-              await updateDoc(doc(db, 'organisations', currentOrgId, 'members', r.uid), { isSuperAdmin: enabled });
-              loadUnifiedMemberList();
-            } catch (err) {
-              e.target.checked = !enabled;
-            }
-          });
-        }
-        const tileRow = content.querySelector('.tile-access-row');
-        const tileAccess = r.data.tileAccess || {};
-        TOGGLEABLE_TILES.forEach(tile => {
-          const isOn = !!tileAccess[tile.key];
-          const chip = document.createElement('label');
-          chip.className = 'tile-toggle-chip' + (isOn ? ' active' : '');
-          chip.innerHTML = `<input type="checkbox" ${isOn ? 'checked' : ''} ${canManage ? '' : 'disabled'}> ${tile.label}`;
-          if (canManage) {
-            chip.querySelector('input').addEventListener('change', (e) => {
-              toggleMemberTileAccess(r.uid, tile.key, e.target.checked, chip);
-            });
-          }
-          tileRow.appendChild(chip);
-        });
-        if (canManage) {
-          content.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
-        }
+      if (r.status === 'verified' && canManage) {
+        content.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
       } else if (r.status === 'pending' && r.pendingType === 'invite') {
         content.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
       } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
         content.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
         content.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
-      } else if (canManage) {
+      } else if (r.status === 'unverified' && canManage) {
         content.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
       }
+    }
+
+    // Permission is only meaningful for an actual verified member — pending/unverified rows
+    // don't have anything to grant access to yet, so this tab shows an explanatory note for
+    // those instead of an empty set of controls.
+    function renderMemberPermissionTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+
+      if (r.uid === orgCreatorUid) {
+        content.innerHTML = `
+          <div class="member-detail-actions">
+            <div style="font-size:0.85rem; color:var(--subtext-color);">The founder already has full access to everything — there's nothing to grant or restrict.</div>
+          </div>
+        `;
+        return;
+      }
+
+      if (r.status !== 'verified') {
+        content.innerHTML = `
+          <div class="member-detail-actions">
+            <div style="font-size:0.85rem; color:var(--subtext-color);">Permissions apply once this member is verified.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const canManage = canManageMember(r);
+      const tileAccess = r.data.tileAccess || {};
+      const canAccessOrg = !!r.data.canAccessOrgAccount;
+      const isSuper = !!r.data.isSuperAdmin;
+
+      content.innerHTML = `
+        <div class="member-detail-actions">
+          <label class="tile-toggle-chip${canAccessOrg ? ' active' : ''}" style="width:fit-content;">
+            <input type="checkbox" ${canAccessOrg ? 'checked' : ''} ${canManage ? '' : 'disabled'}> Organisation account access
+          </label>
+          ${isTrueCreator ? `
+          <label class="tile-toggle-chip${isSuper ? ' active' : ''}" style="width:fit-content; ${isSuper ? 'border-color:#ffb300; color:#ffb300;' : ''}">
+            <input type="checkbox" ${isSuper ? 'checked' : ''}> Super Admin
+          </label>` : ''}
+          <div class="tile-access-row" id="tileRow-${r.uid}" style="border-top:none; padding-top:0;"></div>
+          ${!canManage ? `<div style="font-size:0.82rem; color:var(--subtext-color);">${isSuper ? "A Super Admin's permissions can only be changed by the founder or another Super Admin." : ''}</div>` : ''}
+        </div>
+      `;
+
+      const chips = content.querySelectorAll('.tile-toggle-chip');
+      const orgChip = chips[0];
+      const superChip = isTrueCreator ? chips[1] : null;
+      if (canManage) {
+        orgChip.querySelector('input').addEventListener('change', (e) => {
+          toggleOrgAccountAccess(r.uid, e.target.checked, orgChip);
+        });
+      }
+      if (superChip) {
+        superChip.querySelector('input').addEventListener('change', async (e) => {
+          const enabled = e.target.checked;
+          try {
+            await updateDoc(doc(db, 'organisations', currentOrgId, 'members', r.uid), { isSuperAdmin: enabled });
+            loadUnifiedMemberList();
+          } catch (err) {
+            e.target.checked = !enabled;
+          }
+        });
+      }
+      const tileRow = content.querySelector('.tile-access-row');
+      TOGGLEABLE_TILES.forEach(tile => {
+        const isOn = !!tileAccess[tile.key];
+        const chip = document.createElement('label');
+        chip.className = 'tile-toggle-chip' + (isOn ? ' active' : '');
+        chip.innerHTML = `<input type="checkbox" ${isOn ? 'checked' : ''} ${canManage ? '' : 'disabled'}> ${tile.label}`;
+        if (canManage) {
+          chip.querySelector('input').addEventListener('change', (e) => {
+            toggleMemberTileAccess(r.uid, tile.key, e.target.checked, chip);
+          });
+        }
+        tileRow.appendChild(chip);
+      });
     }
 
     // ===================== Member documents (certifications, licenses, IDs, etc.) =====================
