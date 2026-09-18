@@ -1203,13 +1203,13 @@
         <div class="cal-wrap">
           <div class="cal-header">
             <div style="position:relative;">
-              <button class="cal-picker-trigger" onclick="toggleCalPicker('month')">
+              <button class="cal-picker-trigger" onclick="toggleCalPicker('month', event)">
                 <span class="cal-month">${CAL_MONTH_NAMES[month]}</span>
               </button>
               <div class="cal-picker-dropdown months-picker" id="calMonthPicker">${monthsHtml}</div>
             </div>
             <div style="position:relative;">
-              <button class="cal-picker-trigger" onclick="toggleCalPicker('year')">
+              <button class="cal-picker-trigger" onclick="toggleCalPicker('year', event)">
                 <span class="cal-year">${year}</span>
               </button>
               <div class="cal-picker-dropdown years-picker" id="calYearPicker">${yearsHtml}</div>
@@ -1231,7 +1231,8 @@
       `;
     }
 
-    function toggleCalPicker(which) {
+    function toggleCalPicker(which, event) {
+      if (event) event.stopPropagation(); // stops this same click from immediately triggering the outside-click closer below
       const monthPicker = document.getElementById('calMonthPicker');
       const yearPicker = document.getElementById('calYearPicker');
       const target = which === 'month' ? monthPicker : yearPicker;
@@ -1241,6 +1242,15 @@
       target.classList.toggle('active', willOpen);
     }
     window.toggleCalPicker = toggleCalPicker;
+
+    // Closes an open month/year picker on any click outside of it — including outside of
+    // this whole Calendar tab (switching tabs, clicking a different member, etc.).
+    document.addEventListener('click', () => {
+      const monthPicker = document.getElementById('calMonthPicker');
+      const yearPicker = document.getElementById('calYearPicker');
+      if (monthPicker) monthPicker.classList.remove('active');
+      if (yearPicker) yearPicker.classList.remove('active');
+    });
 
     function selectCalendarMonth(monthIdx) {
       calendarViewDate = new Date(calendarViewDate.getFullYear(), monthIdx, 1);
