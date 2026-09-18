@@ -1,1 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diBadge | HR</title>
 
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('dibadge_web_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
+  <style>
+    :root {
+      --jet-black: #0f0f0f;
+      --paper-white: #f8f9fa;
+      --slate-surface: #1e1e1e;
+      --accent-white: #ffffff;
+      --muted-gray: #8e8e93;
+      --cool-ash: #a1a1a6;
+      --slate-charcoal: #3a3a3c;
+      --soft-border: #e5e5ea;
+      --error-red: #ff3b30;
+      --accent-teal: #14b8a6;
+
+      --bg-color: #e8e9ed;
+      --text-color: var(--slate-charcoal);
+      --surface-color: var(--accent-white);
+      --border-color: var(--soft-border);
+      --subtext-color: var(--cool-ash);
+      --tabbar-bg: var(--accent-white);
+      --header-bg: var(--accent-white);
+    }
+    [data-theme="dark"] {
+      --bg-color: var(--jet-black);
+      --text-color: var(--accent-white);
+      --surface-color: var(--slate-surface);
+      --border-color: #2c2c2e;
+      --subtext-color: var(--muted-gray);
+      --tabbar-bg: #050505;
+      --header-bg: #050505;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg-color); color: var(--text-color); height: 100vh; overflow: hidden; }
+
+    #authGate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--jet-black); display: flex; justify-content: center; align-items: center; z-index: 1000; color: var(--accent-white); font-size: 0.9rem; }
+
+    #appShell { display: flex; flex-direction: column; height: 100vh; }
+
+    .page-header { background: var(--header-bg); display: flex; align-items: center; gap: 14px; padding: 20px 28px; border-bottom: 1px solid var(--border-color); }
+    .back-btn { background: transparent; border: none; color: var(--text-color); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 6px; border-radius: 8px; }
+    .back-btn:hover { background: var(--surface-color); }
+    .back-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .page-title { font-size: 1.15rem; font-weight: 700; }
+
+    /* Same three-column shell used on Projects/Chat/Forms — left icon rail, main content,
+       right Activity Feed — so this page matches the rest of the app instead of standing
+       alone as a plain centered form. */
+    .dashboard-body-split { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    .left-vertical-tabbar { width: 64px; flex-shrink: 0; background: var(--tabbar-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; padding: 16px 0; }
+    .tab-btn { width: 44px; height: 44px; border-radius: 10px; background: transparent; border: none; color: var(--subtext-color); display: flex; justify-content: center; align-items: center; margin-bottom: 10px; text-decoration: none; cursor: pointer; transition: all 0.2s; }
+    .tab-btn svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .tab-btn:hover { background: var(--bg-color); color: var(--text-color); }
+    .tab-btn.active { background: var(--bg-color); color: var(--text-color); }
+
+    .member-detail-panel::-webkit-scrollbar, .activity-feed-panel::-webkit-scrollbar, .wa-list::-webkit-scrollbar { width: 10px; }
+    .member-detail-panel::-webkit-scrollbar-track, .activity-feed-panel::-webkit-scrollbar-track, .wa-list::-webkit-scrollbar-track { background: transparent; }
+    .member-detail-panel::-webkit-scrollbar-thumb, .activity-feed-panel::-webkit-scrollbar-thumb, .wa-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+    .member-detail-panel::-webkit-scrollbar-thumb:hover, .activity-feed-panel::-webkit-scrollbar-thumb:hover, .wa-list::-webkit-scrollbar-thumb:hover { background: var(--subtext-color); }
+    * { scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
+
+    .sidebar-fab {
+      margin-top: auto;
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--paper-white, #f8f9fa);
+      color: var(--jet-black, #0f0f0f);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    .sidebar-fab:hover { opacity: 0.9; transform: scale(1.05); }
+    .sidebar-fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
+    .activity-feed-panel {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--surface-color);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .details-panel-section-header { display: flex; align-items: center; justify-content: space-between; }
+    .details-panel-title-group { display: flex; align-items: center; gap: 8px; }
+    .details-panel-title-group svg { width: 16px; height: 16px; stroke: var(--subtext-color); stroke-width: 2; fill: none; flex-shrink: 0; }
+    .details-panel-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--subtext-color); }
+    .details-panel-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #25D366; animation: livePulse 1.6s ease-in-out infinite; flex-shrink: 0; }
+    @keyframes livePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .activity-feed-card { background: transparent; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+    .activity-feed-title { font-size: 0.85rem; font-weight: 700; color: var(--text-color); margin-bottom: 2px; }
+    .activity-feed-desc { font-size: 0.78rem; color: var(--subtext-color); line-height: 1.4; }
+    .activity-feed-time { font-size: 0.68rem; color: var(--subtext-color); margin-top: 6px; }
+
+    /* Master-detail layout, matching chat's own panel widths exactly: the member list is
+       sized like chat's own details panel (330px), and the detail pane takes the remaining
+       space the same way chat's main message area does. */
+    .member-list-panel {
+      width: 330px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface-color);
+      border-right: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+    .member-detail-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+    .member-detail-empty {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--subtext-color);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .wa-search-bar-wrap { padding: 16px 16px 10px 16px; flex-shrink: 0; }
+    .wa-search-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      border-radius: 20px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .wa-search-input:focus { border-color: var(--accent-teal); }
+
+    .wa-filter-pills { display: flex; gap: 8px; padding: 10px 16px 4px 16px; flex-shrink: 0; }
+    .wa-pill {
+      padding: 6px 14px;
+      border-radius: 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--subtext-color);
+      opacity: 0.55;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .wa-pill:hover { opacity: 0.8; }
+    .wa-pill.active { background: transparent; border-color: var(--text-color); color: var(--text-color); opacity: 1; }
+
+    .wa-list { flex: 1; overflow-y: auto; padding: 8px 0 24px 0; }
+    .wa-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    .wa-row:hover { background: var(--surface-color); }
+    .wa-row.selected { background: var(--surface-color); }
+    .wa-avatar {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent-teal); color: #04211d;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1rem;
+    }
+    .wa-avatar.large { width: 64px; height: 64px; font-size: 1.4rem; }
+    .wa-row-info { flex: 1; min-width: 0; }
+    .wa-row-name { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wa-badge {
+      display: inline-block;
+      margin-top: 3px;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .wa-badge.verified { background: rgba(20,184,166,0.15); color: var(--accent-teal); }
+    .wa-badge.pending { background: rgba(255,179,0,0.15); color: #ffb300; }
+    .wa-badge.unverified { background: var(--bg-color); color: var(--subtext-color); }
+
+    .member-detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .member-detail-name { font-size: 1.2rem; font-weight: 700; }
+    .member-detail-actions { display: flex; flex-direction: column; gap: 14px; max-width: 420px; }
+
+    .detail-tab-switcher { display: flex; gap: 4px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+    .detail-tab-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 4px; margin-right: 20px;
+      background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: var(--subtext-color); font-size: 0.88rem; font-weight: 600;
+      cursor: pointer;
+    }
+    .detail-tab-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .detail-tab-btn.active { color: var(--text-color); border-bottom-color: var(--text-color); }
+    .detail-tab-btn:hover { color: var(--text-color); }
+
+    .doc-tab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .doc-add-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 18px;
+      background: transparent; border: 1px solid var(--border-color); color: var(--text-color);
+      font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .doc-add-pill:hover { border-color: var(--text-color); }
+    .doc-add-pill svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    /* Calendar tab — fills the whole detail pane */
+    .cal-wrap { display: flex; flex-direction: column; height: 100%; }
+    .cal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+    .cal-month { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+    .cal-year { font-size: 1.5rem; font-weight: 700; color: var(--subtext-color); line-height: 1.2; }
+    .cal-nav { display: flex; gap: 18px; }
+    .cal-nav-btn { background: transparent; border: none; color: var(--text-color); cursor: pointer; padding: 4px; display: flex; }
+    .cal-nav-btn svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2.4; fill: none; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 10px; }
+    .cal-weekday { text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--subtext-color); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; flex: 1; gap: 4px; }
+    .cal-day { display: flex; align-items: center; justify-content: center; font-size: 1.05rem; color: var(--text-color); }
+    .cal-day.empty { visibility: hidden; }
+    .cal-day.today .cal-day-num { background: var(--text-color); color: var(--surface-color); border-radius: 8px; }
+    .cal-day-num { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+
+    /* Mail tab */
+    .mail-card {
+      padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 12px; max-width: 480px;
+    }
+    .mail-subject { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .mail-time { font-size: 0.76rem; color: var(--subtext-color); }
+    .mail-status { display: inline-block; margin-top: 8px; padding: 2px 9px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+    .mail-status.pending { background: rgba(255,179,0,0.15); color: #ffb300; }
+    .mail-status.accepted { background: rgba(20,184,166,0.15); color: var(--accent-teal); }
+    .mail-status.rejected { background: rgba(255,82,82,0.15); color: #ff5252; }
+    .mail-checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-color); cursor: pointer; }
+    .mail-checkbox-row input { width: 16px; height: 16px; }
+
+    .doc-card {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 12px;
+      max-width: 520px;
+    }
+    .doc-card-heading { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .doc-card-expiry { font-size: 0.78rem; color: var(--subtext-color); }
+    .doc-card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .doc-preview-thumb {
+      width: 56px; height: 56px; border-radius: 8px; object-fit: cover;
+      border: 1px solid var(--border-color); flex-shrink: 0;
+    }
+    .doc-preview-pdf {
+      width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+      background: var(--bg-color); border: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; font-weight: 700; color: var(--subtext-color);
+    }
+    .doc-icon-btn {
+      background: transparent; border: none; color: var(--subtext-color); cursor: pointer;
+      display: flex; padding: 4px;
+    }
+    .doc-icon-btn:hover { color: var(--text-color); }
+    .doc-icon-btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .doc-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 600; align-items: center; justify-content: center;
+    }
+    .doc-modal-overlay.active { display: flex; }
+    .doc-modal-box {
+      background: var(--surface-color); border: 1px solid var(--border-color);
+      border-radius: 14px; padding: 24px; width: 92%; max-width: 440px;
+      display: flex; flex-direction: column; gap: 16px; max-height: 90vh; overflow-y: auto;
+    }
+    .doc-modal-label { font-size: 0.8rem; font-weight: 600; color: var(--subtext-color); margin-bottom: 6px; display: block; }
+    .doc-attach-row {
+      display: flex; gap: 10px;
+    }
+    .doc-attach-btn {
+      padding: 6px 0; border: none;
+      background: transparent; color: var(--subtext-color); font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
+    }
+    .doc-attach-btn:hover { color: var(--text-color); }
+    .doc-attach-btn svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; flex-shrink: 0; }
+    .doc-attach-btn.has-file { color: var(--text-color); }
+    .doc-file-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 14px; background: var(--bg-color);
+      border: 1px solid var(--border-color); font-size: 0.76rem; color: var(--text-color);
+      max-width: 180px;
+    }
+    .doc-file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-file-chip button { background: transparent; border: none; color: var(--subtext-color); cursor: pointer; display: flex; flex-shrink: 0; padding: 0; }
+    .doc-file-chip button:hover { color: var(--text-color); }
+    .doc-file-chip button svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+    .doc-modal-textarea {
+      width: 100%; padding: 8px 0; background: transparent; border: none; border-bottom: 1px solid var(--border-color);
+      color: var(--text-color); border-radius: 0; font-size: 0.95rem; resize: none; min-height: 28px;
+      font-family: inherit; outline: none;
+    }
+    .doc-modal-textarea:focus { border-bottom-color: var(--text-color); }
+    .doc-modal-date-row { display: flex; align-items: center; gap: 14px; }
+    .doc-date-wrapper { position: relative; flex: 1; }
+    .doc-date-display {
+      padding: 8px 0; border-bottom: 1px solid var(--border-color);
+      color: var(--subtext-color); font-size: 0.95rem; font-family: inherit;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .doc-date-display svg { width: 17px; height: 17px; stroke: var(--text-color); stroke-width: 2; fill: none; flex-shrink: 0; transition: opacity 0.15s; opacity: 1; }
+    .doc-date-display svg.dimmed { opacity: 0.3 !important; }
+    .doc-na-chip { transition: opacity 0.15s; }
+    .doc-na-chip.dimmed { opacity: 0.4; }
+    .doc-date-display.has-value { color: var(--text-color); }
+    .doc-date-wrapper:focus-within .doc-date-display { border-bottom-color: var(--text-color); }
+    /* The native date input sits invisibly on top so its picker popup and keyboard entry
+       still work exactly as normal — only its own text and placeholder are hidden, since
+       neither can be restyled directly (a native date input always shows its own locale
+       format, and never accepts custom placeholder text like "Expiry date"). The styled
+       div behind it is what's actually visible. */
+    .doc-date-native-input {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; border: none; background: transparent; cursor: pointer; padding: 0; margin: 0;
+    }
+    :root .doc-date-native-input { color-scheme: light; }
+    [data-theme="dark"] .doc-date-native-input { color-scheme: dark; }
+    .doc-na-chip {
+      display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 14px;
+      border: 1px solid var(--border-color); font-size: 0.78rem; font-weight: 600; color: var(--subtext-color);
+      cursor: pointer; white-space: nowrap; background: transparent;
+    }
+    .doc-na-chip.active { border-color: var(--text-color); color: var(--text-color); }
+    .doc-modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+    .doc-cancel-btn {
+      background: transparent; border: none; color: var(--subtext-color);
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 8px 6px;
+    }
+    .doc-cancel-btn:hover { color: var(--text-color); }
+
+    .wa-empty { text-align: center; padding: 40px 20px; color: var(--subtext-color); font-size: 0.85rem; }
+
+    /* Invite-a-member modal, opened from the sidebar FAB */
+    .invite-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 500; align-items: center; justify-content: center;
+    }
+    .invite-modal-overlay.active { display: flex; }
+    .invite-modal-box {
+      background: var(--surface-color); border: 1px solid var(--border-color);
+      border-radius: 14px; padding: 24px; width: 92%; max-width: 420px;
+    }
+
+    .not-allowed { text-align: center; padding: 60px 20px; color: var(--subtext-color); }
+
+    .card { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 14px; padding: 22px; margin-bottom: 24px; }
+    .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .card-sub { font-size: 0.82rem; color: var(--subtext-color); margin-bottom: 18px; }
+
+    .search-row { display: flex; gap: 10px; }
+    .search-input {
+      flex: 1;
+      padding: 11px 12px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-color);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent-teal); }
+    .search-btn {
+      padding: 11px 20px;
+      background: var(--accent-teal);
+      color: #04211d;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .search-btn:hover { background: #0d9488; }
+    .search-btn:disabled { opacity: 0.6; cursor: default; }
+
+    .search-icon-btn {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: transparent;
+      color: var(--subtext-color);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .search-icon-btn:hover { color: var(--text-color); border-color: var(--text-color); }
+    .search-icon-btn svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 2.2; fill: none; }
+
+    .search-status { margin-top: 12px; font-size: 0.85rem; color: var(--subtext-color); }
+
+    .found-row {
+      display: none;
+      margin-top: 14px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+    .found-row.active { display: flex; }
+    .found-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .found-email { font-size: 0.9rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .found-type { font-size: 0.75rem; color: var(--subtext-color); }
+    .verify-btn {
+      padding: 8px 16px;
+      background: var(--accent-teal);
+      color: #04211d;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .verify-btn:hover { background: #0d9488; }
+    .verify-btn.danger { background: #ff5252; }
+    .verify-btn.danger:hover { background: #e04848; }
+    .verify-btn:disabled { opacity: 0.6; cursor: default; }
+
+    .members-list { display: flex; flex-direction: column; gap: 10px; }
+    .member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+    .member-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .member-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--accent-teal); color: #04211d;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .member-email { font-size: 0.88rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .member-status { font-size: 0.72rem; color: var(--accent-teal); font-weight: 600; }
+    .remove-member-btn {
+      background: transparent; border: none; color: var(--subtext-color);
+      cursor: pointer; padding: 6px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .remove-member-btn:hover { background: var(--bg-color); color: var(--error-red); }
+    .remove-member-btn svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+    .empty-state { font-size: 0.85rem; color: var(--subtext-color); text-align: center; padding: 20px 0; }
+    .inline-error { color: #ff6b60; font-size: 0.82rem; margin-top: 10px; }
+
+    .member-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .member-row-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  </style>
+</head>
+<body>
+
+  <div id="authGate">Checking your session…</div>
+
+  <div id="appShell" style="display:none;">
+    <header class="page-header">
+      <button class="back-btn" onclick="window.location.href='../home/'" title="Back to Home">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <span class="page-title">HR</span>
+    </header>
+
+    <div class="dashboard-body-split">
+      <aside class="left-vertical-tabbar">
+        <a href="../home/" class="tab-btn" title="Home">
+          <svg viewBox="0 0 24 24" style="width: 22px; height: 22px;">
+            <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
+          </svg>
+        </a>
+        <a href="../members/" class="tab-btn" title="Members">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        </a>
+        <button class="tab-btn active" title="HR">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        </button>
+        <button class="sidebar-fab" title="Connect a member" onclick="openInviteModal()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      </aside>
+
+      <div class="member-list-panel" id="pageBody">
+        <!-- Filled in once we know the signed-in user's role -->
+      </div>
+
+      <div class="member-detail-panel" id="memberDetailPanel">
+        <div class="member-detail-empty">Select a member to view details.</div>
+      </div>
+
+      <aside class="activity-feed-panel">
+        <div class="details-panel-section-header">
+          <div class="details-panel-title-group">
+            <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span class="details-panel-title">Activity Feed</span>
+          </div>
+          <span class="details-panel-live-dot" title="Live"></span>
+        </div>
+        <div class="activity-feed-card">
+          <div class="activity-feed-title">New Project Initialized</div>
+          <div class="activity-feed-desc">Amber Holdings setup complete.</div>
+          <div class="activity-feed-time">1 hour ago</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Send a connection request — opened from the sidebar FAB, replacing the old inline card -->
+  <div class="invite-modal-overlay" id="inviteModalOverlay" onclick="closeInviteModal(event)">
+    <div class="invite-modal-box" onclick="event.stopPropagation()">
+      <div class="card-title">Connect a member</div>
+      <div class="search-row">
+        <input type="text" class="search-input" id="searchEmailInput" placeholder="Email, phone number, or user ID" onkeydown="if(event.key==='Enter') window.handleSearch();">
+        <button class="search-icon-btn" id="searchBtn" onclick="window.handleSearch()" title="Search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+      </div>
+      <div class="search-status" id="searchStatus"></div>
+      <div class="found-row" id="foundRow">
+        <div class="found-info">
+          <span class="found-email" id="foundEmail"></span>
+          <span class="found-type" id="foundType"></span>
+        </div>
+        <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Connect</button>
+      </div>
+      <div class="inline-error" id="searchError" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Compose mail — sent to the selected member's diBadge app -->
+  <div class="doc-modal-overlay" id="mailModalOverlay" onclick="closeMailModal(event)">
+    <div class="doc-modal-box" onclick="event.stopPropagation()">
+      <div class="card-title">New Mail</div>
+      <div class="card-sub" style="margin-bottom:0;">From Organisation HR — sent directly to this member's diBadge app.</div>
+
+      <div>
+        <textarea class="doc-modal-textarea" id="mailSubjectInput" placeholder="Subject"></textarea>
+      </div>
+
+      <label class="mail-checkbox-row">
+        <input type="checkbox" id="mailAcceptRejectCheckbox">
+        Include Accept / Reject buttons
+      </label>
+
+      <div class="doc-modal-actions">
+        <button class="doc-cancel-btn" onclick="closeMailModal()">Cancel</button>
+        <button class="verify-btn" id="mailSendBtn" onclick="sendMail()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, collectionGroup,
+      query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove
+    } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2unuKGf0MQqxcB78Skh1H9U3ySFj16e0",
+      authDomain: "dibadge-fabxdi.firebaseapp.com",
+      projectId: "dibadge-fabxdi",
+      storageBucket: "dibadge-fabxdi.firebasestorage.app",
+      messagingSenderId: "390433769514",
+      appId: "1:390433769514:web:10c4fb97906be8690b1b53",
+      measurementId: "G-ZJVXLDZPRY"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUid = null;
+    let currentOrgId = null;
+    let isTrueCreator = false; // only the organisation's original creator — not a delegated admin — can appoint Super Admins
+    let canApproveJoinRequests = false; // true creator or Super Admin — not general Members-tile admins
+    let isCurrentUserSuperAdmin = false; // distinct from isTrueCreator — needed for the founder/super-admin/admin hierarchy below
+    let orgCreatorUid = null; // the founder — shown with their own badge, and untouchable by anyone but themselves
+    let foundUser = null; // { uid, email, accountType } from the last search
+
+    onAuthStateChanged(auth, async function(user) {
+      const gate = document.getElementById('authGate');
+      if (!user) {
+        window.location.href = '../login/';
+        return;
+      }
+      gate.style.display = 'none';
+      document.getElementById('appShell').style.display = 'flex';
+      currentUid = user.uid;
+
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const userData = userSnap.exists() ? userSnap.data() : null;
+
+      // The account's saved theme is the source of truth — resync it here in case this
+      // browser's localStorage doesn't match (cleared on restart, a different device).
+      const savedTheme = userData ? userData.themePreference : null;
+      if (savedTheme && savedTheme !== localStorage.getItem('dibadge_web_theme')) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        localStorage.setItem('dibadge_web_theme', savedTheme);
+      }
+
+      if (userData && userData.accountType === 'organisation_creator') {
+        currentOrgId = userData.organisationId;
+        isTrueCreator = true;
+        orgCreatorUid = user.uid;
+        canApproveJoinRequests = true;
+        renderCreatorView();
+        loadUnifiedMemberList();
+        return;
+      }
+
+      // Not the creator — check Super Admin status first (creator-equivalent access,
+      // not gated by any individual tile toggle), then fall back to delegated
+      // HR-tile access. Both require a Firestore index on the 'members'
+      // collection group for the field being queried — Firestore will show a console
+      // link to create whichever index is missing the first time each query runs.
+      try {
+        const superAdminQuery = query(
+          collectionGroup(db, 'members'),
+          where('uid', '==', user.uid),
+          where('isSuperAdmin', '==', true)
+        );
+        const superAdminSnap = await getDocs(superAdminQuery);
+        if (!superAdminSnap.empty) {
+          currentOrgId = superAdminSnap.docs[0].ref.parent.parent.id;
+          isTrueCreator = false; // still can't appoint other Super Admins — creator-only, by design
+          isCurrentUserSuperAdmin = true;
+          canApproveJoinRequests = true;
+          const orgSnap = await getDoc(doc(db, 'organisations', currentOrgId));
+          orgCreatorUid = orgSnap.exists() ? orgSnap.data().creatorUid : null;
+          renderCreatorView();
+          loadUnifiedMemberList();
+          return;
+        }
+      } catch (err) {
+        // Falls through to the delegated-admin check below.
+      }
+
+      try {
+        const adminQuery = query(
+          collectionGroup(db, 'members'),
+          where('uid', '==', user.uid),
+          where('tileAccess.hr', '==', true)
+        );
+        const adminSnap = await getDocs(adminQuery);
+        if (!adminSnap.empty) {
+          // A person could in principle be an HR-admin for more than one org —
+          // for now, use the first match.
+          const memberDoc = adminSnap.docs[0];
+          currentOrgId = memberDoc.ref.parent.parent.id;
+          isTrueCreator = false;
+          canApproveJoinRequests = false;
+          const orgSnap = await getDoc(doc(db, 'organisations', currentOrgId));
+          orgCreatorUid = orgSnap.exists() ? orgSnap.data().creatorUid : null;
+          renderCreatorView();
+          loadUnifiedMemberList();
+          return;
+        }
+      } catch (err) {
+        // Falls through to "not allowed" below — including the case where the
+        // required index doesn't exist yet.
+      }
+
+      renderNotAllowed();
+    });
+
+    function renderNotAllowed() {
+      document.getElementById('pageBody').innerHTML = `
+        <div class="not-allowed">You don't have access to HR for this organisation.</div>
+      `;
+    }
+
+    function renderCreatorView() {
+      document.getElementById('pageBody').innerHTML = `
+        <div class="wa-search-bar-wrap">
+          <input type="text" class="wa-search-input" id="memberSearchBox" placeholder="Search members.." oninput="renderMemberListUI()">
+        </div>
+        <div class="wa-filter-pills" id="filterPills">
+          <button class="wa-pill active" data-filter="all" onclick="setMemberFilter('all')">All</button>
+          <button class="wa-pill" data-filter="verified" onclick="setMemberFilter('verified')">Verified</button>
+          <button class="wa-pill" data-filter="pending" onclick="setMemberFilter('pending')">Pending</button>
+          <button class="wa-pill" data-filter="unverified" onclick="setMemberFilter('unverified')">Unverified</button>
+        </div>
+        <div class="wa-list" id="waMemberList">
+          <div class="wa-empty">Loading…</div>
+        </div>
+      `;
+    }
+
+    window.handleSearch = async function() {
+      const input = document.getElementById('searchEmailInput');
+      const statusEl = document.getElementById('searchStatus');
+      const errorEl = document.getElementById('searchError');
+      const foundRow = document.getElementById('foundRow');
+      const raw = input.value.trim();
+
+      foundRow.classList.remove('active');
+      errorEl.style.display = 'none';
+      foundUser = null;
+
+      if (!raw) {
+        statusEl.textContent = 'Enter an email, phone number, or user ID to search.';
+        return;
+      }
+
+      statusEl.textContent = 'Searching…';
+      try {
+        let docSnap = null;
+
+        // Try as a direct user ID first — cheapest possible lookup, no query needed.
+        const directSnap = await getDoc(doc(db, 'users', raw));
+        if (directSnap.exists()) {
+          docSnap = directSnap;
+        } else {
+          // Not a user ID — try email, then phone number.
+          const emailSnap = await getDocs(query(collection(db, 'users'), where('email', '==', raw.toLowerCase())));
+          if (!emailSnap.empty) {
+            docSnap = emailSnap.docs[0];
+          } else {
+            const phoneSnap = await getDocs(query(collection(db, 'users'), where('phoneNumber', '==', raw)));
+            if (!phoneSnap.empty) docSnap = phoneSnap.docs[0];
+          }
+        }
+
+        if (!docSnap) {
+          statusEl.textContent = '';
+          errorEl.textContent = 'No diBadge account found matching that.';
+          errorEl.style.display = 'block';
+          return;
+        }
+
+        const data = docSnap.data();
+        foundUser = { uid: docSnap.id, email: data.email, phoneNumber: data.phoneNumber, accountType: data.accountType };
+
+        statusEl.textContent = '';
+        document.getElementById('foundEmail').textContent = foundUser.email || foundUser.phoneNumber || foundUser.uid;
+        document.getElementById('foundType').textContent =
+          foundUser.accountType === 'personal' ? 'Personal account' : 'Organisation account';
+        foundRow.classList.add('active');
+      } catch (err) {
+        statusEl.textContent = '';
+        errorEl.textContent = 'Search failed — please try again.';
+        errorEl.style.display = 'block';
+      }
+    };
+
+    window.handleVerify = async function() {
+      if (!foundUser || !currentOrgId) return;
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true;
+      btn.textContent = 'Connecting…';
+
+      try {
+        // Deterministic doc id (the target's own uid) — one active invitation per person
+        // per organisation. Creating this does NOT verify them; they need to accept it
+        // themselves, from their own app, before they're actually a member of anything.
+        const reqRef = doc(db, 'organisations', currentOrgId, 'verificationRequests', foundUser.uid);
+        const existing = await getDoc(reqRef);
+        if (existing.exists() && existing.data().status === 'pending') {
+          const errorEl = document.getElementById('searchError');
+          errorEl.textContent = 'An invitation to this person is already pending.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        await setDoc(reqRef, {
+          initiatedByUid: currentUid,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+        document.getElementById('foundRow').classList.remove('active');
+        document.getElementById('searchEmailInput').value = '';
+        closeInviteModal();
+        loadUnifiedMemberList();
+      } catch (err) {
+        const errorEl = document.getElementById('searchError');
+        errorEl.textContent = 'Could not send the invitation — please try again.';
+        errorEl.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Connect';
+      }
+    };
+
+    // ===================== Unified member list =====================
+    // One combined, filterable, WhatsApp-style list replacing the four separate cards that
+    // used to sit in the page center — Verified, Pending (both the org-invite and the
+    // project-join-request kind), and Unverified (someone already in one of this org's
+    // projects who isn't verified or pending yet) are all merged into one list here, with
+    // a status badge distinguishing them and a click-to-expand row for whatever action
+    // applies to that status.
+
+    let allMemberRows = []; // [{ uid, email, status, pendingType?, requestId?, sortTime, data }]
+    let currentFilter = 'all';
+    let selectedMemberUid = null;
+    let currentDetailTab = 'details'; // 'details' | 'calendar' | 'mail' — resets to 'details' whenever a new member is selected
+
+    function escapeHtmlLocal(str) {
+      const div = document.createElement('div');
+      div.textContent = str == null ? '' : str;
+      return div.innerHTML;
+    }
+
+    async function loadUnifiedMemberList() {
+      const listEl = document.getElementById('waMemberList');
+      if (!listEl || !currentOrgId) return;
+      listEl.innerHTML = '<div class="wa-empty">Loading…</div>';
+
+      const rows = [];
+      const seenUids = new Set();
+
+      // Verified AND Unverified both live in this same collection now — "Unverified"
+      // specifically means someone whose verification was actively removed (e.g. they
+      // resigned), tracked via a status change rather than deleting their record, so
+      // there's still something here to show for it.
+      try {
+        const memberSnap = await getDocs(collection(db, 'organisations', currentOrgId, 'members'));
+        memberSnap.forEach(docSnap => {
+          const m = docSnap.data();
+          const status = m.status === 'unverified' ? 'unverified' : 'verified';
+          const sortTime = status === 'unverified'
+            ? (m.removedAt ? m.removedAt.toMillis() : 0)
+            : (m.addedAt ? m.addedAt.toMillis() : 0);
+          rows.push({ uid: docSnap.id, email: m.email, status, sortTime, data: m });
+          seenUids.add(docSnap.id);
+        });
+      } catch (err) {
+        // Leave this section empty on failure rather than blocking the rest.
+      }
+
+      // Pending — an invitation the org sent, awaiting that specific person's own accept
+      // or decline. Only shown to the creator/Super Admin, matching who could already send
+      // these before this list was unified.
+      if (canApproveJoinRequests) {
+        try {
+          const inviteSnap = await getDocs(query(
+            collection(db, 'organisations', currentOrgId, 'verificationRequests'),
+            where('status', '==', 'pending')
+          ));
+          for (const docSnap of inviteSnap.docs) {
+            const targetUid = docSnap.id;
+            if (seenUids.has(targetUid)) continue;
+            let email = targetUid;
+            try {
+              const userSnap = await getDoc(doc(db, 'users', targetUid));
+              if (userSnap.exists()) email = userSnap.data().email || userSnap.data().phoneNumber || email;
+            } catch (err) {
+              // Falls back to showing the raw uid — not fatal.
+            }
+            rows.push({
+              uid: targetUid, email, status: 'pending', pendingType: 'invite',
+              sortTime: docSnap.data().createdAt ? docSnap.data().createdAt.toMillis() : 0,
+              data: docSnap.data()
+            });
+            seenUids.add(targetUid);
+          }
+        } catch (err) {
+          // Leave this part empty on failure.
+        }
+
+        try {
+          const joinSnap = await getDocs(query(
+            collection(db, 'organisations', currentOrgId, 'joinRequests'),
+            where('status', '==', 'pending')
+          ));
+          joinSnap.forEach(docSnap => {
+            const r = docSnap.data();
+            if (seenUids.has(r.targetUid)) return;
+            rows.push({
+              uid: r.targetUid, email: r.targetEmail, status: 'pending', pendingType: 'joinRequest',
+              requestId: docSnap.id,
+              sortTime: r.createdAt ? r.createdAt.toMillis() : 0,
+              data: r
+            });
+            seenUids.add(r.targetUid);
+          });
+        } catch (err) {
+          // Leave this part empty on failure.
+        }
+      }
+
+      allMemberRows = rows;
+      renderMemberListUI();
+    }
+
+    function setMemberFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.wa-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === filter));
+      renderMemberListUI();
+    }
+
+    function renderMemberListUI() {
+      const listEl = document.getElementById('waMemberList');
+      if (!listEl) return;
+      const searchBox = document.getElementById('memberSearchBox');
+      const q = (searchBox ? searchBox.value : '').trim().toLowerCase();
+
+      let rows = allMemberRows.slice();
+      if (currentFilter !== 'all') rows = rows.filter(r => r.status === currentFilter);
+      if (q) {
+        rows = rows.filter(r => (r.email || '').toLowerCase().includes(q));
+      }
+
+      rows.sort((a, b) => b.sortTime - a.sortTime); // whoever was acted on most recently first — no status grouping
+
+      if (rows.length === 0) {
+        listEl.innerHTML = '<div class="wa-empty">No members to show.</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      rows.forEach(r => {
+        const badgeLabel = r.uid === orgCreatorUid ? 'Founder'
+          : r.status === 'pending' ? 'Pending'
+          : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
+        const row = document.createElement('div');
+        row.className = 'wa-row' + (selectedMemberUid === r.uid ? ' selected' : '');
+        row.dataset.uid = r.uid;
+        row.innerHTML = `
+          <div class="wa-avatar">${(r.email || '?').charAt(0).toUpperCase()}</div>
+          <div class="wa-row-info">
+            <div class="wa-row-name">${escapeHtmlLocal(r.email || r.uid)}</div>
+            <span class="wa-badge ${r.status}">${badgeLabel}</span>
+          </div>
+        `;
+        row.onclick = () => selectMember(r);
+        listEl.appendChild(row);
+      });
+
+      // Keep the detail pane in sync with the list — if the selected member fell out of
+      // the current filter/search, or their data changed, refresh or clear accordingly.
+      if (selectedMemberUid) {
+        const match = allMemberRows.find(r => r.uid === selectedMemberUid);
+        if (match) renderMemberDetailPane(match);
+        else clearMemberSelection();
+      }
+    }
+
+    function selectMember(r) {
+      selectedMemberUid = r.uid;
+      currentDetailTab = 'details';
+      document.querySelectorAll('.wa-row').forEach(el => {
+        el.classList.toggle('selected', el.dataset.uid === r.uid);
+      });
+      renderMemberDetailPane(r);
+    }
+
+    function clearMemberSelection() {
+      selectedMemberUid = null;
+      document.getElementById('memberDetailPanel').innerHTML =
+        '<div class="member-detail-empty">Select a member to view details.</div>';
+    }
+
+    // Founder — unrestricted over everyone. Super Admin — can manage anyone except the
+    // founder. A delegated Members-tile admin — can manage regular members and other
+    // Members-tile admins, but not a Super Admin or the founder. Mirrors the security
+    // rule exactly, so a hidden/disabled action here always matches what the rule would
+    // actually allow, rather than showing a control that would just fail on click.
+    function canManageMember(r) {
+      if (r.uid === orgCreatorUid) return false; // nobody manages the founder, including themselves, from this UI
+      if (isTrueCreator) return true;
+      if (isCurrentUserSuperAdmin) return true;
+      return !r.data.isSuperAdmin;
+    }
+
+    function renderMemberDetailPane(r) {
+      const panel = document.getElementById('memberDetailPanel');
+      if (!panel) return;
+
+      const badgeLabel = r.uid === orgCreatorUid ? 'Founder'
+        : r.status === 'pending' ? 'Pending'
+        : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
+
+      panel.innerHTML = `
+        <div class="member-detail-header">
+          <div class="wa-avatar large">${(r.email || '?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="member-detail-name">${escapeHtmlLocal(r.email || r.uid)}</div>
+            <span class="wa-badge ${r.status}">${badgeLabel}</span>
+          </div>
+        </div>
+        <div class="detail-tab-switcher">
+          <button class="detail-tab-btn${currentDetailTab === 'details' ? ' active' : ''}" data-tab="details">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Details
+          </button>
+          <button class="detail-tab-btn${currentDetailTab === 'calendar' ? ' active' : ''}" data-tab="calendar">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            Calendar
+          </button>
+          <button class="detail-tab-btn${currentDetailTab === 'mail' ? ' active' : ''}" data-tab="mail">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            Mail
+          </button>
+        </div>
+        <div id="memberDetailTabContent"></div>
+      `;
+      panel.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.onclick = () => switchDetailTab(btn.dataset.tab, r);
+      });
+
+      renderMemberDetailTabContent(r);
+    }
+
+    function switchDetailTab(tab, r) {
+      currentDetailTab = tab;
+      document.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      renderMemberDetailTabContent(r);
+    }
+
+    function renderMemberDetailTabContent(r) {
+      if (currentDetailTab === 'calendar') {
+        renderMemberCalendarTabContent(r);
+      } else if (currentDetailTab === 'mail') {
+        renderMemberMailTabContent(r);
+      } else {
+        renderMemberDetailsTabContent(r);
+      }
+    }
+
+    function renderMemberDetailsTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+
+      if (r.uid === orgCreatorUid) {
+        content.innerHTML = `
+          <div class="member-detail-actions">
+            <div style="font-size:0.85rem; color:var(--subtext-color);">The founder — always verified, and not manageable from this screen by anyone, including themselves.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const canManage = canManageMember(r);
+      let bodyHtml = '';
+
+      if (r.status === 'verified') {
+        bodyHtml = canManage
+          ? `<button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; gap:6px; display:flex; align-items:center;" title="Remove">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+              Remove
+            </button>`
+          : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`;
+      } else if (r.status === 'pending' && r.pendingType === 'invite') {
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Awaiting their response from the diBadge app.</div>
+          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Cancel invitation</button>
+        `;
+      } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Requested for project: ${escapeHtmlLocal(r.data.targetProjectName || r.data.targetProjectId || '')}</div>
+          <div style="display:flex; gap:8px;">
+            <button class="verify-btn">Approve</button>
+            <button class="remove-member-btn" style="border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Deny</button>
+          </div>
+        `;
+      } else {
+        // unverified
+        bodyHtml = `
+          <div style="font-size:0.85rem; color:var(--subtext-color);">Verification was removed — they no longer count as a verified member anywhere in the app.</div>
+          ${canManage
+            ? '<button class="verify-btn" style="align-self:flex-start;">Re-verify</button>'
+            : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A former Super Admin can only be re-verified by the founder or another Super Admin.' : ''}</div>`}
+        `;
+      }
+
+      content.innerHTML = `<div class="member-detail-actions">${bodyHtml}</div>`;
+
+      // Wire up whichever controls actually got rendered above.
+      if (r.status === 'verified' && canManage) {
+        content.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
+      } else if (r.status === 'pending' && r.pendingType === 'invite') {
+        content.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
+      } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
+        content.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
+        content.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
+      } else if (r.status === 'unverified' && canManage) {
+        content.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
+      }
+    }
+
+    // Calendar tab — a plain monthly calendar filling the whole detail pane, with
+    // previous/next navigation. Resets to the current month each time a member is
+    // (re-)selected; navigating within the tab keeps the calendar's own state.
+    let calendarViewDate = new Date();
+
+    function renderMemberCalendarTabContent(r) {
+      calendarViewDate = new Date();
+      renderCalendarGrid();
+    }
+
+    function renderCalendarGrid() {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+
+      const year = calendarViewDate.getFullYear();
+      const month = calendarViewDate.getMonth();
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const weekdayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const today = new Date();
+      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      let daysHtml = '';
+      for (let i = 0; i < firstDayOfMonth; i++) {
+        daysHtml += `<div class="cal-day empty"><div class="cal-day-num"></div></div>`;
+      }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = isCurrentMonth && today.getDate() === d;
+        daysHtml += `<div class="cal-day${isToday ? ' today' : ''}"><div class="cal-day-num">${d}</div></div>`;
+      }
+
+      content.innerHTML = `
+        <div class="cal-wrap">
+          <div class="cal-header">
+            <div>
+              <div class="cal-month">${monthNames[month]}</div>
+              <div class="cal-year">${year}</div>
+            </div>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" onclick="navigateCalendar(-1)" title="Previous month">
+                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <button class="cal-nav-btn" onclick="navigateCalendar(1)" title="Next month">
+                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cal-weekdays">${weekdayNames.map(w => `<div class="cal-weekday">${w}</div>`).join('')}</div>
+          <div class="cal-grid">${daysHtml}</div>
+        </div>
+      `;
+    }
+
+    function navigateCalendar(delta) {
+      calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + delta, 1);
+      renderCalendarGrid();
+    }
+    window.navigateCalendar = navigateCalendar;
+
+    // ===================== Mail (HR -> a specific member's diBadge app) =====================
+    // A fixed-direction notice, not a general email — always from Organisation HR, always to
+    // this one member, no cc/bcc, just a subject line and an optional Accept/Reject pair the
+    // member responds to from their own app. The web side here only sends and displays status;
+    // the actual accept/decline action happens on the recipient's device.
+
+    let mailModalMemberUid = null;
+
+    function canManageMail() {
+      return true; // same reasoning as documents — reaching this page already requires HR-admin-level access
+    }
+
+    async function renderMemberMailTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+      const canManage = canManageMail();
+
+      content.innerHTML = `
+        <div class="doc-tab-header">
+          <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">MAIL</span>
+          ${canManage ? `
+          <button class="doc-add-pill" onclick="openMailModal('${r.uid}')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Compose
+          </button>` : ''}
+        </div>
+        <div id="mailListArea"><div class="wa-empty">Loading…</div></div>
+      `;
+
+      const listArea = document.getElementById('mailListArea');
+      try {
+        const snap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'mail'));
+        if (snap.empty) {
+          listArea.innerHTML = '<div class="wa-empty">No mail sent yet.</div>';
+          return;
+        }
+        const mails = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        mails.sort((a, b) => (b.sentAt?.toMillis?.() || 0) - (a.sentAt?.toMillis?.() || 0));
+
+        listArea.innerHTML = '';
+        mails.forEach(m => {
+          const sentDate = m.sentAt && m.sentAt.toDate ? m.sentAt.toDate() : null;
+          const timeLabel = sentDate ? sentDate.toLocaleString() : '';
+          const statusLabel = (m.status || 'pending');
+          const statusHtml = m.hasAcceptReject
+            ? `<span class="mail-status ${statusLabel}">${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)}</span>`
+            : '';
+          const card = document.createElement('div');
+          card.className = 'mail-card';
+          card.innerHTML = `
+            <div class="mail-subject">${escapeHtmlLocal(m.subject || '')}</div>
+            <div class="mail-time">${timeLabel}</div>
+            ${statusHtml}
+          `;
+          listArea.appendChild(card);
+        });
+      } catch (err) {
+        listArea.innerHTML = '<div class="wa-empty">Couldn\'t load mail.</div>';
+      }
+    }
+
+    function openMailModal(memberUid) {
+      mailModalMemberUid = memberUid;
+      document.getElementById('mailSubjectInput').value = '';
+      document.getElementById('mailAcceptRejectCheckbox').checked = false;
+      document.getElementById('mailModalOverlay').classList.add('active');
+    }
+    function closeMailModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('mailModalOverlay').classList.remove('active');
+    }
+    window.openMailModal = openMailModal;
+    window.closeMailModal = closeMailModal;
+
+    async function sendMail() {
+      const subject = document.getElementById('mailSubjectInput').value.trim();
+      const hasAcceptReject = document.getElementById('mailAcceptRejectCheckbox').checked;
+      const memberUid = mailModalMemberUid;
+
+      if (!subject) {
+        alert('Please write a subject.');
+        return;
+      }
+
+      const btn = document.getElementById('mailSendBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      try {
+        const mailRef = doc(collection(db, 'organisations', currentOrgId, 'members', memberUid, 'mail'));
+        const payload = {
+          subject,
+          hasAcceptReject,
+          sentByUid: currentUid,
+          recipientUid: memberUid,
+          sentAt: serverTimestamp()
+        };
+        if (hasAcceptReject) payload.status = 'pending';
+
+        await setDoc(mailRef, payload);
+        closeMailModal();
+        const r = allMemberRows.find(row => row.uid === memberUid);
+        if (r) renderMemberMailTabContent(r);
+      } catch (err) {
+        alert('Could not send the mail — please try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send';
+      }
+    }
+    window.sendMail = sendMail;
+
+    function openInviteModal() {
+      document.getElementById('inviteModalOverlay').classList.add('active');
+      document.getElementById('searchEmailInput').value = '';
+      document.getElementById('searchStatus').textContent = '';
+      document.getElementById('foundRow').classList.remove('active');
+      document.getElementById('searchError').style.display = 'none';
+    }
+    function closeInviteModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      document.getElementById('inviteModalOverlay').classList.remove('active');
+    }
+    // Inline onclick="" attributes in the static HTML run in the global scope, but plain
+    // function declarations inside a <script type="module"> are scoped to the module, not
+    // attached to window — so these three (referenced directly from HTML, unlike the ones
+    // wired up programmatically elsewhere via .onclick = ...) need to be exposed explicitly,
+    // the same way handleSearch/handleVerify already are below.
+    window.openInviteModal = openInviteModal;
+    window.closeInviteModal = closeInviteModal;
+    window.setMemberFilter = setMemberFilter;
+
+    async function removeMember(uid) {
+      if (!currentOrgId) return;
+      try {
+        // Removing verification is a status change, not a deletion — "Unverified" means
+        // someone whose verification was actively removed (e.g. they resigned), which
+        // needs a record to show up as, not an erased document.
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', uid), {
+          status: 'unverified',
+          removedByUid: currentUid,
+          removedAt: serverTimestamp()
+        });
+        // An unverified member shouldn't still be reachable anywhere else in the app —
+        // pull them out of every one of this org's projects' member lists too, or they'd
+        // still show up in that project's chat and member list despite losing verification.
+        try {
+          const projSnap = await getDocs(query(collection(db, 'projects'), where('organisationId', '==', currentOrgId)));
+          const removals = [];
+          projSnap.forEach(p => {
+            if ((p.data().members || []).includes(uid)) {
+              removals.push(updateDoc(doc(db, 'projects', p.id), { members: arrayRemove(uid) }));
+            }
+          });
+          await Promise.all(removals);
+        } catch (err) {
+          // Their org-level status is already updated even if this project cleanup step
+          // partially fails — not treated as a full failure of the removal itself.
+        }
+        loadUnifiedMemberList();
+      } catch (err) {
+        // Silent — the list stays as-is and the person can retry.
+      }
+    }
+
+    async function reVerifyMember(uid) {
+      if (!currentOrgId) return;
+      try {
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', uid), {
+          status: 'verified',
+          addedAt: serverTimestamp(), // counts as the new "most recent" time for sorting
+          addedByUid: currentUid
+        });
+        loadUnifiedMemberList();
+      } catch (err) {
+        // Silent — the list stays as-is and the person can retry.
+      }
+    }
+
+    // ===================== Join requests (project member -> unverified person) =====================
+    // Only shown to the true creator or a Super Admin — approving one both verifies the
+    // person in the organisation AND adds them to the specific project they were
+    // requested for, in one action.
+
+    async function approveJoinRequest(requestId, request) {
+      try {
+        await setDoc(doc(db, 'organisations', currentOrgId, 'members', request.targetUid), {
+          uid: request.targetUid,
+          email: request.targetEmail,
+          status: 'verified',
+          addedByUid: currentUid,
+          addedAt: serverTimestamp(),
+          canAccessOrgAccount: false,
+          isSuperAdmin: false,
+          tileAccess: { projects: false, hr: false, members: false }
+        });
+        await updateDoc(doc(db, 'projects', request.targetProjectId), {
+          members: arrayUnion(request.targetUid)
+        });
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
+          status: 'approved'
+        });
+        await setDoc(doc(db, 'users', request.targetUid), { organisationId: currentOrgId }, { merge: true });
+        loadUnifiedMemberList();
+      } catch (err) {
+        // Leave the request pending — it can be retried.
+      }
+    }
+
+    async function denyJoinRequest(requestId) {
+      try {
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
+          status: 'denied'
+        });
+        loadUnifiedMemberList();
+      } catch (err) {
+        // Leave it as-is; retry is available.
+      }
+    }
+
+    // ===================== Pending invitations (organisation -> specific person) =====================
+    // The organisation invites a specific person to become a verified member — but the
+    // organisation does NOT decide the outcome. Only the invited person can accept or
+    // decline, from their own diBadge app.
+
+    async function cancelPendingInvite(targetUid) {
+      try {
+        await deleteDoc(doc(db, 'organisations', currentOrgId, 'verificationRequests', targetUid));
+        loadUnifiedMemberList();
+      } catch (err) {
+        // Leave it as-is; retry is available.
+      }
+    }
+  </script>
+</body>
+</html>
