@@ -326,7 +326,7 @@
    const defaultTiles = [
      { id: 'projects', title: 'Projects', url: '../projects', iconKey: 'projects', isProtected: true },
      { id: 'members', title: 'Members', url: '../members/', iconKey: 'members', isProtected: true },
-      { id: 'hr', title: 'HR', url: 'hr.html', iconKey: 'hr', isProtected: false }
+      { id: 'hr', title: 'HR', url: '../hr/', iconKey: 'hr', isProtected: true }
     ];
 
     // Theme is applied on load via the small IIFE at the top of this file, reading the
@@ -338,7 +338,12 @@
       if (!stored) return defaultTiles;
       const parsed = JSON.parse(stored);
       return parsed.map(t => {
-        if (['projects', 'members'].includes(t.id)) t.isProtected = true;
+        // Re-applies protection (and, for HR specifically, the corrected URL) even if
+        // someone's browser still has an older cached tile list saved from before HR was
+        // a real page — so an existing user doesn't get stuck on the old broken link or an
+        // accidentally-deletable HR tile just because their localStorage predates this change.
+        if (['projects', 'members', 'hr'].includes(t.id)) t.isProtected = true;
+        if (t.id === 'hr') t.url = '../hr/';
         return t;
       });
     }
