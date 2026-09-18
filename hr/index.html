@@ -136,7 +136,22 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
+    .compose-fab-pill {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding: 10px 22px;
+      border-radius: 20px;
+      background: transparent;
+      border: 1.5px solid var(--text-color);
+      color: var(--text-color);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .compose-fab-pill:hover { background: var(--surface-color); }
     .member-detail-empty {
       height: 100%;
       display: flex;
@@ -1292,13 +1307,9 @@
       content.innerHTML = `
         <div class="doc-tab-header">
           <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">MAIL</span>
-          ${canManage ? `
-          <button class="doc-add-pill" onclick="openMailModal('${r.uid}')">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Compose
-          </button>` : ''}
         </div>
         <div id="mailListArea"><div class="wa-empty">Loading…</div></div>
+        ${canManage ? `<button class="compose-fab-pill" onclick="openMailModal('${r.uid}')">Compose</button>` : ''}
       `;
 
       const listArea = document.getElementById('mailListArea');
