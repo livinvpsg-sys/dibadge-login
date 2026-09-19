@@ -606,6 +606,32 @@
         isTrueCreator = true;
         orgCreatorUid = user.uid;
         canApproveJoinRequests = true;
+
+        // Self-heal: an org created before the founder's own member record was created
+        // automatically at signup won't have one at all, so they'd never appear in their
+        // own member list no matter how correct the list-loading logic is. Create it here,
+        // once, if it's ever found missing — this fixes it permanently for that org from
+        // this point on, not just for this one session.
+        try {
+          const ownMemberRef = doc(db, 'organisations', currentOrgId, 'members', user.uid);
+          const ownMemberSnap = await getDoc(ownMemberRef);
+          if (!ownMemberSnap.exists()) {
+            await setDoc(ownMemberRef, {
+              uid: user.uid,
+              email: userData.email || user.email,
+              status: 'verified',
+              addedByUid: user.uid,
+              addedAt: serverTimestamp(),
+              canAccessOrgAccount: true,
+              isSuperAdmin: false,
+              tileAccess: { projects: true, hr: true, members: true }
+            });
+          }
+        } catch (err) {
+          // Not fatal — the list will just be missing the founder until this succeeds
+          // on a future load.
+        }
+
         renderCreatorView();
         loadUnifiedMemberList();
         return;
