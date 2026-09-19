@@ -72,21 +72,6 @@
     .member-detail-panel::-webkit-scrollbar-thumb:hover, .activity-feed-panel::-webkit-scrollbar-thumb:hover, .wa-list::-webkit-scrollbar-thumb:hover { background: var(--subtext-color); }
     * { scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
 
-    .sidebar-fab {
-      margin-top: auto;
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      background: var(--paper-white, #f8f9fa);
-      color: var(--jet-black, #0f0f0f);
-      border: none;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      transition: all 0.2s;
-    }
-    .sidebar-fab:hover { opacity: 0.9; transform: scale(1.05); }
-    .sidebar-fab svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2.2; fill: none; }
-
     @media (max-width: 1024px) { .activity-feed-panel { display: none; } }
     .activity-feed-panel {
       width: 300px;
@@ -468,9 +453,6 @@
         </a>
         <button class="tab-btn active" title="Members">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-        </button>
-        <button class="sidebar-fab" title="Add a new member (via HR)" onclick="window.location.href='../hr/'">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       </aside>
 
