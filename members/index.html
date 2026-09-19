@@ -150,23 +150,6 @@
     }
     .wa-search-input:focus { border-color: var(--accent-teal); }
 
-    .wa-filter-pills { display: flex; gap: 8px; padding: 10px 16px 4px 16px; flex-shrink: 0; }
-    .wa-pill {
-      padding: 6px 14px;
-      border-radius: 16px;
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--subtext-color);
-      opacity: 0.55;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s;
-    }
-    .wa-pill:hover { opacity: 0.8; }
-    .wa-pill.active { background: transparent; border-color: var(--text-color); color: var(--text-color); opacity: 1; }
-
     .wa-list { flex: 1; overflow-y: auto; padding: 8px 0 24px 0; }
     .wa-row {
       display: flex;
@@ -486,7 +469,7 @@
         <button class="tab-btn active" title="Members">
           <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
         </button>
-        <button class="sidebar-fab" title="Connect a member" onclick="openInviteModal()">
+        <button class="sidebar-fab" title="Add a new member (via HR)" onclick="window.location.href='../hr/'">
           <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
         </button>
       </aside>
@@ -513,28 +496,6 @@
           <div class="activity-feed-time">1 hour ago</div>
         </div>
       </aside>
-    </div>
-  </div>
-
-  <!-- Send a connection request — opened from the sidebar FAB, replacing the old inline card -->
-  <div class="invite-modal-overlay" id="inviteModalOverlay" onclick="closeInviteModal(event)">
-    <div class="invite-modal-box" onclick="event.stopPropagation()">
-      <div class="card-title">Connect a member</div>
-      <div class="search-row">
-        <input type="text" class="search-input" id="searchEmailInput" placeholder="Email, phone number, or user ID" onkeydown="if(event.key==='Enter') window.handleSearch();">
-        <button class="search-icon-btn" id="searchBtn" onclick="window.handleSearch()" title="Search">
-          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </button>
-      </div>
-      <div class="search-status" id="searchStatus"></div>
-      <div class="found-row" id="foundRow">
-        <div class="found-info">
-          <span class="found-email" id="foundEmail"></span>
-          <span class="found-type" id="foundType"></span>
-        </div>
-        <button class="verify-btn" id="verifyBtn" onclick="window.handleVerify()">Connect</button>
-      </div>
-      <div class="inline-error" id="searchError" style="display:none;"></div>
     </div>
   </div>
 
@@ -618,7 +579,6 @@
     let canApproveJoinRequests = false; // true creator or Super Admin — not general Members-tile admins
     let isCurrentUserSuperAdmin = false; // distinct from isTrueCreator — needed for the founder/super-admin/admin hierarchy below
     let orgCreatorUid = null; // the founder — shown with their own badge, and untouchable by anyone but themselves
-    let foundUser = null; // { uid, email, accountType } from the last search
 
     onAuthStateChanged(auth, async function(user) {
       const gate = document.getElementById('authGate');
@@ -717,120 +677,12 @@
         <div class="wa-search-bar-wrap">
           <input type="text" class="wa-search-input" id="memberSearchBox" placeholder="Search members.." oninput="renderMemberListUI()">
         </div>
-        <div class="wa-filter-pills" id="filterPills">
-          <button class="wa-pill active" data-filter="all" onclick="setMemberFilter('all')">All</button>
-          <button class="wa-pill" data-filter="verified" onclick="setMemberFilter('verified')">Verified</button>
-          <button class="wa-pill" data-filter="pending" onclick="setMemberFilter('pending')">Pending</button>
-          <button class="wa-pill" data-filter="unverified" onclick="setMemberFilter('unverified')">Unverified</button>
-        </div>
         <div class="wa-list" id="waMemberList">
           <div class="wa-empty">Loading…</div>
         </div>
       `;
     }
 
-    window.handleSearch = async function() {
-      const input = document.getElementById('searchEmailInput');
-      const statusEl = document.getElementById('searchStatus');
-      const errorEl = document.getElementById('searchError');
-      const foundRow = document.getElementById('foundRow');
-      const raw = input.value.trim();
-
-      foundRow.classList.remove('active');
-      errorEl.style.display = 'none';
-      foundUser = null;
-
-      if (!raw) {
-        statusEl.textContent = 'Enter an email, phone number, or user ID to search.';
-        return;
-      }
-
-      statusEl.textContent = 'Searching…';
-      try {
-        let docSnap = null;
-
-        // Try as a direct user ID first — cheapest possible lookup, no query needed.
-        const directSnap = await getDoc(doc(db, 'users', raw));
-        if (directSnap.exists()) {
-          docSnap = directSnap;
-        } else {
-          // Not a user ID — try email, then phone number.
-          const emailSnap = await getDocs(query(collection(db, 'users'), where('email', '==', raw.toLowerCase())));
-          if (!emailSnap.empty) {
-            docSnap = emailSnap.docs[0];
-          } else {
-            const phoneSnap = await getDocs(query(collection(db, 'users'), where('phoneNumber', '==', raw)));
-            if (!phoneSnap.empty) docSnap = phoneSnap.docs[0];
-          }
-        }
-
-        if (!docSnap) {
-          statusEl.textContent = '';
-          errorEl.textContent = 'No diBadge account found matching that.';
-          errorEl.style.display = 'block';
-          return;
-        }
-
-        const data = docSnap.data();
-        foundUser = { uid: docSnap.id, email: data.email, phoneNumber: data.phoneNumber, accountType: data.accountType };
-
-        statusEl.textContent = '';
-        document.getElementById('foundEmail').textContent = foundUser.email || foundUser.phoneNumber || foundUser.uid;
-        document.getElementById('foundType').textContent =
-          foundUser.accountType === 'personal' ? 'Personal account' : 'Organisation account';
-        foundRow.classList.add('active');
-      } catch (err) {
-        statusEl.textContent = '';
-        errorEl.textContent = 'Search failed — please try again.';
-        errorEl.style.display = 'block';
-      }
-    };
-
-    window.handleVerify = async function() {
-      if (!foundUser || !currentOrgId) return;
-      const btn = document.getElementById('verifyBtn');
-      btn.disabled = true;
-      btn.textContent = 'Connecting…';
-
-      try {
-        // Deterministic doc id (the target's own uid) — one active invitation per person
-        // per organisation. Creating this does NOT verify them; they need to accept it
-        // themselves, from their own app, before they're actually a member of anything.
-        const reqRef = doc(db, 'organisations', currentOrgId, 'verificationRequests', foundUser.uid);
-        const existing = await getDoc(reqRef);
-        if (existing.exists() && existing.data().status === 'pending') {
-          const errorEl = document.getElementById('searchError');
-          errorEl.textContent = 'An invitation to this person is already pending.';
-          errorEl.style.display = 'block';
-          return;
-        }
-        await setDoc(reqRef, {
-          initiatedByUid: currentUid,
-          status: 'pending',
-          createdAt: serverTimestamp()
-        });
-        document.getElementById('foundRow').classList.remove('active');
-        document.getElementById('searchEmailInput').value = '';
-        closeInviteModal();
-        loadUnifiedMemberList();
-      } catch (err) {
-        const errorEl = document.getElementById('searchError');
-        errorEl.textContent = 'Could not send the invitation — please try again.';
-        errorEl.style.display = 'block';
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Connect';
-      }
-    };
-
-    // Toggleable tiles a verified member could be granted access to, once they're
-    // allowed into the organisation account at all. 'members' grants this same
-    // page — verifying and managing others — not just the app's Members tile icon.
-    const TOGGLEABLE_TILES = [
-      { key: 'projects', label: 'Projects' },
-      { key: 'hr', label: 'HR' },
-      { key: 'members', label: 'Members (admin)' }
-    ];
 
     // ===================== Unified member list =====================
     // One combined, filterable, WhatsApp-style list replacing the four separate cards that
@@ -840,10 +692,9 @@
     // a status badge distinguishing them and a click-to-expand row for whatever action
     // applies to that status.
 
-    let allMemberRows = []; // [{ uid, email, status, pendingType?, requestId?, sortTime, data }]
-    let currentFilter = 'all';
+    let allMemberRows = []; // [{ uid, email, status: 'verified', sortTime, data }] — verified staff only now
     let selectedMemberUid = null;
-    let currentDetailTab = 'details'; // 'details' | 'documents' — resets to 'details' whenever a new member is selected
+    let currentDetailTab = 'documents'; // 'documents' | 'requests' — resets to 'documents' whenever a new member is selected
     let currentDocuments = []; // cached documents for whichever member's Documents tab is currently open
     let editingDocId = null; // set when the Add-document modal is actually editing an existing one
     let memberDocSearchIndex = {}; // uid -> lowercase text blob of all their document descriptions, for search
@@ -860,109 +711,47 @@
       listEl.innerHTML = '<div class="wa-empty">Loading…</div>';
 
       const rows = [];
-      const seenUids = new Set();
 
-      // Verified AND Unverified both live in this same collection now — "Unverified"
-      // specifically means someone whose verification was actively removed (e.g. they
-      // resigned), tracked via a status change rather than deleting their record, so
-      // there's still something here to show for it.
+      // This page only manages already-verified staff now — pending invitations and
+      // unverified (removed) members are handled entirely on the HR page instead, so
+      // there's no need to fetch or show either of those here.
       try {
         const memberSnap = await getDocs(collection(db, 'organisations', currentOrgId, 'members'));
         memberSnap.forEach(docSnap => {
           const m = docSnap.data();
-          const status = m.status === 'unverified' ? 'unverified' : 'verified';
-          const sortTime = status === 'unverified'
-            ? (m.removedAt ? m.removedAt.toMillis() : 0)
-            : (m.addedAt ? m.addedAt.toMillis() : 0);
-          rows.push({ uid: docSnap.id, email: m.email, status, sortTime, data: m });
-          seenUids.add(docSnap.id);
+          if (m.status === 'unverified') return;
+          rows.push({
+            uid: docSnap.id, email: m.email, status: 'verified',
+            sortTime: m.addedAt ? m.addedAt.toMillis() : 0,
+            data: m
+          });
         });
       } catch (err) {
-        // Leave this section empty on failure rather than blocking the rest.
-      }
-
-      // Pending — an invitation the org sent, awaiting that specific person's own accept
-      // or decline. Only shown to the creator/Super Admin, matching who could already send
-      // these before this list was unified.
-      if (canApproveJoinRequests) {
-        try {
-          const inviteSnap = await getDocs(query(
-            collection(db, 'organisations', currentOrgId, 'verificationRequests'),
-            where('status', '==', 'pending')
-          ));
-          for (const docSnap of inviteSnap.docs) {
-            const targetUid = docSnap.id;
-            if (seenUids.has(targetUid)) continue;
-            let email = targetUid;
-            try {
-              const userSnap = await getDoc(doc(db, 'users', targetUid));
-              if (userSnap.exists()) email = userSnap.data().email || userSnap.data().phoneNumber || email;
-            } catch (err) {
-              // Falls back to showing the raw uid — not fatal.
-            }
-            rows.push({
-              uid: targetUid, email, status: 'pending', pendingType: 'invite',
-              sortTime: docSnap.data().createdAt ? docSnap.data().createdAt.toMillis() : 0,
-              data: docSnap.data()
-            });
-            seenUids.add(targetUid);
-          }
-        } catch (err) {
-          // Leave this part empty on failure.
-        }
-
-        try {
-          const joinSnap = await getDocs(query(
-            collection(db, 'organisations', currentOrgId, 'joinRequests'),
-            where('status', '==', 'pending')
-          ));
-          joinSnap.forEach(docSnap => {
-            const r = docSnap.data();
-            if (seenUids.has(r.targetUid)) return;
-            rows.push({
-              uid: r.targetUid, email: r.targetEmail, status: 'pending', pendingType: 'joinRequest',
-              requestId: docSnap.id,
-              sortTime: r.createdAt ? r.createdAt.toMillis() : 0,
-              data: r
-            });
-            seenUids.add(r.targetUid);
-          });
-        } catch (err) {
-          // Leave this part empty on failure.
-        }
+        // Leave the list empty on failure rather than blocking the rest.
       }
 
       allMemberRows = rows;
 
       // Build a search index of every member's document descriptions, so searching "abcd"
       // can match a member because of a document titled "abcd" even though their own email
-      // doesn't contain it. Pending rows have no documents subcollection yet, so this only
-      // needs to run for verified/unverified members. Done once here (not on every
-      // keystroke) and cached in memberDocSearchIndex for renderMemberListUI to use.
+      // doesn't contain it. Done once here (not on every keystroke) and cached in
+      // memberDocSearchIndex for renderMemberListUI to use.
       memberDocSearchIndex = {};
-      const docFetches = rows
-        .filter(r => r.status === 'verified' || r.status === 'unverified')
-        .map(async r => {
-          try {
-            const docsSnap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'documents'));
-            const descriptions = [];
-            docsSnap.forEach(d => {
-              const desc = d.data().description;
-              if (desc) descriptions.push(desc.toLowerCase());
-            });
-            memberDocSearchIndex[r.uid] = descriptions.join(' ');
-          } catch (err) {
-            // Leave this member's index empty on failure — their own fields still match normally.
-          }
-        });
+      const docFetches = rows.map(async r => {
+        try {
+          const docsSnap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'documents'));
+          const descriptions = [];
+          docsSnap.forEach(d => {
+            const desc = d.data().description;
+            if (desc) descriptions.push(desc.toLowerCase());
+          });
+          memberDocSearchIndex[r.uid] = descriptions.join(' ');
+        } catch (err) {
+          // Leave this member's index empty on failure — their own fields still match normally.
+        }
+      });
       await Promise.all(docFetches);
 
-      renderMemberListUI();
-    }
-
-    function setMemberFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.wa-pill').forEach(p => p.classList.toggle('active', p.dataset.filter === filter));
       renderMemberListUI();
     }
 
@@ -973,7 +762,6 @@
       const q = (searchBox ? searchBox.value : '').trim().toLowerCase();
 
       let rows = allMemberRows.slice();
-      if (currentFilter !== 'all') rows = rows.filter(r => r.status === currentFilter);
       if (q) {
         rows = rows.filter(r =>
           (r.email || '').toLowerCase().includes(q) ||
@@ -981,7 +769,7 @@
         );
       }
 
-      rows.sort((a, b) => b.sortTime - a.sortTime); // whoever was acted on most recently first — no status grouping
+      rows.sort((a, b) => b.sortTime - a.sortTime); // most recently verified first
 
       if (rows.length === 0) {
         listEl.innerHTML = '<div class="wa-empty">No members to show.</div>';
@@ -1018,7 +806,7 @@
 
     function selectMember(r) {
       selectedMemberUid = r.uid;
-      currentDetailTab = 'details';
+      currentDetailTab = 'documents';
       document.querySelectorAll('.wa-row').forEach(el => {
         el.classList.toggle('selected', el.dataset.uid === r.uid);
       });
@@ -1031,229 +819,94 @@
         '<div class="member-detail-empty">Select a member to view details.</div>';
     }
 
-    // Founder — unrestricted over everyone. Super Admin — can manage anyone except the
-    // founder. A delegated Members-tile admin — can manage regular members and other
-    // Members-tile admins, but not a Super Admin or the founder. Mirrors the security
-    // rule exactly, so a hidden/disabled action here always matches what the rule would
-    // actually allow, rather than showing a control that would just fail on click.
-    function canManageMember(r) {
-      if (r.uid === orgCreatorUid) return false; // nobody manages the founder, including themselves, from this UI
-      if (isTrueCreator) return true;
-      if (isCurrentUserSuperAdmin) return true;
-      return !r.data.isSuperAdmin;
-    }
-
-    function renderMemberDetailPane(r) {
-      const panel = document.getElementById('memberDetailPanel');
-      if (!panel) return;
-
-      const badgeLabel = r.uid === orgCreatorUid ? 'Founder'
-        : r.status === 'pending' ? 'Pending'
-        : (r.status.charAt(0).toUpperCase() + r.status.slice(1));
-
-      panel.innerHTML = `
-        <div class="member-detail-header">
-          <div class="wa-avatar large">${(r.email || '?').charAt(0).toUpperCase()}</div>
-          <div>
-            <div class="member-detail-name">${escapeHtmlLocal(r.email || r.uid)}</div>
-            <span class="wa-badge ${r.status}">${badgeLabel}</span>
-          </div>
-        </div>
-        <div class="detail-tab-switcher">
-          <button class="detail-tab-btn${currentDetailTab === 'details' ? ' active' : ''}" data-tab="details">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            Details
-          </button>
-          <button class="detail-tab-btn${currentDetailTab === 'permission' ? ' active' : ''}" data-tab="permission">
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            Permission
-          </button>
-          <button class="detail-tab-btn${currentDetailTab === 'documents' ? ' active' : ''}" data-tab="documents">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-            Documents
-          </button>
-        </div>
-        <div id="memberDetailTabContent"></div>
-      `;
-      panel.querySelectorAll('.detail-tab-btn').forEach(btn => {
-        btn.onclick = () => switchDetailTab(btn.dataset.tab, r);
-      });
-
-      renderMemberDetailTabContent(r);
-    }
-
-    function switchDetailTab(tab, r) {
-      currentDetailTab = tab;
-      document.querySelectorAll('.detail-tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-      });
-      renderMemberDetailTabContent(r);
-    }
-
-    function renderMemberDetailTabContent(r) {
-      if (currentDetailTab === 'documents') {
-        renderMemberDocumentsTabContent(r);
-      } else if (currentDetailTab === 'permission') {
-        renderMemberPermissionTabContent(r);
-      } else {
-        renderMemberDetailsTabContent(r);
-      }
-    }
-
-    function renderMemberDetailsTabContent(r) {
-      const content = document.getElementById('memberDetailTabContent');
-      if (!content) return;
-
-      if (r.uid === orgCreatorUid) {
-        content.innerHTML = `
-          <div class="member-detail-actions">
-            <div style="font-size:0.85rem; color:var(--subtext-color);">The founder — always verified, and not manageable from this screen by anyone, including themselves.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const canManage = canManageMember(r);
-      let bodyHtml = '';
-
-      if (r.status === 'verified') {
-        bodyHtml = canManage
-          ? `<button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px; gap:6px; display:flex; align-items:center;" title="Remove">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
-              Remove
-            </button>`
-          : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A Super Admin can only be managed by the founder or another Super Admin.' : ''}</div>`;
-      } else if (r.status === 'pending' && r.pendingType === 'invite') {
-        bodyHtml = `
-          <div style="font-size:0.85rem; color:var(--subtext-color);">Awaiting their response from the diBadge app.</div>
-          <button class="remove-member-btn" style="align-self:flex-start; border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Cancel invitation</button>
-        `;
-      } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
-        bodyHtml = `
-          <div style="font-size:0.85rem; color:var(--subtext-color);">Requested for project: ${escapeHtmlLocal(r.data.targetProjectName || r.data.targetProjectId || '')}</div>
-          <div style="display:flex; gap:8px;">
-            <button class="verify-btn">Approve</button>
-            <button class="remove-member-btn" style="border:1px solid var(--border-color); border-radius:8px; padding:8px 14px;">Deny</button>
-          </div>
-        `;
-      } else {
-        // unverified
-        bodyHtml = `
-          <div style="font-size:0.85rem; color:var(--subtext-color);">Verification was removed — they no longer count as a verified member anywhere in the app.</div>
-          ${canManage
-            ? '<button class="verify-btn" style="align-self:flex-start;">Re-verify</button>'
-            : `<div style="font-size:0.82rem; color:var(--subtext-color);">${r.data.isSuperAdmin ? 'A former Super Admin can only be re-verified by the founder or another Super Admin.' : ''}</div>`}
-        `;
-      }
-
-      content.innerHTML = `<div class="member-detail-actions">${bodyHtml}</div>`;
-
-      // Wire up whichever controls actually got rendered above.
-      if (r.status === 'verified' && canManage) {
-        content.querySelector('.remove-member-btn').onclick = () => { removeMember(r.uid); clearMemberSelection(); };
-      } else if (r.status === 'pending' && r.pendingType === 'invite') {
-        content.querySelector('.remove-member-btn').onclick = () => { cancelPendingInvite(r.uid); clearMemberSelection(); };
-      } else if (r.status === 'pending' && r.pendingType === 'joinRequest') {
-        content.querySelector('.verify-btn').onclick = () => { approveJoinRequest(r.requestId, r.data); clearMemberSelection(); };
-        content.querySelector('.remove-member-btn').onclick = () => { denyJoinRequest(r.requestId); clearMemberSelection(); };
-      } else if (r.status === 'unverified' && canManage) {
-        content.querySelector('.verify-btn').onclick = () => reVerifyMember(r.uid);
-      }
-    }
-
-    // Permission is only meaningful for an actual verified member — pending/unverified rows
-    // don't have anything to grant access to yet, so this tab shows an explanatory note for
-    // those instead of an empty set of controls.
-    function renderMemberPermissionTabContent(r) {
-      const content = document.getElementById('memberDetailTabContent');
-      if (!content) return;
-
-      if (r.uid === orgCreatorUid) {
-        content.innerHTML = `
-          <div class="member-detail-actions">
-            <div style="font-size:0.85rem; color:var(--subtext-color);">The founder already has full access to everything — there's nothing to grant or restrict.</div>
-          </div>
-        `;
-        return;
-      }
-
-      if (r.status !== 'verified') {
-        content.innerHTML = `
-          <div class="member-detail-actions">
-            <div style="font-size:0.85rem; color:var(--subtext-color);">Permissions apply once this member is verified.</div>
-          </div>
-        `;
-        return;
-      }
-
-      const canManage = canManageMember(r);
-      const tileAccess = r.data.tileAccess || {};
-      const canAccessOrg = !!r.data.canAccessOrgAccount;
-      const isSuper = !!r.data.isSuperAdmin;
-
-      content.innerHTML = `
-        <div class="member-detail-actions">
-          <label class="tile-toggle-chip${canAccessOrg ? ' active' : ''}" style="width:fit-content;">
-            <input type="checkbox" ${canAccessOrg ? 'checked' : ''} ${canManage ? '' : 'disabled'}> Organisation account access
-          </label>
-          ${isTrueCreator ? `
-          <label class="tile-toggle-chip${isSuper ? ' active' : ''}" style="width:fit-content; ${isSuper ? 'border-color:#ffb300; color:#ffb300;' : ''}">
-            <input type="checkbox" ${isSuper ? 'checked' : ''}> Super Admin
-          </label>` : ''}
-          <div class="tile-access-row" id="tileRow-${r.uid}" style="border-top:none; padding-top:0;"></div>
-          ${!canManage ? `<div style="font-size:0.82rem; color:var(--subtext-color);">${isSuper ? "A Super Admin's permissions can only be changed by the founder or another Super Admin." : ''}</div>` : ''}
-        </div>
-      `;
-
-      const chips = content.querySelectorAll('.tile-toggle-chip');
-      const orgChip = chips[0];
-      const superChip = isTrueCreator ? chips[1] : null;
-      if (canManage) {
-        orgChip.querySelector('input').addEventListener('change', (e) => {
-          toggleOrgAccountAccess(r.uid, e.target.checked, orgChip);
-        });
-      }
-      if (superChip) {
-        superChip.querySelector('input').addEventListener('change', async (e) => {
-          const enabled = e.target.checked;
-          try {
-            await updateDoc(doc(db, 'organisations', currentOrgId, 'members', r.uid), { isSuperAdmin: enabled });
-            loadUnifiedMemberList();
-          } catch (err) {
-            e.target.checked = !enabled;
-          }
-        });
-      }
-      const tileRow = content.querySelector('.tile-access-row');
-      TOGGLEABLE_TILES.forEach(tile => {
-        const isOn = !!tileAccess[tile.key];
-        const chip = document.createElement('label');
-        chip.className = 'tile-toggle-chip' + (isOn ? ' active' : '');
-        chip.innerHTML = `<input type="checkbox" ${isOn ? 'checked' : ''} ${canManage ? '' : 'disabled'}> ${tile.label}`;
-        if (canManage) {
-          chip.querySelector('input').addEventListener('change', (e) => {
-            toggleMemberTileAccess(r.uid, tile.key, e.target.checked, chip);
-          });
-        }
-        tileRow.appendChild(chip);
-      });
-    }
-
     // ===================== Member documents (certifications, licenses, IDs, etc.) =====================
 
     let pendingDocFiles = []; // [{ file, kind: 'image'|'pdf' }, ...] — staged until Save is pressed
     let existingAttachments = []; // attachments already saved on the document being edited
     let docModalMemberUid = null; // which member's Documents tab the open modal is adding/editing for
 
-    // Document management is administrative record-keeping, not a claim of power over
-    // someone's verification status — so it deliberately does NOT inherit canManageMember's
-    // "nobody touches the founder" rule. Anyone who can even reach this page already has
-    // org-admin-level access (creator, Super Admin, or a delegated Members-tile admin —
-    // that's exactly what gates entry to this whole view in the auth callback above), so
-    // there's no further per-target restriction to check here, matching the documents
-    // security rule itself.
+    // Document management is administrative record-keeping — anyone who can even reach
+    // this page already has org-admin-level access (creator, Super Admin, or a delegated
+    // Members-tile admin — that's exactly what gates entry to this whole view in the auth
+    // callback above), so there's no further per-target restriction to check here, matching
+    // the documents security rule itself.
     function canManageDocuments() {
       return true;
+    }
+
+    // ===================== Requests (leave, claims, overtime) =====================
+    // Submitted from the member's own diBadge app — this page only approves or rejects
+    // them, it never creates one. An approved request is expected to also show up on the
+    // HR page's calendar for that member; wiring that display is a separate, later piece
+    // of work — this only records the approval itself.
+
+    function canManageRequests() {
+      return true; // same reasoning as canManageDocuments above
+    }
+
+    async function renderMemberRequestsTabContent(r) {
+      const content = document.getElementById('memberDetailTabContent');
+      if (!content) return;
+      const canManage = canManageRequests();
+
+      content.innerHTML = `
+        <div class="doc-tab-header">
+          <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">REQUESTS</span>
+        </div>
+        <div id="requestsListArea"><div class="wa-empty">Loading…</div></div>
+      `;
+
+      const listArea = document.getElementById('requestsListArea');
+      try {
+        const snap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'requests'));
+        if (snap.empty) {
+          listArea.innerHTML = '<div class="wa-empty">No requests yet.</div>';
+          return;
+        }
+        const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        requests.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
+
+        listArea.innerHTML = '';
+        requests.forEach(req => {
+          const typeLabel = (req.type || 'request').charAt(0).toUpperCase() + (req.type || 'request').slice(1);
+          const statusLabel = req.status || 'pending';
+          const submittedDate = req.submittedAt && req.submittedAt.toDate ? req.submittedAt.toDate() : null;
+          const card = document.createElement('div');
+          card.className = 'mail-card';
+          card.innerHTML = `
+            <div class="mail-subject">${escapeHtmlLocal(typeLabel)}${req.details ? ' — ' + escapeHtmlLocal(req.details) : ''}</div>
+            <div class="mail-time">${submittedDate ? submittedDate.toLocaleString() : ''}</div>
+            <span class="mail-status ${statusLabel}">${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)}</span>
+            ${canManage && statusLabel === 'pending' ? `
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button class="verify-btn">Approve</button>
+              <button class="verify-btn danger">Reject</button>
+            </div>` : ''}
+          `;
+          if (canManage && statusLabel === 'pending') {
+            const [approveBtn, rejectBtn] = card.querySelectorAll('.verify-btn');
+            approveBtn.onclick = () => respondToRequest(r.uid, req.id, 'approved');
+            rejectBtn.onclick = () => respondToRequest(r.uid, req.id, 'rejected');
+          }
+          listArea.appendChild(card);
+        });
+      } catch (err) {
+        listArea.innerHTML = '<div class="wa-empty">Couldn\'t load requests.</div>';
+      }
+    }
+
+    async function respondToRequest(memberUid, requestId, decision) {
+      try {
+        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', memberUid, 'requests', requestId), {
+          status: decision,
+          decidedByUid: currentUid,
+          decidedAt: serverTimestamp()
+        });
+        const r = allMemberRows.find(row => row.uid === memberUid);
+        if (r) renderMemberRequestsTabContent(r);
+      } catch (err) {
+        alert('Could not update this request — please try again.');
+      }
     }
 
     async function renderMemberDocumentsTabContent(r) {
@@ -1536,151 +1189,6 @@
       }
     }
     window.confirmDeleteDocument = confirmDeleteDocument;
-
-    async function toggleOrgAccountAccess(uid, enabled, chipEl) {
-      chipEl.classList.toggle('active', enabled);
-      try {
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', uid), { canAccessOrgAccount: enabled });
-      } catch (err) {
-        chipEl.classList.toggle('active', !enabled);
-        chipEl.querySelector('input').checked = !enabled;
-      }
-    }
-
-    function openInviteModal() {
-      document.getElementById('inviteModalOverlay').classList.add('active');
-      document.getElementById('searchEmailInput').value = '';
-      document.getElementById('searchStatus').textContent = '';
-      document.getElementById('foundRow').classList.remove('active');
-      document.getElementById('searchError').style.display = 'none';
-    }
-    function closeInviteModal(event) {
-      if (event && event.target !== event.currentTarget) return;
-      document.getElementById('inviteModalOverlay').classList.remove('active');
-    }
-    // Inline onclick="" attributes in the static HTML run in the global scope, but plain
-    // function declarations inside a <script type="module"> are scoped to the module, not
-    // attached to window — so these three (referenced directly from HTML, unlike the ones
-    // wired up programmatically elsewhere via .onclick = ...) need to be exposed explicitly,
-    // the same way handleSearch/handleVerify already are below.
-    window.openInviteModal = openInviteModal;
-    window.closeInviteModal = closeInviteModal;
-    window.setMemberFilter = setMemberFilter;
-
-    async function toggleMemberTileAccess(memberUid, tileKey, enabled, chipEl) {
-      chipEl.classList.toggle('active', enabled); // optimistic — flips back below on failure
-      try {
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', memberUid), {
-          [`tileAccess.${tileKey}`]: enabled
-        });
-      } catch (err) {
-        chipEl.classList.toggle('active', !enabled);
-        const checkbox = chipEl.querySelector('input');
-        if (checkbox) checkbox.checked = !enabled;
-      }
-    }
-
-    async function removeMember(uid) {
-      if (!currentOrgId) return;
-      try {
-        // Removing verification is a status change, not a deletion — "Unverified" means
-        // someone whose verification was actively removed (e.g. they resigned), which
-        // needs a record to show up as, not an erased document.
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', uid), {
-          status: 'unverified',
-          removedByUid: currentUid,
-          removedAt: serverTimestamp()
-        });
-        // An unverified member shouldn't still be reachable anywhere else in the app —
-        // pull them out of every one of this org's projects' member lists too, or they'd
-        // still show up in that project's chat and member list despite losing verification.
-        try {
-          const projSnap = await getDocs(query(collection(db, 'projects'), where('organisationId', '==', currentOrgId)));
-          const removals = [];
-          projSnap.forEach(p => {
-            if ((p.data().members || []).includes(uid)) {
-              removals.push(updateDoc(doc(db, 'projects', p.id), { members: arrayRemove(uid) }));
-            }
-          });
-          await Promise.all(removals);
-        } catch (err) {
-          // Their org-level status is already updated even if this project cleanup step
-          // partially fails — not treated as a full failure of the removal itself.
-        }
-        loadUnifiedMemberList();
-      } catch (err) {
-        // Silent — the list stays as-is and the person can retry.
-      }
-    }
-
-    async function reVerifyMember(uid) {
-      if (!currentOrgId) return;
-      try {
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'members', uid), {
-          status: 'verified',
-          addedAt: serverTimestamp(), // counts as the new "most recent" time for sorting
-          addedByUid: currentUid
-        });
-        loadUnifiedMemberList();
-      } catch (err) {
-        // Silent — the list stays as-is and the person can retry.
-      }
-    }
-
-    // ===================== Join requests (project member -> unverified person) =====================
-    // Only shown to the true creator or a Super Admin — approving one both verifies the
-    // person in the organisation AND adds them to the specific project they were
-    // requested for, in one action.
-
-    async function approveJoinRequest(requestId, request) {
-      try {
-        await setDoc(doc(db, 'organisations', currentOrgId, 'members', request.targetUid), {
-          uid: request.targetUid,
-          email: request.targetEmail,
-          status: 'verified',
-          addedByUid: currentUid,
-          addedAt: serverTimestamp(),
-          canAccessOrgAccount: false,
-          isSuperAdmin: false,
-          tileAccess: { projects: false, hr: false, members: false }
-        });
-        await updateDoc(doc(db, 'projects', request.targetProjectId), {
-          members: arrayUnion(request.targetUid)
-        });
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
-          status: 'approved'
-        });
-        await setDoc(doc(db, 'users', request.targetUid), { organisationId: currentOrgId }, { merge: true });
-        loadUnifiedMemberList();
-      } catch (err) {
-        // Leave the request pending — it can be retried.
-      }
-    }
-
-    async function denyJoinRequest(requestId) {
-      try {
-        await updateDoc(doc(db, 'organisations', currentOrgId, 'joinRequests', requestId), {
-          status: 'denied'
-        });
-        loadUnifiedMemberList();
-      } catch (err) {
-        // Leave it as-is; retry is available.
-      }
-    }
-
-    // ===================== Pending invitations (organisation -> specific person) =====================
-    // The organisation invites a specific person to become a verified member — but the
-    // organisation does NOT decide the outcome. Only the invited person can accept or
-    // decline, from their own diBadge app.
-
-    async function cancelPendingInvite(targetUid) {
-      try {
-        await deleteDoc(doc(db, 'organisations', currentOrgId, 'verificationRequests', targetUid));
-        loadUnifiedMemberList();
-      } catch (err) {
-        // Leave it as-is; retry is available.
-      }
-    }
   </script>
 </body>
 </html>
