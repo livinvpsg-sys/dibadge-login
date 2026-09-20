@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>diBadge | HR</title>
+  <title>diBadge | Personnel</title>
 
   <script>
     (function() {
@@ -552,7 +552,7 @@
       <button class="back-btn" onclick="window.location.href='../home/'" title="Back to Home">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
-      <span class="page-title">HR</span>
+      <span class="page-title">Personnel</span>
     </header>
 
     <div class="dashboard-body-split">
@@ -562,7 +562,7 @@
             <path d="M2.768 19.985c0 1.978 1.594 3.584 3.563 3.584h10.615c1.968 0 3.563-1.605 3.563-3.584V10.611c0-1.973-1.596-3.577-3.563-3.577H9.859c-0.463 0-0.899 0.229-1.164 0.62-0.266 0.385-0.323 0.874-0.153 1.311 0.527 1.382 1.85 2.292 3.325 2.292h4.038v7.65H7.857v-6.551c0-0.979-0.401-1.921-1.108-2.598L4.011 7.199c-0.202-0.194-0.502-0.251-0.757-0.136-0.255 0.109-0.418 0.36-0.418 0.641v11.691zM7.897 0.669c0-0.204-0.165-0.365-0.362-0.365H3.163c-0.198 0-0.356 0.161-0.356 0.365v3.995c0 0.199 0.158 0.36 0.356 0.36h4.377c0.197 0 0.362-0.161 0.362-0.36V0.669z" fill="#008080" stroke="none"/>
           </svg>
         </a>
-        <button class="tab-btn active" title="HR">
+        <button class="tab-btn active" title="Personnel">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
         </button>
         <button class="sidebar-fab" title="Connect a member" onclick="openInviteModal()">
@@ -757,7 +757,7 @@
 
     function renderNotAllowed() {
       document.getElementById('pageBody').innerHTML = `
-        <div class="not-allowed">You don't have access to HR for this organisation.</div>
+        <div class="not-allowed">You don't have access to Personnel for this organisation.</div>
       `;
     }
 
