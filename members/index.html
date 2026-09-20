@@ -812,6 +812,59 @@
       }
     }
 
+    function renderMemberDetailPane(r) {
+      const panel = document.getElementById('memberDetailPanel');
+      if (!panel) return;
+
+      const badgeLabel = r.uid === orgCreatorUid ? 'Founder' : 'Verified';
+
+      panel.innerHTML = `
+        <div class="member-detail-header">
+          <div class="wa-avatar large">${(r.email || '?').charAt(0).toUpperCase()}</div>
+          <div>
+            <div class="member-detail-name">${escapeHtmlLocal(r.email || r.uid)}</div>
+            <span class="wa-badge ${r.status}">${badgeLabel}</span>
+          </div>
+        </div>
+        <div class="detail-tab-switcher">
+          <button class="detail-tab-btn${currentDetailTab === 'documents' ? ' active' : ''}" data-tab="documents">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            Documents
+          </button>
+          <button class="detail-tab-btn${currentDetailTab === 'requests' ? ' active' : ''}" data-tab="requests">
+            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            Requests
+          </button>
+        </div>
+        <div id="memberDetailTabContent"></div>
+      `;
+      panel.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.onclick = () => switchDetailTab(btn.dataset.tab, r);
+      });
+
+      renderMemberDetailTabContent(r);
+    }
+
+    function switchDetailTab(tab, r) {
+      currentDetailTab = tab;
+      document.querySelectorAll('.detail-tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      renderMemberDetailTabContent(r);
+    }
+
+    // Documents and Requests both apply to the founder exactly the same as anyone else —
+    // neither is about verification power (unlike the old Details/Permission tabs this
+    // page used to have), they're administrative record-keeping and leave/claims/overtime
+    // approvals, which the founder can have and use just like any other verified member.
+    function renderMemberDetailTabContent(r) {
+      if (currentDetailTab === 'requests') {
+        renderMemberRequestsTabContent(r);
+      } else {
+        renderMemberDocumentsTabContent(r);
+      }
+    }
+
     function selectMember(r) {
       selectedMemberUid = r.uid;
       currentDetailTab = 'documents';
