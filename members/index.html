@@ -1065,10 +1065,7 @@
       currentMemberRequestStatusFilter = 'all';
 
       content.innerHTML = `
-        <div class="doc-tab-header">
-          <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">REQUESTS</span>
-        </div>
-        <div class="req-filter-pills" id="memberRequestsFilterPills">
+        <div class="req-filter-pills" id="memberRequestsFilterPills" style="margin-top:0;">
           <button class="req-pill active" data-status="all" onclick="setMemberRequestsFilter('all')">All</button>
           <button class="req-pill" data-status="pending" onclick="setMemberRequestsFilter('pending')">Pending</button>
           <button class="req-pill" data-status="approved" onclick="setMemberRequestsFilter('approved')">Approved</button>
