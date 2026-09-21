@@ -185,6 +185,23 @@
     .detail-tab-btn:hover { color: var(--text-color); }
 
     .doc-tab-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+
+    .req-filter-pills { display: flex; gap: 8px; margin: 10px 0 18px 0; }
+    .req-pill {
+      padding: 6px 14px;
+      border-radius: 16px;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--subtext-color);
+      opacity: 0.55;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .req-pill:hover { opacity: 0.8; }
+    .req-pill.active { background: transparent; border-color: var(--text-color); color: var(--text-color); opacity: 1; }
     .doc-add-pill {
       display: flex; align-items: center; gap: 6px;
       padding: 8px 16px; border-radius: 18px;
@@ -916,8 +933,12 @@
     }
     window.showMembersListView = showMembersListView;
 
+    let cachedGlobalRequests = []; // the last-fetched combined list, so filter pills can re-render without re-fetching
+    let currentGlobalRequestStatusFilter = 'all'; // 'all' | 'pending' | 'approved'
+
     async function showGlobalRequestsView(type) {
       currentGlobalRequestType = type;
+      currentGlobalRequestStatusFilter = 'all';
       selectedMemberUid = null;
       document.querySelectorAll('.wa-row').forEach(el => el.classList.remove('selected'));
       const idForType = { leave: 'sidebarTabLeave', overtime: 'sidebarTabOvertime', claim: 'sidebarTabClaims' }[type];
@@ -929,6 +950,11 @@
       panel.innerHTML = `
         <div class="member-detail-header" style="margin-bottom:8px;">
           <div class="member-detail-name">${REQUEST_TYPE_LABELS[type]} requests</div>
+        </div>
+        <div class="req-filter-pills" id="globalRequestsFilterPills">
+          <button class="req-pill active" data-status="all" onclick="setGlobalRequestsFilter('all')">All</button>
+          <button class="req-pill" data-status="pending" onclick="setGlobalRequestsFilter('pending')">Pending</button>
+          <button class="req-pill" data-status="approved" onclick="setGlobalRequestsFilter('approved')">Approved</button>
         </div>
         <div id="globalRequestsListArea"><div class="wa-empty">Loading…</div></div>
       `;
@@ -952,15 +978,35 @@
         // Falls through to the empty-state / partial-results rendering below.
       }
 
-      if (combined.length === 0) {
-        listArea.innerHTML = `<div class="wa-empty">No ${REQUEST_TYPE_LABELS[type].toLowerCase()} requests yet.</div>`;
+      combined.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
+      cachedGlobalRequests = combined;
+      renderGlobalRequestsList();
+    }
+
+    function setGlobalRequestsFilter(status) {
+      currentGlobalRequestStatusFilter = status;
+      document.querySelectorAll('.req-pill').forEach(p => p.classList.toggle('active', p.dataset.status === status));
+      renderGlobalRequestsList();
+    }
+    window.setGlobalRequestsFilter = setGlobalRequestsFilter;
+
+    function renderGlobalRequestsList() {
+      const listArea = document.getElementById('globalRequestsListArea');
+      if (!listArea) return;
+      const type = currentGlobalRequestType;
+
+      let rows = cachedGlobalRequests;
+      if (currentGlobalRequestStatusFilter !== 'all') {
+        rows = rows.filter(req => (req.status || 'pending') === currentGlobalRequestStatusFilter);
+      }
+
+      if (rows.length === 0) {
+        listArea.innerHTML = `<div class="wa-empty">No ${REQUEST_TYPE_LABELS[type].toLowerCase()} requests${currentGlobalRequestStatusFilter !== 'all' ? ' with this status' : ''}.</div>`;
         return;
       }
 
-      combined.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
-
       listArea.innerHTML = '';
-      combined.forEach(req => {
+      rows.forEach(req => {
         const statusLabel = req.status || 'pending';
         const submittedDate = req.submittedAt && req.submittedAt.toDate ? req.submittedAt.toDate() : null;
         const card = document.createElement('div');
@@ -1010,14 +1056,22 @@
       return true; // same reasoning as canManageDocuments above
     }
 
+    let cachedMemberRequests = []; // the last-fetched list for whichever member's Requests tab is open
+    let currentMemberRequestStatusFilter = 'all'; // 'all' | 'pending' | 'approved'
+
     async function renderMemberRequestsTabContent(r) {
       const content = document.getElementById('memberDetailTabContent');
       if (!content) return;
-      const canManage = canManageRequests();
+      currentMemberRequestStatusFilter = 'all';
 
       content.innerHTML = `
         <div class="doc-tab-header">
           <span style="font-size:0.8rem; color:var(--subtext-color); font-weight:600;">REQUESTS</span>
+        </div>
+        <div class="req-filter-pills" id="memberRequestsFilterPills">
+          <button class="req-pill active" data-status="all" onclick="setMemberRequestsFilter('all')">All</button>
+          <button class="req-pill" data-status="pending" onclick="setMemberRequestsFilter('pending')">Pending</button>
+          <button class="req-pill" data-status="approved" onclick="setMemberRequestsFilter('approved')">Approved</button>
         </div>
         <div id="requestsListArea"><div class="wa-empty">Loading…</div></div>
       `;
@@ -1025,40 +1079,62 @@
       const listArea = document.getElementById('requestsListArea');
       try {
         const snap = await getDocs(collection(db, 'organisations', currentOrgId, 'members', r.uid, 'requests'));
-        if (snap.empty) {
-          listArea.innerHTML = '<div class="wa-empty">No requests yet.</div>';
-          return;
-        }
         const requests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         requests.sort((a, b) => (b.submittedAt?.toMillis?.() || 0) - (a.submittedAt?.toMillis?.() || 0));
-
-        listArea.innerHTML = '';
-        requests.forEach(req => {
-          const typeLabel = (req.type || 'request').charAt(0).toUpperCase() + (req.type || 'request').slice(1);
-          const statusLabel = req.status || 'pending';
-          const submittedDate = req.submittedAt && req.submittedAt.toDate ? req.submittedAt.toDate() : null;
-          const card = document.createElement('div');
-          card.className = 'mail-card';
-          card.innerHTML = `
-            <div class="mail-subject">${escapeHtmlLocal(typeLabel)}${req.details ? ' — ' + escapeHtmlLocal(req.details) : ''}</div>
-            <div class="mail-time">${submittedDate ? submittedDate.toLocaleString() : ''}</div>
-            <span class="mail-status ${statusLabel}">${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)}</span>
-            ${canManage && statusLabel === 'pending' ? `
-            <div style="display:flex; gap:8px; margin-top:10px;">
-              <button class="verify-btn">Approve</button>
-              <button class="verify-btn danger">Reject</button>
-            </div>` : ''}
-          `;
-          if (canManage && statusLabel === 'pending') {
-            const [approveBtn, rejectBtn] = card.querySelectorAll('.verify-btn');
-            approveBtn.onclick = () => respondToRequest(r.uid, req.id, 'approved');
-            rejectBtn.onclick = () => respondToRequest(r.uid, req.id, 'rejected');
-          }
-          listArea.appendChild(card);
-        });
+        cachedMemberRequests = requests;
+        renderMemberRequestsList(r);
       } catch (err) {
         listArea.innerHTML = '<div class="wa-empty">Couldn\'t load requests.</div>';
       }
+    }
+
+    function setMemberRequestsFilter(status) {
+      currentMemberRequestStatusFilter = status;
+      document.querySelectorAll('#memberRequestsFilterPills .req-pill').forEach(p => p.classList.toggle('active', p.dataset.status === status));
+      const r = allMemberRows.find(row => row.uid === selectedMemberUid);
+      if (r) renderMemberRequestsList(r);
+    }
+    window.setMemberRequestsFilter = setMemberRequestsFilter;
+
+    function renderMemberRequestsList(r) {
+      const listArea = document.getElementById('requestsListArea');
+      if (!listArea) return;
+      const canManage = canManageRequests();
+
+      let rows = cachedMemberRequests;
+      if (currentMemberRequestStatusFilter !== 'all') {
+        rows = rows.filter(req => (req.status || 'pending') === currentMemberRequestStatusFilter);
+      }
+
+      if (rows.length === 0) {
+        listArea.innerHTML = `<div class="wa-empty">No requests${currentMemberRequestStatusFilter !== 'all' ? ' with this status' : ' yet'}.</div>`;
+        return;
+      }
+
+      listArea.innerHTML = '';
+      rows.forEach(req => {
+        const typeLabel = (req.type || 'request').charAt(0).toUpperCase() + (req.type || 'request').slice(1);
+        const statusLabel = req.status || 'pending';
+        const submittedDate = req.submittedAt && req.submittedAt.toDate ? req.submittedAt.toDate() : null;
+        const card = document.createElement('div');
+        card.className = 'mail-card';
+        card.innerHTML = `
+          <div class="mail-subject">${escapeHtmlLocal(typeLabel)}${req.details ? ' — ' + escapeHtmlLocal(req.details) : ''}</div>
+          <div class="mail-time">${submittedDate ? submittedDate.toLocaleString() : ''}</div>
+          <span class="mail-status ${statusLabel}">${statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1)}</span>
+          ${canManage && statusLabel === 'pending' ? `
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <button class="verify-btn">Approve</button>
+            <button class="verify-btn danger">Reject</button>
+          </div>` : ''}
+        `;
+        if (canManage && statusLabel === 'pending') {
+          const [approveBtn, rejectBtn] = card.querySelectorAll('.verify-btn');
+          approveBtn.onclick = () => respondToRequest(r.uid, req.id, 'approved');
+          rejectBtn.onclick = () => respondToRequest(r.uid, req.id, 'rejected');
+        }
+        listArea.appendChild(card);
+      });
     }
 
     async function respondToRequest(memberUid, requestId, decision) {
